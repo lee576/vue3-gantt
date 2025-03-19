@@ -1,0 +1,29 @@
+{
+  "name": "vue3-gantt",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vueuse/core": "^13.0.0",
+    "dayjs": "^1.11.13",
+    "interactjs": "^1.10.27",
+    "svg.js": "^2.7.1",
+    "vue": "^3.5.13",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/svg.js": "^0.0.17",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/tsconfig": "^0.7.0",
+    "imports-loader": "^0.8.0",
+    "sass-embedded": "^1.85.1",
+    "typescript": "~5.7.2",
+    "vite": "^6.2.0",
+    "vue-tsc": "^2.2.4"
+  }
+}
