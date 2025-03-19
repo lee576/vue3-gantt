@@ -14,6 +14,7 @@ import type { DataConfig, StyleConfig, EventConfig } from './components/gantt/Ty
 const styleConfig = ref<StyleConfig>({
   headersHeight: 100,
   rowHeight: 60,
+  // 设置进度条颜色
   setBarColor: (row: Record<string, any>) => {
     const level = row.level as string;
     const colorMap = {
