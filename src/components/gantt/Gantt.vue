@@ -23,10 +23,12 @@
             <SplitPane direction="row" :min="0" :max="100" :triggerLength="10"
                 v-model:paneLengthPercent="paneLengthPercent">
                 <template #one>
-                    <TaskTable :headersHeight='styleConfig.headersHeight' :rowHeight='styleConfig.rowHeight'></TaskTable>
+                    <TaskTable :headersHeight='styleConfig.headersHeight' :rowHeight='styleConfig.rowHeight'>
+                    </TaskTable>
                 </template>
                 <template #two>
-
+                    <RightTable ref='barContent' :headersHeight='styleConfig.headersHeight'
+                        :rowHeight='styleConfig.rowHeight'></RightTable>
                 </template>
             </SplitPane>
         </div>
@@ -44,6 +46,7 @@ import DatePicker from './DatePicker.vue';
 // 导入分割面板组件
 import SplitPane from './SplitPane.vue';
 import TaskTable from '../gantt/task/TaskTable.vue';
+import RightTable from './RightTable.vue';
 import { store, mutations } from './Store';
 // 移除未使用的类型导入
 import { type ConfirmDateData } from './ZodSchema';
@@ -156,7 +159,8 @@ export default defineComponent({
     components: {
         DatePicker,
         SplitPane,
-        TaskTable
+        TaskTable,
+        RightTable
     },
     setup(props) {
         // 定义响应式数据
@@ -403,6 +407,7 @@ export default defineComponent({
                 }
             }
             mode.value = _mode;
+            setTimeLineHeaders(mode.value);
         };
 
         const confirmStart = (value: ConfirmDateData) => {
@@ -469,7 +474,7 @@ export default defineComponent({
                 selectedEndDate.value = props.dataConfig.queryEndDate;
                 endDate.value = props.dataConfig.queryEndDate;
             }
-            
+
             if (timelineCellCount.value) {
                 mutations.setTimelineCellCount(timelineCellCount.value);
             }
@@ -510,7 +515,7 @@ export default defineComponent({
             mutations.setTasks(props.dataConfig.dataSource())
             mutations.setMapFields(props.dataConfig.mapFields)
             mutations.setTimelineCellCount(timelineCellCount.value)
-            mutations.setMode(mode.value)
+
         });
 
         onMounted(() => {
@@ -518,12 +523,14 @@ export default defineComponent({
             weekHeaders.value = [];
             dayHeaders.value = [];
             hourHeaders.value = [];
-            timeMode('月');
+
             let level: number = 0;
             RecursionData('0', props.dataConfig.dataSource(), level);
             mutations.setTasks(initData.value);
             nextTick(() => {
-
+                mode.value = '月';
+                mutations.setMode(mode.value)
+                timeMode(mode.value)
             });
         });
 
