@@ -23,7 +23,7 @@
             <SplitPane direction="row" :min="0" :max="100" :triggerLength="10"
                 v-model:paneLengthPercent="paneLengthPercent">
                 <template #one>
-
+                    <TaskTable :headersHeight='styleConfig.headersHeight' :rowHeight='styleConfig.rowHeight'></TaskTable>
                 </template>
                 <template #two>
 
@@ -43,6 +43,7 @@ import { Symbols } from './Symbols';
 import DatePicker from './DatePicker.vue';
 // 导入分割面板组件
 import SplitPane from './SplitPane.vue';
+import TaskTable from '../gantt/task/TaskTable.vue';
 import { store, mutations } from './Store';
 // 移除未使用的类型导入
 import { type ConfirmDateData } from './ZodSchema';
@@ -154,7 +155,8 @@ export default defineComponent({
     },
     components: {
         DatePicker,
-        SplitPane
+        SplitPane,
+        TaskTable
     },
     setup(props) {
         // 定义响应式数据
