@@ -3,6 +3,7 @@ import './style.css'
 import App from './App.vue'
 import dayjs from 'dayjs'; 
 import 'dayjs/locale/zh-cn'; 
+
  
 dayjs.locale('zh-cn');  
  
