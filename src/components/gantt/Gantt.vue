@@ -50,7 +50,7 @@ import RightTable from './RightTable.vue';
 import { store, mutations } from './Store';
 // 移除未使用的类型导入
 import { type ConfirmDateData } from './ZodSchema';
-
+import sharedState from './ShareState';
 // 定义月份表头类型
 type MonthHeaders = {
     title: string;
@@ -163,6 +163,8 @@ export default defineComponent({
         RightTable
     },
     setup(props) {
+        provide(Symbols.SharedStateSymbol, sharedState);
+
         // 缓存 mapFields 的结果
         const mapFields = computed(() => props.dataConfig.mapFields());
         // 缓存 dataSource 的结果
@@ -312,7 +314,9 @@ export default defineComponent({
                 case '时': {
                     scale.value = 30;
                     let currentDate = start;
-                    while (currentDate.isBefore(end) || currentDate.isSame(end, 'day')) {
+                    // 预先计算结束日期
+                    const endOfEndDay = end.endOf('day');
+                    while (currentDate.isBefore(endOfEndDay)) {
                         const caption = currentDate.format('MMMM DD日');
                         const fullDate = currentDate.format('YYYY-MM-DD');
                         const week = currentDate.format('dddd');
@@ -332,6 +336,7 @@ export default defineComponent({
                                 width: scale.value
                             });
                         }
+                        // 优化代码：更新 currentDate
                         currentDate = currentDate.add(1, 'day');
                     }
                     timelineCellCount.value = hourHeaders.value.length;
@@ -517,7 +522,6 @@ export default defineComponent({
             mutations.setTasks(dataSource.value)
             mutations.setMapFields(mapFields.value)
             mutations.setTimelineCellCount(timelineCellCount.value)
-
         });
 
         onMounted(() => {
@@ -532,8 +536,6 @@ export default defineComponent({
             nextTick(() => {
                 mode.value = '月';
                 mutations.setMode(mode.value)
-                // 注释掉手动调用，避免重复触发
-                // timeMode(mode.value)
             });
         });
 

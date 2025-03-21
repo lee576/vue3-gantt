@@ -43,6 +43,7 @@ import { store, mutations } from '../Store';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 dayjs.extend(isBetween);
+import sharedState from '../ShareState';
 
 export default defineComponent({
     props: {
@@ -59,9 +60,6 @@ export default defineComponent({
         TaskHeader
     },
     setup() {
-        const addTips = '添加任务';
-        const jumpTodayTips = '定位到今天';
-
         const tasks = computed(() => store.tasks);
         const taskHeaders = computed(() => store.taskHeaders);
         const rootTask = computed({
@@ -78,13 +76,11 @@ export default defineComponent({
             // 判断今天在选择的时间范围内
             let isBetween = dayjs().isBetween(startGanttDate.value, endGanttDate.value);
             if (isBetween) {
+                sharedState.triggerScrollToToday();
             }
         };
 
-
         return {
-            addTips,
-            jumpTodayTips,
             tasks,
             taskHeaders,
             rootTask,
