@@ -419,6 +419,7 @@ export default defineComponent({
             showStartDatePicker.value = false
             selectedStartDate.value = value.date
             startDate.value = value.date
+            setTimeLineHeaders(mode.value);
         };
 
         const confirmEnd = (value: ConfirmDateData) => {
@@ -430,6 +431,7 @@ export default defineComponent({
             showEndDatePicker.value = false
             selectedEndDate.value = value.date
             endDate.value = value.date
+            setTimeLineHeaders(mode.value);
         };
 
         watchEffect(() => {
@@ -443,12 +445,7 @@ export default defineComponent({
             mutations.setDayHeaders(dayHeaders.value);
             mutations.setWeekHeaders(weekHeaders.value);
             mutations.setHourHeaders(hourHeaders.value);
-            setTimeLineHeaders(mode.value);
-
-            if (mode.value) {
-                mutations.setMode(mode.value);
-                setTimeLineHeaders(mode.value);
-            }
+            mutations.setMode(mode.value);
 
             // 调用 dataSource 函数来获取数据源
             if (props.dataConfig.dataSource()) {
