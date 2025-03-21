@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, computed, provide, onBeforeMount, onMounted, nextTick, watchEffect } from 'vue';
+import { ref, defineComponent, computed, provide, onBeforeMount, onMounted, nextTick, watchEffect, watch } from 'vue';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 dayjs.extend(customParseFormat);
@@ -163,6 +163,11 @@ export default defineComponent({
         RightTable
     },
     setup(props) {
+        // 缓存 mapFields 的结果
+        const mapFields = computed(() => props.dataConfig.mapFields());
+        // 缓存 dataSource 的结果
+        const dataSource = computed(() => props.dataConfig.dataSource());
+
         // 定义响应式数据
         const initData = ref<any[]>([]);
         const paneLengthPercent = ref(35);
@@ -196,16 +201,18 @@ export default defineComponent({
         const allowChangeTaskDate = computed(() => store.allowChangeTaskDate);
 
         const setTimeLineHeaders = (newVal: string) => {
+            const start = dayjs(selectedStartDate.value);
+            const end = dayjs(selectedEndDate.value);
             // 开始时间格式是否合法
-            if (!dayjs(selectedStartDate.value, 'YYYY-MM-DD', true).isValid()) {
+            if (!start.isValid()) {
                 return;
             }
             // 结束时间格式是否合法
-            if (!dayjs(selectedEndDate.value, 'YYYY-MM-DD', true).isValid()) {
+            if (!end.isValid()) {
                 return;
             }
             // 检验开始时间结束时间范围的合法性
-            const days = dayjs(selectedEndDate.value).diff(dayjs(selectedStartDate.value), 'day');
+            const days = end.diff(start, 'day');
             if (days < 0) {
                 return;
             }
@@ -218,8 +225,6 @@ export default defineComponent({
             switch (newVal) {
                 case '月': {
                     scale.value = 80;
-                    const start = dayjs(selectedStartDate.value);
-                    const end = dayjs(selectedEndDate.value);
                     const months: string[] = [];
                     let current = start.startOf('month');
                     while (current.isBefore(end) || current.isSame(end, 'month')) {
@@ -284,8 +289,6 @@ export default defineComponent({
                 }
                 case '日': {
                     scale.value = 80;
-                    const start = dayjs(selectedStartDate.value);
-                    const end = dayjs(selectedEndDate.value);
                     let currentDate = start;
                     while (currentDate.isBefore(end) || currentDate.isSame(end, 'day')) {
                         const caption = currentDate.format('MMMM DD日');
@@ -308,8 +311,6 @@ export default defineComponent({
                 }
                 case '时': {
                     scale.value = 30;
-                    const start = dayjs(selectedStartDate.value);
-                    const end = dayjs(selectedEndDate.value);
                     let currentDate = start;
                     while (currentDate.isBefore(end) || currentDate.isSame(end, 'day')) {
                         const caption = currentDate.format('MMMM DD日');
@@ -339,41 +340,35 @@ export default defineComponent({
             }
             // 选定日期后重新查询
             props.eventConfig.queryTask(selectedStartDate.value, selectedEndDate.value, mode.value);
-        }
+        };
 
         const FindAllParent = (targetData: any[], pid: any) => {
-            const mapFields = props.dataConfig.mapFields();
-            let parent = targetData.filter(obj => obj[mapFields['id']] === pid);
+            let parent = targetData.filter(obj => obj[mapFields.value['id']] === pid);
             if (parent && parent.length > 0) {
                 result.value = parent[0].index + '.' + result.value;
-                const mapFields = props.dataConfig.mapFields();
-                FindAllParent(targetData, parent[0][mapFields['parentId']]);
+                FindAllParent(targetData, parent[0][mapFields.value['parentId']]);
             }
         };
 
         const RecursionData = (id: any, tasks: any[], level: number) => {
-            // 调用 mapFields 函数获取映射字段对象
-            const mapFields = props.dataConfig.mapFields();
-            let findResult = tasks.filter(obj => obj[mapFields['parentId']] === id);
+            let findResult = tasks.filter(obj => obj[mapFields.value['parentId']] === id);
             if (findResult && findResult.length > 0) {
                 level++;
                 for (let i = 0; i < findResult.length; i++) {
                     findResult[i].treeLevel = level;
                     findResult[i].index = i + 1;
 
-                    let parent = initData.value.filter(obj => obj[mapFields['id']] === findResult[i][mapFields['parentId']]);
+                    let parent = initData.value.filter(obj => obj[mapFields.value['id']] === findResult[i][mapFields.value['parentId']]);
                     result.value = '';
                     if (parent && parent.length > 0) {
                         result.value = parent[0].index + '.' + findResult[i].index;
-                        const mapFields = props.dataConfig.mapFields();
-                        FindAllParent(initData.value, parent[0][mapFields['parentId']]);
+                        FindAllParent(initData.value, parent[0][mapFields.value['parentId']]);
                         findResult[i].no = result.value;
                     } else {
                         findResult[i].no = i + 1 + '';
                     }
                     initData.value.push(findResult[i]);
-                    const mapFields = props.dataConfig.mapFields();
-                    RecursionData(findResult[i][mapFields['id']], tasks, level);
+                    RecursionData(findResult[i][mapFields.value['id']], tasks, level);
                 }
             }
         };
@@ -407,7 +402,6 @@ export default defineComponent({
                 }
             }
             mode.value = _mode;
-            setTimeLineHeaders(mode.value);
         };
 
         const confirmStart = (value: ConfirmDateData) => {
@@ -420,7 +414,6 @@ export default defineComponent({
             selectedStartDate.value = value.date
             startDate.value = value.date
             minEndDate.value = value.date
-            setTimeLineHeaders(mode.value);
         };
 
         const confirmEnd = (value: ConfirmDateData) => {
@@ -433,12 +426,22 @@ export default defineComponent({
             selectedEndDate.value = value.date
             endDate.value = value.date
             maxStartDate.value = value.date
-            setTimeLineHeaders(mode.value);
         };
+
+        // 监听 mode 和日期的变化
+        watch([mode, selectedStartDate, selectedEndDate], ([newMode, newStartDate, newEndDate], [oldMode, oldStartDate, oldEndDate]) => {
+            if (newMode !== oldMode || newStartDate !== oldStartDate || newEndDate !== oldEndDate) {
+                setTimeLineHeaders(newMode);
+            }
+        });
 
         watchEffect(() => {
             if (store.barDate) {
-                props.eventConfig.barDate(store.barDate.id, store.barDate.startDate, store.barDate.endDate);
+                const { id, startDate, endDate } = store.barDate;
+                // 确保 id、startDate、endDate 有值
+                if (id && startDate && endDate) {
+                    props.eventConfig.barDate(id, startDate, endDate);
+                }
             }
 
             mutations.setScale(scale.value);
@@ -450,12 +453,12 @@ export default defineComponent({
             mutations.setMode(mode.value);
 
             // 调用 dataSource 函数来获取数据源
-            if (props.dataConfig.dataSource()) {
-                mutations.setTasks(props.dataConfig.dataSource());
+            if (dataSource.value) {
+                mutations.setTasks(dataSource.value);
             }
 
-            if (props.dataConfig.mapFields()) {
-                mutations.setMapFields(props.dataConfig.mapFields());
+            if (mapFields.value) {
+                mutations.setMapFields(mapFields.value);
             }
 
             if (props.dataConfig.queryStartDate) {
@@ -511,8 +514,8 @@ export default defineComponent({
             mutations.setDayHeaders(dayHeaders.value)
             mutations.setHourHeaders(hourHeaders.value)
             mutations.setTaskHeaders(props.dataConfig.taskHeaders())
-            mutations.setTasks(props.dataConfig.dataSource())
-            mutations.setMapFields(props.dataConfig.mapFields)
+            mutations.setTasks(dataSource.value)
+            mutations.setMapFields(mapFields.value)
             mutations.setTimelineCellCount(timelineCellCount.value)
 
         });
@@ -524,12 +527,13 @@ export default defineComponent({
             hourHeaders.value = [];
 
             let level: number = 0;
-            RecursionData('0', props.dataConfig.dataSource(), level);
+            RecursionData('0', dataSource.value, level);
             mutations.setTasks(initData.value);
             nextTick(() => {
                 mode.value = '月';
                 mutations.setMode(mode.value)
-                timeMode(mode.value)
+                // 注释掉手动调用，避免重复触发
+                // timeMode(mode.value)
             });
         });
 
@@ -581,12 +585,10 @@ $toolbarHeight: 70px;
         flex-direction: row;
         align-items: center;
         justify-content: flex-start;
-        // Bug fix: Use calc instead of math.div
         padding: calc($toolbarHeight / 2);
 
         .dateInput {
             cursor: pointer;
-            // Bug fix: Use calc instead of math.div
             height: calc($toolbarHeight / 1.5);
             width: 450px;
             display: flex;
@@ -600,7 +602,6 @@ $toolbarHeight: 70px;
         }
 
         .buttonGroup {
-            // Bug fix: Use calc instead of math.div
             height: calc($toolbarHeight / 1.5);
             display: flex;
             flex-direction: row;
@@ -622,7 +623,6 @@ $toolbarHeight: 70px;
             .button {
                 width: 80px;
                 font-size: 15px;
-                // Bug fix: Use calc instead of math.div
                 height: calc($toolbarHeight / 1.5);
                 border: 1px solid #dcdfe6;
                 display: flex;
