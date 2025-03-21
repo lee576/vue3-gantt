@@ -829,7 +829,7 @@ export default defineComponent({
   font-size: 14px;
   position: relative;
   width: 100%;
-  min-height: 210px;
+  min-height: 220px;
   overflow: hidden;
 }
 
