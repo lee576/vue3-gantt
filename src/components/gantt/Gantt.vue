@@ -419,6 +419,7 @@ export default defineComponent({
             showStartDatePicker.value = false
             selectedStartDate.value = value.date
             startDate.value = value.date
+            minEndDate.value = value.date
             setTimeLineHeaders(mode.value);
         };
 
@@ -431,6 +432,7 @@ export default defineComponent({
             showEndDatePicker.value = false
             selectedEndDate.value = value.date
             endDate.value = value.date
+            maxStartDate.value = value.date
             setTimeLineHeaders(mode.value);
         };
 
