@@ -12,7 +12,8 @@
   </template>
   
   <script lang="ts">
-  import { defineComponent, ref, onMounted, computed, inject, provide, Ref } from 'vue';
+import { defineComponent, ref, onMounted, computed } from 'vue';
+import type { Ref } from 'vue';
   import TimelineHeader from './TimelineHeader.vue';
   import { store } from './Store';
   import dayjs from 'dayjs';

@@ -1,7 +1,8 @@
 <template>
     <div class="table">
         <div class="header" :style="{ height: `${headersHeight}px` }">
-            <svg ref="addTaskSvg" v-tippy="addTips" t="1647915776075" @click="setRootTask({})" class="addRootTask"
+            <!-- 删除 v-tippy 指令 -->
+            <svg ref="addTaskSvg" t="1647915776075" @click="setRootTask({})" class="addRootTask"
                 viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3147" width="200"
                 height="200">
                 <path
@@ -11,7 +12,8 @@
                     d="M768 480h-224V256c0-19.2-12.8-32-32-32s-32 12.8-32 32v224H256c-19.2 0-32 12.8-32 32s12.8 32 32 32h224v224c0 19.2 12.8 32 32 32s32-12.8 32-32v-224h224c19.2 0 32-12.8 32-32s-12.8-32-32-32z"
                     p-id="3149" fill="#707070"></path>
             </svg>
-            <svg ref="jumpTodaySvg" v-tippy="jumpTodayTips" t="1647262391689" @click="scrollToToday()" class="jumpToToday"
+            <!-- 删除 v-tippy 指令 -->
+            <svg ref="jumpTodaySvg" t="1647262391689" @click="scrollToToday()" class="jumpToToday"
                 viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4965" width="200"
                 height="200">
                 <path
@@ -37,16 +39,18 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, ref } from 'vue';
+import { defineComponent, computed } from 'vue';
 import TaskHeader from './TaskHeader.vue';
 import { store, mutations } from '../Store';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 dayjs.extend(isBetween);
-import { useTippy } from 'vue-tippy';
-import 'tippy.js/dist/tippy.css'  // 基础样式 
-import 'tippy.js/themes/light-border.css'  // 内置主题（可选）
-import 'tippy.js/dist/svg-arrow.css'
+
+// 删除引入 useTippy 和 tippy 样式的代码
+// import { useTippy } from 'vue-tippy';
+// import 'tippy.js/dist/tippy.css'  // 基础样式 
+// import 'tippy.js/themes/light-border.css'  // 内置主题（可选）
+// import 'tippy.js/dist/svg-arrow.css'
 
 export default defineComponent({
     props: {
@@ -84,20 +88,8 @@ export default defineComponent({
             if (isBetween) {
             }
         };
-        const tippyOptions = {
-            theme: 'light-border',    // 自定义主题名称 
-            animation: 'fade', // 内置动画效果 
-            arrow: true
-        };
-        const addTaskSvg = ref<HTMLElement | null>(null);
-        const jumpTodaySvg = ref<HTMLElement | null>(null);
-        // 使用 useTippy 配置选项
-        if (addTaskSvg.value) {
-            useTippy(addTaskSvg.value, tippyOptions);
-        }
-        if (jumpTodaySvg.value) {
-            useTippy(jumpTodaySvg.value, tippyOptions);
-        }
+
+
         return {
             addTips,
             jumpTodayTips,
@@ -155,8 +147,6 @@ export default defineComponent({
                 fill: #3A8EE6;
             }
         }
-
-
     }
 
     .nodata {
