@@ -314,9 +314,9 @@ export default defineComponent({
 
     watchEffect(() => {
       if (props.date) {
-        initDatePicker();
+        initDatePicker(); // 当 props.date 变化时重新初始化日期选择器
       }
-    })
+    });
 
     onBeforeMount(() => {
       initDatePicker();
@@ -355,18 +355,21 @@ export default defineComponent({
         // 为对象添加 selected 属性
         const newValue = { ...value, selected: true };
         row.push(newValue);
+        return; // 添加 return 避免重复添加
       }
       // 当日期在最小值之外，禁止点击
       if (isMinLimitMonth() && i < copyMinDate.value.day) {
         // 修复：添加 disabled 属性
         const newValue = { ...value, disabled: true };
         row.push(newValue);
+        return; // 添加 return 避免重复添加
       }
       // 当日期在最大值之外，禁止点击
       if (isMaxLimitMonth() && i > copyMaxDate.value.day) {
         // 修复：添加 disabled 属性
         const newValue = { ...value, disabled: true };
         row.push(newValue);
+        return; // 添加 return 避免重复添加
       }
       row.push(value);
     };
@@ -461,28 +464,21 @@ export default defineComponent({
       showMonth.value = false;
       showDate.value.month = value;
       let type: 'copyMinDate' | 'copyMaxDate' | undefined;
-
       // 当月份在最小值之外，日期换成最小值日期 或者 当月份在最大值之外，日期换成最大值日期
       if (isMinLimitMonth()) {
         type = 'copyMinDate';
       } else if (isMaxLimitMonth()) {
         type = 'copyMaxDate';
       }
-
       if (type) {
         showDate.value.day = type === 'copyMinDate' ? copyMinDate.value.day : copyMaxDate.value.day;
         resetSelectDate(showDate.value.day);
         return;
       }
-
       let dayValue = selectDate.value.day;
-
       // 判断日是最大值，防止另一个月没有这个日期
       const daysInMonth = new Date(showDate.value.year, showDate.value.month + 1, 0).getDate();
-      if (selectDate.value.day > daysInMonth) {
-        dayValue = daysInMonth;
-      }
-
+      dayValue = Math.min(dayValue, daysInMonth); // 确保日期不超过当前月份的最大天数
       resetSelectDate(dayValue);
     };
 
@@ -499,18 +495,15 @@ export default defineComponent({
         type = 'copyMaxDate';
       }
       if (type) {
-        showDate.value.month = copyMinDate.value.month;
-        showDate.value.day = copyMinDate.value.day;
+        showDate.value.month = type === 'copyMinDate' ? copyMinDate.value.month : copyMaxDate.value.month;
+        showDate.value.day = type === 'copyMinDate' ? copyMinDate.value.day : copyMaxDate.value.day;
         resetSelectDate(showDate.value.day);
         return;
       }
       let dayValue = selectDate.value.day;
       // 判断日是最大值，防止另一个月没有这个日期
-      if (selectDate.value.day > 28) {
-        const months = new Date(showDate.value.year, showDate.value.month, 0).getDate();
-        // 当前月份没有这么多天，就把当前月份最大值赋值给day
-        dayValue = months < dayValue ? months : dayValue;
-      }
+      const months = new Date(showDate.value.year, showDate.value.month, 0).getDate();
+      dayValue = Math.min(dayValue, months); // 确保日期不超过当前月份的最大天数
       resetSelectDate(dayValue);
     };
 
