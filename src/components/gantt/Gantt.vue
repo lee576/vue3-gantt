@@ -163,8 +163,6 @@ export default defineComponent({
         RightTable
     },
     setup(props) {
-        provide(Symbols.SharedStateSymbol, sharedState);
-
         // 缓存 mapFields 的结果
         const mapFields = computed(() => props.dataConfig.mapFields());
         // 缓存 dataSource 的结果
