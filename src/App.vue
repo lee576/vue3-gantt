@@ -14,18 +14,15 @@ import type { DataConfig, StyleConfig, EventConfig } from './components/gantt/Ty
 const styleConfig = ref<StyleConfig>({
   headersHeight: 100,
   rowHeight: 60,
-  // 设置进度条颜色
   setBarColor: (row: Record<string, any>) => {
-    const level = row.level as string;
+    // 自定义颜色映射
     const colorMap = {
       '紧急': 'red',
       '重要': 'blue',
       '一般': 'gray',
       '不重要': 'yellow'
-    };
-    const safeLevel = level as keyof typeof colorMap;
-    // 找不到匹配色就默认黑色
-    return colorMap[safeLevel] || 'black';
+    } as const;
+    return colorMap[row.level as keyof typeof colorMap] ?? 'black';
   }
 });
 
@@ -165,4 +162,4 @@ onMounted(() => {
   margin: 0;
   padding: 0;
 }
-</style>./components/gantt/Types
+</style>

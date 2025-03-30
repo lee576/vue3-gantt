@@ -50,7 +50,7 @@ import RightTable from './RightTable.vue';
 import { store, mutations } from './Store';
 // 移除未使用的类型导入
 import { type ConfirmDateData } from './ZodSchema';
-import sharedState from './ShareState';
+
 // 定义月份表头类型
 type MonthHeaders = {
     title: string;
