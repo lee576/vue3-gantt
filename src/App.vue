@@ -32,7 +32,7 @@ const dataConfig = ref<DataConfig>({
   queryEndDate: '',
   dataSource: [],
   // 数据源字段映射
-  mapFields: () => ({
+  mapFields: {
     id: 'id',
     parentId: 'pid',
     task: 'taskNo',
@@ -41,7 +41,7 @@ const dataConfig = ref<DataConfig>({
     enddate: 'end_date',
     takestime: 'spend_time',
     progress: 'job_progress'
-  }),
+  },
   taskHeaders: () => [
     { title: 'id', width: 100, property: 'id', show: false },
     { title: '父id', width: 100, property: 'parentId', show: false },

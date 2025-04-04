@@ -115,7 +115,7 @@ export default defineComponent({
             type: Object as () => {
                 dataSource: any[];
                 taskHeaders: () => any[];
-                mapFields: () => Record<string, any>;
+                mapFields: Record<string, any>;
                 queryStartDate: string;
                 queryEndDate: string;
             },
@@ -165,7 +165,7 @@ export default defineComponent({
     },
     setup(props) {
         // 缓存 mapFields 的结果
-        const mapFields = computed(() => props.dataConfig.mapFields());
+        const mapFields = computed(() => props.dataConfig.mapFields);
         // 缓存 dataSource 的结果
         const dataSource = computed(() => props.dataConfig.dataSource);
 

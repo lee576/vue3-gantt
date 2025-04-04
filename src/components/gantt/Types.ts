@@ -35,7 +35,7 @@ export interface Task {
     queryStartDate: string;
     queryEndDate: string;
     dataSource:  Task[];
-    mapFields: () => MapFields;
+    mapFields: MapFields;
     taskHeaders: () => TaskHeader[];
   }
   
