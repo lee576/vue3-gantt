@@ -8,7 +8,7 @@
 import { ref, onMounted } from 'vue';
 import Gantt from './components/gantt/Gantt.vue';
 import dayjs from 'dayjs';
-import type { DataConfig, StyleConfig, EventConfig } from './components/gantt/Types';
+import type { DataConfig, StyleConfig, EventConfig, TaskHeader } from './components/gantt/Types';
 
 // 定义样式配置
 const styleConfig = ref<StyleConfig>({
@@ -21,7 +21,7 @@ const styleConfig = ref<StyleConfig>({
       '重要': 'blue',
       '一般': 'gray',
       '不重要': 'yellow'
-    } as const;
+    };
     return colorMap[row.level as keyof typeof colorMap] ?? 'black';
   }
 });
@@ -42,7 +42,7 @@ const dataConfig = ref<DataConfig>({
     takestime: 'spend_time',
     progress: 'job_progress'
   },
-  taskHeaders: [
+  taskHeaders: <TaskHeader[]>[
     { title: 'id', width: 100, property: 'id', show: false },
     { title: '父id', width: 100, property: 'parentId', show: false },
     { title: '序号', width: 80, property: 'no', show: true },
@@ -50,8 +50,7 @@ const dataConfig = ref<DataConfig>({
     { title: '优先级', width: 90, property: 'priority', show: true },
     { title: '开始时间', width: 150, property: 'startdate', show: true },
     { title: '结束时间', width: 150, property: 'enddate', show: true },
-    { title: '耗时', width: 90, property: 'takestime', show: true }
-  ]
+    { title: '耗时', width: 90, property: 'takestime', show: true }]
 });
 
 // 定义事件配置

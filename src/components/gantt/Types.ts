@@ -23,7 +23,7 @@ export interface Task {
   }
   
   // 定义 taskHeaders 返回数组中每个元素的接口
-  export interface TaskHeader {
+  export type TaskHeader = {
     title: string;
     width: number;
     property: string;
