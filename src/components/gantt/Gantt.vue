@@ -107,13 +107,13 @@ export default defineComponent({
         },
         /**
          * 数据配置对象，包含数据源、任务表头和字段映射函数。
-         * @type {{ dataSource: () => any[]; taskHeaders: () => any[]; mapFields: () => any }}
+         * @type {{ dataSource: any[]; taskHeaders: () => any[]; mapFields: () => any }}
          * @required
-         * @default { dataSource: () => [], taskHeaders: () => [], mapFields: () => {} }
+         * @default { dataSource: [], taskHeaders: () => [], mapFields: () => {} }
          */
         dataConfig: {
             type: Object as () => {
-                dataSource: () => any[];
+                dataSource: any[];
                 taskHeaders: () => any[];
                 mapFields: () => Record<string, any>;
                 queryStartDate: string;
@@ -125,8 +125,9 @@ export default defineComponent({
                 taskHeaders: () => [],
                 mapFields: () => { }
             }),
-            validator: (value: { dataSource: () => any[]; taskHeaders: () => any[]; mapFields: () => any }) => {
-                return typeof value.dataSource === 'function' &&
+            validator: (value: { dataSource: any[]; taskHeaders: () => any[]; mapFields: () => any }) => {
+            
+                return Array.isArray(value.dataSource) &&
                     typeof value.taskHeaders === 'function' &&
                     typeof value.mapFields === 'function';
             }
@@ -166,7 +167,7 @@ export default defineComponent({
         // 缓存 mapFields 的结果
         const mapFields = computed(() => props.dataConfig.mapFields());
         // 缓存 dataSource 的结果
-        const dataSource = computed(() => props.dataConfig.dataSource());
+        const dataSource = computed(() => props.dataConfig.dataSource);
 
         // 定义响应式数据
         const initData = ref<any[]>([]);
@@ -465,7 +466,7 @@ export default defineComponent({
             }
 
             if (props.dataConfig.queryStartDate) {
-                props.dataConfig.dataSource = () => [];
+                props.dataConfig.dataSource = [];
                 mutations.setStartGanttDate(dayjs(props.dataConfig.queryStartDate).toDate());
                 startGanttDate.value = props.dataConfig.queryStartDate;
                 selectedStartDate.value = props.dataConfig.queryStartDate;
@@ -473,7 +474,7 @@ export default defineComponent({
             }
 
             if (props.dataConfig.queryEndDate) {
-                props.dataConfig.dataSource = () => [];
+                props.dataConfig.dataSource = [];
                 mutations.setEndGanttDate(dayjs(props.dataConfig.queryEndDate).toDate());
                 endGanttDate.value = props.dataConfig.queryEndDate;
                 selectedEndDate.value = props.dataConfig.queryEndDate;

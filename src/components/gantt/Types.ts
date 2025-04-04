@@ -34,7 +34,7 @@ export interface Task {
   export interface DataConfig {
     queryStartDate: string;
     queryEndDate: string;
-    dataSource:  () => Task[];
+    dataSource:  Task[];
     mapFields: () => MapFields;
     taskHeaders: () => TaskHeader[];
   }
