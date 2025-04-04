@@ -114,7 +114,7 @@ export default defineComponent({
         dataConfig: {
             type: Object as () => {
                 dataSource: any[];
-                taskHeaders: () => any[];
+                taskHeaders: any[];
                 mapFields: Record<string, any>;
                 queryStartDate: string;
                 queryEndDate: string;
@@ -122,10 +122,10 @@ export default defineComponent({
             required: true,
             default: () => ({
                 dataSource: () => [],
-                taskHeaders: () => [],
+                taskHeaders: [],
                 mapFields: () => { }
             }),
-            validator: (value: { dataSource: any[]; taskHeaders: () => any[]; mapFields: () => any }) => {
+            validator: (value: { dataSource: any[]; taskHeaders: any[]; mapFields: () => any }) => {
             
                 return Array.isArray(value.dataSource) &&
                     typeof value.taskHeaders === 'function' &&
@@ -449,7 +449,7 @@ export default defineComponent({
             }
 
             mutations.setScale(scale.value);
-            mutations.setTaskHeaders(props.dataConfig.taskHeaders());
+            mutations.setTaskHeaders(props.dataConfig.taskHeaders);
             mutations.setMonthHeaders(monthHeaders.value);
             mutations.setDayHeaders(dayHeaders.value);
             mutations.setWeekHeaders(weekHeaders.value);
@@ -517,7 +517,7 @@ export default defineComponent({
             mutations.setWeekHeaders(weekHeaders.value)
             mutations.setDayHeaders(dayHeaders.value)
             mutations.setHourHeaders(hourHeaders.value)
-            mutations.setTaskHeaders(props.dataConfig.taskHeaders())
+            mutations.setTaskHeaders(props.dataConfig.taskHeaders)
             mutations.setTasks(dataSource.value)
             mutations.setMapFields(mapFields.value)
             mutations.setTimelineCellCount(timelineCellCount.value)

@@ -36,7 +36,7 @@ export interface Task {
     queryEndDate: string;
     dataSource:  Task[];
     mapFields: MapFields;
-    taskHeaders: () => TaskHeader[];
+    taskHeaders: TaskHeader[];
   }
   
   // 定义样式配置的接口

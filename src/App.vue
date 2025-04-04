@@ -42,7 +42,7 @@ const dataConfig = ref<DataConfig>({
     takestime: 'spend_time',
     progress: 'job_progress'
   },
-  taskHeaders: () => [
+  taskHeaders: [
     { title: 'id', width: 100, property: 'id', show: false },
     { title: '父id', width: 100, property: 'parentId', show: false },
     { title: '序号', width: 80, property: 'no', show: true },
