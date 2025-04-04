@@ -8,7 +8,7 @@
 import { ref, onMounted } from 'vue';
 
 import dayjs from 'dayjs';
-import Gantt, { type DataConfig, type StyleConfig, type EventConfig, type TaskHeader } from './components/gantt/Gantt.vue';
+import Gantt, { type DataConfig, type StyleConfig, type EventConfig } from './components/gantt/Gantt.vue';
 
 // 定义样式配置
 const styleConfig = ref<StyleConfig>({
@@ -42,7 +42,7 @@ const dataConfig = ref<DataConfig>({
     takestime: 'spend_time',
     progress: 'job_progress'
   },
-  taskHeaders: <TaskHeader[]>[
+  taskHeaders: [
     { title: 'id', width: 100, property: 'id', show: false },
     { title: '父id', width: 100, property: 'parentId', show: false },
     { title: '序号', width: 80, property: 'no', show: true },
