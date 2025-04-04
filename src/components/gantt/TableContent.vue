@@ -1,13 +1,13 @@
 <template>
     <div ref="barContent" @scroll="scroll()" @mouseover="mouseover()"
       v-if="tasks" class="content">
-      <BarRecursionRow :rowHeight="rowHeight" :tasks="tasks"></BarRecursionRow>
+      <!-- <BarRecursionRow :rowHeight="rowHeight" :tasks="tasks"></BarRecursionRow> -->
     </div>
   </template>
   <script lang="ts">
   import { defineComponent, ref, watch, computed, onMounted, provide, inject } from 'vue';
   import { store, mutations } from '../gantt/Store';
-  import BarRecursionRow from '../gantt/task/TaskRecursionRow.vue';
+  import BarRecursionRow from '../gantt/BarRecursionRow.vue';
 
   export default defineComponent({
     props: {
