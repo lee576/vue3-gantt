@@ -48,6 +48,7 @@ import SplitPane from './SplitPane.vue';
 import TaskTable from '../gantt/task/TaskTable.vue';
 import RightTable from './RightTable.vue';
 import { store, mutations } from './Store';
+export type { DataConfig, StyleConfig, EventConfig, TaskHeader } from './Types';
 // 移除未使用的类型导入
 import { type ConfirmDateData } from './ZodSchema';
 

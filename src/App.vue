@@ -6,9 +6,9 @@
 
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
-import Gantt from './components/gantt/Gantt.vue';
+
 import dayjs from 'dayjs';
-import type { DataConfig, StyleConfig, EventConfig, TaskHeader } from './components/gantt/Types';
+import Gantt, { type DataConfig, type StyleConfig, type EventConfig, type TaskHeader } from './components/gantt/Gantt.vue';
 
 // 定义样式配置
 const styleConfig = ref<StyleConfig>({
