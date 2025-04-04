@@ -7,7 +7,7 @@
       <div style="width: 100%;border-top: 1px solid #cecece;margin:0px 0px -1px -1px;"></div>
     </div>
     <div class="content" :style="{ height: `calc(100% - ${headersHeight}px)`, width: 'fit-content' }">
-
+      <TableContent :rowHeight='rowHeight'></TableContent>
     </div>
   </div>
 </template>
@@ -19,6 +19,7 @@ import TimelineHeader from './TimelineHeader.vue';
 import { store } from './Store';
 import dayjs from 'dayjs';
 import sharedState from './ShareState';
+import TableContent from './TableContent.vue';
 
 export default defineComponent({
   props: {
@@ -32,7 +33,8 @@ export default defineComponent({
     }
   },
   components: {
-    TimelineHeader
+    TimelineHeader,
+    TableContent
   },
   setup() {
     // 引用 tableBar
