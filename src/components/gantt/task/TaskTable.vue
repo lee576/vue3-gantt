@@ -106,7 +106,7 @@ export default defineComponent({
 
     .header {
         height: 100%;
-        margin: 0px 1px -1px -1px;
+        margin: 0px 0px -1px 0px;
         background-color: #F3F4F5;
         position: relative;
 

@@ -26,26 +26,43 @@
   });
   </script>
 
-  <style lang="scss" scoped>
-  .header {
-    height: 100%;
+<style lang="scss" scoped>
+.header {
+  height: 100%;
+  display: flex;
+  flex-flow: row nowrap;
+  
+  .headerCaption {
+    text-align: center;
     display: flex;
-    flex-flow: row nowrap;
-    border-left: 1px solid #cecece;
-    border-top: 1px solid #cecece;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    color: #6b6b6b;
+    font-size: 15px;
+    font-weight: bold;
+    box-sizing: border-box;
+    border-top: 2px solid #cecece;
     border-bottom: 1px solid #cecece;
-    width: fit-content;
+    
+    &:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: -1px;
+      top: 0;
+      bottom: 0;
+      background: #cecece;
+      border-left: 1px solid #cecece;
+    }
+    
+    &:first-child {
+      border-left: 1px solid #cecece;
+    }
 
-    .headerCaption {
-      text-align: center;
-      display: flex;
-      flex-flow: column nowrap;
-      align-items: center;
-      justify-content: center;
+    &:last-child {
       border-right: 1px solid #cecece;
-      color: #6b6b6b;
-      font-size: 15px;
-      font-weight: bold;
     }
   }
-  </style>
+}
+</style>

@@ -1,6 +1,6 @@
 <template>
     <div ref="taskContent" class="content" @scroll="scroll()" @mouseover="mouseover()">
-
+        <TaskRecursionRow :headers='headers' :rowHeight='rowHeight' :tasks='tasks'></TaskRecursionRow>
     </div>
 </template>
 
@@ -8,6 +8,7 @@
 import { defineComponent, ref, watch, computed, onMounted } from 'vue';
 import { store } from '../Store';
 import { useScrollState } from '../ShareState';
+import TaskRecursionRow from './TaskRecursionRow.vue';
 
 export default defineComponent({
     props: {
@@ -25,7 +26,7 @@ export default defineComponent({
         }
     },
     components: {
-
+        TaskRecursionRow
     },
     setup(props) {
         const { scrollTop, scrollFlag, setScrollTop, setScrollFlag } = useScrollState();
