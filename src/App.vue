@@ -76,7 +76,7 @@ const eventConfig = ref<EventConfig>({
         pid: '0',
         taskNo: '1',
         level: '重要',
-        start_date: '2025-03-04 05:00:00',
+        start_date: '2025-04-04 05:00:00',
         end_date: '2025-04-08 00:00:00',
         job_progress: '0.3',
         spend_time: null
@@ -86,8 +86,8 @@ const eventConfig = ref<EventConfig>({
         pid: '1',
         taskNo: '2',
         level: '一般',
-        start_date: '2025-11-06 05:00:00',
-        end_date: '2022-11-10 00:00:00',
+        start_date: '2025-04-04 05:00:00',
+        end_date: '2025-04-08 00:00:00',
         job_progress: '0.7',
         spend_time: null
       },
@@ -96,8 +96,8 @@ const eventConfig = ref<EventConfig>({
         pid: '1',
         taskNo: '3',
         level: '紧急',
-        start_date: '2022-11-06 05:00:00',
-        end_date: '2022-11-10 00:00:00',
+        start_date: '2025-04-04 05:00:00',
+        end_date: '2025-04-08 00:00:00',
         job_progress: '0.9',
         spend_time: null
       },
@@ -106,8 +106,8 @@ const eventConfig = ref<EventConfig>({
         pid: '0',
         taskNo: '4',
         level: '重要',
-        start_date: '2022-11-02 05:00:00',
-        end_date: '2022-11-15 00:00:00',
+        start_date: '2025-04-04 05:00:00',
+        end_date: '2025-04-08 00:00:00',
         job_progress: '0.3',
         spend_time: null
       },
@@ -116,8 +116,8 @@ const eventConfig = ref<EventConfig>({
         pid: '4',
         taskNo: '4',
         level: '一般',
-        start_date: '2022-11-06 05:00:00',
-        end_date: '2022-11-12 00:00:00',
+        start_date: '2025-04-04 05:00:00',
+        end_date: '2025-04-08 00:00:00',
         job_progress: '0.55',
         spend_time: null
       }

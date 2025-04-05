@@ -19,21 +19,18 @@ export default defineComponent({
         rowHeight: {
             type: Number,
             default: 0
-        },
-        tasks: {
-            type: Array as () => any[],
-            default: () => []
         }
     },
     components: {
         TaskRecursionRow
     },
-    setup(props) {
+    setup() {
+        const tasks = computed(() => store.tasks);
         const { scrollTop, scrollFlag, setScrollTop, setScrollFlag } = useScrollState();
         const taskContent = ref<HTMLDivElement | null>(null);
         const mapFields = computed(() => store.mapFields);
         const getRootNode = () => {
-            return props.tasks.filter((obj: any) => obj[mapFields.value['parentId']] === '0');
+            return tasks.value.filter((obj: any) => obj[mapFields.value.parentId] === '0');
         };
 
         watch(scrollTop, (newValue) => {
@@ -62,6 +59,7 @@ export default defineComponent({
         });
 
         return {
+            tasks,
             taskContent,
             scrollFlag,
             mapFields,

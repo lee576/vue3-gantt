@@ -1,6 +1,6 @@
 <template>
     <div>
-      <template v-for="item in filterTask" :key="item.id + scale + startGanttDate + endGanttDate + componentKey">
+      <template v-for="item in filterTask" :key="item.id + scale">
         <Bar :startGanttDate="startGanttDate" :endGanttDate="endGanttDate" :row="item" :rowHeight="rowHeight" />
       </template>
     </div>
@@ -18,12 +18,9 @@
         type: Number as () => number,
         default: 0
       },
-      tasks: {
-        type: Array as () => any[],
-        default: () => []
-      }
     },
-    setup(props) {
+    setup() {
+      
       const hiddenTask = ref<any[]>([]);
       const componentKey = ref(0);
   
@@ -37,7 +34,7 @@
       const filterTask = computed(() => {
         let innerTask: any[] = [];
         for (let i = 0; i < store.tasks.length; i++) {
-          if (!hiddenTask.value.some(obj => obj[mapFields.value['id']] === store.tasks[i][mapFields.value['id']])) {
+          if (!hiddenTask.value.some(obj => obj[mapFields.value.id] === store.tasks[i][mapFields.value.id])) {
             innerTask.push(store.tasks[i]);
           }
         }
@@ -54,7 +51,7 @@
       watch(filterTask, () => {
         let innerTask: any[] = [];
         for (let i = 0; i < store.tasks.length; i++) {
-          if (!hiddenTask.value.some(obj => obj[mapFields.value['id']] === store.tasks[i][mapFields.value['id']])) {
+          if (!hiddenTask.value.some(obj => obj[mapFields.value.id] === store.tasks[i][mapFields.value.id])) {
             innerTask.push(store.tasks[i]);
           }
         }
@@ -67,7 +64,7 @@
       });
   
       const recursionRow = (id: any) => {
-        let findRows = props.tasks.filter(obj => obj[mapFields.value['parentId']] === id);
+        let findRows = allTask.value.filter(obj => obj[mapFields.value['parentId']] === id);
         if (findRows && findRows.length > 0) {
           for (let i = 0; i < findRows.length; i++) {
             if (expandRow.value.expand === false) {
@@ -106,7 +103,3 @@
     }
   });
   </script>
-  
-  <style lang="scss" scoped>
-  /* 这里可以添加 SCSS 样式 */
-  </style>

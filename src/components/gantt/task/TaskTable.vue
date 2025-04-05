@@ -31,7 +31,7 @@
             <div style="width: 100%;border-top: 1px solid #cecece;margin:0px 0px -1px -1px;"></div>
         </div>
         <div :style="{ height: `calc(100% - ${headersHeight}px)` }">
-            <TaskContent v-if='Array.isArray(tasks) && tasks.length > 0' :headers='taskHeaders' :rowHeight='rowHeight' :tasks='tasks'></TaskContent>
+            <TaskContent v-if='Array.isArray(tasks) && tasks.length > 0' :headers='taskHeaders' :rowHeight='rowHeight'></TaskContent>
         </div>
     </div>
 </template>

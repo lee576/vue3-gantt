@@ -1,7 +1,7 @@
 <template>
     <div ref="barContent" @scroll="scroll()" @mouseover="mouseover()"
       v-if="tasks" class="content">
-      <!-- <BarRecursionRow :rowHeight="rowHeight" :tasks="tasks"></BarRecursionRow> -->
+      <BarRecursionRow :rowHeight="rowHeight" :tasks="tasks"></BarRecursionRow>
     </div>
   </template>
   <script lang="ts">
