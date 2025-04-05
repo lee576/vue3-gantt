@@ -75,9 +75,9 @@
     align-items: center;
     justify-content: flex-start;
     background-color: #F3F4F5;
-    margin: 0px 0px -1px 0px;
     font-size: 15px;
     font-weight: bold;
+    border-top:  1px solid #cecece;
   }
 
   .header {
@@ -86,25 +86,31 @@
     display: flex;
     flex-flow: row nowrap;
     justify-content: flex-start;
-    margin: 1px 0px 1px 0px;
   }
 
   .headerCaption {
-    border-top: 1px solid #cecece;
-    border-right: 1px solid #cecece;
-    border-bottom: 1px solid #cecece;
-    margin: 0px 1px -1px -1px;
     text-align: center;
     display: flex;
     flex-flow: column nowrap;
     align-items: center;
     justify-content: center;
-    border-right: 1px solid #cecece;
     color: #6b6b6b;
     font-size: 12px;
     background-color: #F3F4F5;
     position: relative;
-  }
+    
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        border-top: 1px solid #cecece;
+        border-right: 1px solid #cecece;
+        pointer-events: none;
+    }
+}
 
   .today {
     position: absolute;

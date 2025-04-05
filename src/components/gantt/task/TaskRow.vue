@@ -136,7 +136,6 @@ export default defineComponent({
     justify-content: flex-start;
     border-top: none;
     border-bottom: none;
-    margin: 0;
     width: fit-content;
 
     &:first-child {

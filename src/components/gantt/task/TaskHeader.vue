@@ -43,8 +43,18 @@
     font-size: 15px;
     font-weight: bold;
     box-sizing: border-box;
-    border-top: 2px solid #cecece;
-    border-bottom: 1px solid #cecece;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      border-top: 1px solid #cecece;
+      border-bottom: 1px solid #cecece;
+      pointer-events: none;
+    }
     
     &:not(:last-child)::after {
       content: '';
@@ -56,11 +66,11 @@
       border-left: 1px solid #cecece;
     }
     
-    &:first-child {
+    &:first-child::before {
       border-left: 1px solid #cecece;
     }
 
-    &:last-child {
+    &:last-child::before {
       border-right: 1px solid #cecece;
     }
   }

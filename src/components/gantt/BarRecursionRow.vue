@@ -1,7 +1,7 @@
 <template>
     <div>
       <template v-for="item in filterTask" :key="item.id + scale">
-        <Bar :startGanttDate="startGanttDate" :endGanttDate="endGanttDate" :row="item" :rowHeight="rowHeight" />
+        <BarFix :startGanttDate="startGanttDate" :endGanttDate="endGanttDate" :row="item" :rowHeight="rowHeight" />
       </template>
     </div>
   </template>
@@ -9,7 +9,7 @@
   <script lang="ts">
   import { defineComponent, ref, computed, watch } from 'vue';
   import { store, mutations } from '../gantt/Store';
-  import Bar from '../gantt/Bar.vue';
+  import BarFix from '../gantt/BarFix.vue';
   
   export default defineComponent({
     name: 'BarRecursionRow',
@@ -92,7 +92,7 @@
         recursionRow
       };
     },
-    components: { Bar },
+    components: { BarFix },
     mounted() {
       this.$nextTick(() => {
         // 可以在这里添加挂载后的逻辑

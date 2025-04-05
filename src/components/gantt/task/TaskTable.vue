@@ -1,9 +1,8 @@
 <template>
     <div class="table">
         <div class="header" :style="{ height: `${headersHeight}px` }">
-            <svg ref="addTaskSvg" t="1647915776075" @click="setRootTask({})" class="addRootTask"
-                viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3147" width="200"
-                height="200">
+            <svg ref="addTaskSvg" t="1647915776075" @click="setRootTask({})" class="addRootTask" viewBox="0 0 1024 1024"
+                version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3147" width="200" height="200">
                 <path
                     d="M864 0H160C70.4 0 0 70.4 0 160v704c0 89.6 70.4 160 160 160h704c89.6 0 160-70.4 160-160V160c0-89.6-70.4-160-160-160z m96 864c0 54.4-41.6 96-96 96H160c-54.4 0-96-41.6-96-96V160c0-54.4 41.6-96 96-96h704c54.4 0 96 41.6 96 96v704z"
                     fill="#707070" p-id="3148"></path>
@@ -26,12 +25,11 @@
                     d="M553.6 451.2l14.4-14.4v-1.6H480c-51.2 68.8-118.4 121.6-196.8 155.2 11.2 12.8 25.6 28.8 41.6 54.4 80-40 142.4-89.6 188.8-148.8 43.2 59.2 102.4 107.2 180.8 144 14.4-19.2 27.2-35.2 41.6-52.8-76.8-30.4-137.6-76.8-182.4-136zM339.2 716.8h246.4c-30.4 43.2-62.4 81.6-94.4 116.8l60.8 33.6c49.6-56 89.6-108.8 123.2-155.2v-54.4h-336v59.2z"
                     fill="#707070" p-id="4969"></path>
             </svg>
-            <div style="width: 100%;border-top: 1px solid #cecece;margin:0px 0px -1px -1px;"></div>
             <TaskHeader :headers='taskHeaders' />
-            <div style="width: 100%;border-top: 1px solid #cecece;margin:0px 0px -1px -1px;"></div>
         </div>
         <div :style="{ height: `calc(100% - ${headersHeight}px)` }">
-            <TaskContent v-if='Array.isArray(tasks) && tasks.length > 0' :headers='taskHeaders' :rowHeight='rowHeight'></TaskContent>
+            <TaskContent v-if='Array.isArray(tasks) && tasks.length > 0' :headers='taskHeaders' :rowHeight='rowHeight'>
+            </TaskContent>
         </div>
     </div>
 </template>
@@ -106,7 +104,6 @@ export default defineComponent({
 
     .header {
         height: 100%;
-        margin: 0px 0px -1px 0px;
         background-color: #F3F4F5;
         position: relative;
 
@@ -146,7 +143,6 @@ export default defineComponent({
         text-align: justify;
         width: 100%;
         height: 100%;
-        color: #6B6B97;
-    }
+        color: #6B6B97; }
 }
 </style>
