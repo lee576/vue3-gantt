@@ -77,7 +77,7 @@
     background-color: #F3F4F5;
     font-size: 15px;
     font-weight: bold;
-    border-top:  1px solid #cecece;
+
   }
 
   .header {
