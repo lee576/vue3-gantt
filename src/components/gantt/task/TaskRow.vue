@@ -201,7 +201,7 @@ export default defineComponent({
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 10px;
+        font-size: 12px;
         border-top: none;
         border-bottom: none;
         position: relative;
