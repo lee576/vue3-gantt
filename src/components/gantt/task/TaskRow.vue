@@ -35,8 +35,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed, inject } from 'vue';
+import { defineComponent, ref, onMounted, computed, inject, watch } from 'vue';
 import { store, mutations } from '../Store';
+import sharedState from '../ShareState';
 
 export default defineComponent({
     props: {
@@ -64,12 +65,9 @@ export default defineComponent({
 
         const barHover = inject('barHover') as ((rowId: any, hover: boolean) => void) | undefined;
         const addRootTask = inject('addRootTask') as ((row: any) => void) | undefined;
-        const taskHover = inject('taskHover') as ((rowId: number, hoverStatus: boolean) => void) | undefined;
 
         onMounted(() => {
-            if (taskHover) {
-                taskHover(props.row[mapFields.value['id']], hover.value);
-            }
+
         });
 
         const setSubTask = mutations.setSubTask;
@@ -85,18 +83,20 @@ export default defineComponent({
             return null;
         };
 
-        const hoverActive = () => {
-            hover.value = true;
-            if (barHover) {
-                barHover(props.row[mapFields.value['id']], hover.value);
+        watch(() => sharedState.highlightedId, (newId) => {
+            if (props.row[mapFields.value['id']] === newId) {
+                hover.value = true;
+            } else {
+                hover.value = false;
             }
+        });
+
+        const hoverActive = () => {
+            sharedState.triggerHighlight(props.row[mapFields.value.id] as number|null);
         };
 
         const hoverInactive = () => {
-            hover.value = false;
-            if (barHover) {
-                barHover(props.row[mapFields.value['id']], hover.value);
-            }
+            sharedState.triggerHighlight(null);
         };
 
         const handleAddRootTask = () => {

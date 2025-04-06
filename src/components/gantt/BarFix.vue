@@ -16,16 +16,15 @@
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, inject, ref, computed } from 'vue';
+import { defineComponent, watch, ref, computed } from 'vue';
 
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 // 扩展 dayjs 功能，使其支持 ISO 周
 dayjs.extend(isoWeek);
 import { store, } from './Store';
+import sharedState from '../gantt/ShareState';
 
-
-const TaskHoverSymbol = Symbol('TaskHover');
 export default defineComponent({
     name: 'Bar',
     props: {
@@ -71,30 +70,20 @@ export default defineComponent({
         // 计算映射字段
         const mapFields = computed(() => store.mapFields);
 
-        const taskHover = inject(TaskHoverSymbol) as ((rowId: any, hover: boolean) => void) | undefined;
-
-        /**
-         * 处理鼠标悬停激活事件
-         */
-        const hoverActive = () => {
-            // 设置悬停状态为 true
-            hover.value = true;
-            if (taskHover) {
-                // 触发任务悬停事件
-                taskHover(props.row[mapFields.value['id']], hover.value);
+        watch(() => sharedState.highlightedId, (newId) => {
+            if (props.row[mapFields.value['id']] === newId) {
+                hover.value = true;
+            } else {
+                hover.value = false;
             }
+        });
+
+        const hoverActive = () => {
+            sharedState.triggerHighlight(props.row[mapFields.value.id] as number|null);
         };
 
-        /**
-         * 处理鼠标悬停取消事件
-         */
         const hoverInactive = () => {
-            // 设置悬停状态为 false
-            hover.value = false;
-            if (taskHover) {
-                // 触发任务悬停事件
-                taskHover(props.row[mapFields.value['id']], hover.value);
-            }
+            sharedState.triggerHighlight(null);
         };
 
         /**
