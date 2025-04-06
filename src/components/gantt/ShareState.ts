@@ -11,7 +11,6 @@ const sharedState = reactive({
     this.shouldScroll = true;
   },
 
-  // Bug 修复: 将 highlightedId 声明为一个类型为 number 或 null 的属性
   highlightedId: <number | null> null,
   triggerHighlight(id: number | null) {
     this.highlightedId = id;
