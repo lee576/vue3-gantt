@@ -440,6 +440,26 @@ export default defineComponent({
             }
         });
 
+        watch(rootTask, (newVal) => {            
+            props.eventConfig.addRootTask(newVal);
+        });
+
+        watch(subTask, (newVal) => {
+            props.eventConfig.addSubTask(newVal);
+        });
+
+        watch(removeTask, (newVal) => {
+            props.eventConfig.removeTask(newVal);
+        });
+
+        watch(editTask, (newVal) => {
+            props.eventConfig.editTask(newVal);
+        });
+
+        watch(allowChangeTaskDate, (newVal) => {
+            props.eventConfig.allowChangeTaskDate(newVal);
+        });
+
         watchEffect(() => {
             if (store.barDate) {
                 const { id, startDate, endDate } = store.barDate;
@@ -491,26 +511,7 @@ export default defineComponent({
             if (endGanttDate.value) {
                 mutations.setEndGanttDate(dayjs(endGanttDate.value).toDate());
             }
-            if (store.rootTask) {
-                props.eventConfig.addRootTask(null);
-                mutations.setRootTask(null);
-            }
-            if (store.subTask) {
-                props.eventConfig.addSubTask(store.subTask);
-                mutations.setSubTask(null);
-            }
-            if (store.editTask) {
-                props.eventConfig.editTask(store.editTask);
-                mutations.setEditTask(null);
-            }
-            if (store.removeTask) {
-                props.eventConfig.removeTask(store.removeTask);
-                mutations.setRemoveTask(null);
-            }
-            if (store.allowChangeTaskDate) {
-                props.eventConfig.allowChangeTaskDate(store.allowChangeTaskDate);
-                mutations.setAllowChangeTaskDate(null);
-            }
+    
         });
 
         onBeforeMount(() => {
