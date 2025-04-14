@@ -1,6 +1,6 @@
 <template>
     <div>
-      <template v-for="item in filterTask" :key="item.id + scale">
+      <template v-for="(item) in filterTask" :key="item.id + scale">
         <BarFix :startGanttDate="startGanttDate" :endGanttDate="endGanttDate" :row="item" :rowHeight="rowHeight" />
       </template>
     </div>

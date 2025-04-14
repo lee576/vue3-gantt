@@ -77,7 +77,7 @@ const eventConfig = ref<EventConfig>({
         taskNo: '1',
         level: '重要',
         start_date: '2025-04-04 05:00:00',
-        end_date: '2025-04-08 00:00:00',
+        end_date: '2025-04-10 00:00:00',
         job_progress: '0.3',
         spend_time: null
       },
@@ -86,8 +86,8 @@ const eventConfig = ref<EventConfig>({
         pid: '1',
         taskNo: '2',
         level: '一般',
-        start_date: '2025-04-04 05:00:00',
-        end_date: '2025-04-08 00:00:00',
+        start_date: '2025-04-09 05:00:00',
+        end_date: '2025-04-12 00:00:00',
         job_progress: '0.7',
         spend_time: null
       },
