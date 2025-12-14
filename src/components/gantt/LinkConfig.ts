@@ -136,6 +136,33 @@ export const LinkTypeConfig = {
 // 全局连线配置管理器
 export class LinkConfigManager {
   private config = reactive<LinkConfig>({ ...LinkThemes.default });
+  private readonly STORAGE_KEY = 'gantt-link-config';
+  
+  constructor() {
+    this.loadFromStorage();
+  }
+  
+  // 从 localStorage 加载配置
+  private loadFromStorage(): void {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (stored) {
+        const parsedConfig = JSON.parse(stored);
+        Object.assign(this.config, parsedConfig);
+      }
+    } catch (error) {
+      console.warn('加载连线配置失败，使用默认配置:', error);
+    }
+  }
+  
+  // 保存配置到 localStorage
+  private saveToStorage(): void {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.config));
+    } catch (error) {
+      console.warn('保存连线配置失败:', error);
+    }
+  }
   
   // 获取当前配置
   getConfig(): LinkConfig {
@@ -145,16 +172,19 @@ export class LinkConfigManager {
   // 设置主题
   setTheme(themeName: keyof typeof LinkThemes): void {
     Object.assign(this.config, LinkThemes[themeName]);
+    this.saveToStorage();
   }
   
   // 更新配置
   updateConfig(newConfig: Partial<LinkConfig>): void {
     Object.assign(this.config, newConfig);
+    this.saveToStorage();
   }
   
   // 重置为默认配置
   reset(): void {
     Object.assign(this.config, LinkThemes.default);
+    this.saveToStorage();
   }
   
   // 获取特定类型连线的样式
@@ -192,6 +222,16 @@ export class LinkConfigManager {
       return false;
     }
   }
+  
+  // 清除存储的配置
+  clearStorage(): void {
+    try {
+      localStorage.removeItem(this.STORAGE_KEY);
+      this.reset();
+    } catch (error) {
+      console.warn('清除配置失败:', error);
+    }
+  }
 }
 
 // 创建全局实例
@@ -207,6 +247,7 @@ export function useLinkConfig() {
     getLinkStyle: linkConfigManager.getLinkStyle.bind(linkConfigManager),
     exportConfig: linkConfigManager.exportConfig.bind(linkConfigManager),
     importConfig: linkConfigManager.importConfig.bind(linkConfigManager),
+    clearStorage: linkConfigManager.clearStorage.bind(linkConfigManager),
     themes: LinkThemes,
     linkTypes: LinkTypeConfig
   };
@@ -224,11 +265,39 @@ export interface TaskDependency {
 
 export class LinkDataManager {
   private dependencies = reactive<TaskDependency[]>([]);
+  private readonly STORAGE_KEY = 'gantt-link-dependencies';
+  
+  constructor() {
+    this.loadFromStorage();
+  }
+  
+  // 从 localStorage 加载依赖关系
+  private loadFromStorage(): void {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (stored) {
+        const parsedDependencies = JSON.parse(stored);
+        this.dependencies.splice(0, this.dependencies.length, ...parsedDependencies);
+      }
+    } catch (error) {
+      console.warn('加载连线依赖关系失败:', error);
+    }
+  }
+  
+  // 保存依赖关系到 localStorage
+  private saveToStorage(): void {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.dependencies));
+    } catch (error) {
+      console.warn('保存连线依赖关系失败:', error);
+    }
+  }
   
   // 添加依赖关系
   addDependency(dependency: Omit<TaskDependency, 'id'>): string {
     const id = `link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     this.dependencies.push({ ...dependency, id });
+    this.saveToStorage();
     return id;
   }
   
@@ -237,6 +306,7 @@ export class LinkDataManager {
     const index = this.dependencies.findIndex(dep => dep.id === id);
     if (index > -1) {
       this.dependencies.splice(index, 1);
+      this.saveToStorage();
       return true;
     }
     return false;
@@ -257,6 +327,17 @@ export class LinkDataManager {
   // 清空所有依赖关系
   clear(): void {
     this.dependencies.splice(0);
+    this.saveToStorage();
+  }
+  
+  // 清除存储的依赖关系
+  clearStorage(): void {
+    try {
+      localStorage.removeItem(this.STORAGE_KEY);
+      this.clear();
+    } catch (error) {
+      console.warn('清除依赖关系失败:', error);
+    }
   }
   
   // 检查是否会形成循环依赖
@@ -308,6 +389,7 @@ export function useLinkData() {
     removeDependency: linkDataManager.removeDependency.bind(linkDataManager),
     getTaskDependencies: linkDataManager.getTaskDependencies.bind(linkDataManager),
     clear: linkDataManager.clear.bind(linkDataManager),
+    clearStorage: linkDataManager.clearStorage.bind(linkDataManager),
     wouldCreateCycle: linkDataManager.wouldCreateCycle.bind(linkDataManager)
   };
 }

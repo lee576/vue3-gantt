@@ -220,6 +220,9 @@
             <button class="btn btn-secondary" @click="exportConfig">导出</button>
             <button class="btn btn-secondary" @click="importConfig">导入</button>
           </div>
+          <div class="action-buttons" style="margin-top: 10px;">
+            <button class="btn btn-warning" @click="clearStorageConfig">清除存储</button>
+          </div>
         </div>
       </div>
     </div>
@@ -256,6 +259,7 @@ export default defineComponent({
       reset, 
       exportConfig: doExportConfig,
       importConfig: doImportConfig,
+      clearStorage,
       themes 
     } = useLinkConfig();
     
@@ -300,6 +304,15 @@ export default defineComponent({
       reset();
       Object.assign(localConfig, config);
       currentTheme.value = 'default';
+    };
+    
+    const clearStorageConfig = () => {
+      if (confirm('确定要清除所有保存的配置吗？这将重置为默认设置。')) {
+        clearStorage();
+        Object.assign(localConfig, config);
+        currentTheme.value = 'default';
+        alert('配置已清除');
+      }
     };
     
     const exportConfig = () => {
@@ -359,7 +372,8 @@ export default defineComponent({
       exportConfig,
       importConfig,
       doImport,
-      closeImportDialog
+      closeImportDialog,
+      clearStorageConfig
     };
   }
 });
@@ -558,6 +572,15 @@ export default defineComponent({
         
         &:hover {
           background: #e9ecef;
+        }
+      }
+      
+      &.btn-warning {
+        background: #ff9800;
+        color: white;
+        
+        &:hover {
+          background: #f57c00;
         }
       }
     }
