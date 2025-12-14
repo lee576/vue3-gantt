@@ -2,7 +2,11 @@
     <div>
         <template v-for="item in filterTask" :key="item.id + '_taskrow'">
             <template v-if="headers">
-                <TaskRow :headers="headers" :rowHeight="rowHeight" :row="item" />
+                <TaskRow 
+                    :headers="headers" 
+                    :rowHeight="rowHeight" 
+                    :row="item" 
+                />
             </template>
         </template>
     </div>
@@ -25,14 +29,14 @@ export default defineComponent({
     setup(props) {
         const hiddenTask = ref<Array<any>>([]);
         const mapFields = computed(() => store.mapFields);
+        // 优化：使用Set提高查找性能
+        const hiddenTaskIds = computed(() => {
+            return new Set(hiddenTask.value.map(obj => obj[mapFields.value['id']]));
+        });
+
         const filterTask = computed(() => {
-            let innerTask: Array<any> = [];
-            for (let i = 0; i < store.tasks.length; i++) {
-                if (!hiddenTask.value.some(obj => obj[mapFields.value['id']] === store.tasks[i][mapFields.value['id']])) {
-                    innerTask.push(store.tasks[i]);
-                }
-            }
-            return innerTask;
+            const hiddenIds = hiddenTaskIds.value;
+            return store.tasks.filter(task => !hiddenIds.has(task[mapFields.value['id']]));
         });
 
         const expandRow = computed({
@@ -40,16 +44,6 @@ export default defineComponent({
             set: (newValue) => {
                 mutations.setExpandRow(newValue);
             }
-        });
-
-        watch(filterTask, () => {
-            let innerTask: Array<any> = [];
-            for (let i = 0; i < store.tasks.length; i++) {
-                if (!hiddenTask.value.some(obj => obj[mapFields.value['id']] === store.tasks[i][mapFields.value['id']])) {
-                    innerTask.push(store.tasks[i]);
-                }
-            }
-            return innerTask;
         });
 
         watch(expandRow, (newVal) => {
@@ -73,7 +67,8 @@ export default defineComponent({
         return {
             filterTask,
             expandRow,
-            recursionRow
+            recursionRow,
+            mapFields
         };
     }
 });

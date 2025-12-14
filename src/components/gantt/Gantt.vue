@@ -122,15 +122,14 @@ export default defineComponent({
             },
             required: true,
             default: () => ({
-                dataSource: () => [],
+                dataSource: [],
                 taskHeaders: [],
-                mapFields: () => { }
+                mapFields: {}
             }),
-            validator: (value: { dataSource: any[]; taskHeaders: any[]; mapFields: () => any }) => {
-            
+            validator: (value: { dataSource: any[]; taskHeaders: any[]; mapFields: Record<string, any> }) => {
                 return Array.isArray(value.dataSource) &&
-                    typeof value.taskHeaders === 'function' &&
-                    typeof value.mapFields === 'function';
+                    Array.isArray(value.taskHeaders) &&
+                    typeof value.mapFields === 'object' && value.mapFields !== null;
             }
         },
         /**
@@ -460,58 +459,63 @@ export default defineComponent({
             props.eventConfig.allowChangeTaskDate(newVal);
         });
 
-        watchEffect(() => {
-            if (store.barDate) {
-                const { id, startDate, endDate } = store.barDate;
-                // 确保 id、startDate、endDate 有值
+        // 优化：拆分watchEffect，避免不必要的触发
+        watch(() => store.barDate, (barDate) => {
+            if (barDate) {
+                const { id, startDate, endDate } = barDate;
                 if (id && startDate && endDate) {
                     props.eventConfig.barDate(id, startDate, endDate);
                 }
             }
+        });
 
-            mutations.setScale(scale.value);
-            mutations.setTaskHeaders(props.dataConfig.taskHeaders);
-            mutations.setMonthHeaders(monthHeaders.value);
-            mutations.setDayHeaders(dayHeaders.value);
-            mutations.setWeekHeaders(weekHeaders.value);
-            mutations.setHourHeaders(hourHeaders.value);
-            mutations.setMode(mode.value);
+        watch(scale, (newScale) => {
+            mutations.setScale(newScale);
+        });
 
-            // 调用 dataSource 函数来获取数据源
-            if (dataSource.value) {
-                mutations.setTasks(dataSource.value);
-            }
+        watch(() => props.dataConfig.taskHeaders, (newHeaders) => {
+            mutations.setTaskHeaders(newHeaders);
+        });
 
-            if (mapFields.value) {
-                mutations.setMapFields(mapFields.value);
-            }
+        watch([monthHeaders, dayHeaders, weekHeaders, hourHeaders], ([newMonth, newDay, newWeek, newHour]) => {
+            mutations.setMonthHeaders(newMonth);
+            mutations.setDayHeaders(newDay);
+            mutations.setWeekHeaders(newWeek);
+            mutations.setHourHeaders(newHour);
+        });
 
-            if (props.dataConfig.queryStartDate) {
-                props.dataConfig.dataSource = [];
-                mutations.setStartGanttDate(dayjs(props.dataConfig.queryStartDate).toDate());
-                startGanttDate.value = props.dataConfig.queryStartDate;
-                selectedStartDate.value = props.dataConfig.queryStartDate;
-                startDate.value = props.dataConfig.queryStartDate;
-            }
+        watch(mode, (newMode) => {
+            mutations.setMode(newMode);
+        });
 
-            if (props.dataConfig.queryEndDate) {
-                props.dataConfig.dataSource = [];
-                mutations.setEndGanttDate(dayjs(props.dataConfig.queryEndDate).toDate());
-                endGanttDate.value = props.dataConfig.queryEndDate;
-                selectedEndDate.value = props.dataConfig.queryEndDate;
-                endDate.value = props.dataConfig.queryEndDate;
+        watch(mapFields, (newFields) => {
+            if (newFields) {
+                mutations.setMapFields(newFields);
             }
+        });
 
-            if (timelineCellCount.value) {
-                mutations.setTimelineCellCount(timelineCellCount.value);
+        watch(() => props.dataConfig.queryStartDate, (newStartDate) => {
+            if (newStartDate) {
+                mutations.setStartGanttDate(dayjs(newStartDate).toDate());
+                startGanttDate.value = newStartDate;
+                selectedStartDate.value = newStartDate;
+                startDate.value = newStartDate;
             }
-            if (startGanttDate.value) {
-                mutations.setStartGanttDate(dayjs(startGanttDate.value).toDate());
+        });
+
+        watch(() => props.dataConfig.queryEndDate, (newEndDate) => {
+            if (newEndDate) {
+                mutations.setEndGanttDate(dayjs(newEndDate).toDate());
+                endGanttDate.value = newEndDate;
+                selectedEndDate.value = newEndDate;
+                endDate.value = newEndDate;
             }
-            if (endGanttDate.value) {
-                mutations.setEndGanttDate(dayjs(endGanttDate.value).toDate());
+        });
+
+        watch(timelineCellCount, (newCount) => {
+            if (newCount) {
+                mutations.setTimelineCellCount(newCount);
             }
-    
         });
 
         onBeforeMount(() => {
@@ -520,9 +524,12 @@ export default defineComponent({
             mutations.setDayHeaders(dayHeaders.value)
             mutations.setHourHeaders(hourHeaders.value)
             mutations.setTaskHeaders(props.dataConfig.taskHeaders)
-            mutations.setTasks(dataSource.value)
             mutations.setMapFields(mapFields.value)
             mutations.setTimelineCellCount(timelineCellCount.value)
+            // 初始化时如果有数据，先设置
+            if (dataSource.value && dataSource.value.length > 0) {
+                mutations.setTasks(dataSource.value)
+            }
         });
 
         onMounted(() => {
@@ -531,14 +538,39 @@ export default defineComponent({
             dayHeaders.value = [];
             hourHeaders.value = [];
 
+            console.log('Gantt onMounted, dataSource:', dataSource.value);
             let level: number = 0;
             RecursionData('0', dataSource.value, level);
             mutations.setTasks(initData.value);
+            console.log('initData after RecursionData:', initData.value);
             nextTick(() => {
                 mode.value = '月';
                 mutations.setMode(mode.value)
             });
         });
+        
+        // 优化：监听dataSource变化，使用节流避免频繁更新
+        let updateTimer: ReturnType<typeof setTimeout> | null = null;
+        watch(dataSource, (newVal) => {
+            console.log('dataSource changed:', newVal);
+            if (newVal && newVal.length > 0) {
+                // 使用节流，避免频繁更新
+                if (updateTimer) {
+                    clearTimeout(updateTimer);
+                }
+                updateTimer = setTimeout(() => {
+                    initData.value = [];
+                    let level: number = 0;
+                    RecursionData('0', newVal, level);
+                    mutations.setTasks(initData.value);
+                    console.log('Tasks updated:', initData.value);
+                    updateTimer = null;
+                }, 100);
+            } else if (newVal && newVal.length === 0) {
+                // 如果数据为空，也要更新
+                mutations.setTasks([]);
+            }
+        }, { immediate: false });
 
         provide(Symbols.AddRootTaskSymbol, (row: Record<string, any>) => {
             return props.eventConfig.addRootTask(row);

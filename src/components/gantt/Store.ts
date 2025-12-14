@@ -63,6 +63,7 @@ const initialStore: StoreType = {
 };
 
 export let serialNumber: number = 0;
+// 使用reactive保证响应式正常工作
 export let store = reactive(initialStore) as StoreType;
 
 // 定义 Mutations 类型

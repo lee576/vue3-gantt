@@ -63,13 +63,19 @@
         return tasks.value.filter(obj => obj[mapFields.value['parentId']] === '0');
       };
 
+      // 优化：使用requestAnimationFrame优化滚动性能
+      let rafId: number | null = null;
       const scroll = () => {
         if (scrollFlag.value) {
-          if (barContent.value) {
-            if (injectedSetScrollTop) {
+          if (rafId) {
+            cancelAnimationFrame(rafId);
+          }
+          rafId = requestAnimationFrame(() => {
+            if (barContent.value && injectedSetScrollTop) {
               injectedSetScrollTop(barContent.value.scrollTop);
             }
-          }
+            rafId = null;
+          });
         }
       };
 

@@ -68,60 +68,64 @@ const eventConfig = ref<EventConfig>({
     console.log(row);
   },
   queryTask: async (queryStart: string, queryEnd: string) => {
+    console.log('queryTask called:', queryStart, queryEnd);
     dataConfig.value.queryStartDate = queryStart;
     dataConfig.value.queryEndDate = queryEnd;
+    // 使用当前月份的日期作为示例数据
+    const currentMonth = dayjs().format('YYYY-MM');
     dataConfig.value.dataSource = [
       {
         id: '1',
         pid: '0',
-        taskNo: '1',
+        taskNo: '任务1',
         level: '重要',
-        start_date: '2025-04-04 05:00:00',
-        end_date: '2025-04-10 00:00:00',
+        start_date: `${currentMonth}-05 08:00:00`,
+        end_date: `${currentMonth}-10 18:00:00`,
         job_progress: '0.3',
         spend_time: null
       },
       {
         id: '2',
         pid: '1',
-        taskNo: '2',
+        taskNo: '子任务1-1',
         level: '一般',
-        start_date: '2025-04-09 05:00:00',
-        end_date: '2025-04-12 00:00:00',
+        start_date: `${currentMonth}-09 08:00:00`,
+        end_date: `${currentMonth}-12 18:00:00`,
         job_progress: '0.7',
         spend_time: null
       },
       {
         id: '3',
         pid: '1',
-        taskNo: '3',
+        taskNo: '子任务1-2',
         level: '紧急',
-        start_date: '2025-04-04 05:00:00',
-        end_date: '2025-04-08 00:00:00',
+        start_date: `${currentMonth}-05 08:00:00`,
+        end_date: `${currentMonth}-08 18:00:00`,
         job_progress: '0.9',
         spend_time: null
       },
       {
         id: '4',
         pid: '0',
-        taskNo: '4',
+        taskNo: '任务2',
         level: '重要',
-        start_date: '2025-04-04 05:00:00',
-        end_date: '2025-04-08 00:00:00',
+        start_date: `${currentMonth}-15 08:00:00`,
+        end_date: `${currentMonth}-20 18:00:00`,
         job_progress: '0.3',
         spend_time: null
       },
       {
         id: '5',
         pid: '4',
-        taskNo: '5',
+        taskNo: '子任务2-1',
         level: '一般',
-        start_date: '2025-04-04 05:00:00',
-        end_date: '2025-04-08 00:00:00',
+        start_date: `${currentMonth}-15 08:00:00`,
+        end_date: `${currentMonth}-18 18:00:00`,
         job_progress: '0.55',
         spend_time: null
       }
     ];
+    console.log('dataSource updated:', dataConfig.value.dataSource);
   },
   barDate: (id: string, startDate: string, endDate: string) => {
     console.log(id);
@@ -135,8 +139,12 @@ const eventConfig = ref<EventConfig>({
 });
 
 onMounted(() => {
-  dataConfig.value.queryStartDate = dayjs().startOf('month').format('YYYY-MM-DD');
-  dataConfig.value.queryEndDate = dayjs().endOf('month').format('YYYY-MM-DD');
+  const startDate = dayjs().startOf('month').format('YYYY-MM-DD');
+  const endDate = dayjs().endOf('month').format('YYYY-MM-DD');
+  dataConfig.value.queryStartDate = startDate;
+  dataConfig.value.queryEndDate = endDate;
+  // 触发查询以加载数据
+  eventConfig.value.queryTask(startDate, endDate, '月');
 });
 </script>
 

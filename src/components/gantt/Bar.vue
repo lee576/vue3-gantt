@@ -90,8 +90,12 @@ export default defineComponent({
         const mode = computed(() => store.mode);
         // 计算映射字段
         const mapFields = computed(() => store.mapFields);
-        // 百分比显示文本
-        const progress = computed(() => Number(props.row[mapFields.value.progress]) * 100 + '%');
+        // 百分比显示文本 - 修复：格式化为xx.xx%
+        const progress = computed(() => {
+            const progressValue = Number(props.row[mapFields.value.progress]);
+            if (isNaN(progressValue)) return '0.00%';
+            return (progressValue * 100).toFixed(2) + '%';
+        });
 
         // 注入事件处理函数
         const returnBarColor = inject(ReturnBarColorSymbol) as ((callback: (rowId: any, color: string) => void) => void) | undefined;
@@ -307,6 +311,9 @@ export default defineComponent({
 
             if (!text) {
                 text = svg.text(progress.value).stroke('#faf7ec');
+            } else {
+                // 更新文本内容
+                (text as any).text(progress.value);
             }
             const textBBox = text.bbox();
             // 设置文本元素的字体样式
@@ -468,9 +475,12 @@ export default defineComponent({
             } else {
                 outerRect.width(oldBarWidth.value);
             }
-            // 性能优化避免重绘
+            // 性能优化避免重绘，但要更新文本内容
             if (!text) {
                 text = svg.text(progress.value).stroke('#faf7ec');
+            } else {
+                // 更新文本内容
+                (text as any).text(progress.value);
             }
             const textBBox = text.bbox();
             // 设置文本元素的字体样式

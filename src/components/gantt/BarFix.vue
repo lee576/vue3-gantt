@@ -73,8 +73,12 @@ export default defineComponent({
         const mode = computed(() => store.mode);
         // 计算映射字段
         const mapFields = computed(() => store.mapFields);
-        // 百分比显示文本
-        const progress = computed(() => Number(props.row[mapFields.value.progress]) * 100 + '%');
+        // 百分比显示文本 - 修复：格式化为xx.xx%
+        const progress = computed(() => {
+            const progressValue = Number(props.row[mapFields.value.progress]);
+            if (isNaN(progressValue)) return '0.00%';
+            return (progressValue * 100).toFixed(2) + '%';
+        });
 
         const setBarColor = inject(Symbols.SetBarColorSymbol) as ((row: any) => string) | undefined;
 
@@ -250,6 +254,9 @@ export default defineComponent({
 
             if (!text) {
                 text = svg.text(progress.value).stroke('#faf7ec');
+            } else {
+                // 更新文本内容
+                (text as any).text(progress.value);
             }
             const textBBox = text.bbox();
             // 设置文本元素的字体样式
@@ -310,8 +317,7 @@ export default defineComponent({
         };
 
         const drowBar = (barElement: SVGSVGElement) => {
-            // 清空 SVG 元素的内容
-            // barElement.innerHTML = '';
+            // 优化：不清空SVG内容，复用已有元素
             let dataX = 0;
             // 根据甘特图的模式计算条形图的位置和宽度
             switch (mode.value) {
@@ -406,9 +412,12 @@ export default defineComponent({
             } else {
                 outerRect.width(oldBarWidth.value);
             }
-            // 性能优化避免重绘
+            // 性能优化避免重绘，但要更新文本内容
             if (!text) {
                 text = svg.text(progress.value).stroke('#faf7ec');
+            } else {
+                // 更新文本内容
+                (text as any).text(progress.value);
             }
             const textBBox = text.bbox();
             // 设置文本元素的字体样式

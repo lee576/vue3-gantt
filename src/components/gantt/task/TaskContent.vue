@@ -39,11 +39,19 @@ export default defineComponent({
             }
         });
 
+        // 优化：使用requestAnimationFrame优化滚动性能
+        let rafId: number | null = null;
         const scroll = () => {
             if (!scrollFlag.value) {
-                if (taskContent.value) {
-                    setScrollTop(taskContent.value.scrollTop);
+                if (rafId) {
+                    cancelAnimationFrame(rafId);
                 }
+                rafId = requestAnimationFrame(() => {
+                    if (taskContent.value) {
+                        setScrollTop(taskContent.value.scrollTop);
+                    }
+                    rafId = null;
+                });
             }
         };
 
