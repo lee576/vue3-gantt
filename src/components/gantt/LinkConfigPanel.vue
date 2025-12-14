@@ -7,15 +7,14 @@
       :title="isOpen ? '关闭连线配置' : '打开连线配置'"
     >
       <div class="toggle-icon" :class="{ 'icon-rotate': isOpen }">
-        <svg viewBox="0 0 24 24" width="24" height="24">
+        <svg viewBox="0 0 24 24" width="26" height="26">
           <!-- 连线图标 -->
           <path d="M4 12h4l2-4 4 8 2-4h4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
           <!-- 设置齿轮 -->
-          <circle cx="18" cy="6" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
-          <path d="M18 3v6M15.5 4.5l5 3" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+          <circle cx="18" cy="6" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M18 4v4M16.5 5.5l3 1.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
         </svg>
       </div>
-      <span class="toggle-text">连线</span>
     </button>
     
     <!-- 配置面板 -->
@@ -395,17 +394,15 @@ export default defineComponent({
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    border-radius: 16px;
-    width: 80px;
-    height: 56px;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
     position: relative;
     overflow: hidden;
     
@@ -416,14 +413,26 @@ export default defineComponent({
       left: -100%;
       width: 100%;
       height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      transition: left 0.5s;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.6s;
+    }
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      right: 2px;
+      bottom: 2px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+      pointer-events: none;
     }
     
     &:hover {
       background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.6);
       
       &::before {
         left: 100%;
@@ -435,29 +444,21 @@ export default defineComponent({
     }
     
     &:active {
-      transform: translateY(0);
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      transform: translateY(-1px) scale(1.02);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
     }
     
     .toggle-icon {
       transition: all 0.3s ease;
+      z-index: 1;
       
       &.icon-rotate {
         transform: rotate(180deg);
       }
       
       svg {
-        filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
       }
-    }
-    
-    .toggle-text {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      opacity: 0.9;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
   }
   
