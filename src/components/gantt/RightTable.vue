@@ -6,20 +6,32 @@
         :monthHeaders="monthHeaders"></TimelineHeader>
       <div style="width: 100%;border-top: 1px solid #cecece;margin:0px 0px -1px -1px;"></div>
     </div>
-    <div class="content" :style="{ height: `calc(100% - ${headersHeight}px)`, width: 'fit-content' }">
+    <div class="content" :style="{ height: `calc(100% - ${headersHeight}px)`, width: 'fit-content', position: 'relative' }">
       <TableContent :rowHeight='rowHeight'></TableContent>
+      <!-- 任务连线层 -->
+      <TaskLinks 
+        :containerWidth="containerWidth" 
+        :containerHeight="containerHeight"
+        :linkConfig="linkConfig"
+      />
+      
+      <!-- 连线配置面板 -->
+      <LinkConfigPanel />
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed,watch } from 'vue';
+import { defineComponent, ref, onMounted, computed, watch } from 'vue';
 import type { Ref } from 'vue';
 import TimelineHeader from './TimelineHeader.vue';
 import { store } from './Store';
 import dayjs from 'dayjs';
 import sharedState from './ShareState';
 import TableContent from './TableContent.vue';
+import TaskLinks from './TaskLinks.vue';
+import LinkConfigPanel from './LinkConfigPanel.vue';
+import { useLinkConfig } from './LinkConfig';
 
 export default defineComponent({
   props: {
@@ -34,11 +46,16 @@ export default defineComponent({
   },
   components: {
     TimelineHeader,
-    TableContent
+    TableContent,
+    TaskLinks,
+    LinkConfigPanel
   },
-  setup() {
+  setup(props) {
     // 引用 tableBar
     const tableBar: Ref<HTMLDivElement | null> = ref(null);
+    
+    // 连线配置
+    const { config: linkConfig } = useLinkConfig();
 
     // 计算属性
     const dayHeaders = computed(() => store.dayHeaders);
@@ -48,6 +65,15 @@ export default defineComponent({
     const startGanttDate = computed(() => store.startGanttDate);
     const mode = computed(() => store.mode);
     const scale = computed(() => store.scale);
+    
+    // 容器尺寸
+    const containerWidth = computed(() => {
+      return store.timelineCellCount * scale.value + 100; // 添加额外空间
+    });
+    
+    const containerHeight = computed(() => {
+      return store.tasks.length * props.rowHeight + 100; // 使用实际行高
+    });
 
     // 滚动到今天的方法
     const scrollToToday = () => {
@@ -85,7 +111,10 @@ export default defineComponent({
       startGanttDate,
       mode,
       scale,
-      scrollToToday
+      scrollToToday,
+      linkConfig,
+      containerWidth,
+      containerHeight
     };
   }
 });

@@ -32,6 +32,9 @@
                 </template>
             </SplitPane>
         </div>
+        
+        <!-- 连线配置面板 -->
+        <LinkConfigPanel />
     </div>
 </template>
 
@@ -47,6 +50,7 @@ import DatePicker from './DatePicker.vue';
 import SplitPane from './SplitPane.vue';
 import TaskTable from '../gantt/task/TaskTable.vue';
 import RightTable from './RightTable.vue';
+import LinkConfigPanel from './LinkConfigPanel.vue';
 import { store, mutations } from './Store';
 export type { DataConfig, StyleConfig, EventConfig, TaskHeader } from './Types';
 // 移除未使用的类型导入
@@ -161,7 +165,8 @@ export default defineComponent({
         DatePicker,
         SplitPane,
         TaskTable,
-        RightTable
+        RightTable,
+        LinkConfigPanel
     },
     setup(props) {
         // 缓存 mapFields 的结果
@@ -378,15 +383,7 @@ export default defineComponent({
         };
 
         const timeMode = (_mode: string) => {
-            // 假设 barContent 是一个 ref 对象
-            const barContent = ref<HTMLElement | null>(null);
-
-            nextTick(() => {
-                if (barContent.value) {
-                    barContent.value.scrollLeft = 0;
-                }
-            });
-
+            // 更新按钮状态
             for (let i = 0; i < buttonClass.value.length; i++) {
                 buttonClass.value[i] = 'button';
             }
@@ -405,7 +402,17 @@ export default defineComponent({
                     break;
                 }
             }
+            
+            // 先设置mode，触发响应式更新
             mode.value = _mode;
+            
+            // 等待DOM更新完成后再滚动
+            nextTick(() => {
+                const barContentEl = document.querySelector('.table .content') as HTMLElement;
+                if (barContentEl) {
+                    barContentEl.scrollLeft = 0;
+                }
+            });
         };
 
         const confirmStart = (value: ConfirmDateData) => {

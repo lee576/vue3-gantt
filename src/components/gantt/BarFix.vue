@@ -1,7 +1,7 @@
 <template>
     <!-- 如果 showRow 为 true，则渲染 barRow 容器 -->
     <div v-if='showRow' class="barRow" :style="{ height: rowHeight + 'px' }" @mouseover="hoverActive()"
-        @mouseleave="hoverInactive()" :class="{ active: hover }">
+        @mouseleave="hoverInactive()" :class="{ active: hover }" :data-task-id="row[mapFields.id]">
         <!-- 如果 showRow 为 true，则渲染 SVG 元素 -->
         <svg key="row.no" v-if='showRow' ref='bar' class="bar" :height="barHeight + 'px'"
             :class="{ active: hover }"></svg>
@@ -531,11 +531,13 @@ export default defineComponent({
 
         // 组件挂载后执行的钩子函数
         onMounted(() => {
+            console.log(`[BarFix] Component mounted, task: ${props.row[mapFields.value.id]}, mode: ${store.mode}`);
             if (bar.value && !isBarInteracted.value) {
                 // 绘制条形图
                 drowBar(bar.value);
                 // 设置标志变量为 true，表示元素已经设置了交互
                 isBarInteracted.value = true;
+                console.log(`[BarFix] Initial bar drawn, width: ${bar.value.getAttribute('width')}`);
             }
             if (setBarColor) {
                 // 设置条形图的颜色
@@ -549,23 +551,31 @@ export default defineComponent({
 
         // keep-alive 停用时的清理
         onDeactivated(() => {
-            if (bar.value && interact.isSet(bar.value)) {
-                // 取消 SVG 元素的交互设置
-                interact(bar.value).unset()
+            if (bar.value) {
+                try {
+                    // 尝试取消交互设置，但不检查isSet
+                    interact(bar.value).unset();
+                } catch (e) {
+                    // 忽略错误
+                }
             }
             // 隐藏行
-            showRow.value = false
-        })
+            showRow.value = false;
+        });
 
         // 组件卸载前的清理
         onBeforeUnmount(() => {
-            if (bar.value && interact.isSet(bar.value)) {
-                // 取消 SVG 元素的交互设置
-                interact(bar.value).unset()
+            if (bar.value) {
+                try {
+                    // 尝试取消交互设置，但不检查isSet
+                    interact(bar.value).unset();
+                } catch (e) {
+                    // 忽略错误
+                }
             }
             // 隐藏行
-            showRow.value = false
-        })
+            showRow.value = false;
+        });
 
         return {
             bar,

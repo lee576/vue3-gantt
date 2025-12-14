@@ -1,6 +1,6 @@
 <template>
     <div>
-      <template v-for="(item) in filterTask" :key="item.id + scale">
+      <template v-for="(item) in filterTask" :key="item.id">
         <BarFix 
           :startGanttDate="startGanttDate" 
           :endGanttDate="endGanttDate" 
@@ -32,6 +32,7 @@
       const allTask = computed(() => store.tasks);
       const timelineCellCount = computed(() => store.timelineCellCount);
       const scale = computed(() => store.scale);
+      const mode = computed(() => store.mode);
       const startGanttDate = computed(() => store.startGanttDate ? store.startGanttDate.toISOString() : undefined);
       const endGanttDate = computed(() => store.endGanttDate ? store.endGanttDate.toISOString() : undefined);
       const mapFields = computed(() => store.mapFields);
@@ -78,6 +79,7 @@
         allTask,
         timelineCellCount,
         scale,
+        mode,
         startGanttDate,
         endGanttDate,
         mapFields,

@@ -1,7 +1,7 @@
 <template>
     <div ref="barContent" @scroll="scroll()" @mouseover="mouseover()"
       v-if="tasks" class="content">
-      <BarRecursionRow :rowHeight="rowHeight" :tasks="tasks"></BarRecursionRow>
+      <BarRecursionRow :key="`${mode}-${scale}-${timelineCellCount}`" :rowHeight="rowHeight" :tasks="tasks"></BarRecursionRow>
     </div>
   </template>
   <script lang="ts">
@@ -30,6 +30,7 @@
       const tasks = computed(() => store.tasks);
       const timelineCellCount = computed(() => store.timelineCellCount);
       const scale = computed(() => store.scale);
+      const mode = computed(() => store.mode);
       const startGanttDate = computed(() => store.startGanttDate);
       const endGanttDate = computed(() => store.endGanttDate);
       const mapFields = computed(() => store.mapFields);
@@ -89,6 +90,7 @@
         tasks,
         timelineCellCount,
         scale,
+        mode,
         startGanttDate,
         endGanttDate,
         mapFields,

@@ -1,7 +1,7 @@
 <template>
     <!-- 如果 showRow 为 true，则渲染 barRow 容器 -->
     <div v-if='showRow' class="barRow" :style="{ height: rowHeight + 'px' }" @mouseover="hoverActive()"
-        @mouseleave="hoverInactive()" :class="{ active: hover }">
+        @mouseleave="hoverInactive()" :class="{ active: hover }" :data-task-id="row[mapFields.id]">
         <!-- 如果 showRow 为 true，则渲染 SVG 元素 -->
         <svg key="row.no" v-if='showRow' ref='bar' class="bar" :height="barHeight + 'px'"
             :class="{ active: hover }"></svg>
@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, ref, computed, onMounted, onDeactivated, onBeforeUnmount } from 'vue';
+import { defineComponent, inject, ref, computed, watch, onMounted, onDeactivated, onBeforeUnmount } from 'vue';
 import SVG from 'svg.js';
 import interact from 'interactjs';
 import dayjs from 'dayjs';
@@ -379,8 +379,8 @@ export default defineComponent({
          * @param {SVGSVGElement} barElement - SVG 元素
          */
         const drowBar = (barElement: SVGSVGElement) => {
-            // 清空 SVG 元素的内容
-            // barElement.innerHTML = '';
+            // 清空 SVG 元素的内容，确保重绘时没有旧元素
+            barElement.innerHTML = '';
             let dataX = 0;
             // 根据甘特图的模式计算条形图的位置和宽度
             switch (mode.value) {
@@ -636,6 +636,58 @@ export default defineComponent({
                 }
             }
         };
+
+        // 监听模式变化，重新绘制bar
+        watch(() => store.mode, () => {
+            if (bar.value) {
+                // 清除旧的交互设置
+                if (interact.isSet(bar.value)) {
+                    interact(bar.value).unset();
+                }
+                // 重新绘制bar
+                drowBar(bar.value);
+                isBarInteracted.value = true;
+            }
+        });
+
+        // 监听scale变化，重新绘制bar
+        watch(() => store.scale, () => {
+            if (bar.value) {
+                // 清除旧的交互设置
+                if (interact.isSet(bar.value)) {
+                    interact(bar.value).unset();
+                }
+                // 重新绘制bar
+                drowBar(bar.value);
+                isBarInteracted.value = true;
+            }
+        });
+
+        // 监听时间轴变化，重新绘制bar
+        watch(() => store.timelineCellCount, () => {
+            if (bar.value) {
+                // 清除旧的交互设置
+                if (interact.isSet(bar.value)) {
+                    interact(bar.value).unset();
+                }
+                // 重新绘制bar
+                drowBar(bar.value);
+                isBarInteracted.value = true;
+            }
+        });
+
+        // 监听甘特图日期范围变化，重新绘制bar
+        watch(() => [store.startGanttDate, store.endGanttDate], () => {
+            if (bar.value) {
+                // 清除旧的交互设置
+                if (interact.isSet(bar.value)) {
+                    interact(bar.value).unset();
+                }
+                // 重新绘制bar
+                drowBar(bar.value);
+                isBarInteracted.value = true;
+            }
+        });
 
         // 组件挂载后执行的钩子函数
         onMounted(() => {
