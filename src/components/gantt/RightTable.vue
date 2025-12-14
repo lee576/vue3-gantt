@@ -14,9 +14,6 @@
         :containerHeight="containerHeight"
         :linkConfig="linkConfig"
       />
-      
-      <!-- 连线配置面板 -->
-      <LinkConfigPanel />
     </div>
   </div>
 </template>
@@ -30,7 +27,6 @@ import dayjs from 'dayjs';
 import sharedState from './ShareState';
 import TableContent from './TableContent.vue';
 import TaskLinks from './TaskLinks.vue';
-import LinkConfigPanel from './LinkConfigPanel.vue';
 import { useLinkConfig } from './LinkConfig';
 
 export default defineComponent({
@@ -47,8 +43,7 @@ export default defineComponent({
   components: {
     TimelineHeader,
     TableContent,
-    TaskLinks,
-    LinkConfigPanel
+    TaskLinks
   },
   setup(props) {
     // 引用 tableBar

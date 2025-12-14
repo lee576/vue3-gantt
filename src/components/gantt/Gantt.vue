@@ -18,6 +18,19 @@
                     <div class="text">时</div>
                 </div>
             </div>
+            <div class="config-buttons">
+                <button 
+                    class="config-btn" 
+                    @click="showLinkConfig = !showLinkConfig"
+                    :class="{ active: showLinkConfig }"
+                    title="连线配置"
+                >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    连线
+                </button>
+            </div>
         </div>
         <div class="gantt">
             <SplitPane direction="row" :min="0" :max="100" :triggerLength="10"
@@ -34,7 +47,14 @@
         </div>
         
         <!-- 连线配置面板 -->
-        <LinkConfigPanel />
+        <div v-if="showLinkConfig" class="config-panel-overlay" @click="showLinkConfig = false">
+            <div class="config-panel-container" @click.stop>
+                <LinkConfigPanel 
+                    @close="showLinkConfig = false"
+                    @configChange="onLinkConfigChange"
+                />
+            </div>
+        </div>
     </div>
 </template>
 
@@ -198,6 +218,9 @@ export default defineComponent({
         const startGanttDate = ref<string | null>(null);
         const endGanttDate = ref<string | null>(null);
         const result = ref('');
+        
+        // 连线配置相关状态
+        const showLinkConfig = ref(false);
 
         // 计算属性
         const subTask = computed(() => store.subTask);
@@ -588,6 +611,12 @@ export default defineComponent({
             return props.styleConfig.setBarColor(row);
         });
 
+        // 连线配置变化处理
+        const onLinkConfigChange = (config: any) => {
+            console.log('连线配置已更新:', config);
+            // 这里可以添加额外的处理逻辑，比如通知其他组件更新
+        };
+
         return {
             subTask,
             editTask,
@@ -604,7 +633,9 @@ export default defineComponent({
             maxEndDate,
             confirmEnd,
             buttonClass,
-            timeMode
+            timeMode,
+            showLinkConfig,
+            onLinkConfigChange
         };
     }
 });
@@ -674,11 +705,66 @@ $toolbarHeight: 70px;
                 cursor: pointer;
             }
         }
+        
+        .config-buttons {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+        
+        .config-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #495057;
+            transition: all 0.2s ease;
+            
+            &:hover {
+                background: #e9ecef;
+                border-color: #adb5bd;
+            }
+            
+            &.active {
+                background: #3498db;
+                color: white;
+                border-color: #3498db;
+            }
+            
+            svg {
+                width: 14px;
+                height: 14px;
+            }
+        }
     }
 
     .gantt {
         height: calc(100% - #{$toolbarHeight});
         width: 100%;
+    }
+    
+    .config-panel-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    
+    .config-panel-container {
+        position: relative;
+        max-height: 90vh;
+        overflow: hidden;
     }
 }
 </style>

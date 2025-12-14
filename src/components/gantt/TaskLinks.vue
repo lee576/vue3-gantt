@@ -55,47 +55,9 @@
 <script lang="ts">
 import { defineComponent, watch, ref, onMounted, onUnmounted } from 'vue';
 import { store } from './Store';
+import { LinkType, LinkPathType, type LinkConfig, type TaskLink } from './Types';
 
-// 连线类型枚举
-export enum LinkType {
-  FINISH_TO_START = 'finish-to-start',  // 完成-开始（最常用）
-  START_TO_START = 'start-to-start',    // 开始-开始
-  FINISH_TO_FINISH = 'finish-to-finish', // 完成-完成
-  START_TO_FINISH = 'start-to-finish',   // 开始-完成
-  PARENT_CHILD = 'parent-child'          // 父子关系
-}
 
-// 连线配置接口
-export interface LinkConfig {
-  color: string;
-  width: number;
-  dashArray?: string;
-  showArrow: boolean;
-  arrowColor?: string;
-  arrowSize: number;
-  showLabels: boolean;
-  labelColor: string;
-  labelFontSize: number;
-  cornerRadius: number;
-  parentChildStyle: {
-    color: string;
-    width: number;
-    dashArray?: string;
-  };
-}
-
-// 连线数据接口
-export interface TaskLink {
-  id: string;
-  sourceId: string;
-  targetId: string;
-  type: LinkType;
-  label?: string;
-  path: string;
-  arrowPoints: string;
-  labelX: number;
-  labelY: number;
-}
 
 export default defineComponent({
   name: 'TaskLinks',
@@ -121,6 +83,10 @@ export default defineComponent({
         labelColor: '#666',
         labelFontSize: 12,
         cornerRadius: 5,
+        pathType: LinkPathType.BEZIER,
+        bezierCurvature: 0.4,
+        rightAngleOffset: 30,
+        smoothCorners: true,
         parentChildStyle: {
           color: '#95a5a6',
           width: 1,
@@ -246,26 +212,26 @@ export default defineComponent({
     const generateLinkPath = (source: any, target: any, linkType: LinkType, linkId: string = ''): string => {
       if (!source || !target) return '';
       
-      const { cornerRadius } = props.linkConfig;
+      const { pathType } = props.linkConfig;
       
       switch (linkType) {
         case LinkType.PARENT_CHILD:
-          return generateParentChildPath(source, target, cornerRadius, linkId);
+          return generateParentChildPath(source, target, pathType, linkId);
         case LinkType.FINISH_TO_START:
-          return generateFinishToStartPath(source, target, cornerRadius);
+          return generateFinishToStartPath(source, target, pathType);
         case LinkType.START_TO_START:
-          return generateStartToStartPath(source, target, cornerRadius);
+          return generateStartToStartPath(source, target, pathType);
         case LinkType.FINISH_TO_FINISH:
-          return generateFinishToFinishPath(source, target, cornerRadius);
+          return generateFinishToFinishPath(source, target, pathType);
         case LinkType.START_TO_FINISH:
-          return generateStartToFinishPath(source, target, cornerRadius);
+          return generateStartToFinishPath(source, target, pathType);
         default:
-          return generateFinishToStartPath(source, target, cornerRadius);
+          return generateFinishToStartPath(source, target, pathType);
       }
     };
     
     // 父子关系连线路径（从父任务左边缘到子任务左边缘）
-    const generateParentChildPath = (parent: any, child: any, _radius: number, _linkId: string): string => {
+    const generateParentChildPath = (parent: any, child: any, pathType: LinkPathType, _linkId: string): string => {
       const parentId = parent.id || parent.taskId;
       const childId = child.id || child.taskId;
       
@@ -286,15 +252,16 @@ export default defineComponent({
       const adjustedStartY = startY + verticalOffset;
       const adjustedEndY = endY + verticalOffset;
       
-      // 使用简单优雅的路径，传递子任务索引用于行对齐
-      return generateParentToChildPath(startX, adjustedStartY, endX, adjustedEndY, childIndex);
+      // 根据路径类型生成不同的路径
+      return generateParentToChildPath(startX, adjustedStartY, endX, adjustedEndY, childIndex, pathType);
     };
     
-    // 生成从父任务到子任务的连线路径（水平方向，对齐到行中心）
+    // 生成从父任务到子任务的连线路径（支持不同路径类型）
     const generateParentToChildPath = (
       startX: number, startY: number, 
       endX: number, endY: number, 
-      childIndex: number
+      childIndex: number,
+      pathType: LinkPathType
     ): string => {
       const deltaX = endX - startX;
       const deltaY = endY - startY;
@@ -304,6 +271,28 @@ export default defineComponent({
         return `M ${startX} ${startY} L ${endX} ${endY}`;
       }
       
+      switch (pathType) {
+        case LinkPathType.STRAIGHT:
+          return `M ${startX} ${startY} L ${endX} ${endY}`;
+          
+        case LinkPathType.BEZIER:
+          return generateBezierPath(startX, startY, endX, endY, childIndex);
+          
+        case LinkPathType.RIGHT_ANGLE:
+        default:
+          return generateRightAnglePath(startX, startY, endX, endY, childIndex);
+      }
+    };
+    // 生成贝塞尔曲线路径
+    const generateBezierPath = (
+      startX: number, startY: number, 
+      endX: number, endY: number, 
+      childIndex: number
+    ): string => {
+      const deltaX = endX - startX;
+      const deltaY = endY - startY;
+      const { bezierCurvature } = props.linkConfig;
+      
       // 计算该子任务应该对齐的行中心位置
       const targetRowCenter = getChildRowCenter(startY, childIndex);
       
@@ -311,185 +300,389 @@ export default defineComponent({
       if (deltaX > 0) {
         // 如果垂直距离较小，使用简单的S曲线
         if (Math.abs(deltaY) < getRowHeight() / 2) {
-          const cp1X = startX + Math.abs(deltaX) * 0.4;
-          const cp2X = endX - Math.abs(deltaX) * 0.4;
+          const curvature = Math.abs(deltaX) * bezierCurvature;
+          const cp1X = startX + curvature;
+          const cp2X = endX - curvature;
           return `M ${startX} ${startY} C ${cp1X} ${startY} ${cp2X} ${endY} ${endX} ${endY}`;
         }
         
-        // 垂直距离较大，使用直角路径通过行中心线（确保只向下）
-        const midX1 = startX + 30; // 从父任务右边缘水平延伸
-        const midX2 = endX - 20;   // 到子任务左边缘前的位置
+        // 垂直距离较大，使用双段贝塞尔曲线
+        const safeTargetRowCenter = Math.max(targetRowCenter, startY + getRowHeight());
+        const midX = startX + (endX - startX) / 2;
+        const curvature1 = Math.abs(deltaX) * bezierCurvature * 0.6;
+        const curvature2 = Math.abs(deltaX) * bezierCurvature * 0.4;
         
-        // 确保目标行中心不会高于父任务
+        return `M ${startX} ${startY} 
+                C ${startX + curvature1} ${startY} ${midX - curvature1} ${safeTargetRowCenter} ${midX} ${safeTargetRowCenter}
+                C ${midX + curvature2} ${safeTargetRowCenter} ${endX - curvature2} ${endY} ${endX} ${endY}`;
+      } else {
+        // 子任务在父任务的左侧，需要绕行
+        const gap = props.linkConfig.rightAngleOffset;
+        const bypassY = getSafeBypassY(startY, endY, gap);
+        const curvature = gap * bezierCurvature;
+        
+        return `M ${startX} ${startY} 
+                C ${startX + curvature} ${startY} ${startX + curvature} ${bypassY} ${startX + gap/2} ${bypassY}
+                C ${endX - curvature} ${bypassY} ${endX - curvature} ${endY} ${endX} ${endY}`;
+      }
+    };
+    
+    // 生成直角路径
+    const generateRightAnglePath = (
+      startX: number, startY: number, 
+      endX: number, endY: number, 
+      childIndex: number
+    ): string => {
+      const deltaX = endX - startX;
+      const { rightAngleOffset, smoothCorners, cornerRadius } = props.linkConfig;
+      
+      // 计算该子任务应该对齐的行中心位置
+      const targetRowCenter = getChildRowCenter(startY, childIndex);
+      
+      // 如果子任务在父任务的右侧（正常情况）
+      if (deltaX > 0) {
+        const midX1 = startX + rightAngleOffset;
+        const midX2 = endX - 20;
         const safeTargetRowCenter = Math.max(targetRowCenter, startY + getRowHeight());
         
-        // 五段式直角路径
-        return `M ${startX} ${startY}
-                L ${midX1} ${startY}
-                L ${midX1} ${safeTargetRowCenter}
-                L ${midX2} ${safeTargetRowCenter}
-                L ${midX2} ${endY}
-                L ${endX} ${endY}`;
+        if (smoothCorners && cornerRadius > 0) {
+          // 使用圆角的直角路径
+          const r = Math.min(cornerRadius, Math.abs(safeTargetRowCenter - startY) / 2, Math.abs(midX2 - midX1) / 2);
+          return `M ${startX} ${startY}
+                  L ${midX1 - r} ${startY}
+                  Q ${midX1} ${startY} ${midX1} ${startY + r}
+                  L ${midX1} ${safeTargetRowCenter - r}
+                  Q ${midX1} ${safeTargetRowCenter} ${midX1 + r} ${safeTargetRowCenter}
+                  L ${midX2 - r} ${safeTargetRowCenter}
+                  Q ${midX2} ${safeTargetRowCenter} ${midX2} ${safeTargetRowCenter + r}
+                  L ${midX2} ${endY - r}
+                  Q ${midX2} ${endY} ${midX2 + r} ${endY}
+                  L ${endX} ${endY}`;
+        } else {
+          // 标准直角路径
+          return `M ${startX} ${startY}
+                  L ${midX1} ${startY}
+                  L ${midX1} ${safeTargetRowCenter}
+                  L ${midX2} ${safeTargetRowCenter}
+                  L ${midX2} ${endY}
+                  L ${endX} ${endY}`;
+        }
       } else {
-        // 子任务在父任务的左侧，需要绕行（只能向下，使用直角）
-        const gap = 40;
+        // 子任务在父任务的左侧，需要绕行
+        const gap = rightAngleOffset;
         const bypassY = getSafeBypassY(startY, endY, gap);
         const midX1 = startX + gap/2;
         const midX2 = endX - gap/2;
         
-        return `M ${startX} ${startY} 
-                L ${midX1} ${startY}
-                L ${midX1} ${bypassY}
-                L ${midX2} ${bypassY}
-                L ${midX2} ${endY}
-                L ${endX} ${endY}`;
+        if (smoothCorners && cornerRadius > 0) {
+          const r = Math.min(cornerRadius, gap / 4);
+          return `M ${startX} ${startY}
+                  L ${midX1 - r} ${startY}
+                  Q ${midX1} ${startY} ${midX1} ${startY + r}
+                  L ${midX1} ${bypassY - r}
+                  Q ${midX1} ${bypassY} ${midX1 + r} ${bypassY}
+                  L ${midX2 - r} ${bypassY}
+                  Q ${midX2} ${bypassY} ${midX2} ${bypassY + r}
+                  L ${midX2} ${endY - r}
+                  Q ${midX2} ${endY} ${midX2 + r} ${endY}
+                  L ${endX} ${endY}`;
+        } else {
+          return `M ${startX} ${startY} 
+                  L ${midX1} ${startY}
+                  L ${midX1} ${bypassY}
+                  L ${midX2} ${bypassY}
+                  L ${midX2} ${endY}
+                  L ${endX} ${endY}`;
+        }
       }
     };
     
-
-    
-
-    
-    // 完成-开始连线路径（拐弯点对齐网格）
-    const generateFinishToStartPath = (source: any, target: any, _radius: number): string => {
+    // 完成-开始连线路径（支持不同路径类型）
+    const generateFinishToStartPath = (source: any, target: any, pathType: LinkPathType): string => {
       const startX = source.rightX;
       const startY = source.centerY;
       const endX = target.leftX;
       const endY = target.centerY;
       
-      const deltaX = endX - startX;
-      const deltaY = endY - startY;
-      
-      // 简单直线连接（如果合适）
-      if (deltaX > 20 && Math.abs(deltaY) < 10) {
-        return `M ${startX} ${startY} L ${endX} ${endY}`;
-      }
-      
-      // 如果需要绕行（目标在源的左侧，使用直角）
-      if (deltaX < 20) {
-        const gap = 30;
-        const bypassY = getSafeBypassY(source.centerY, target.centerY, gap);
-        const midX1 = startX + gap/2;
-        const midX2 = endX - gap/2;
-        
-        return `M ${startX} ${startY} 
-                L ${midX1} ${startY}
-                L ${midX1} ${bypassY}
-                L ${midX2} ${bypassY}
-                L ${midX2} ${endY}
-                L ${endX} ${endY}`;
-      }
-      
-      // 使用简单的S曲线，但如果垂直距离大，在网格中心拐弯
-      if (Math.abs(deltaY) > getRowHeight()) {
-        const midY = alignToGridCenter((startY + endY) / 2);
-        const curvature = Math.min(Math.abs(deltaX) * 0.3, 40);
-        const midX = startX + (endX - startX) / 2;
-        
-        return `M ${startX} ${startY} 
-                C ${startX + curvature} ${startY} ${midX - curvature} ${midY} ${midX} ${midY}
-                C ${midX + curvature} ${midY} ${endX - curvature} ${endY} ${endX} ${endY}`;
-      }
-      
-      // 简单S曲线
-      const curvature = Math.min(Math.abs(deltaX) * 0.3, 40);
-      const cp1X = startX + curvature;
-      const cp2X = endX - curvature;
-      
-      return `M ${startX} ${startY} C ${cp1X} ${startY} ${cp2X} ${endY} ${endX} ${endY}`;
+      return generateConnectionPath(startX, startY, endX, endY, pathType, 'horizontal');
     };
     
-    // 开始-开始连线路径（拐弯点对齐网格）
-    const generateStartToStartPath = (source: any, target: any, _radius: number): string => {
+    // 开始-开始连线路径（支持不同路径类型）
+    const generateStartToStartPath = (source: any, target: any, pathType: LinkPathType): string => {
       const startX = source.leftX;
       const startY = source.centerY;
       const endX = target.leftX;
       const endY = target.centerY;
       
-      const gap = 25;
-      const offsetX = Math.min(startX, endX) - gap;
-      
-      // 如果垂直距离较大，使用网格对齐的拐弯点
-      if (Math.abs(endY - startY) > getRowHeight()) {
-        const midY1 = alignToGridCenter((startY + endY) / 2);
-        return `M ${startX} ${startY} C ${offsetX} ${startY} ${offsetX} ${midY1} ${offsetX} ${midY1} C ${offsetX} ${midY1} ${offsetX} ${endY} ${endX} ${endY}`;
-      }
-      
-      // 简单的U型路径
-      return `M ${startX} ${startY} C ${offsetX} ${startY} ${offsetX} ${endY} ${endX} ${endY}`;
+      return generateConnectionPath(startX, startY, endX, endY, pathType, 'left-u');
     };
     
-    // 完成-完成连线路径（拐弯点对齐网格）
-    const generateFinishToFinishPath = (source: any, target: any, _radius: number): string => {
+    // 完成-完成连线路径（支持不同路径类型）
+    const generateFinishToFinishPath = (source: any, target: any, pathType: LinkPathType): string => {
       const startX = source.rightX;
       const startY = source.centerY;
       const endX = target.rightX;
       const endY = target.centerY;
       
-      const gap = 25;
-      const offsetX = Math.max(startX, endX) + gap;
-      
-      // 如果垂直距离较大，使用网格对齐的拐弯点
-      if (Math.abs(endY - startY) > getRowHeight()) {
-        const midY1 = alignToGridCenter((startY + endY) / 2);
-        return `M ${startX} ${startY} C ${offsetX} ${startY} ${offsetX} ${midY1} ${offsetX} ${midY1} C ${offsetX} ${midY1} ${offsetX} ${endY} ${endX} ${endY}`;
-      }
-      
-      // 简单的U型路径
-      return `M ${startX} ${startY} C ${offsetX} ${startY} ${offsetX} ${endY} ${endX} ${endY}`;
+      return generateConnectionPath(startX, startY, endX, endY, pathType, 'right-u');
     };
     
-    // 开始-完成连线路径（拐弯点对齐网格）
-    const generateStartToFinishPath = (source: any, target: any, _radius: number): string => {
+    // 开始-完成连线路径（支持不同路径类型）
+    const generateStartToFinishPath = (source: any, target: any, pathType: LinkPathType): string => {
       const startX = source.leftX;
       const startY = source.centerY;
       const endX = target.rightX;
       const endY = target.centerY;
       
+      return generateConnectionPath(startX, startY, endX, endY, pathType, 'cross');
+    };
+    
+    // 通用连接路径生成函数
+    const generateConnectionPath = (
+      startX: number, startY: number, 
+      endX: number, endY: number, 
+      pathType: LinkPathType, 
+      connectionType: 'horizontal' | 'left-u' | 'right-u' | 'cross'
+    ): string => {
+      const { bezierCurvature, rightAngleOffset, smoothCorners, cornerRadius } = props.linkConfig;
+      
+      switch (pathType) {
+        case LinkPathType.STRAIGHT:
+          return `M ${startX} ${startY} L ${endX} ${endY}`;
+          
+        case LinkPathType.BEZIER:
+          return generateBezierConnectionPath(startX, startY, endX, endY, connectionType, bezierCurvature);
+          
+        case LinkPathType.RIGHT_ANGLE:
+        default:
+          return generateRightAngleConnectionPath(startX, startY, endX, endY, connectionType, rightAngleOffset, smoothCorners, cornerRadius);
+      }
+    };
+    
+    // 生成贝塞尔连接路径
+    const generateBezierConnectionPath = (
+      startX: number, startY: number, 
+      endX: number, endY: number, 
+      connectionType: string,
+      curvature: number
+    ): string => {
       const deltaX = endX - startX;
       const deltaY = endY - startY;
       
-      // 简单直线连接（如果合适）
-      if (deltaX > 20 && Math.abs(deltaY) < 10) {
-        return `M ${startX} ${startY} L ${endX} ${endY}`;
+      switch (connectionType) {
+        case 'horizontal':
+          // 水平连接（完成-开始）
+          if (deltaX > 20 && Math.abs(deltaY) < 10) {
+            return `M ${startX} ${startY} L ${endX} ${endY}`;
+          }
+          
+          if (deltaX < 20) {
+            // 需要绕行
+            const gap = 30;
+            const bypassY = getSafeBypassY(startY, endY, gap);
+            const curvatureOffset = gap * curvature;
+            
+            return `M ${startX} ${startY} 
+                    C ${startX + curvatureOffset} ${startY} ${startX + curvatureOffset} ${bypassY} ${startX + gap/2} ${bypassY}
+                    C ${endX - curvatureOffset} ${bypassY} ${endX - curvatureOffset} ${endY} ${endX} ${endY}`;
+          }
+          
+          // 标准S曲线
+          const curvatureOffset = Math.min(Math.abs(deltaX) * curvature, 60);
+          const cp1X = startX + curvatureOffset;
+          const cp2X = endX - curvatureOffset;
+          
+          return `M ${startX} ${startY} C ${cp1X} ${startY} ${cp2X} ${endY} ${endX} ${endY}`;
+          
+        case 'left-u':
+          // 左侧U型连接（开始-开始）
+          const leftGap = 25;
+          const leftOffsetX = Math.min(startX, endX) - leftGap;
+          const leftCurvature = leftGap * curvature;
+          
+          if (Math.abs(deltaY) > getRowHeight()) {
+            const midY = alignToGridCenter((startY + endY) / 2);
+            return `M ${startX} ${startY} 
+                    C ${startX - leftCurvature} ${startY} ${leftOffsetX} ${startY + leftCurvature} ${leftOffsetX} ${midY}
+                    C ${leftOffsetX} ${endY - leftCurvature} ${endX - leftCurvature} ${endY} ${endX} ${endY}`;
+          }
+          
+          return `M ${startX} ${startY} C ${leftOffsetX} ${startY} ${leftOffsetX} ${endY} ${endX} ${endY}`;
+          
+        case 'right-u':
+          // 右侧U型连接（完成-完成）
+          const rightGap = 25;
+          const rightOffsetX = Math.max(startX, endX) + rightGap;
+          const rightCurvature = rightGap * curvature;
+          
+          if (Math.abs(deltaY) > getRowHeight()) {
+            const midY = alignToGridCenter((startY + endY) / 2);
+            return `M ${startX} ${startY} 
+                    C ${startX + rightCurvature} ${startY} ${rightOffsetX} ${startY + rightCurvature} ${rightOffsetX} ${midY}
+                    C ${rightOffsetX} ${endY - rightCurvature} ${endX + rightCurvature} ${endY} ${endX} ${endY}`;
+          }
+          
+          return `M ${startX} ${startY} C ${rightOffsetX} ${startY} ${rightOffsetX} ${endY} ${endX} ${endY}`;
+          
+        case 'cross':
+          // 交叉连接（开始-完成）
+          if (deltaX > 20 && Math.abs(deltaY) < 10) {
+            return `M ${startX} ${startY} L ${endX} ${endY}`;
+          }
+          
+          const crossCurvature = Math.min(Math.abs(deltaX) * curvature, 60);
+          const crossCp1X = startX - crossCurvature;
+          const crossCp2X = endX + crossCurvature;
+          
+          return `M ${startX} ${startY} C ${crossCp1X} ${startY} ${crossCp2X} ${endY} ${endX} ${endY}`;
+          
+        default:
+          return `M ${startX} ${startY} L ${endX} ${endY}`;
       }
+    };
+    
+    // 生成直角连接路径
+    const generateRightAngleConnectionPath = (
+      startX: number, startY: number, 
+      endX: number, endY: number, 
+      connectionType: string,
+      offset: number,
+      smoothCorners: boolean,
+      cornerRadius: number
+    ): string => {
+      const deltaX = endX - startX;
+      const deltaY = endY - startY;
       
-      // 如果需要绕行（目标在源的右侧但重叠，使用直角）
-      if (deltaX < 20) {
-        const gap = 30;
-        const bypassY = getSafeBypassY(source.centerY, target.centerY, gap);
-        const midX1 = startX - gap/2;
-        const midX2 = endX + gap/2;
-        
-        return `M ${startX} ${startY} 
-                L ${midX1} ${startY}
-                L ${midX1} ${bypassY}
-                L ${midX2} ${bypassY}
-                L ${midX2} ${endY}
-                L ${endX} ${endY}`;
+      switch (connectionType) {
+        case 'horizontal':
+          // 水平连接（完成-开始）
+          if (deltaX > 20 && Math.abs(deltaY) < 10) {
+            return `M ${startX} ${startY} L ${endX} ${endY}`;
+          }
+          
+          if (deltaX < 20) {
+            // 需要绕行
+            const gap = offset;
+            const bypassY = getSafeBypassY(startY, endY, gap);
+            const midX1 = startX + gap/2;
+            const midX2 = endX - gap/2;
+            
+            if (smoothCorners && cornerRadius > 0) {
+              const r = Math.min(cornerRadius, gap / 4);
+              return `M ${startX} ${startY}
+                      L ${midX1 - r} ${startY}
+                      Q ${midX1} ${startY} ${midX1} ${startY + r}
+                      L ${midX1} ${bypassY - r}
+                      Q ${midX1} ${bypassY} ${midX1 + r} ${bypassY}
+                      L ${midX2 - r} ${bypassY}
+                      Q ${midX2} ${bypassY} ${midX2} ${bypassY + r}
+                      L ${midX2} ${endY - r}
+                      Q ${midX2} ${endY} ${midX2 + r} ${endY}
+                      L ${endX} ${endY}`;
+            }
+            
+            return `M ${startX} ${startY} 
+                    L ${midX1} ${startY}
+                    L ${midX1} ${bypassY}
+                    L ${midX2} ${bypassY}
+                    L ${midX2} ${endY}
+                    L ${endX} ${endY}`;
+          }
+          
+          // 标准L型路径
+          const midX = startX + Math.abs(deltaX) / 2;
+          
+          if (smoothCorners && cornerRadius > 0) {
+            const r = Math.min(cornerRadius, Math.abs(deltaX) / 4, Math.abs(deltaY) / 2);
+            if (deltaY > 0) {
+              return `M ${startX} ${startY}
+                      L ${midX - r} ${startY}
+                      Q ${midX} ${startY} ${midX} ${startY + r}
+                      L ${midX} ${endY - r}
+                      Q ${midX} ${endY} ${midX + r} ${endY}
+                      L ${endX} ${endY}`;
+            } else {
+              return `M ${startX} ${startY}
+                      L ${midX - r} ${startY}
+                      Q ${midX} ${startY} ${midX} ${startY - r}
+                      L ${midX} ${endY + r}
+                      Q ${midX} ${endY} ${midX + r} ${endY}
+                      L ${endX} ${endY}`;
+            }
+          }
+          
+          return `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`;
+          
+        case 'left-u':
+          // 左侧U型连接（开始-开始）
+          const leftGap = offset;
+          const leftOffsetX = Math.min(startX, endX) - leftGap;
+          
+          if (smoothCorners && cornerRadius > 0) {
+            const r = Math.min(cornerRadius, leftGap / 2, Math.abs(deltaY) / 4);
+            return `M ${startX} ${startY}
+                    L ${leftOffsetX + r} ${startY}
+                    Q ${leftOffsetX} ${startY} ${leftOffsetX} ${startY + (deltaY > 0 ? r : -r)}
+                    L ${leftOffsetX} ${endY - (deltaY > 0 ? r : -r)}
+                    Q ${leftOffsetX} ${endY} ${leftOffsetX + r} ${endY}
+                    L ${endX} ${endY}`;
+          }
+          
+          return `M ${startX} ${startY} L ${leftOffsetX} ${startY} L ${leftOffsetX} ${endY} L ${endX} ${endY}`;
+          
+        case 'right-u':
+          // 右侧U型连接（完成-完成）
+          const rightGap = offset;
+          const rightOffsetX = Math.max(startX, endX) + rightGap;
+          
+          if (smoothCorners && cornerRadius > 0) {
+            const r = Math.min(cornerRadius, rightGap / 2, Math.abs(deltaY) / 4);
+            return `M ${startX} ${startY}
+                    L ${rightOffsetX - r} ${startY}
+                    Q ${rightOffsetX} ${startY} ${rightOffsetX} ${startY + (deltaY > 0 ? r : -r)}
+                    L ${rightOffsetX} ${endY - (deltaY > 0 ? r : -r)}
+                    Q ${rightOffsetX} ${endY} ${rightOffsetX - r} ${endY}
+                    L ${endX} ${endY}`;
+          }
+          
+          return `M ${startX} ${startY} L ${rightOffsetX} ${startY} L ${rightOffsetX} ${endY} L ${endX} ${endY}`;
+          
+        case 'cross':
+          // 交叉连接（开始-完成）
+          if (deltaX > 20 && Math.abs(deltaY) < 10) {
+            return `M ${startX} ${startY} L ${endX} ${endY}`;
+          }
+          
+          const crossMidX = startX + deltaX / 2;
+          
+          if (smoothCorners && cornerRadius > 0) {
+            const r = Math.min(cornerRadius, Math.abs(deltaX) / 4, Math.abs(deltaY) / 2);
+            if (deltaY > 0) {
+              return `M ${startX} ${startY}
+                      L ${crossMidX - r} ${startY}
+                      Q ${crossMidX} ${startY} ${crossMidX} ${startY + r}
+                      L ${crossMidX} ${endY - r}
+                      Q ${crossMidX} ${endY} ${crossMidX + r} ${endY}
+                      L ${endX} ${endY}`;
+            } else {
+              return `M ${startX} ${startY}
+                      L ${crossMidX - r} ${startY}
+                      Q ${crossMidX} ${startY} ${crossMidX} ${startY - r}
+                      L ${crossMidX} ${endY + r}
+                      Q ${crossMidX} ${endY} ${crossMidX + r} ${endY}
+                      L ${endX} ${endY}`;
+            }
+          }
+          
+          return `M ${startX} ${startY} L ${crossMidX} ${startY} L ${crossMidX} ${endY} L ${endX} ${endY}`;
+          
+        default:
+          return `M ${startX} ${startY} L ${endX} ${endY}`;
       }
-      
-      // 使用简单的S曲线，但如果垂直距离大，在网格中心拐弯
-      if (Math.abs(deltaY) > getRowHeight()) {
-        const midY = alignToGridCenter((startY + endY) / 2);
-        const curvature = Math.min(Math.abs(deltaX) * 0.3, 40);
-        const midX = startX + (endX - startX) / 2;
-        
-        return `M ${startX} ${startY} 
-                C ${startX - curvature} ${startY} ${midX + curvature} ${midY} ${midX} ${midY}
-                C ${midX - curvature} ${midY} ${endX + curvature} ${endY} ${endX} ${endY}`;
-      }
-      
-      // 简单S曲线
-      const curvature = Math.min(Math.abs(deltaX) * 0.3, 40);
-      const cp1X = startX - curvature;
-      const cp2X = endX + curvature;
-      
-      return `M ${startX} ${startY} C ${cp1X} ${startY} ${cp2X} ${endY} ${endX} ${endY}`;
     };
     
     // 生成箭头点（直接从子任务位置计算）
-    const generateArrowPoints = (childPos: any, arrowSize: number, linkType: LinkType = LinkType.FINISH_TO_START): string => {
+    const generateArrowPoints = (childPos: any, arrowSize: number, _linkType: LinkType = LinkType.FINISH_TO_START): string => {
       if (!childPos) {
         console.warn('子任务位置无效');
         return '';

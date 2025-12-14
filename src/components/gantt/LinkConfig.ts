@@ -1,5 +1,5 @@
 import { reactive } from 'vue';
-import { LinkType, type LinkConfig } from './TaskLinks.vue';
+import { LinkType, LinkPathType, type LinkConfig, type TaskDependency } from './Types';
 
 // 预定义的连线样式主题
 export const LinkThemes = {
@@ -15,6 +15,10 @@ export const LinkThemes = {
     labelColor: '#666',
     labelFontSize: 12,
     cornerRadius: 5,
+    pathType: LinkPathType.BEZIER,
+    bezierCurvature: 0.4,
+    rightAngleOffset: 30,
+    smoothCorners: true,
     parentChildStyle: {
       color: '#95a5a6',
       width: 1,
@@ -34,6 +38,10 @@ export const LinkThemes = {
     labelColor: '#34495e',
     labelFontSize: 11,
     cornerRadius: 8,
+    pathType: LinkPathType.RIGHT_ANGLE,
+    bezierCurvature: 0.3,
+    rightAngleOffset: 40,
+    smoothCorners: true,
     parentChildStyle: {
       color: '#7f8c8d',
       width: 2,
@@ -53,6 +61,10 @@ export const LinkThemes = {
     labelColor: '#607d8b',
     labelFontSize: 12,
     cornerRadius: 10,
+    pathType: LinkPathType.BEZIER,
+    bezierCurvature: 0.6,
+    rightAngleOffset: 50,
+    smoothCorners: true,
     parentChildStyle: {
       color: '#90a4ae',
       width: 2,
@@ -72,6 +84,10 @@ export const LinkThemes = {
     labelColor: '#999',
     labelFontSize: 10,
     cornerRadius: 3,
+    pathType: LinkPathType.STRAIGHT,
+    bezierCurvature: 0.2,
+    rightAngleOffset: 20,
+    smoothCorners: false,
     parentChildStyle: {
       color: '#ccc',
       width: 1,
@@ -91,6 +107,10 @@ export const LinkThemes = {
     labelColor: '#673ab7',
     labelFontSize: 11,
     cornerRadius: 6,
+    pathType: LinkPathType.RIGHT_ANGLE,
+    bezierCurvature: 0.5,
+    rightAngleOffset: 35,
+    smoothCorners: true,
     parentChildStyle: {
       color: '#4caf50',
       width: 2,
@@ -254,15 +274,6 @@ export function useLinkConfig() {
 }
 
 // 连线数据管理
-export interface TaskDependency {
-  id: string;
-  sourceTaskId: string;
-  targetTaskId: string;
-  type: LinkType;
-  lag?: number; // 延迟天数
-  label?: string;
-}
-
 export class LinkDataManager {
   private dependencies = reactive<TaskDependency[]>([]);
   private readonly STORAGE_KEY = 'gantt-link-dependencies';
@@ -295,7 +306,7 @@ export class LinkDataManager {
   
   // 添加依赖关系
   addDependency(dependency: Omit<TaskDependency, 'id'>): string {
-    const id = `link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const id = `link-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     this.dependencies.push({ ...dependency, id });
     this.saveToStorage();
     return id;

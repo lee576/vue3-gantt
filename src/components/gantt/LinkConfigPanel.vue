@@ -1,248 +1,307 @@
 <template>
-  <div class="link-config-panel" :class="{ 'panel-open': isOpen }">
-    <!-- 面板切换按钮 -->
-    <button 
-      class="panel-toggle" 
-      @click="togglePanel"
-      :title="isOpen ? '关闭连线配置' : '打开连线配置'"
-    >
-      <div class="toggle-icon" :class="{ 'icon-rotate': isOpen }">
-        <svg viewBox="0 0 24 24" width="26" height="26">
-          <!-- 连线图标 -->
-          <path d="M4 12h4l2-4 4 8 2-4h4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- 设置齿轮 -->
-          <circle cx="18" cy="6" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/>
-          <path d="M18 4v4M16.5 5.5l3 1.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
-        </svg>
-      </div>
-    </button>
+  <div class="link-config-panel">
+    <div class="panel-header">
+      <h3>连线配置</h3>
+      <button class="close-btn" @click="$emit('close')" title="关闭">×</button>
+    </div>
     
-    <!-- 配置面板 -->
-    <div class="panel-content" v-show="isOpen">
-      <div class="panel-header">
-        <h3>连线配置</h3>
-        <button class="close-btn" @click="isOpen = false">×</button>
+    <div class="panel-content">
+      <!-- 路径类型选择 -->
+      <div class="config-section">
+        <h4>路径类型</h4>
+        <div class="path-type-selector">
+          <label 
+            v-for="pathType in pathTypes" 
+            :key="pathType.value"
+            class="path-type-option"
+            :class="{ active: config.pathType === pathType.value }"
+          >
+            <input 
+              type="radio" 
+              :value="pathType.value" 
+              v-model="config.pathType"
+              @change="updateConfig"
+            />
+            <div class="path-preview">
+              <svg width="60" height="40" viewBox="0 0 60 40">
+                <path 
+                  :d="pathType.preview" 
+                  stroke="#3498db" 
+                  stroke-width="2" 
+                  fill="none"
+                />
+              </svg>
+            </div>
+            <span>{{ pathType.name }}</span>
+          </label>
+        </div>
       </div>
       
-      <div class="panel-body">
-        <!-- 主题选择 -->
-        <div class="config-section">
-          <h4>预设主题</h4>
-          <div class="theme-grid">
-            <button
-              v-for="(theme, name) in themes"
-              :key="name"
-              class="theme-btn"
-              :class="{ active: currentTheme === name }"
-              @click="selectTheme(name)"
-            >
-              <div class="theme-preview">
-                <svg width="40" height="20" viewBox="0 0 40 20">
-                  <path
-                    d="M5 10 L35 10"
-                    :stroke="theme.color"
-                    :stroke-width="theme.width"
-                    :stroke-dasharray="theme.dashArray"
-                    fill="none"
-                  />
-                  <polygon
-                    v-if="theme.showArrow"
-                    points="35,10 30,7 30,13"
-                    :fill="theme.arrowColor || theme.color"
-                  />
-                </svg>
-              </div>
-              <span class="theme-name">{{ getThemeName(name) }}</span>
-            </button>
-          </div>
+      <!-- 基础样式配置 -->
+      <div class="config-section">
+        <h4>基础样式</h4>
+        <div class="config-row">
+          <label>颜色:</label>
+          <input 
+            type="color" 
+            v-model="config.color" 
+            @change="updateConfig"
+            class="color-input"
+          />
         </div>
         
-        <!-- 基础设置 -->
-        <div class="config-section">
-          <h4>基础设置</h4>
-          
-          <div class="config-item">
-            <label>连线颜色</label>
-            <input 
-              type="color" 
-              v-model="localConfig.color"
-              @change="updateConfig"
-            />
-          </div>
-          
-          <div class="config-item">
-            <label>连线宽度</label>
-            <input 
-              type="range" 
-              min="1" 
-              max="10" 
-              v-model.number="localConfig.width"
-              @input="updateConfig"
-            />
-            <span class="value">{{ localConfig.width }}px</span>
-          </div>
-          
-          <div class="config-item">
-            <label>圆角半径</label>
-            <input 
-              type="range" 
-              min="0" 
-              max="20" 
-              v-model.number="localConfig.cornerRadius"
-              @input="updateConfig"
-            />
-            <span class="value">{{ localConfig.cornerRadius }}px</span>
-          </div>
-          
-          <div class="config-item">
-            <label>虚线样式</label>
-            <select v-model="localConfig.dashArray" @change="updateConfig">
-              <option :value="undefined">实线</option>
-              <option value="3,3">短虚线</option>
-              <option value="5,5">中虚线</option>
-              <option value="10,5">长虚线</option>
-              <option value="5,2,2,2">点划线</option>
-            </select>
-          </div>
+        <div class="config-row">
+          <label>线宽:</label>
+          <input 
+            type="range" 
+            min="1" 
+            max="5" 
+            step="0.5"
+            v-model.number="config.width" 
+            @input="updateConfig"
+            class="range-input"
+          />
+          <span class="value">{{ config.width }}px</span>
         </div>
         
-        <!-- 箭头设置 -->
-        <div class="config-section">
-          <h4>箭头设置</h4>
-          
-          <div class="config-item">
-            <label>
-              <input 
-                type="checkbox" 
-                v-model="localConfig.showArrow"
-                @change="updateConfig"
-              />
-              显示箭头
-            </label>
-          </div>
-          
-          <div class="config-item" v-if="localConfig.showArrow">
-            <label>箭头颜色</label>
+        <div class="config-row">
+          <label>虚线样式:</label>
+          <select v-model="config.dashArray" @change="updateConfig" class="select-input">
+            <option :value="undefined">实线</option>
+            <option value="3,3">短虚线</option>
+            <option value="5,5">中虚线</option>
+            <option value="8,4">长虚线</option>
+            <option value="2,2,8,2">点划线</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- 路径特定配置 -->
+      <div class="config-section" v-if="config.pathType === 'bezier'">
+        <h4>贝塞尔曲线配置</h4>
+        <div class="config-row">
+          <label>弯曲度:</label>
+          <input 
+            type="range" 
+            min="0.1" 
+            max="1" 
+            step="0.1"
+            v-model.number="config.bezierCurvature" 
+            @input="updateConfig"
+            class="range-input"
+          />
+          <span class="value">{{ config.bezierCurvature }}</span>
+        </div>
+      </div>
+      
+      <div class="config-section" v-if="config.pathType === 'right-angle'">
+        <h4>直角连线配置</h4>
+        <div class="config-row">
+          <label>偏移距离:</label>
+          <input 
+            type="range" 
+            min="10" 
+            max="80" 
+            step="5"
+            v-model.number="config.rightAngleOffset" 
+            @input="updateConfig"
+            class="range-input"
+          />
+          <span class="value">{{ config.rightAngleOffset }}px</span>
+        </div>
+        
+        <div class="config-row">
+          <label>
             <input 
-              type="color" 
-              v-model="localConfig.arrowColor"
+              type="checkbox" 
+              v-model="config.smoothCorners" 
               @change="updateConfig"
             />
-          </div>
-          
-          <div class="config-item" v-if="localConfig.showArrow">
-            <label>箭头大小</label>
+            平滑转角
+          </label>
+        </div>
+        
+        <div class="config-row" v-if="config.smoothCorners">
+          <label>转角半径:</label>
+          <input 
+            type="range" 
+            min="0" 
+            max="15" 
+            step="1"
+            v-model.number="config.cornerRadius" 
+            @input="updateConfig"
+            class="range-input"
+          />
+          <span class="value">{{ config.cornerRadius }}px</span>
+        </div>
+      </div>
+      
+      <!-- 箭头配置 -->
+      <div class="config-section">
+        <h4>箭头配置</h4>
+        <div class="config-row">
+          <label>
+            <input 
+              type="checkbox" 
+              v-model="config.showArrow" 
+              @change="updateConfig"
+            />
+            显示箭头
+          </label>
+        </div>
+        
+        <div v-if="config.showArrow">
+          <div class="config-row">
+            <label>箭头大小:</label>
             <input 
               type="range" 
               min="4" 
-              max="20" 
-              v-model.number="localConfig.arrowSize"
+              max="16" 
+              step="1"
+              v-model.number="config.arrowSize" 
               @input="updateConfig"
+              class="range-input"
             />
-            <span class="value">{{ localConfig.arrowSize }}px</span>
-          </div>
-        </div>
-        
-        <!-- 标签设置 -->
-        <div class="config-section">
-          <h4>标签设置</h4>
-          
-          <div class="config-item">
-            <label>
-              <input 
-                type="checkbox" 
-                v-model="localConfig.showLabels"
-                @change="updateConfig"
-              />
-              显示标签
-            </label>
+            <span class="value">{{ config.arrowSize }}px</span>
           </div>
           
-          <div class="config-item" v-if="localConfig.showLabels">
-            <label>标签颜色</label>
+          <div class="config-row">
+            <label>箭头颜色:</label>
             <input 
               type="color" 
-              v-model="localConfig.labelColor"
+              v-model="config.arrowColor" 
               @change="updateConfig"
+              class="color-input"
+              :placeholder="config.color"
+            />
+            <button 
+              @click="config.arrowColor = config.color; updateConfig()" 
+              class="sync-btn"
+              title="与线条颜色同步"
+            >
+              同步
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 标签配置 -->
+      <div class="config-section">
+        <h4>标签配置</h4>
+        <div class="config-row">
+          <label>
+            <input 
+              type="checkbox" 
+              v-model="config.showLabels" 
+              @change="updateConfig"
+            />
+            显示标签
+          </label>
+        </div>
+        
+        <div v-if="config.showLabels">
+          <div class="config-row">
+            <label>标签颜色:</label>
+            <input 
+              type="color" 
+              v-model="config.labelColor" 
+              @change="updateConfig"
+              class="color-input"
             />
           </div>
           
-          <div class="config-item" v-if="localConfig.showLabels">
-            <label>字体大小</label>
+          <div class="config-row">
+            <label>字体大小:</label>
             <input 
               type="range" 
               min="8" 
-              max="20" 
-              v-model.number="localConfig.labelFontSize"
+              max="16" 
+              step="1"
+              v-model.number="config.labelFontSize" 
               @input="updateConfig"
+              class="range-input"
             />
-            <span class="value">{{ localConfig.labelFontSize }}px</span>
+            <span class="value">{{ config.labelFontSize }}px</span>
           </div>
         </div>
-        
-        <!-- 父子关系设置 -->
-        <div class="config-section">
-          <h4>父子关系</h4>
-          
-          <div class="config-item">
-            <label>颜色</label>
-            <input 
-              type="color" 
-              v-model="localConfig.parentChildStyle.color"
-              @change="updateConfig"
-            />
-          </div>
-          
-          <div class="config-item">
-            <label>宽度</label>
-            <input 
-              type="range" 
-              min="1" 
-              max="5" 
-              v-model.number="localConfig.parentChildStyle.width"
-              @input="updateConfig"
-            />
-            <span class="value">{{ localConfig.parentChildStyle.width }}px</span>
-          </div>
-          
-          <div class="config-item">
-            <label>样式</label>
-            <select v-model="localConfig.parentChildStyle.dashArray" @change="updateConfig">
-              <option :value="undefined">实线</option>
-              <option value="2,2">细虚线</option>
-              <option value="3,3">短虚线</option>
-              <option value="5,2">点划线</option>
-            </select>
-          </div>
+      </div>
+      
+      <!-- 父子关系样式 -->
+      <div class="config-section">
+        <h4>父子关系样式</h4>
+        <div class="config-row">
+          <label>颜色:</label>
+          <input 
+            type="color" 
+            v-model="config.parentChildStyle.color" 
+            @change="updateConfig"
+            class="color-input"
+          />
         </div>
         
-        <!-- 操作按钮 -->
-        <div class="config-section">
-          <div class="action-buttons">
-            <button class="btn btn-primary" @click="applyConfig">应用配置</button>
-            <button class="btn btn-secondary" @click="resetConfig">重置</button>
-            <button class="btn btn-secondary" @click="exportConfig">导出</button>
-            <button class="btn btn-secondary" @click="importConfig">导入</button>
-          </div>
-          <div class="action-buttons" style="margin-top: 10px;">
-            <button class="btn btn-warning" @click="clearStorageConfig">清除存储</button>
-          </div>
+        <div class="config-row">
+          <label>线宽:</label>
+          <input 
+            type="range" 
+            min="1" 
+            max="3" 
+            step="0.5"
+            v-model.number="config.parentChildStyle.width" 
+            @input="updateConfig"
+            class="range-input"
+          />
+          <span class="value">{{ config.parentChildStyle.width }}px</span>
+        </div>
+        
+        <div class="config-row">
+          <label>虚线样式:</label>
+          <select v-model="config.parentChildStyle.dashArray" @change="updateConfig" class="select-input">
+            <option :value="undefined">实线</option>
+            <option value="3,3">短虚线</option>
+            <option value="5,5">中虚线</option>
+            <option value="8,4">长虚线</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- 预设主题 -->
+      <div class="config-section">
+        <h4>预设主题</h4>
+        <div class="theme-selector">
+          <button 
+            v-for="(theme, name) in themes" 
+            :key="name"
+            @click="applyTheme(name)"
+            class="theme-btn"
+            :class="{ active: isCurrentTheme(name) }"
+          >
+            {{ getThemeName(name) }}
+          </button>
+        </div>
+      </div>
+      
+      <!-- 操作按钮 -->
+      <div class="config-section">
+        <div class="action-buttons">
+          <button @click="resetConfig" class="reset-btn">重置为默认</button>
+          <button @click="exportConfig" class="export-btn">导出配置</button>
+          <button @click="showImportDialog = true" class="import-btn">导入配置</button>
         </div>
       </div>
     </div>
     
     <!-- 导入配置对话框 -->
-    <div class="import-dialog" v-if="showImportDialog" @click="closeImportDialog">
-      <div class="dialog-content" @click.stop>
-        <h3>导入配置</h3>
+    <div v-if="showImportDialog" class="import-dialog-overlay" @click="showImportDialog = false">
+      <div class="import-dialog" @click.stop>
+        <h4>导入配置</h4>
         <textarea 
           v-model="importText" 
           placeholder="粘贴配置JSON..."
-          rows="10"
+          class="import-textarea"
         ></textarea>
-        <div class="dialog-actions">
-          <button class="btn btn-primary" @click="doImport">导入</button>
-          <button class="btn btn-secondary" @click="closeImportDialog">取消</button>
+        <div class="import-actions">
+          <button @click="importConfig" class="confirm-btn">导入</button>
+          <button @click="showImportDialog = false" class="cancel-btn">取消</button>
         </div>
       </div>
     </div>
@@ -250,28 +309,45 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, reactive, watch } from 'vue';
-import { useLinkConfig, LinkThemes } from './LinkConfig';
+import { defineComponent, ref, computed } from 'vue';
+import { LinkPathType } from './Types';
+import { LinkThemes, useLinkConfig } from './LinkConfig';
 
 export default defineComponent({
   name: 'LinkConfigPanel',
-  setup() {
+  emits: ['close', 'configChange'],
+  setup(_, { emit }) {
     const { 
       config, 
       setTheme, 
-      updateConfig, 
+      updateConfig: updateLinkConfig, 
       reset, 
-      exportConfig: doExportConfig,
-      importConfig: doImportConfig,
-      clearStorage,
+      exportConfig: exportLinkConfig, 
+      importConfig: importLinkConfig,
       themes 
     } = useLinkConfig();
     
-    const isOpen = ref(false);
-    const currentTheme = ref<keyof typeof LinkThemes>('default');
-    const localConfig = reactive({ ...config });
     const showImportDialog = ref(false);
     const importText = ref('');
+    
+    // 路径类型选项
+    const pathTypes = [
+      {
+        value: LinkPathType.STRAIGHT,
+        name: '直线',
+        preview: 'M 10 20 L 50 20'
+      },
+      {
+        value: LinkPathType.BEZIER,
+        name: '贝塞尔曲线',
+        preview: 'M 10 20 C 25 20 35 20 50 20'
+      },
+      {
+        value: LinkPathType.RIGHT_ANGLE,
+        name: '直角连线',
+        preview: 'M 10 20 L 30 20 L 30 30 L 50 30'
+      }
+    ];
     
     // 主题名称映射
     const themeNames = {
@@ -282,49 +358,52 @@ export default defineComponent({
       colorful: '彩色'
     };
     
-    const getThemeName = (name: keyof typeof LinkThemes) => {
-      return themeNames[name] || name;
+    const getThemeName = (name: string) => {
+      return themeNames[name as keyof typeof themeNames] || name;
     };
     
-    const togglePanel = () => {
-      isOpen.value = !isOpen.value;
+    // 检查是否为当前主题
+    const isCurrentTheme = (themeName: string) => {
+      const theme = themes[themeName as keyof typeof themes];
+      if (!theme) return false;
+      
+      return Object.keys(theme).every(key => {
+        const themeValue = theme[key as keyof typeof theme];
+        const configValue = config[key as keyof typeof config];
+        
+        if (typeof themeValue === 'object' && typeof configValue === 'object') {
+          return JSON.stringify(themeValue) === JSON.stringify(configValue);
+        }
+        
+        return themeValue === configValue;
+      });
     };
     
-    const selectTheme = (themeName: keyof typeof LinkThemes) => {
-      currentTheme.value = themeName;
-      setTheme(themeName);
-      Object.assign(localConfig, config);
+    // 更新配置
+    const updateConfig = () => {
+      updateLinkConfig(config);
+      emit('configChange', config);
     };
     
-    const updateLocalConfig = () => {
-      updateConfig(localConfig);
+    // 应用主题
+    const applyTheme = (themeName: string) => {
+      setTheme(themeName as keyof typeof LinkThemes);
+      emit('configChange', config);
     };
     
-    const applyConfig = () => {
-      updateConfig(localConfig);
-    };
-    
+    // 重置配置
     const resetConfig = () => {
       reset();
-      Object.assign(localConfig, config);
-      currentTheme.value = 'default';
+      emit('configChange', config);
     };
     
-    const clearStorageConfig = () => {
-      if (confirm('确定要清除所有保存的配置吗？这将重置为默认设置。')) {
-        clearStorage();
-        Object.assign(localConfig, config);
-        currentTheme.value = 'default';
-        alert('配置已清除');
-      }
-    };
-    
+    // 导出配置
     const exportConfig = () => {
-      const configJson = doExportConfig();
+      const configJson = exportLinkConfig();
       navigator.clipboard.writeText(configJson).then(() => {
         alert('配置已复制到剪贴板');
       }).catch(() => {
-        // 降级方案
+        // 降级方案：显示配置内容
         const textarea = document.createElement('textarea');
         textarea.value = configJson;
         document.body.appendChild(textarea);
@@ -335,49 +414,36 @@ export default defineComponent({
       });
     };
     
+    // 导入配置
     const importConfig = () => {
-      showImportDialog.value = true;
-    };
-    
-    const doImport = () => {
-      if (doImportConfig(importText.value)) {
-        Object.assign(localConfig, config);
-        showImportDialog.value = false;
-        importText.value = '';
-        alert('配置导入成功');
-      } else {
-        alert('配置格式错误，导入失败');
+      try {
+        const success = importLinkConfig(importText.value);
+        if (success) {
+          showImportDialog.value = false;
+          importText.value = '';
+          emit('configChange', config);
+          alert('配置导入成功');
+        } else {
+          alert('配置格式错误，请检查JSON格式');
+        }
+      } catch (error) {
+        alert('配置导入失败：' + error);
       }
     };
     
-    const closeImportDialog = () => {
-      showImportDialog.value = false;
-      importText.value = '';
-    };
-    
-    // 监听配置变化
-    watch(config, (newConfig) => {
-      Object.assign(localConfig, newConfig);
-    }, { deep: true });
-    
     return {
-      isOpen,
-      currentTheme,
-      localConfig,
+      config,
+      pathTypes,
+      themes,
       showImportDialog,
       importText,
-      themes,
       getThemeName,
-      togglePanel,
-      selectTheme,
-      updateConfig: updateLocalConfig,
-      applyConfig,
+      isCurrentTheme,
+      updateConfig,
+      applyTheme,
       resetConfig,
       exportConfig,
-      importConfig,
-      doImport,
-      closeImportDialog,
-      clearStorageConfig
+      importConfig
     };
   }
 });
@@ -385,490 +451,367 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .link-config-panel {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
+  width: 320px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+  background: #f8f9fa;
   
-  .panel-toggle {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .close-btn {
+    background: none;
     border: none;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
+    font-size: 20px;
     cursor: pointer;
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #666;
+    padding: 0;
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    overflow: hidden;
-    
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-      transition: left 0.6s;
-    }
-    
-    &::after {
-      content: '';
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      right: 2px;
-      bottom: 2px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
-      pointer-events: none;
-    }
+    border-radius: 4px;
     
     &:hover {
-      background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-      transform: translateY(-3px) scale(1.05);
-      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.6);
-      
-      &::before {
-        left: 100%;
-      }
-      
-      .toggle-icon {
-        transform: scale(1.1);
-      }
-    }
-    
-    &:active {
-      transform: translateY(-1px) scale(1.02);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    }
-    
-    .toggle-icon {
-      transition: all 0.3s ease;
-      z-index: 1;
-      
-      &.icon-rotate {
-        transform: rotate(180deg);
-      }
-      
-      svg {
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-      }
-    }
-  }
-  
-  .panel-content {
-    position: absolute;
-    top: 70px;
-    right: 0;
-    width: 340px;
-    max-height: 80vh;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.1), 0 4px 20px rgba(0,0,0,0.05);
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.2);
-    backdrop-filter: blur(10px);
-    
-    .panel-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 20px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: relative;
-      
-      &::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-      }
-      
-      h3 {
-        margin: 0;
-        font-size: 18px;
-        font-weight: 600;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        
-        &::before {
-          content: '⚡';
-          font-size: 16px;
-        }
-      }
-      
-      .close-btn {
-        background: rgba(255,255,255,0.1);
-        border: none;
-        color: white;
-        font-size: 20px;
-        cursor: pointer;
-        padding: 0;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-        
-        &:hover {
-          background: rgba(255,255,255,0.2);
-          transform: scale(1.1);
-        }
-        
-        &:active {
-          transform: scale(0.95);
-        }
-      }
-    }
-    
-    .panel-body {
-      max-height: calc(80vh - 60px);
-      overflow-y: auto;
-      padding: 20px;
-    }
-  }
-  
-  .config-section {
-    margin-bottom: 28px;
-    
-    h4 {
-      margin: 0 0 18px 0;
-      font-size: 15px;
-      font-weight: 600;
-      color: #1f2937;
-      position: relative;
-      padding-bottom: 8px;
-      
-      &::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 30px;
-        height: 3px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        border-radius: 2px;
-      }
-      
-      &::before {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: #e5e7eb;
-      }
-    }
-  }
-  
-  .theme-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    
-    .theme-btn {
-      background: linear-gradient(145deg, #f8f9fa, #e9ecef);
-      border: 2px solid transparent;
-      border-radius: 12px;
-      padding: 12px;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-      
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-      
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        border-color: rgba(102, 126, 234, 0.3);
-        
-        &::before {
-          opacity: 1;
-        }
-      }
-      
-      &.active {
-        border-color: #667eea;
-        background: linear-gradient(145deg, #667eea, #764ba2);
-        color: white;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
-        
-        .theme-name {
-          color: white;
-        }
-      }
-      
-      .theme-preview {
-        margin-bottom: 8px;
-        padding: 4px;
-        background: rgba(255,255,255,0.8);
-        border-radius: 6px;
-      }
-      
-      .theme-name {
-        font-size: 12px;
-        font-weight: 500;
-        color: #666;
-        transition: color 0.3s ease;
-      }
-    }
-  }
-  
-  .config-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 16px;
-    padding: 8px 0;
-    
-    label {
-      flex: 1;
-      font-size: 13px;
-      font-weight: 500;
-      color: #374151;
-    }
-    
-    input[type="color"] {
-      width: 44px;
-      height: 32px;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      
-      &:hover {
-        border-color: #667eea;
-        transform: scale(1.05);
-      }
-    }
-    
-    input[type="range"] {
-      flex: 1;
-      margin: 0 12px;
-      height: 6px;
-      border-radius: 3px;
-      background: #e5e7eb;
-      outline: none;
-      
-      &::-webkit-slider-thumb {
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        cursor: pointer;
-        box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
-        transition: all 0.2s ease;
-        
-        &:hover {
-          transform: scale(1.2);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-      }
-      
-      &::-moz-range-thumb {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        cursor: pointer;
-        border: none;
-        box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
-      }
-    }
-    
-    input[type="checkbox"] {
-      margin-right: 10px;
-      width: 16px;
-      height: 16px;
-      accent-color: #667eea;
-    }
-    
-    select {
-      flex: 1;
-      padding: 8px 12px;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 13px;
-      background: white;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      
-      &:hover {
-        border-color: #667eea;
-      }
-      
-      &:focus {
-        outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-      }
-    }
-    
-    .value {
-      min-width: 45px;
-      text-align: right;
-      font-size: 12px;
-      font-weight: 600;
-      color: #667eea;
-      background: rgba(102, 126, 234, 0.1);
-      padding: 4px 8px;
-      border-radius: 6px;
-    }
-  }
-  
-  .action-buttons {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    
-    .btn {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 500;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-      
-      &::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        background: rgba(255,255,255,0.3);
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        transition: width 0.3s ease, height 0.3s ease;
-      }
-      
-      &:active::before {
-        width: 300px;
-        height: 300px;
-      }
-      
-      &.btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        
-        &:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-      }
-      
-      &.btn-secondary {
-        background: linear-gradient(145deg, #f8f9fa, #e9ecef);
-        color: #495057;
-        border: 1px solid rgba(0,0,0,0.1);
-        
-        &:hover {
-          background: linear-gradient(145deg, #e9ecef, #dee2e6);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-      }
-      
-      &.btn-warning {
-        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-        color: white;
-        box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
-        
-        &:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
-        }
-      }
-    }
-  }
-  
-  .import-dialog {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1001;
-    
-    .dialog-content {
-      background: white;
-      border-radius: 8px;
-      padding: 20px;
-      width: 400px;
-      max-width: 90vw;
-      
-      h3 {
-        margin: 0 0 15px 0;
-      }
-      
-      textarea {
-        width: 100%;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 10px;
-        font-family: monospace;
-        font-size: 12px;
-        resize: vertical;
-      }
-      
-      .dialog-actions {
-        margin-top: 15px;
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-      }
+      background: #e9ecef;
+      color: #333;
     }
   }
 }
 
-// 面板打开时的动画
-.panel-open .panel-content {
-  animation: slideIn 0.3s ease-out;
+.panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
+.config-section {
+  margin-bottom: 24px;
+  
+  h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
   }
-  to {
-    opacity: 1;
-    transform: translateX(0);
+}
+
+.path-type-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.path-type-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    border-color: #3498db;
+    background: #f8f9ff;
   }
+  
+  &.active {
+    border-color: #3498db;
+    background: #e3f2fd;
+  }
+  
+  input[type="radio"] {
+    display: none;
+  }
+  
+  .path-preview {
+    flex-shrink: 0;
+  }
+  
+  span {
+    font-size: 13px;
+    color: #495057;
+  }
+}
+
+.config-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  
+  label {
+    font-size: 13px;
+    color: #495057;
+    min-width: 80px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .value {
+    font-size: 12px;
+    color: #6c757d;
+    min-width: 40px;
+    text-align: right;
+  }
+}
+
+.color-input {
+  width: 40px;
+  height: 32px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0;
+  
+  &::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+  
+  &::-webkit-color-swatch {
+    border: none;
+    border-radius: 3px;
+  }
+}
+
+.range-input {
+  flex: 1;
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 3px;
+  outline: none;
+  
+  &::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #3498db;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  
+  &::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #3498db;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+  }
+}
+
+.select-input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  background: white;
+  
+  &:focus {
+    outline: none;
+    border-color: #3498db;
+  }
+}
+
+.sync-btn {
+  padding: 4px 8px;
+  font-size: 11px;
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  cursor: pointer;
+  
+  &:hover {
+    background: #e9ecef;
+  }
+}
+
+.theme-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.theme-btn {
+  padding: 8px 12px;
+  font-size: 12px;
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+  }
+  
+  &.active {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reset-btn, .export-btn, .import-btn {
+  padding: 8px 16px;
+  font-size: 13px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reset-btn {
+  background: #f8f9fa;
+  color: #495057;
+  
+  &:hover {
+    background: #e9ecef;
+  }
+}
+
+.export-btn {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+  
+  &:hover {
+    background: #218838;
+  }
+}
+
+.import-btn {
+  background: #17a2b8;
+  color: white;
+  border-color: #17a2b8;
+  
+  &:hover {
+    background: #138496;
+  }
+}
+
+.import-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.import-dialog {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  width: 400px;
+  max-width: 90vw;
+  
+  h4 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    color: #333;
+  }
+}
+
+.import-textarea {
+  width: 100%;
+  height: 120px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
+  resize: vertical;
+  
+  &:focus {
+    outline: none;
+    border-color: #3498db;
+  }
+}
+
+.import-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+.confirm-btn {
+  padding: 8px 16px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  
+  &:hover {
+    background: #218838;
+  }
+}
+
+.cancel-btn {
+  padding: 8px 16px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  
+  &:hover {
+    background: #5a6268;
+  }
+}
+
+/* 滚动条样式 */
+.panel-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panel-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.panel-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.panel-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 </style>
