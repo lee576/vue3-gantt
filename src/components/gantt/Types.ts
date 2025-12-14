@@ -30,6 +30,8 @@ export interface LinkConfig {
   bezierCurvature: number;
   rightAngleOffset: number;
   smoothCorners: boolean;
+  enableDashAnimation: boolean;
+  dashAnimationSpeed: number;
   parentChildStyle: {
     color: string;
     width: number;
@@ -58,4 +60,39 @@ export interface TaskDependency {
   type: LinkType;
   lag?: number; // 延迟天数
   label?: string;
+}
+
+// 样式配置接口
+export interface StyleConfig {
+  headersHeight: number;
+  rowHeight: number;
+  setBarColor: (row: Record<string, any>) => string;
+}
+
+// 数据配置接口
+export interface DataConfig {
+  dataSource: any[];
+  taskHeaders: any[];
+  mapFields: Record<string, any>;
+  queryStartDate: string;
+  queryEndDate: string;
+}
+
+// 事件配置接口
+export interface EventConfig {
+  addRootTask: (row: Record<string, any> | null) => void;
+  addSubTask: (task: any) => void;
+  removeTask: (task: any) => void;
+  editTask: (task: any) => void;
+  queryTask: (startDate: string, endDate: string, mode: string) => void;
+  barDate: (id: any, startDate: string, endDate: string) => void;
+  allowChangeTaskDate: (allow: boolean) => void;
+}
+
+// 任务表头接口
+export interface TaskHeader {
+  title: string;
+  key: string;
+  width?: number;
+  align?: 'left' | 'center' | 'right';
 }

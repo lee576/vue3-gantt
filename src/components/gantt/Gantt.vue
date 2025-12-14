@@ -20,15 +20,22 @@
             </div>
             <div class="config-buttons">
                 <button 
-                    class="config-btn" 
-                    @click="showLinkConfig = !showLinkConfig"
+                    class="link-config-btn" 
+                    @click="toggleLinkConfig"
                     :class="{ active: showLinkConfig }"
                     title="连线配置"
                 >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                    </svg>
-                    连线
+                    <div class="btn-content">
+                        <div class="btn-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                                <circle cx="4" cy="9" r="2"/>
+                                <circle cx="20" cy="9" r="2"/>
+                                <path d="M10 9h4"/>
+                            </svg>
+                        </div>
+                        <span class="btn-text">连线配置</span>
+                    </div>
                 </button>
             </div>
         </div>
@@ -47,10 +54,10 @@
         </div>
         
         <!-- 连线配置面板 -->
-        <div v-if="showLinkConfig" class="config-panel-overlay" @click="showLinkConfig = false">
+        <div v-if="showLinkConfig" class="config-panel-overlay" @click="toggleLinkConfig">
             <div class="config-panel-container" @click.stop>
                 <LinkConfigPanel 
-                    @close="showLinkConfig = false"
+                    @close="toggleLinkConfig"
                     @configChange="onLinkConfigChange"
                 />
             </div>
@@ -59,7 +66,7 @@
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, computed, provide, onBeforeMount, onMounted, nextTick, watchEffect, watch } from 'vue';
+import { ref, defineComponent, computed, provide, onBeforeMount, onMounted, nextTick, watch } from 'vue';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 dayjs.extend(customParseFormat);
@@ -616,6 +623,11 @@ export default defineComponent({
             console.log('连线配置已更新:', config);
             // 这里可以添加额外的处理逻辑，比如通知其他组件更新
         };
+        
+        // 切换连线配置面板
+        const toggleLinkConfig = () => {
+            showLinkConfig.value = !showLinkConfig.value;
+        };
 
         return {
             subTask,
@@ -635,6 +647,7 @@ export default defineComponent({
             buttonClass,
             timeMode,
             showLinkConfig,
+            toggleLinkConfig,
             onLinkConfigChange
         };
     }
@@ -708,37 +721,124 @@ $toolbarHeight: 70px;
         
         .config-buttons {
             display: flex;
-            gap: 8px;
+            gap: 12px;
             margin-left: auto;
+            padding: 0 8px;
         }
         
-        .config-btn {
+        .link-config-btn {
+            position: relative;
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 8px 12px;
-            background: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 6px;
+            padding: 10px 16px;
+            background: linear-gradient(135deg, 
+                rgba(52, 152, 219, 0.1) 0%, 
+                rgba(155, 89, 182, 0.1) 50%, 
+                rgba(52, 152, 219, 0.1) 100%);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 13px;
-            color: #495057;
-            transition: all 0.2s ease;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
             
+            &::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, 
+                    transparent, 
+                    rgba(255, 255, 255, 0.2), 
+                    transparent);
+                transition: left 0.5s ease;
+            }
+            
+            .btn-content {
+                position: relative;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                z-index: 2;
+            }
+            
+            .btn-icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                
+                svg {
+                    width: 18px;
+                    height: 18px;
+                    color: #3498db;
+                    transition: all 0.3s ease;
+                    filter: drop-shadow(0 0 3px rgba(52, 152, 219, 0.3));
+                }
+            }
+            
+            .btn-text {
+                font-size: 13px;
+                font-weight: 600;
+                color: #2c3e50;
+                transition: all 0.3s ease;
+            }
+            
+            // 悬停效果
             &:hover {
-                background: #e9ecef;
-                border-color: #adb5bd;
+                transform: translateY(-2px);
+                background: linear-gradient(135deg, 
+                    rgba(52, 152, 219, 0.2) 0%, 
+                    rgba(155, 89, 182, 0.2) 50%, 
+                    rgba(52, 152, 219, 0.2) 100%);
+                border-color: rgba(52, 152, 219, 0.5);
+                box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+                
+                &::before {
+                    left: 100%;
+                }
+                
+                .btn-icon svg {
+                    color: #2980b9;
+                    transform: scale(1.1);
+                }
+                
+                .btn-text {
+                    color: #2980b9;
+                }
             }
             
+            // 激活状态
             &.active {
-                background: #3498db;
-                color: white;
-                border-color: #3498db;
+                background: linear-gradient(135deg, 
+                    rgba(231, 76, 60, 0.15) 0%, 
+                    rgba(192, 57, 43, 0.15) 50%, 
+                    rgba(231, 76, 60, 0.15) 100%);
+                border-color: rgba(231, 76, 60, 0.4);
+                box-shadow: 0 0 15px rgba(231, 76, 60, 0.3);
+                
+                .btn-icon svg {
+                    color: #e74c3c;
+                    animation: pulse 2s infinite ease-in-out;
+                }
+                
+                .btn-text {
+                    color: #e74c3c;
+                    font-weight: 700;
+                }
             }
-            
-            svg {
-                width: 14px;
-                height: 14px;
+        }
+        
+        // 动画定义
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 3px rgba(231, 76, 60, 0.3));
+            }
+            50% {
+                transform: scale(1.1);
+                filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.6));
             }
         }
     }

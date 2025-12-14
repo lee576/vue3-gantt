@@ -21,7 +21,10 @@
         :stroke-width="getLinkStyle(link.type).width"
         :stroke-dasharray="getLinkStyle(link.type).dashArray"
         fill="none"
-        :class="['task-link', link.type]"
+        :class="['task-link', link.type, { 
+          'dash-animated': isDashedLine(link.type) && linkConfig.enableDashAnimation 
+        }]"
+        :style="getDashAnimationStyle(link)"
       />
       
       <!-- 箭头 -->
@@ -33,8 +36,6 @@
         :stroke-width="0.5"
         class="task-link-arrow"
       />
-      
-
       
       <!-- 连线标签（可选） -->
       <text
@@ -87,6 +88,8 @@ export default defineComponent({
         bezierCurvature: 0.4,
         rightAngleOffset: 30,
         smoothCorners: true,
+        enableDashAnimation: true,
+        dashAnimationSpeed: 0.8,
         parentChildStyle: {
           color: '#95a5a6',
           width: 1,
@@ -836,10 +839,43 @@ export default defineComponent({
       }
     });
     
+    // 虚线动画相关方法
+    
+    // 判断是否为虚线
+    const isDashedLine = (linkType: LinkType): boolean => {
+      const style = getLinkStyle(linkType);
+      return !!(style.dashArray && style.dashArray.length > 0);
+    };
+    
+    // 获取虚线流动动画样式
+    const getDashAnimationStyle = (link: TaskLink) => {
+      if (!isDashedLine(link.type) || !props.linkConfig.enableDashAnimation) {
+        return {};
+      }
+      
+      const style = getLinkStyle(link.type);
+      const speed = props.linkConfig.dashAnimationSpeed || 0.8; // 更快的默认速度
+      
+      // 父子关系连线稍快一些
+      const adjustedSpeed = link.type === LinkType.PARENT_CHILD ? speed * 0.6 : speed;
+      
+      // 计算虚线总长度用于动画
+      const dashArray = style.dashArray || '5,5';
+      const dashParts = dashArray.split(',').map(Number);
+      const dashLength = dashParts.reduce((sum, part) => sum + part, 0);
+      
+      return {
+        '--animation-duration': `${adjustedSpeed}s`,
+        '--dash-length': `${dashLength}px`
+      };
+    };
+    
     return {
       links,
       updateLinks,
-      getLinkStyle
+      getLinkStyle,
+      isDashedLine,
+      getDashAnimationStyle
     };
   }
 });
@@ -862,6 +898,21 @@ export default defineComponent({
     
     &.finish-to-start {
       opacity: 0.9;
+    }
+    
+    // 虚线流动动画
+    &.dash-animated {
+      animation: dashFlow var(--animation-duration, 3s) linear infinite;
+    }
+  }
+  
+  // 虚线流动动画关键帧
+  @keyframes dashFlow {
+    0% {
+      stroke-dashoffset: 0;
+    }
+    100% {
+      stroke-dashoffset: calc(-1 * var(--dash-length, 20px));
     }
   }
   

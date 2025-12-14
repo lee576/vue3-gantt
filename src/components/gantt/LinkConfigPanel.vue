@@ -185,6 +185,41 @@
         </div>
       </div>
       
+      <!-- 虚线动画配置 -->
+      <div class="config-section">
+        <h4>虚线动画</h4>
+        <div class="config-row">
+          <label>
+            <input 
+              type="checkbox" 
+              v-model="config.enableDashAnimation" 
+              @change="updateConfig"
+            />
+            启用虚线流动动画
+          </label>
+        </div>
+        
+        <div v-if="config.enableDashAnimation">
+          <div class="config-row">
+            <label>动画速度:</label>
+            <input 
+              type="range" 
+              min="0.2" 
+              max="3" 
+              step="0.2"
+              v-model.number="config.dashAnimationSpeed" 
+              @input="updateConfig"
+              class="range-input"
+            />
+            <span class="value">{{ config.dashAnimationSpeed }}s</span>
+          </div>
+          
+          <div class="config-info">
+            <small>💡 虚线动画只在连线设置为虚线样式时显示</small>
+          </div>
+        </div>
+      </div>
+      
       <!-- 标签配置 -->
       <div class="config-section">
         <h4>标签配置</h4>
@@ -310,8 +345,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
-import { LinkPathType } from './Types';
-import { LinkThemes, useLinkConfig } from './LinkConfig';
+import { LinkPathType, LinkThemes, useLinkConfig } from './LinkConfig';
 
 export default defineComponent({
   name: 'LinkConfigPanel',

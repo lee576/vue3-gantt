@@ -1,6 +1,9 @@
 import { reactive } from 'vue';
 import { LinkType, LinkPathType, type LinkConfig, type TaskDependency } from './Types';
 
+// 重新导出类型，方便其他组件使用
+export { LinkType, LinkPathType } from './Types';
+
 // 预定义的连线样式主题
 export const LinkThemes = {
   // 默认主题
@@ -19,6 +22,8 @@ export const LinkThemes = {
     bezierCurvature: 0.4,
     rightAngleOffset: 30,
     smoothCorners: true,
+    enableDashAnimation: true,
+    dashAnimationSpeed: 0.8,
     parentChildStyle: {
       color: '#95a5a6',
       width: 1,
@@ -42,6 +47,8 @@ export const LinkThemes = {
     bezierCurvature: 0.3,
     rightAngleOffset: 40,
     smoothCorners: true,
+    enableDashAnimation: true,
+    dashAnimationSpeed: 0.6,
     parentChildStyle: {
       color: '#7f8c8d',
       width: 2,
@@ -65,6 +72,8 @@ export const LinkThemes = {
     bezierCurvature: 0.6,
     rightAngleOffset: 50,
     smoothCorners: true,
+    enableDashAnimation: true,
+    dashAnimationSpeed: 1,
     parentChildStyle: {
       color: '#90a4ae',
       width: 2,
@@ -88,6 +97,8 @@ export const LinkThemes = {
     bezierCurvature: 0.2,
     rightAngleOffset: 20,
     smoothCorners: false,
+    enableDashAnimation: false,
+    dashAnimationSpeed: 0.8,
     parentChildStyle: {
       color: '#ccc',
       width: 1,
@@ -111,6 +122,8 @@ export const LinkThemes = {
     bezierCurvature: 0.5,
     rightAngleOffset: 35,
     smoothCorners: true,
+    enableDashAnimation: true,
+    dashAnimationSpeed: 1,
     parentChildStyle: {
       color: '#4caf50',
       width: 2,
