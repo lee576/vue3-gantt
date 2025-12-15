@@ -117,7 +117,7 @@ export default defineComponent({
 
   .content {
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto;
   }
 }
 </style>

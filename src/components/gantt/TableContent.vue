@@ -1,13 +1,15 @@
 <template>
     <div ref="barContent" @scroll="scroll()" @mouseover="mouseover()"
-      v-if="tasks" class="content" style="position: relative;">
-      <BarRecursionRow :key="`${mode}-${scale}-${timelineCellCount}`" :rowHeight="rowHeight" :tasks="tasks"></BarRecursionRow>
-      <!-- 任务连线层 -->
-      <TaskLinks 
-        :containerWidth="containerWidth" 
-        :containerHeight="containerHeight"
-        :linkConfig="linkConfig"
-      />
+      v-if="tasks" class="content">
+      <div class="content-inner" :style="{ minHeight: containerHeight + 'px', position: 'relative' }">
+        <BarRecursionRow :key="`${mode}-${scale}-${timelineCellCount}`" :rowHeight="rowHeight" :tasks="tasks"></BarRecursionRow>
+        <!-- 任务连线层 -->
+        <TaskLinks 
+          :containerWidth="containerWidth" 
+          :containerHeight="containerHeight"
+          :linkConfig="linkConfig"
+        />
+      </div>
     </div>
   </template>
   <script lang="ts">
@@ -33,7 +35,7 @@
       BarRecursionRow,
       TaskLinks
     },
-    setup() {
+    setup(props) {
       const barContent = ref<HTMLDivElement | null>(null);
       const { scrollTop, scrollFlag, setScrollTop, setScrollFlag } = useScrollState();
       const { config: linkConfig } = useLinkConfig();
@@ -52,7 +54,7 @@
       });
       
       const containerHeight = computed(() => {
-        return tasks.value.length * 60; // 假设行高为60
+        return tasks.value.length * props.rowHeight;
       });
 
       // 监听共享的滚动位置变化
@@ -125,5 +127,13 @@
     font-size: 20px;
     overflow-y: auto;
     overflow-x: hidden;
+    
+    .content-inner {
+      width: 100%;
+      display: flex;
+      flex-flow: column nowrap;
+      align-items: center;
+      justify-content: flex-start;
+    }
   }
   </style>
