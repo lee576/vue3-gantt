@@ -277,18 +277,14 @@ export default defineComponent({
       const startX = parent.leftX;
       const startY = parent.centerY;
       
-      // 终点：子任务左边缘
-      const endX = child.leftX;
-      const endY = child.centerY;
-      
-      // 简化的分布策略：每个子任务使用不同的垂直偏移
-      const verticalOffset = childIndex * 3; // 轻微的垂直偏移避免重叠
-      
-      const adjustedStartY = startY + verticalOffset;
-      const adjustedEndY = endY + verticalOffset;
+      // 终点：子任务左边缘减去箭头大小（连线终点在箭头底边）
+      // 箭头尖端在 child.leftX, child.centerY，所以连线终点在箭头底边
+      const arrowSize = props.linkConfig.arrowSize || 8;
+      const endX = child.leftX - arrowSize;
+      const endY = child.centerY; // 直接使用中心Y，与箭头位置一致
       
       // 根据路径类型生成不同的路径
-      return generateParentToChildPath(startX, adjustedStartY, endX, adjustedEndY, childIndex, pathType);
+      return generateParentToChildPath(startX, startY, endX, endY, childIndex, pathType);
     };
     
     // 生成从父任务到子任务的连线路径（支持不同路径类型）
@@ -322,34 +318,19 @@ export default defineComponent({
     const generateBezierPath = (
       startX: number, startY: number, 
       endX: number, endY: number, 
-      childIndex: number
+      _childIndex: number
     ): string => {
       const deltaX = endX - startX;
       const deltaY = endY - startY;
       const { bezierCurvature } = props.linkConfig;
       
-      // 计算该子任务应该对齐的行中心位置
-      const targetRowCenter = getChildRowCenter(startY, childIndex);
-      
       // 如果子任务在父任务的右侧（正常情况）
       if (deltaX > 0) {
-        // 如果垂直距离较小，使用简单的S曲线
-        if (Math.abs(deltaY) < getRowHeight() / 2) {
-          const curvature = Math.abs(deltaX) * bezierCurvature;
-          const cp1X = startX + curvature;
-          const cp2X = endX - curvature;
-          return `M ${startX} ${startY} C ${cp1X} ${startY} ${cp2X} ${endY} ${endX} ${endY}`;
-        }
-        
-        // 垂直距离较大，使用双段贝塞尔曲线
-        const safeTargetRowCenter = Math.max(targetRowCenter, startY + getRowHeight());
-        const midX = startX + (endX - startX) / 2;
-        const curvature1 = Math.abs(deltaX) * bezierCurvature * 0.6;
-        const curvature2 = Math.abs(deltaX) * bezierCurvature * 0.4;
-        
-        return `M ${startX} ${startY} 
-                C ${startX + curvature1} ${startY} ${midX - curvature1} ${safeTargetRowCenter} ${midX} ${safeTargetRowCenter}
-                C ${midX + curvature2} ${safeTargetRowCenter} ${endX - curvature2} ${endY} ${endX} ${endY}`;
+        // 使用简单的S曲线，直接连接起点和终点
+        const curvature = Math.min(Math.abs(deltaX) * bezierCurvature, 60);
+        const cp1X = startX + curvature;
+        const cp2X = endX - curvature;
+        return `M ${startX} ${startY} C ${cp1X} ${startY} ${cp2X} ${endY} ${endX} ${endY}`;
       } else {
         // 子任务在父任务的左侧，需要绕行
         const gap = props.linkConfig.rightAngleOffset;
@@ -376,30 +357,22 @@ export default defineComponent({
       
       // 如果子任务在父任务的右侧（正常情况）
       if (deltaX > 0) {
-        const midX1 = startX + rightAngleOffset;
-        const midX2 = endX - 20;
-        const safeTargetRowCenter = Math.max(targetRowCenter, startY + getRowHeight());
+        const midX = startX + rightAngleOffset;
         
         if (smoothCorners && cornerRadius > 0) {
-          // 使用圆角的直角路径
-          const r = Math.min(cornerRadius, Math.abs(safeTargetRowCenter - startY) / 2, Math.abs(midX2 - midX1) / 2);
+          // 使用圆角的直角路径 - 简化为L型
+          const r = Math.min(cornerRadius, Math.abs(endY - startY) / 2, Math.abs(endX - midX) / 2);
           return `M ${startX} ${startY}
-                  L ${midX1 - r} ${startY}
-                  Q ${midX1} ${startY} ${midX1} ${startY + r}
-                  L ${midX1} ${safeTargetRowCenter - r}
-                  Q ${midX1} ${safeTargetRowCenter} ${midX1 + r} ${safeTargetRowCenter}
-                  L ${midX2 - r} ${safeTargetRowCenter}
-                  Q ${midX2} ${safeTargetRowCenter} ${midX2} ${safeTargetRowCenter + r}
-                  L ${midX2} ${endY - r}
-                  Q ${midX2} ${endY} ${midX2 + r} ${endY}
+                  L ${midX - r} ${startY}
+                  Q ${midX} ${startY} ${midX} ${startY + (endY > startY ? r : -r)}
+                  L ${midX} ${endY - (endY > startY ? r : -r)}
+                  Q ${midX} ${endY} ${midX + r} ${endY}
                   L ${endX} ${endY}`;
         } else {
-          // 标准直角路径
+          // 标准直角路径 - 简化为L型
           return `M ${startX} ${startY}
-                  L ${midX1} ${startY}
-                  L ${midX1} ${safeTargetRowCenter}
-                  L ${midX2} ${safeTargetRowCenter}
-                  L ${midX2} ${endY}
+                  L ${midX} ${startY}
+                  L ${midX} ${endY}
                   L ${endX} ${endY}`;
         }
       } else {
@@ -434,9 +407,11 @@ export default defineComponent({
     
     // 完成-开始连线路径（支持不同路径类型）
     const generateFinishToStartPath = (source: any, target: any, pathType: LinkPathType): string => {
+      const arrowSize = props.linkConfig.arrowSize || 8;
       const startX = source.rightX;
       const startY = source.centerY;
-      const endX = target.leftX;
+      // 终点在箭头底边位置
+      const endX = target.leftX - arrowSize;
       const endY = target.centerY;
       
       return generateConnectionPath(startX, startY, endX, endY, pathType, 'horizontal');
@@ -444,9 +419,11 @@ export default defineComponent({
     
     // 开始-开始连线路径（支持不同路径类型）
     const generateStartToStartPath = (source: any, target: any, pathType: LinkPathType): string => {
+      const arrowSize = props.linkConfig.arrowSize || 8;
       const startX = source.leftX;
       const startY = source.centerY;
-      const endX = target.leftX;
+      // 终点在箭头底边位置
+      const endX = target.leftX - arrowSize;
       const endY = target.centerY;
       
       return generateConnectionPath(startX, startY, endX, endY, pathType, 'left-u');
@@ -454,9 +431,11 @@ export default defineComponent({
     
     // 完成-完成连线路径（支持不同路径类型）
     const generateFinishToFinishPath = (source: any, target: any, pathType: LinkPathType): string => {
+      const arrowSize = props.linkConfig.arrowSize || 8;
       const startX = source.rightX;
       const startY = source.centerY;
-      const endX = target.rightX;
+      // 终点在箭头底边位置（箭头指向左边）
+      const endX = target.rightX + arrowSize;
       const endY = target.centerY;
       
       return generateConnectionPath(startX, startY, endX, endY, pathType, 'right-u');
@@ -464,9 +443,11 @@ export default defineComponent({
     
     // 开始-完成连线路径（支持不同路径类型）
     const generateStartToFinishPath = (source: any, target: any, pathType: LinkPathType): string => {
+      const arrowSize = props.linkConfig.arrowSize || 8;
       const startX = source.leftX;
       const startY = source.centerY;
-      const endX = target.rightX;
+      // 终点在箭头底边位置（箭头指向左边）
+      const endX = target.rightX + arrowSize;
       const endY = target.centerY;
       
       return generateConnectionPath(startX, startY, endX, endY, pathType, 'cross');
@@ -724,17 +705,17 @@ export default defineComponent({
       }
       
       try {
-        // 箭头终点：子任务左边缘中心
-        const endX = childPos.leftX;
-        const endY = childPos.centerY;
+        // 箭头尖端：子任务左边缘中心
+        const tipX = childPos.leftX;
+        const tipY = childPos.centerY;
         
         // 父子关系连线：箭头指向右边（指向子任务）
-        const arrowPoint1X = endX - arrowSize;
-        const arrowPoint1Y = endY - arrowSize / 2;
-        const arrowPoint2X = endX - arrowSize;
-        const arrowPoint2Y = endY + arrowSize / 2;
+        // 箭头底边的两个点
+        const baseX = tipX - arrowSize;
+        const baseY1 = tipY - arrowSize / 2;
+        const baseY2 = tipY + arrowSize / 2;
         
-        const result = `${endX},${endY} ${arrowPoint1X},${arrowPoint1Y} ${arrowPoint2X},${arrowPoint2Y}`;
+        const result = `${tipX},${tipY} ${baseX},${baseY1} ${baseX},${baseY2}`;
         return result;
       } catch (e) {
         console.error('箭头生成失败:', e);
