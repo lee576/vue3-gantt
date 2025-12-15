@@ -118,27 +118,28 @@ export default defineComponent({
       const rightTableContent = barElement.closest('.table .content') as HTMLElement;
       if (!rightTableContent) return null;
       
-      const containerRect = rightTableContent.getBoundingClientRect();
-      const barRect = svgBar.getBoundingClientRect();
-      
       // 获取SVG的transform属性
       const dataX = parseFloat(svgBar.getAttribute('data-x') || '0');
       const barWidth = svgBar.width.baseVal.value;
       
-      // 计算相对于content容器的位置
-      const relativeY = barRect.top - containerRect.top;
+      // 获取任务在当前容器中的位置
+      const barRowRect = barElement.getBoundingClientRect();
+      const containerRect = rightTableContent.getBoundingClientRect();
+      
+      // 计算任务相对于容器的位置
+      const relativeY = barRowRect.top - containerRect.top;
       
       return {
         x: dataX,
         y: relativeY,
         width: barWidth,
-        height: barRect.height,
+        height: barRowRect.height,
         centerX: dataX + barWidth / 2,
-        centerY: relativeY + barRect.height / 2,
+        centerY: relativeY + barRowRect.height / 2,
         rightX: dataX + barWidth,
         leftX: dataX,
         topY: relativeY,
-        bottomY: relativeY + barRect.height
+        bottomY: relativeY + barRowRect.height
       };
     };
     
@@ -712,6 +713,7 @@ export default defineComponent({
     
     // 更新连线
     const updateLinks = () => {
+      console.log('updateLinks called');
       const newLinks: TaskLink[] = [];
       
       // 生成父子关系连线
@@ -782,6 +784,8 @@ export default defineComponent({
       requestAnimationFrame(updateLinks);
     }, { deep: true });
     
+
+    
     // 监听DOM变化（拖拽时重绘）
     let resizeObserver: ResizeObserver | null = null;
     let mutationObserver: MutationObserver | null = null;
@@ -795,6 +799,8 @@ export default defineComponent({
       if (container) {
         resizeObserver = new ResizeObserver(updateLinks);
         resizeObserver.observe(container);
+        
+
         
         // 监听DOM变化（任务条位置变化）
         mutationObserver = new MutationObserver((mutations) => {

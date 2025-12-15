@@ -1,13 +1,22 @@
 <template>
     <div ref="barContent" @scroll="scroll()" @mouseover="mouseover()"
-      v-if="tasks" class="content">
+      v-if="tasks" class="content" style="position: relative;">
       <BarRecursionRow :key="`${mode}-${scale}-${timelineCellCount}`" :rowHeight="rowHeight" :tasks="tasks"></BarRecursionRow>
+      <!-- 任务连线层 -->
+      <TaskLinks 
+        :containerWidth="containerWidth" 
+        :containerHeight="containerHeight"
+        :linkConfig="linkConfig"
+      />
     </div>
   </template>
   <script lang="ts">
-  import { defineComponent, ref, watch, computed, onMounted, provide, inject } from 'vue';
-  import { store, mutations } from '../gantt/Store';
+  import { defineComponent, ref, watch, computed, onMounted } from 'vue';
+  import { store } from '../gantt/Store';
+  import { useScrollState } from './ShareState';
+  import { useLinkConfig } from './LinkConfig';
   import BarRecursionRow from '../gantt/BarRecursionRow.vue';
+  import TaskLinks from './TaskLinks.vue';
 
   export default defineComponent({
     props: {
@@ -21,11 +30,13 @@
       },
     },
     components: {
-      BarRecursionRow
+      BarRecursionRow,
+      TaskLinks
     },
     setup() {
       const barContent = ref<HTMLDivElement | null>(null);
-      const scrollFlag = ref(true);
+      const { scrollTop, scrollFlag, setScrollTop, setScrollFlag } = useScrollState();
+      const { config: linkConfig } = useLinkConfig();
 
       const tasks = computed(() => store.tasks);
       const timelineCellCount = computed(() => store.timelineCellCount);
@@ -34,29 +45,27 @@
       const startGanttDate = computed(() => store.startGanttDate);
       const endGanttDate = computed(() => store.endGanttDate);
       const mapFields = computed(() => store.mapFields);
+      
+      // 计算容器尺寸
+      const containerWidth = computed(() => {
+        return timelineCellCount.value * scale.value;
+      });
+      
+      const containerHeight = computed(() => {
+        return tasks.value.length * 60; // 假设行高为60
+      });
 
-      // 定义一个 inject key
-      const SCROLL_TOP_KEY = Symbol('SCROLL_TOP_KEY');
-
-      // 提供一个函数来设置滚动条位置
-      const setScrollTop = (scrollTop: number) => {
-        if (barContent.value) {
-          barContent.value.scrollTop = scrollTop;
+      // 监听共享的滚动位置变化
+      watch(scrollTop, (newValue) => {
+        if (scrollFlag.value && barContent.value) {
+          barContent.value.scrollTop = newValue;
         }
-      };
-
-      provide(SCROLL_TOP_KEY, setScrollTop);
-
-      // 注入设置滚动条位置的函数
-      const injectedSetScrollTop = inject<(scrollTop: number) => void>(SCROLL_TOP_KEY);
-
-      watch(scrollFlag, (newVal) => {
-        mutations.setScrollFlag(newVal);
       });
 
       onMounted(() => {
-        if (injectedSetScrollTop) {
-          // 这里可以处理外部注入的滚动条位置设置
+        if (barContent.value) {
+          // 初始化时同步滚动位置
+          barContent.value.scrollTop = scrollTop.value;
         }
       });
 
@@ -67,21 +76,20 @@
       // 优化：使用requestAnimationFrame优化滚动性能
       let rafId: number | null = null;
       const scroll = () => {
-        if (scrollFlag.value) {
-          if (rafId) {
-            cancelAnimationFrame(rafId);
-          }
-          rafId = requestAnimationFrame(() => {
-            if (barContent.value && injectedSetScrollTop) {
-              injectedSetScrollTop(barContent.value.scrollTop);
-            }
-            rafId = null;
-          });
+        if (rafId) {
+          cancelAnimationFrame(rafId);
         }
+        rafId = requestAnimationFrame(() => {
+          if (barContent.value) {
+            setScrollFlag(false); // 标记当前面板为主动滚动
+            setScrollTop(barContent.value.scrollTop);
+          }
+          rafId = null;
+        });
       };
 
       const mouseover = () => {
-        scrollFlag.value = true;
+        // 鼠标悬停时不改变滚动标志，让滚动事件处理
       };
 
       return {
@@ -96,7 +104,11 @@
         mapFields,
         getRootNode,
         scroll,
-        mouseover
+        mouseover,
+        setScrollFlag,
+        containerWidth,
+        containerHeight,
+        linkConfig
       };
     }
   });
@@ -111,5 +123,7 @@
     justify-content: flex-start;
     margin: 0px 0px -1px 0px;
     font-size: 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
   </style>

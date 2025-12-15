@@ -34,7 +34,7 @@ export default defineComponent({
         };
 
         watch(scrollTop, (newValue) => {
-            if (taskContent.value) {
+            if (!scrollFlag.value && taskContent.value) {
                 taskContent.value.scrollTop = newValue;
             }
         });
@@ -42,21 +42,20 @@ export default defineComponent({
         // 优化：使用requestAnimationFrame优化滚动性能
         let rafId: number | null = null;
         const scroll = () => {
-            if (!scrollFlag.value) {
-                if (rafId) {
-                    cancelAnimationFrame(rafId);
-                }
-                rafId = requestAnimationFrame(() => {
-                    if (taskContent.value) {
-                        setScrollTop(taskContent.value.scrollTop);
-                    }
-                    rafId = null;
-                });
+            if (rafId) {
+                cancelAnimationFrame(rafId);
             }
+            rafId = requestAnimationFrame(() => {
+                if (taskContent.value) {
+                    setScrollFlag(true); // 标记当前面板为主动滚动
+                    setScrollTop(taskContent.value.scrollTop);
+                }
+                rafId = null;
+            });
         };
 
         const mouseover = () => {
-            setScrollFlag(false);
+            // 鼠标悬停时不改变滚动标志，让滚动事件处理
         };
 
         onMounted(() => {

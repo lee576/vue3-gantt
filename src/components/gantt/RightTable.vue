@@ -8,12 +8,6 @@
     </div>
     <div class="content" :style="{ height: `calc(100% - ${headersHeight}px)`, width: 'fit-content', position: 'relative' }">
       <TableContent :rowHeight='rowHeight'></TableContent>
-      <!-- 任务连线层 -->
-      <TaskLinks 
-        :containerWidth="containerWidth" 
-        :containerHeight="containerHeight"
-        :linkConfig="linkConfig"
-      />
     </div>
   </div>
 </template>
@@ -26,8 +20,6 @@ import { store } from './Store';
 import dayjs from 'dayjs';
 import sharedState from './ShareState';
 import TableContent from './TableContent.vue';
-import TaskLinks from './TaskLinks.vue';
-import { useLinkConfig } from './LinkConfig';
 
 export default defineComponent({
   props: {
@@ -42,15 +34,13 @@ export default defineComponent({
   },
   components: {
     TimelineHeader,
-    TableContent,
-    TaskLinks
+    TableContent
   },
   setup(props) {
     // 引用 tableBar
     const tableBar: Ref<HTMLDivElement | null> = ref(null);
     
-    // 连线配置
-    const { config: linkConfig } = useLinkConfig();
+
 
     // 计算属性
     const dayHeaders = computed(() => store.dayHeaders);
@@ -106,10 +96,7 @@ export default defineComponent({
       startGanttDate,
       mode,
       scale,
-      scrollToToday,
-      linkConfig,
-      containerWidth,
-      containerHeight
+      scrollToToday
     };
   }
 });
