@@ -368,6 +368,33 @@ export default defineComponent({
                         if (alignedX > timelineCellCount.value * scale.value) {
                             alignedX = timelineCellCount.value * scale.value;
                         }
+                        
+                        // 检查是否有父任务，如果有则限制开始时间不能早于父任务
+                        const parentIdField = mapFields.value.parentId || 'pid';
+                        const currentParentId = props.row[parentIdField];
+                        if (currentParentId && currentParentId !== '0') {
+                            // 查找父任务
+                            const parentTask = store.tasks.find(t => String(t[mapFields.value.id]) === String(currentParentId));
+                            if (parentTask) {
+                                const parentStartDate = dayjs(parentTask[mapFields.value.startdate]);
+                                // 计算父任务开始时间对应的 X 坐标
+                                let parentStartX = 0;
+                                if (mode.value === '月' || mode.value === '日') {
+                                    parentStartX = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days') * scale.value;
+                                } else if (mode.value === '周') {
+                                    const ganttStartWeek = dayjs(props.startGanttDate).startOf('isoWeek');
+                                    const parentStartWeek = dayjs(parentTask[mapFields.value.startdate]).startOf('isoWeek');
+                                    parentStartX = parentStartWeek.diff(ganttStartWeek, 'week') * scale.value;
+                                } else if (mode.value === '时') {
+                                    parentStartX = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'hours') * scale.value;
+                                }
+                                // 限制子任务不能早于父任务
+                                if (alignedX < parentStartX) {
+                                    alignedX = parentStartX;
+                                }
+                            }
+                        }
+                        
                         // 更新 SVG 元素的位置
                         target.style.transform = `translate(${alignedX}px, 0px)`;
                         // 更新 SVG 元素的 data-x 属性
@@ -387,7 +414,7 @@ export default defineComponent({
                             hoursOffset = cellsMoved;
                         }
                         
-                        // 更新父任务的开始日期和结束日期
+                        // 更新任务的开始日期和结束日期
                         if (mode.value === '时') {
                             props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate])
                                 .add(hoursOffset, 'hours')
@@ -415,18 +442,18 @@ export default defineComponent({
                             }
                         }
                         
-                        // 获取新的父任务开始日期
+                        // 获取新的任务开始日期
                         const newParentStartDate = dayjs(props.row[mapFields.value.startdate]);
                         
-                        // 联动更新子任务：如果子任务开始时间早于父任务新开始时间，则同步移动
+                        // 联动更新子任务：如果子任务开始时间早于当前任务新开始时间，则同步移动
                         const currentTaskId = props.row[mapFields.value.id];
-                        const parentIdField = mapFields.value.parentId || 'pid';
+                        const parentIdFieldForChildren = mapFields.value.parentId || 'pid';
                         
                         // 递归获取所有子任务
                         const getAllChildren = (parentId: any, tasks: any[]): any[] => {
                             const children: any[] = [];
                             for (const task of tasks) {
-                                if (String(task[parentIdField]) === String(parentId)) {
+                                if (String(task[parentIdFieldForChildren]) === String(parentId)) {
                                     children.push(task);
                                     // 递归获取子任务的子任务
                                     children.push(...getAllChildren(task[mapFields.value.id], tasks));
@@ -526,6 +553,34 @@ export default defineComponent({
                             // 对齐 X 到网格
                             currentX = Math.round(currentX / scale.value) * scale.value;
                             if (currentX < 0) currentX = 0;
+                            
+                            // 检查是否有父任务，如果有则限制开始时间不能早于父任务
+                            const parentIdField = mapFields.value.parentId || 'pid';
+                            const currentParentId = props.row[parentIdField];
+                            if (currentParentId && currentParentId !== '0') {
+                                const parentTask = store.tasks.find(t => String(t[mapFields.value.id]) === String(currentParentId));
+                                if (parentTask) {
+                                    let parentStartX = 0;
+                                    if (mode.value === '月' || mode.value === '日') {
+                                        parentStartX = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days') * scale.value;
+                                    } else if (mode.value === '周') {
+                                        const ganttStartWeek = dayjs(props.startGanttDate).startOf('isoWeek');
+                                        const parentStartWeek = dayjs(parentTask[mapFields.value.startdate]).startOf('isoWeek');
+                                        parentStartX = parentStartWeek.diff(ganttStartWeek, 'week') * scale.value;
+                                    } else if (mode.value === '时') {
+                                        parentStartX = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'hours') * scale.value;
+                                    }
+                                    // 限制子任务不能早于父任务
+                                    if (currentX < parentStartX) {
+                                        currentX = parentStartX;
+                                        // 重新计算宽度
+                                        newWidth = oldBarDataX.value + oldBarWidth.value - currentX;
+                                        widthCells = Math.round(newWidth / scale.value);
+                                        if (widthCells < 1) widthCells = 1;
+                                        newWidth = widthCells * scale.value;
+                                    }
+                                }
+                            }
                         }
                         
                         // 更新 SVG 元素
