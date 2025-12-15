@@ -182,217 +182,6 @@ export default defineComponent({
         // 从 mutations 中获取设置是否允许更改任务日期的函数
         const setAllowChangeTaskDate = mutations.setAllowChangeTaskDate;
 
-        /**
-         * 更新条形图的数据和 UI
-         * @param {Object} event - 事件对象
-         * @param {Object} props - 组件的属性
-         * @param {Object} mode - 甘特图的模式
-         * @param {Object} scale - 单元格的宽度
-         * @param {Object} oldBarDataX - 旧的条形图 X 坐标
-         * @param {Object} oldBarWidth - 旧的条形图宽度
-         * @param {SVGSVGElement} barElement - SVG 元素
-         * @param {Object} barHeight - 条形图的高度
-         * @param {Object} mapFields - 映射字段
-         * @param {Function} setBarDate - 设置条形图日期的函数
-         * @param {boolean} [isResizable=false] - 是否可调整大小
-         */
-        const updateBarDataAndUI = (
-            event: { target: SVGSVGElement; rect: { width: number }; dx: number; edges?: { left: boolean; right: boolean } },
-            props: {
-                row: Record<string, any>;
-                startGanttDate: string;
-                endGanttDate: string;
-            },
-            mode: { value: string },
-            scale: { value: number },
-            oldBarDataX: { value: number },
-            oldBarWidth: { value: number },
-            barElement: SVGSVGElement,
-            barHeight: { value: number },
-            mapFields: { value: Record<string, string> },
-            setBarDate: (data: { id: any; startDate: string; endDate: string }) => void,
-            isResizable = false
-        ) => {
-            let target = event.target;
-            // 计算新的 X 坐标
-            let x = (parseFloat(target.getAttribute('data-x') || '0') || 0) + event.dx;
-            let width = event.rect.width;
-
-            if (isResizable) {
-                // 调整宽度以适应单元格的宽度
-                let remainWidth = width % scale.value;
-                if (remainWidth !== 0) {
-                    let multiple = Math.floor(width / scale.value);
-                    if (remainWidth < (scale.value / 2)) {
-                        width = multiple * scale.value;
-                    } else {
-                        width = (multiple + 1) * scale.value;
-                    }
-                }
-                let offsetWidth = oldBarWidth.value - width;
-                if (event.edges && event.edges.left) {
-                    x += offsetWidth;
-                }
-                // 更新 SVG 元素的宽度
-                target.setAttribute('width', width.toString());
-                target.style.width = width + 'px';
-            }
-
-            // 更新 SVG 元素的位置
-            target.style.transform = `translate(${x}px, 0px)`;
-            target.setAttribute('data-x', x.toString());
-            // 更新 SVG 元素的文本内容
-            target.textContent = Math.round(width) + '\u00D7' + Math.round(barHeight.value);
-
-            // 将 SVGSVGElement 转换为 HTMLElement
-            let svg = SVG(barElement as unknown as HTMLElement);
-
-            // 查找现有的元素
-            let p = svg.select('pattern').first();
-            let g = (svg.children().filter((child) => child.type === 'g')[0] as any) || svg.group();
-            let innerRect = svg.select('rect:has(.innerRect)').first();
-            let outerRect = svg.select('rect:not(.innerRect)').first();
-            let text = svg.select('text').first();
-
-            // 创建 SVG 图案
-            if (!p) {
-                p = svg.pattern(10, 10, (add) => {
-                    (add as any).path('M10 -5 -10,15M15,0,0,15M0 -5 -20,15')
-                        .fill('none')
-                        .stroke({ color: 'gray', opacity: 0.4, width: 5 });
-                });
-            }
-
-            // 创建 SVG 组
-            if (!g) {
-                g = svg.group();
-            }
-
-            let innerRectWidth = 0;
-            // 根据任务的进度计算内部矩形的宽度
-            if (props.row[mapFields.value.progress]) {
-                innerRectWidth = Number(width) * Number(props.row[mapFields.value.progress]);
-            } else {
-                innerRectWidth = Number(width);
-            }
-
-            if (!innerRect) {
-                innerRect = svg.rect(innerRectWidth, barHeight.value).radius(10);
-                if (!innerRect.hasClass('innerRect')) {
-                    innerRect.addClass('innerRect');
-                    innerRect.fill({ color: barColor.value, opacity: 0.4 });
-                    innerRect.width(innerRectWidth);
-                    if (!g.has(innerRect)) {
-                        g.add(innerRect);
-                    }
-                }
-            }
-
-            if (!outerRect) {
-                const borderColor = getComputedStyle(barElement).getPropertyValue('--border') || '#cecece';
-                const primaryColor = getComputedStyle(barElement).getPropertyValue('--primary') || '#0066ff';
-                outerRect = svg.rect(width, barHeight.value).radius(10).fill(p).stroke({ color: borderColor, width: 1 });
-                // 外部矩形的鼠标悬停事件处理
-                outerRect.on('mouseover', () => {
-                    outerRect.animate(200).attr({
-                        stroke: '#000',
-                        strokeWidth: 2,
-                        opacity: 1
-                    });
-                });
-                // 外部矩形的鼠标离开事件处理
-                outerRect.on('mouseleave', () => {
-                    outerRect.animate(200).attr({
-                        stroke: primaryColor,
-                        strokeWidth: 10,
-                        opacity: 0.4
-                    });
-                });
-            } else {
-                outerRect.width(width);
-            }
-
-            if (!text) {
-                text = svg.text(progress.value).stroke('#faf7ec');
-            } else {
-                // 更新文本内容
-                (text as any).text(progress.value);
-            }
-            const textBBox = text.bbox();
-            // 设置文本元素的字体样式
-            (text as any).font({
-                size: 15,
-                anchor: 'middle',
-                leading: '1em'
-            })
-                .fill('#000')
-                .attr('opacity', 1)
-                .attr('dominant-baseline', 'middle')
-                .center(innerRect.width() / 2 + textBBox.width / 2, innerRect.height() / 2);
-
-            let offsetStart = 0;
-            let offsetEnd = 0;
-            if (isResizable) {
-                if (event.edges && event.edges.left) {
-                    // 计算开始日期的偏移量
-                    offsetStart = ((oldBarDataX.value - x) / scale.value);
-                    if (mode.value === '月' || mode.value === '日') {
-                        offsetStart *= 24;
-                    } else if (mode.value === '周') {
-                        offsetStart *= 7; // 周模式：偏移的周数 * 7天
-                    }
-                } else {
-                    // 计算结束日期的偏移量
-                    offsetEnd = (oldBarWidth.value - width) / scale.value;
-                    if (mode.value === '月' || mode.value === '日') {
-                        offsetEnd *= 24;
-                    } else if (mode.value === '周') {
-                        offsetEnd *= 7; // 周模式：偏移的周数 * 7天
-                    }
-                }
-            } else {
-                // 计算开始和结束日期的偏移量
-                offsetStart = (x - oldBarDataX.value) / scale.value;
-                offsetEnd = offsetStart;
-                if (mode.value === '月' || mode.value === '日') {
-                    offsetStart *= 24;
-                    offsetEnd *= 24;
-                } else if (mode.value === '周') {
-                    offsetStart *= 7; // 周模式：偏移的周数 * 7天
-                    offsetEnd *= 7;
-                }
-            }
-
-            // 更新任务的开始日期和结束日期
-            if (mode.value === '周') {
-                // 周模式：以天为单位更新日期
-                props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).locale('zh-cn').add(-offsetStart, 'days').format('YYYY-MM-DD HH:mm:ss');
-                props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate]).locale('zh-cn').add(-offsetEnd, 'days').format('YYYY-MM-DD HH:mm:ss');
-            } else {
-                // 其他模式：以小时为单位更新日期
-                props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).locale('zh-cn').add(-offsetStart, 'hours').format('YYYY-MM-DD HH:mm:ss');
-                props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate]).locale('zh-cn').add(-offsetEnd, 'hours').format('YYYY-MM-DD HH:mm:ss');
-            }
-
-            // 根据甘特图的模式更新任务的耗时信息
-            if (mode.value === '月' || mode.value === '日') {
-                props.row[mapFields.value.takestime] = dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'days') + 1 + '天';
-            } else if (mode.value === '周') {
-                const startWeek = dayjs(props.row[mapFields.value.startdate]).startOf('isoWeek');
-                const endWeek = dayjs(props.row[mapFields.value.enddate]).startOf('isoWeek');
-                props.row[mapFields.value.takestime] = endWeek.diff(startWeek, 'week') + 1 + '周';
-            } else if (mode.value === '时') {
-                props.row[mapFields.value.takestime] = dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'hours') + 1 + '小时';
-            }
-
-            // 设置条形图的日期
-            setBarDate({
-                id: props.row[mapFields.value.id],
-                startDate: props.row[mapFields.value.startdate],
-                endDate: props.row[mapFields.value.enddate]
-            });
-        };
-
         const drowBar = (barElement: SVGSVGElement) => {
             // 优化：不清空SVG内容，复用已有元素
             let dataX = 0;
@@ -589,50 +378,114 @@ export default defineComponent({
                         
                         // 根据模式计算日期偏移
                         let daysOffset = 0;
+                        let hoursOffset = 0;
                         if (mode.value === '月' || mode.value === '日') {
                             daysOffset = cellsMoved; // 每个单元格代表1天
                         } else if (mode.value === '周') {
                             daysOffset = cellsMoved * 7; // 每个单元格代表1周
                         } else if (mode.value === '时') {
-                            // 时模式下以小时为单位
-                            const hoursOffset = cellsMoved;
+                            hoursOffset = cellsMoved;
+                        }
+                        
+                        // 更新父任务的开始日期和结束日期
+                        if (mode.value === '时') {
                             props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate])
                                 .add(hoursOffset, 'hours')
                                 .format('YYYY-MM-DD HH:mm:ss');
                             props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate])
                                 .add(hoursOffset, 'hours')
                                 .format('YYYY-MM-DD HH:mm:ss');
-                            // 更新耗时
                             const spendHours = dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'hours') + 1;
                             props.row[mapFields.value.takestime] = spendHours + '小时';
-                            // 设置条形图的日期
-                            setBarDate({
-                                id: props.row[mapFields.value.id],
-                                startDate: props.row[mapFields.value.startdate],
-                                endDate: props.row[mapFields.value.enddate]
-                            });
-                            return;
+                        } else {
+                            props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate])
+                                .add(daysOffset, 'days')
+                                .format('YYYY-MM-DD HH:mm:ss');
+                            props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate])
+                                .add(daysOffset, 'days')
+                                .format('YYYY-MM-DD HH:mm:ss');
+                            
+                            if (mode.value === '月' || mode.value === '日') {
+                                const spendDays = dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'days') + 1;
+                                props.row[mapFields.value.takestime] = spendDays + '天';
+                            } else if (mode.value === '周') {
+                                const startWeek = dayjs(props.row[mapFields.value.startdate]).startOf('isoWeek');
+                                const endWeek = dayjs(props.row[mapFields.value.enddate]).startOf('isoWeek');
+                                props.row[mapFields.value.takestime] = endWeek.diff(startWeek, 'week') + 1 + '周';
+                            }
                         }
                         
-                        // 更新任务的开始日期和结束日期（以天为单位）
-                        props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate])
-                            .add(daysOffset, 'days')
-                            .format('YYYY-MM-DD HH:mm:ss');
-                        props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate])
-                            .add(daysOffset, 'days')
-                            .format('YYYY-MM-DD HH:mm:ss');
+                        // 获取新的父任务开始日期
+                        const newParentStartDate = dayjs(props.row[mapFields.value.startdate]);
                         
-                        // 更新耗时信息
-                        if (mode.value === '月' || mode.value === '日') {
-                            const spendDays = dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'days') + 1;
-                            props.row[mapFields.value.takestime] = spendDays + '天';
-                        } else if (mode.value === '周') {
-                            const startWeek = dayjs(props.row[mapFields.value.startdate]).startOf('isoWeek');
-                            const endWeek = dayjs(props.row[mapFields.value.enddate]).startOf('isoWeek');
-                            props.row[mapFields.value.takestime] = endWeek.diff(startWeek, 'week') + 1 + '周';
+                        // 联动更新子任务：如果子任务开始时间早于父任务新开始时间，则同步移动
+                        const currentTaskId = props.row[mapFields.value.id];
+                        const parentIdField = mapFields.value.parentId || 'pid';
+                        
+                        // 递归获取所有子任务
+                        const getAllChildren = (parentId: any, tasks: any[]): any[] => {
+                            const children: any[] = [];
+                            for (const task of tasks) {
+                                if (String(task[parentIdField]) === String(parentId)) {
+                                    children.push(task);
+                                    // 递归获取子任务的子任务
+                                    children.push(...getAllChildren(task[mapFields.value.id], tasks));
+                                }
+                            }
+                            return children;
+                        };
+                        
+                        // 获取所有子任务
+                        const childTasks = getAllChildren(currentTaskId, store.tasks);
+                        
+                        // 更新需要联动的子任务
+                        // 只有当父任务向右移动（daysOffset > 0 或 hoursOffset > 0）时才需要检查
+                        const actualOffset = mode.value === '时' ? hoursOffset : daysOffset;
+                        if (actualOffset > 0) {
+                            for (const child of childTasks) {
+                                const childStartDate = dayjs(child[mapFields.value.startdate]);
+                                
+                                // 如果子任务开始时间早于父任务新开始时间，需要同步移动
+                                if (childStartDate.isBefore(newParentStartDate)) {
+                                    // 子任务也移动相同的偏移量
+                                    if (mode.value === '时') {
+                                        child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate])
+                                            .add(hoursOffset, 'hours')
+                                            .format('YYYY-MM-DD HH:mm:ss');
+                                        child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate])
+                                            .add(hoursOffset, 'hours')
+                                            .format('YYYY-MM-DD HH:mm:ss');
+                                        const spendHours = dayjs(child[mapFields.value.enddate]).diff(dayjs(child[mapFields.value.startdate]), 'hours') + 1;
+                                        child[mapFields.value.takestime] = spendHours + '小时';
+                                    } else {
+                                        child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate])
+                                            .add(daysOffset, 'days')
+                                            .format('YYYY-MM-DD HH:mm:ss');
+                                        child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate])
+                                            .add(daysOffset, 'days')
+                                            .format('YYYY-MM-DD HH:mm:ss');
+                                        
+                                        if (mode.value === '月' || mode.value === '日') {
+                                            const spendDays = dayjs(child[mapFields.value.enddate]).diff(dayjs(child[mapFields.value.startdate]), 'days') + 1;
+                                            child[mapFields.value.takestime] = spendDays + '天';
+                                        } else if (mode.value === '周') {
+                                            const startWeek = dayjs(child[mapFields.value.startdate]).startOf('isoWeek');
+                                            const endWeek = dayjs(child[mapFields.value.enddate]).startOf('isoWeek');
+                                            child[mapFields.value.takestime] = endWeek.diff(startWeek, 'week') + 1 + '周';
+                                        }
+                                    }
+                                    
+                                    // 通知子任务日期变化
+                                    setBarDate({
+                                        id: child[mapFields.value.id],
+                                        startDate: child[mapFields.value.startdate],
+                                        endDate: child[mapFields.value.enddate]
+                                    });
+                                }
+                            }
                         }
                         
-                        // 设置条形图的日期
+                        // 设置父任务条形图的日期
                         setBarDate({
                             id: props.row[mapFields.value.id],
                             startDate: props.row[mapFields.value.startdate],
@@ -654,14 +507,145 @@ export default defineComponent({
                     end: (event: { target: SVGSVGElement; dx: number; rect: { width: number }; edges: { left: boolean; right: boolean } }) => {
                         // 设置允许更改任务日期
                         setAllowChangeTaskDate(props.row);
-                        // 手动构建符合类型要求的对象
-                        const updatedProps = {
-                            row: props.row,
-                            startGanttDate: props.startGanttDate as string,
-                            endGanttDate: props.endGanttDate as string
-                        };
-                        // 更新条形图的数据和 UI
-                        updateBarDataAndUI(event, updatedProps, { value: mode.value || '' }, scale, oldBarDataX, oldBarWidth, barElement, barHeight, mapFields, setBarDate, true);
+                        
+                        let target = event.target;
+                        let newWidth = event.rect.width;
+                        
+                        // 对齐宽度到网格
+                        let widthCells = Math.round(newWidth / scale.value);
+                        if (widthCells < 1) widthCells = 1;
+                        newWidth = widthCells * scale.value;
+                        
+                        // 计算新的 X 坐标
+                        let currentX = oldBarDataX.value;
+                        
+                        // 如果是从左边调整大小，需要调整 X 坐标
+                        if (event.edges && event.edges.left) {
+                            // 从左边调整：新X = 旧X + (旧宽度 - 新宽度)
+                            currentX = oldBarDataX.value + (oldBarWidth.value - newWidth);
+                            // 对齐 X 到网格
+                            currentX = Math.round(currentX / scale.value) * scale.value;
+                            if (currentX < 0) currentX = 0;
+                        }
+                        
+                        // 更新 SVG 元素
+                        target.setAttribute('width', newWidth.toString());
+                        target.style.width = newWidth + 'px';
+                        target.style.transform = `translate(${currentX}px, 0px)`;
+                        target.setAttribute('data-x', currentX.toString());
+                        
+                        // 计算新的开始和结束日期
+                        const startCellIndex = Math.round(currentX / scale.value);
+                        const endCellIndex = startCellIndex + widthCells - 1;
+                        
+                        let newStartDate: string;
+                        let newEndDate: string;
+                        
+                        if (mode.value === '月' || mode.value === '日') {
+                            // 每个单元格代表1天
+                            newStartDate = dayjs(props.startGanttDate).add(startCellIndex, 'days').format('YYYY-MM-DD HH:mm:ss');
+                            newEndDate = dayjs(props.startGanttDate).add(endCellIndex, 'days').format('YYYY-MM-DD HH:mm:ss');
+                            props.row[mapFields.value.takestime] = widthCells + '天';
+                        } else if (mode.value === '周') {
+                            // 每个单元格代表1周
+                            const ganttStartWeek = dayjs(props.startGanttDate).startOf('isoWeek');
+                            newStartDate = ganttStartWeek.add(startCellIndex, 'weeks').format('YYYY-MM-DD HH:mm:ss');
+                            newEndDate = ganttStartWeek.add(endCellIndex, 'weeks').endOf('isoWeek').format('YYYY-MM-DD HH:mm:ss');
+                            props.row[mapFields.value.takestime] = widthCells + '周';
+                        } else {
+                            // 时模式：每个单元格代表1小时
+                            newStartDate = dayjs(props.startGanttDate).add(startCellIndex, 'hours').format('YYYY-MM-DD HH:mm:ss');
+                            newEndDate = dayjs(props.startGanttDate).add(endCellIndex, 'hours').format('YYYY-MM-DD HH:mm:ss');
+                            props.row[mapFields.value.takestime] = widthCells + '小时';
+                        }
+                        
+                        props.row[mapFields.value.startdate] = newStartDate;
+                        props.row[mapFields.value.enddate] = newEndDate;
+                        
+                        // 更新内部矩形宽度
+                        let svg = SVG(barElement as unknown as HTMLElement);
+                        let innerRect = svg.select('.innerRect').first();
+                        let outerRect = svg.select('rect:not(.innerRect)').first();
+                        if (innerRect) {
+                            let innerRectWidth = newWidth;
+                            if (props.row[mapFields.value.progress]) {
+                                innerRectWidth = newWidth * Number(props.row[mapFields.value.progress]);
+                            }
+                            innerRect.width(innerRectWidth);
+                        }
+                        if (outerRect) {
+                            outerRect.width(newWidth);
+                        }
+                        
+                        // 联动更新子任务：如果从左边调整大小导致开始时间向右移动，检查子任务
+                        if (event.edges && event.edges.left) {
+                            const newParentStartDate = dayjs(newStartDate);
+                            const currentTaskId = props.row[mapFields.value.id];
+                            const parentIdField = mapFields.value.parentId || 'pid';
+                            
+                            // 递归获取所有子任务
+                            const getAllChildren = (parentId: any, tasks: any[]): any[] => {
+                                const children: any[] = [];
+                                for (const task of tasks) {
+                                    if (String(task[parentIdField]) === String(parentId)) {
+                                        children.push(task);
+                                        children.push(...getAllChildren(task[mapFields.value.id], tasks));
+                                    }
+                                }
+                                return children;
+                            };
+                            
+                            const childTasks = getAllChildren(currentTaskId, store.tasks);
+                            
+                            for (const child of childTasks) {
+                                const childStartDate = dayjs(child[mapFields.value.startdate]);
+                                
+                                // 如果子任务开始时间早于父任务新开始时间，需要同步移动
+                                if (childStartDate.isBefore(newParentStartDate)) {
+                                    const childOffset = newParentStartDate.diff(childStartDate, mode.value === '时' ? 'hours' : 'days');
+                                    
+                                    if (mode.value === '时') {
+                                        child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate])
+                                            .add(childOffset, 'hours')
+                                            .format('YYYY-MM-DD HH:mm:ss');
+                                        child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate])
+                                            .add(childOffset, 'hours')
+                                            .format('YYYY-MM-DD HH:mm:ss');
+                                        const spendHours = dayjs(child[mapFields.value.enddate]).diff(dayjs(child[mapFields.value.startdate]), 'hours') + 1;
+                                        child[mapFields.value.takestime] = spendHours + '小时';
+                                    } else {
+                                        child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate])
+                                            .add(childOffset, 'days')
+                                            .format('YYYY-MM-DD HH:mm:ss');
+                                        child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate])
+                                            .add(childOffset, 'days')
+                                            .format('YYYY-MM-DD HH:mm:ss');
+                                        
+                                        if (mode.value === '月' || mode.value === '日') {
+                                            const spendDays = dayjs(child[mapFields.value.enddate]).diff(dayjs(child[mapFields.value.startdate]), 'days') + 1;
+                                            child[mapFields.value.takestime] = spendDays + '天';
+                                        } else if (mode.value === '周') {
+                                            const startWeek = dayjs(child[mapFields.value.startdate]).startOf('isoWeek');
+                                            const endWeek = dayjs(child[mapFields.value.enddate]).startOf('isoWeek');
+                                            child[mapFields.value.takestime] = endWeek.diff(startWeek, 'week') + 1 + '周';
+                                        }
+                                    }
+                                    
+                                    setBarDate({
+                                        id: child[mapFields.value.id],
+                                        startDate: child[mapFields.value.startdate],
+                                        endDate: child[mapFields.value.enddate]
+                                    });
+                                }
+                            }
+                        }
+                        
+                        // 设置条形图的日期
+                        setBarDate({
+                            id: props.row[mapFields.value.id],
+                            startDate: newStartDate,
+                            endDate: newEndDate
+                        });
                     }
                 },
                 modifiers: [
@@ -676,6 +660,18 @@ export default defineComponent({
                 hold: 1
             });
         };
+
+        // 监听 row 的日期变化，重新绘制 bar（用于父任务拖拽时联动子任务）
+        watch(
+            () => [props.row[mapFields.value.startdate], props.row[mapFields.value.enddate]],
+            () => {
+                if (bar.value && isBarInteracted.value) {
+                    // 重新计算并绘制 bar
+                    drowBar(bar.value);
+                }
+            },
+            { deep: false }
+        );
 
         // 组件挂载后执行的钩子函数
         onMounted(() => {
