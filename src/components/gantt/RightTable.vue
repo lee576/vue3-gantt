@@ -1,10 +1,10 @@
 <template>
   <div ref="tableBar" class="table">
     <div class="header" :style="{ height: `${headersHeight}px` }">
-      <div style="width: 100%;border-top: 1px solid #cecece;margin:0px 0px -1px -1px;"></div>
+      <div class="header-border-top"></div>
       <TimelineHeader :weekHeaders="weekHeaders" :hourHeaders="hourHeaders" :dayHeaders="dayHeaders"
         :monthHeaders="monthHeaders"></TimelineHeader>
-      <div style="width: 100%;border-top: 1px solid #cecece;margin:0px 0px -1px -1px;"></div>
+      <div class="header-border-bottom"></div>
     </div>
     <div class="content" :style="{ height: `calc(100% - ${headersHeight}px)`, width: 'fit-content', position: 'relative' }">
       <TableContent :rowHeight='rowHeight'></TableContent>
@@ -68,6 +68,12 @@ export default defineComponent({
           case '日':
             tableBar.value.scrollLeft = Number(dayjs().diff(dayjs(startGanttDate.value), 'day')) * Number(scale.value);
             break;
+          case '周':
+            // 周模式：滚动到当前周
+            const currentWeekStart = dayjs().startOf('isoWeek');
+            const ganttWeekStart = dayjs(startGanttDate.value).startOf('isoWeek');
+            tableBar.value.scrollLeft = Number(currentWeekStart.diff(ganttWeekStart, 'week')) * Number(scale.value);
+            break;
           case '时':
             tableBar.value.scrollLeft = Number(dayjs().diff(dayjs(startGanttDate.value), 'hour')) * Number(scale.value);
             break;
@@ -113,6 +119,13 @@ export default defineComponent({
   .header {
     width: 100%;
     border: 0px;
+  }
+
+  .header-border-top,
+  .header-border-bottom {
+    width: 100%;
+    border-top: 1px solid var(--border);
+    margin: 0px 0px -1px -1px;
   }
 
   .content {

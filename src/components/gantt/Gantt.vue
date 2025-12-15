@@ -1,5 +1,5 @@
 <template>
-    <div class="page">
+    <div class="page gantt-container" ref="ganttContainer">
         <div class="toolbar">
             <div class="dateInput">
                 <DatePicker :date="startDate" :min-date="minStartDate" :max-date="maxStartDate"
@@ -8,17 +8,49 @@
                 <DatePicker :date="endDate" :min-date="minEndDate" :max-date="maxEndDate" @confirm="confirmEnd" />
             </div>
             <div class="buttonGroup">
-                <div :class="buttonClass[0]" style="border-radius:10px 0 0 10px;" @click="timeMode('月')">
-                    <div class="text">月</div>
+                <div :class="buttonClass[0]" class="metro-btn" @click="timeMode('月')">
+                    <div class="metro-content">
+                        <div class="metro-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                            </svg>
+                        </div>
+                        <div class="metro-text">月</div>
+                    </div>
                 </div>
-                <div :class="buttonClass[1]" style="border-left:0;border-right:0" @click="timeMode('日')">
-                    <div class="text">日</div>
+                <div :class="buttonClass[1]" class="metro-btn" @click="timeMode('周')">
+                    <div class="metro-content">
+                        <div class="metro-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                            </svg>
+                        </div>
+                        <div class="metro-text">周</div>
+                    </div>
                 </div>
-                <div :class="buttonClass[2]" style="border-radius:0 10px 10px 0;" @click="timeMode('时')">
-                    <div class="text">时</div>
+                <div :class="buttonClass[2]" class="metro-btn" @click="timeMode('日')">
+                    <div class="metro-content">
+                        <div class="metro-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h8c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H6V4h8v16z"/>
+                            </svg>
+                        </div>
+                        <div class="metro-text">日</div>
+                    </div>
+                </div>
+                <div :class="buttonClass[3]" class="metro-btn" @click="timeMode('时')">
+                    <div class="metro-content">
+                        <div class="metro-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                            </svg>
+                        </div>
+                        <div class="metro-text">时</div>
+                    </div>
                 </div>
             </div>
             <div class="config-buttons">
+                <GanttThemeSelector />
                 <button 
                     class="link-config-btn" 
                     @click="toggleLinkConfig"
@@ -78,6 +110,7 @@ import SplitPane from './SplitPane.vue';
 import TaskTable from '../gantt/task/TaskTable.vue';
 import RightTable from './RightTable.vue';
 import LinkConfigPanel from './LinkConfigPanel.vue';
+import GanttThemeSelector from './GanttThemeSelector.vue';
 import { store, mutations } from './Store';
 export type { DataConfig, StyleConfig, EventConfig, TaskHeader } from './Types';
 // 移除未使用的类型导入
@@ -193,7 +226,8 @@ export default defineComponent({
         SplitPane,
         TaskTable,
         RightTable,
-        LinkConfigPanel
+        LinkConfigPanel,
+        GanttThemeSelector
     },
     setup(props) {
         // 缓存 mapFields 的结果
@@ -204,7 +238,7 @@ export default defineComponent({
         // 定义响应式数据
         const initData = ref<any[]>([]);
         const paneLengthPercent = ref(35);
-        const buttonClass = ref(['button is-active', 'button', 'button']);
+        const buttonClass = ref(['button is-active', 'button', 'button', 'button']);
         const mode = ref('月');
         const startDate = ref(dayjs().locale('zh-cn').format('YYYY-MM-DD'));
         const minStartDate = ref(dayjs().locale('zh-cn').add(-5, 'y').format('YYYY-MM-DD'));
@@ -228,6 +262,9 @@ export default defineComponent({
         
         // 连线配置相关状态
         const showLinkConfig = ref(false);
+        
+        // 甘特图容器引用
+        const ganttContainer = ref<HTMLElement>();
 
         // 计算属性
         const subTask = computed(() => store.subTask);
@@ -321,6 +358,64 @@ export default defineComponent({
                         currentDate = currentDate.add(1, 'day');
                     }
                     timelineCellCount.value = dayHeaders.value.length;
+                    break;
+                }
+                case '周': {
+                    scale.value = 120;
+                    let currentDate = start.startOf('isoWeek'); // 从周一开始
+                    const endWeek = end.endOf('isoWeek'); // 到周日结束
+                    
+                    // 生成月份表头
+                    const months: string[] = [];
+                    let monthCurrent = currentDate.startOf('month');
+                    while (monthCurrent.isBefore(endWeek) || monthCurrent.isSame(endWeek, 'month')) {
+                        months.push(monthCurrent.format('YYYY-MM-DD'));
+                        monthCurrent = monthCurrent.add(1, 'month');
+                    }
+                    
+                    months.forEach((month, index) => {
+                        const monthStart = dayjs(month);
+                        const monthEnd = monthStart.endOf('month');
+                        
+                        // 计算该月包含的周数
+                        let weekCount = 0;
+                        let weekCurrent = currentDate.clone();
+                        while (weekCurrent.isBefore(endWeek) || weekCurrent.isSame(endWeek, 'week')) {
+                            const weekStart = weekCurrent.startOf('isoWeek');
+                            const weekEnd = weekCurrent.endOf('isoWeek');
+                            
+                            // 检查这一周是否与当前月份有交集
+                            if (weekStart.isSame(monthStart, 'month') || weekEnd.isSame(monthStart, 'month') ||
+                                (weekStart.isBefore(monthEnd) && weekEnd.isAfter(monthStart))) {
+                                weekCount++;
+                            }
+                            weekCurrent = weekCurrent.add(1, 'week');
+                        }
+                        
+                        if (weekCount > 0) {
+                            monthHeaders.value.push({
+                                title: monthStart.format('YYYY年MM月'),
+                                width: weekCount * scale.value
+                            });
+                        }
+                    });
+                    
+                    // 生成周表头（不生成日表头，周表头显示开始和结束日期）
+                    while (currentDate.isBefore(endWeek) || currentDate.isSame(endWeek, 'week')) {
+                        const weekStart = currentDate.startOf('isoWeek');
+                        const weekEnd = currentDate.endOf('isoWeek');
+                        
+                        // 周表头 - 显示周数和日期范围
+                        weekHeaders.value.push({
+                            title: `第${currentDate.isoWeek()}周 (${weekStart.format('MM/DD')}-${weekEnd.format('MM/DD')})`,
+                            width: scale.value,
+                            fulldate: weekStart.format('YYYY-MM-DD')
+                        });
+                        
+                        currentDate = currentDate.add(1, 'week');
+                    }
+                    
+                    timelineCellCount.value = weekHeaders.value.length;
                     break;
                 }
                 case '日': {
@@ -423,12 +518,16 @@ export default defineComponent({
                     buttonClass.value[0] = 'button is-active';
                     break;
                 }
-                case '日': {
+                case '周': {
                     buttonClass.value[1] = 'button is-active';
                     break;
                 }
-                case '时': {
+                case '日': {
                     buttonClass.value[2] = 'button is-active';
+                    break;
+                }
+                case '时': {
+                    buttonClass.value[3] = 'button is-active';
                     break;
                 }
             }
@@ -617,6 +716,9 @@ export default defineComponent({
         provide(Symbols.SetBarColorSymbol, (row: Record<string, any>) => {
             return props.styleConfig.setBarColor(row);
         });
+        
+        // 提供甘特图容器引用给主题选择器
+        provide('ganttContainer', ganttContainer);
 
         // 连线配置变化处理
         const onLinkConfigChange = (config: any) => {
@@ -648,7 +750,8 @@ export default defineComponent({
             timeMode,
             showLinkConfig,
             toggleLinkConfig,
-            onLinkConfigChange
+            onLinkConfigChange,
+            ganttContainer
         };
     }
 });
@@ -692,30 +795,147 @@ $toolbarHeight: 70px;
             display: flex;
             flex-direction: row;
             margin-right: 20px;
+            background: var(--bg-metal-normal);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-inset), var(--shadow-outset);
+            border-radius: 2px;
+            overflow: hidden;
+            transition: all var(--transition-normal);
 
-            & .is-active:not(.text),
-            & :active:not(.text) {
-                background: #3a8ee6;
-                border-color: #3a8ee6;
-                color: #FFF;
-            }
-
-            & :hover:not(.text) {
-                background: #66b1ff;
-                border-color: #66b1ff;
-                color: #FFF;
-            }
-
-            .button {
-                width: 80px;
-                font-size: 15px;
-                height: calc($toolbarHeight / 1.5);
-                border: 1px solid #dcdfe6;
+            .metro-btn {
+                position: relative;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-weight: 500;
+                width: 80px;
+                height: 100%;
                 cursor: pointer;
+                transition: all var(--transition-fast, 0.15s ease);
+                background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
+                border-right: 1px solid var(--border, #d0d0d0);
+                
+                &:last-child {
+                    border-right: none;
+                }
+
+                &::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f0f0f0));
+                    opacity: 0;
+                    transition: opacity var(--transition-fast, 0.15s ease);
+                }
+
+                &::after {
+                    content: '';
+                    position: absolute;
+                    top: 2px;
+                    left: 2px;
+                    right: 2px;
+                    bottom: 2px;
+                    background: var(--bg-metal-pressed, linear-gradient(145deg, #e0e0e0, #f8f8f8));
+                    opacity: 0;
+                    transition: opacity var(--transition-fast, 0.15s ease);
+                }
+
+                .metro-content {
+                    position: relative;
+                    z-index: 3;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 4px;
+                }
+
+                .metro-icon {
+                    color: var(--text-secondary, #666666);
+                    transition: color var(--transition-fast, 0.15s ease);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .metro-text {
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: var(--text-secondary, #555555);
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    transition: color var(--transition-fast, 0.15s ease);
+                }
+
+                &:hover {
+                    &::before {
+                        opacity: 1;
+                    }
+
+                    .metro-icon {
+                        color: var(--text-primary, #333333);
+                    }
+
+                    .metro-text {
+                        color: var(--text-primary, #333333);
+                    }
+                }
+
+                &:active {
+                    &::after {
+                        opacity: 1;
+                    }
+                }
+
+                // 激活状态
+                &.button.is-active,
+                &.is-active {
+                    background: linear-gradient(145deg, #0078d4, #106ebe);
+                    box-shadow: 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+                        0 1px 2px rgba(0, 0, 0, 0.2);
+
+                    &::before {
+                        background: linear-gradient(145deg, #1084d8, #0d5aa7);
+                        opacity: 0;
+                    }
+
+                    &::after {
+                        background: linear-gradient(145deg, #0d5aa7, #1084d8);
+                        opacity: 0;
+                    }
+
+                    .metro-icon {
+                        color: #ffffff;
+                        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+                    }
+
+                    .metro-text {
+                        color: #ffffff;
+                        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+                        font-weight: 700;
+                    }
+
+                    &:hover {
+                        &::before {
+                            opacity: 1;
+                        }
+                    }
+
+                    &:active {
+                        &::after {
+                            opacity: 1;
+                        }
+                    }
+                }
+            }
+
+            // 兼容旧的class名称
+            .button {
+                @extend .metro-btn;
             }
         }
         

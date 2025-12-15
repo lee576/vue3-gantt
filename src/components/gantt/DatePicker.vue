@@ -655,21 +655,22 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .e-calendar {
-  background-color: #ffffff;
+  background: var(--bg-content);
   width: 310px;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  // 添加较高的 z-index 值
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-outset);
   z-index: 999;
-  // 如果需要绝对定位，确保父元素有相对定位
   position: absolute;
+  font-family: var(--font-family);
 }
 
 .e-date-select {
-  background-color: #00bcd4;
+  background: var(--bg-active);
   padding: 12px 20px;
-  color: #ffffff;
-  font-weight: 500;
+  color: var(--text-white);
+  font-weight: 600;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-active);
 }
 
 .date-picker-input-wrapper {
@@ -679,42 +680,52 @@ export default defineComponent({
 
 .date-picker-input {
   width: 200px;
-  padding: 10px 15px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 8px 12px;
+  background: var(--bg-content);
+  border: 1px solid var(--border);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+  font-family: inherit;
   font-size: 14px;
-  color: #333;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: border-color 0.3s ease;
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+  border-radius: 0;
 }
 
 .date-picker-input:focus {
   outline: none;
-  border-color: #00bcd4;
-  box-shadow: 0 0 5px rgba(0, 188, 212, 0.5);
+  border-color: var(--primary);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(0, 120, 212, 0.2);
 }
 
 .clear-date-button {
   position: absolute;
-  right: 10px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--bg-metal-normal);
+  border: 1px solid var(--border);
+  transition: all var(--transition-fast);
+}
+
+.clear-date-button:hover {
+  background: var(--bg-metal-light);
 }
 
 .clear-date-button svg {
-  fill: #999;
-  width: 16px;
-  height: 16px;
+  fill: var(--text-secondary);
+  width: 14px;
+  height: 14px;
+  transition: fill var(--transition-fast);
 }
 
 .clear-date-button:hover svg {
-  fill: #333;
+  fill: var(--text-primary);
 }
 
 .e-date-year {
@@ -755,16 +766,20 @@ export default defineComponent({
 }
 
 .e-calendar-toolbar {
-  margin: 5px 10px 5px 10px;
+  margin: 8px;
   height: 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: var(--bg-metal-normal);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-inset);
+  padding: 0 8px;
 }
 
 .e-calendar-toolbar-title {
   position: relative;
-  width: 100px;
+  width: 120px;
   height: 22px;
   text-align: center;
 }
@@ -772,27 +787,48 @@ export default defineComponent({
 .e-calendar-toolbar-title-content {
   position: absolute;
   width: 100%;
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .e-calendar-svg {
-  padding: 8px;
+  padding: 6px;
   position: relative;
-  height: 40px;
-  width: 40px;
+  height: 32px;
+  width: 32px;
   display: flex;
   justify-content: center;
   align-items: center;
+  background: var(--bg-metal-normal);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.e-calendar-svg:hover {
+  background: var(--bg-metal-light);
+}
+
+.e-calendar-svg:active {
+  background: var(--bg-metal-pressed);
 }
 
 .e-calendar-svg-icon {
   display: block;
-  fill: currentColor;
-  height: 24px;
-  width: 24px;
+  fill: var(--text-secondary);
+  height: 20px;
+  width: 20px;
   user-select: none;
   position: relative;
   z-index: 2;
+  transition: fill var(--transition-fast);
+}
+
+.e-calendar-svg:hover .e-calendar-svg-icon {
+  fill: var(--text-primary);
 }
 
 .e-calendar-svg-cover {
@@ -802,21 +838,26 @@ export default defineComponent({
   z-index: 1;
   width: 100%;
   height: 100%;
-  background-color: #e0e0e0;
-  border-radius: 50%;
+  background: var(--bg-metal-pressed);
   opacity: 0;
   display: inline-block;
+  transition: opacity var(--transition-fast);
 }
 
 .e-calendar-week {
   width: 100%;
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.87);
-  opacity: 0.5;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 16px;
+  height: 24px;
+  background: var(--bg-metal-dark);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .e-calendar-week-day {
@@ -852,66 +893,92 @@ export default defineComponent({
   flex: 1;
   position: relative;
   height: 35px;
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
 }
 
 .e-calendar-monthday-row-day.pointer {
   cursor: pointer;
+  background: var(--bg-metal-light);
+  border-color: var(--border);
+}
+
+.e-calendar-monthday-row-day.pointer:hover {
+  background: var(--bg-metal-normal);
+  border-color: var(--primary);
 }
 
 .e-calendar-monthday-row-day.active {
-  color: #ffffff;
+  color: var(--text-white);
+  background: var(--bg-active);
+  border-color: var(--primary-dark);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
 }
 
 .e-calendar-monthday-row-day.disabled {
   opacity: 0.4;
   cursor: not-allowed;
+  background: var(--bg-metal-dark);
 }
 
 .e-calendar-monthday-row-day-value {
   position: relative;
   z-index: 1;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .e-calendar-monthday-row-day-cover {
-  width: 25px;
-  height: 25px;
-  background-color: #00bcd4;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-active);
   position: absolute;
-  left: 10px;
-  top: 5px;
+  left: 0;
+  top: 0;
   transform: translate3d(0, 0, 0);
   z-index: 0;
-  border-radius: 50%;
   opacity: 1;
   display: block;
 }
 
 .e-calendar-monthday-row-day.hover {
-  background-color: #e0e0e0;
-  /* 鼠标悬停时的背景颜色，可按需调整 */
+  background: var(--bg-metal-normal);
+  border-color: var(--primary);
 }
 
 .e-calendar-year {
   height: 276px;
   overflow: auto;
+  background: var(--bg-content);
+  border-top: 1px solid var(--border);
 }
 
 .e-calendar-year li {
-  padding: 10px;
+  padding: 12px;
   text-align: center;
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-metal-light);
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+}
+
+.e-calendar-year li:hover {
+  background: var(--bg-metal-normal);
+  color: var(--primary);
 }
 
 .e-calendar-year li.active {
-  color: #00bcd4;
-  font-size: 20px;
-  font-weight: bold;
+  color: var(--text-white);
+  background: var(--bg-active);
+  font-weight: 700;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
 }
 
 .e-calendar-year li.hover {
-  background-color: #e0e0e0;
-  /* 这里设置鼠标悬停时的背景颜色，可按需调整 */
+  background: var(--bg-metal-normal);
 }
 
 .fadeX_Prev-enter-active,

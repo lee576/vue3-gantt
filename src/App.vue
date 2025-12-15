@@ -1,6 +1,32 @@
 <template>
-  <div id="app">
-    <gantt :styleConfig="styleConfig" :dataConfig="dataConfig" :eventConfig="eventConfig"></gantt>
+  <div id="app" class="metro-app">
+    <div class="metro-app-header">
+      <div class="metro-app-title">
+        <div class="metro-title-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+          </svg>
+        </div>
+        <h1>项目甘特图管理系统</h1>
+      </div>
+      <div class="metro-app-actions">
+        <button class="metro-btn metro-btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+          </svg>
+          新建项目
+        </button>
+        <button class="metro-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+          </svg>
+          设置
+        </button>
+      </div>
+    </div>
+    <div class="metro-app-content">
+      <gantt :styleConfig="styleConfig" :dataConfig="dataConfig" :eventConfig="eventConfig"></gantt>
+    </div>
   </div>
 </template>
 
@@ -430,25 +456,93 @@ onMounted(() => {
 });
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: left;
-  color: #2c3e50;
-  height: 100%;
-  width: 100%;
+<style scoped>
+.metro-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f8f8f8;
 }
-#app, html, body {
-  height: 100%;
-  width: 100%;
+
+.metro-app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: linear-gradient(145deg, #f5f5f5, #e8e8e8);
+  border-bottom: 1px solid #d0d0d0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-height: 70px;
 }
-* {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
+
+.metro-app-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.metro-title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(145deg, #0078d4, #106ebe);
+  color: #ffffff;
+  border-radius: 2px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.metro-app-title h1 {
   margin: 0;
-  padding: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.metro-app-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.metro-btn-primary {
+  background: linear-gradient(145deg, #0078d4, #106ebe) !important;
+  color: #ffffff !important;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+
+.metro-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-family: 'Segoe UI', sans-serif;
+  font-weight: 600;
+  background: linear-gradient(145deg, #f5f5f5, #e8e8e8);
+  border: 1px solid #d0d0d0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  color: #666666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metro-btn:hover {
+  background: linear-gradient(145deg, #ffffff, #f5f5f5);
+  color: #333333;
+}
+
+.metro-app-content {
+  flex: 1;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  margin: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 </style>

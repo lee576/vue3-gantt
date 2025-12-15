@@ -10,7 +10,7 @@
             :key="count + row.id + timelineCellCount + showRow + '_template'">
             <!-- 每个单元格的样式设置 -->
             <div class="cell"
-                :style="{ width: scale + 'px', minWidth: scale + 'px', maxWidth: scale + 'px', height: rowHeight + 'px', background: WeekEndColor(count), opacity: 0.4 }">
+                :style="{ width: scale + 'px', minWidth: scale + 'px', maxWidth: scale + 'px', height: rowHeight + 'px', background: WeekEndColor(count) }">
             </div>
         </template>
     </div>
@@ -64,6 +64,8 @@ export default defineComponent({
         const barColor = ref('');
         // 新增一个标志变量，用于记录元素是否已经设置了交互
         const isBarInteracted = ref(false);
+        // 主题变化触发器
+        const themeVersion = ref(0);
 
         // 计算时间轴单元格的数量
         const timelineCellCount = computed(() => store.timelineCellCount);
@@ -99,25 +101,81 @@ export default defineComponent({
         };
 
         /**
-         * 根据日期计算周末的背景颜色
+         * 根据日期计算单元格的背景颜色
          * 
          * @param {number} count - 日期的偏移量
          * @returns {string | undefined} - 背景颜色
          */
         const WeekEndColor = (count: number) => {
+            // 触发响应式更新（通过访问themeVersion）
+            themeVersion.value;
+            
+            // 从甘特图容器读取主题颜色
+            let bgContent = '#ffffff';
+            let bgSecondary = '#f8f8f8';
+            if (bar.value) {
+                // 向上查找带有 data-gantt-theme 属性的容器
+                let element = bar.value.parentElement;
+                while (element) {
+                    if (element.hasAttribute('data-gantt-theme')) {
+                        bgContent = getComputedStyle(element).getPropertyValue('--bg-content').trim() || '#ffffff';
+                        bgSecondary = getComputedStyle(element).getPropertyValue('--bg-secondary').trim() || '#f8f8f8';
+                        break;
+                    }
+                    element = element.parentElement;
+                }
+            }
+            
             switch (mode.value) {
                 case '月':
                 case '日': {
                     // 计算当前日期
                     let currentDate = dayjs(props.startGanttDate).add(count, 'days');
-                    // 如果是周六或周日，返回特定的背景颜色
+                    // 如果是周六或周日，返回主题的次要背景色（与主题协调）
                     if (currentDate.isoWeekday() === 7 || currentDate.isoWeekday() === 1) {
-                        return '#F3F4F5';
+                        return bgSecondary;
                     }
-                    break;
+                    // 非周末返回主题的内容背景色
+                    return bgContent;
+                }
+                case '周': {
+                    // 周模式下，返回主题的内容背景色
+                    return bgContent;
+                }
+                case '时': {
+                    // 时模式下，返回主题的内容背景色
+                    return bgContent;
                 }
             }
         };
+        
+        // 监听DOM变化以检测主题切换
+        onMounted(() => {
+            if (bar.value) {
+                // 向上查找甘特图容器
+                let ganttContainer = bar.value.parentElement;
+                while (ganttContainer && !ganttContainer.hasAttribute('data-gantt-theme')) {
+                    ganttContainer = ganttContainer.parentElement;
+                }
+                
+                if (ganttContainer) {
+                    // 使用MutationObserver监听主题属性变化
+                    const observer = new MutationObserver(() => {
+                        themeVersion.value++;
+                    });
+                    
+                    observer.observe(ganttContainer, {
+                        attributes: true,
+                        attributeFilter: ['data-gantt-theme', 'style']
+                    });
+                    
+                    // 组件卸载时断开观察
+                    onBeforeUnmount(() => {
+                        observer.disconnect();
+                    });
+                }
+            }
+        });
 
         // 从 mutations 中获取设置条形图日期的函数
         const setBarDate = mutations.setBarDate;
@@ -231,7 +289,9 @@ export default defineComponent({
             }
 
             if (!outerRect) {
-                outerRect = svg.rect(width, barHeight.value).radius(10).fill(p).stroke({ color: '#cecece', width: 1 });
+                const borderColor = getComputedStyle(barElement).getPropertyValue('--border') || '#cecece';
+                const primaryColor = getComputedStyle(barElement).getPropertyValue('--primary') || '#0066ff';
+                outerRect = svg.rect(width, barHeight.value).radius(10).fill(p).stroke({ color: borderColor, width: 1 });
                 // 外部矩形的鼠标悬停事件处理
                 outerRect.on('mouseover', () => {
                     outerRect.animate(200).attr({
@@ -243,7 +303,7 @@ export default defineComponent({
                 // 外部矩形的鼠标离开事件处理
                 outerRect.on('mouseleave', () => {
                     outerRect.animate(200).attr({
-                        stroke: '#0066ff',
+                        stroke: primaryColor,
                         strokeWidth: 10,
                         opacity: 0.4
                     });
@@ -278,12 +338,16 @@ export default defineComponent({
                     offsetStart = ((oldBarDataX.value - x) / scale.value);
                     if (mode.value === '月' || mode.value === '日') {
                         offsetStart *= 24;
+                    } else if (mode.value === '周') {
+                        offsetStart *= 7; // 周模式：偏移的周数 * 7天
                     }
                 } else {
                     // 计算结束日期的偏移量
                     offsetEnd = (oldBarWidth.value - width) / scale.value;
                     if (mode.value === '月' || mode.value === '日') {
                         offsetEnd *= 24;
+                    } else if (mode.value === '周') {
+                        offsetEnd *= 7; // 周模式：偏移的周数 * 7天
                     }
                 }
             } else {
@@ -293,17 +357,30 @@ export default defineComponent({
                 if (mode.value === '月' || mode.value === '日') {
                     offsetStart *= 24;
                     offsetEnd *= 24;
+                } else if (mode.value === '周') {
+                    offsetStart *= 7; // 周模式：偏移的周数 * 7天
+                    offsetEnd *= 7;
                 }
             }
 
-            // 更新任务的开始日期
-            props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).locale('zh-cn').add(-offsetStart, 'hours').format('YYYY-MM-DD HH:mm:ss');
-            // 更新任务的结束日期
-            props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate]).locale('zh-cn').add(-offsetEnd, 'hours').format('YYYY-MM-DD HH:mm:ss');
+            // 更新任务的开始日期和结束日期
+            if (mode.value === '周') {
+                // 周模式：以天为单位更新日期
+                props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).locale('zh-cn').add(-offsetStart, 'days').format('YYYY-MM-DD HH:mm:ss');
+                props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate]).locale('zh-cn').add(-offsetEnd, 'days').format('YYYY-MM-DD HH:mm:ss');
+            } else {
+                // 其他模式：以小时为单位更新日期
+                props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).locale('zh-cn').add(-offsetStart, 'hours').format('YYYY-MM-DD HH:mm:ss');
+                props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate]).locale('zh-cn').add(-offsetEnd, 'hours').format('YYYY-MM-DD HH:mm:ss');
+            }
 
             // 根据甘特图的模式更新任务的耗时信息
             if (mode.value === '月' || mode.value === '日') {
                 props.row[mapFields.value.takestime] = dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'days') + 1 + '天';
+            } else if (mode.value === '周') {
+                const startWeek = dayjs(props.row[mapFields.value.startdate]).startOf('isoWeek');
+                const endWeek = dayjs(props.row[mapFields.value.enddate]).startOf('isoWeek');
+                props.row[mapFields.value.takestime] = endWeek.diff(startWeek, 'week') + 1 + '周';
             } else if (mode.value === '时') {
                 props.row[mapFields.value.takestime] = dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'hours') + 1 + '小时';
             }
@@ -333,6 +410,22 @@ export default defineComponent({
                     props.row[mapFields.value.takestime] = spendDays + '天';
                     break;
                 }
+                case '周': {
+                    // 计算从计划开始日期到条形图开始日期的周数
+                    const startGanttWeek = dayjs(props.startGanttDate).startOf('isoWeek');
+                    const taskStartWeek = dayjs(props.row[mapFields.value.startdate]).startOf('isoWeek');
+                    let fromPlanStartWeeks = taskStartWeek.diff(startGanttWeek, 'week');
+                    dataX = scale.value * fromPlanStartWeeks;
+                    
+                    // 计算条形图的持续周数
+                    const taskEndWeek = dayjs(props.row[mapFields.value.enddate]).startOf('isoWeek');
+                    let spendWeeks = taskEndWeek.diff(taskStartWeek, 'week') + 1;
+                    oldBarWidth.value = spendWeeks * scale.value;
+                    
+                    // 更新任务的耗时信息
+                    props.row[mapFields.value.takestime] = spendWeeks + '周';
+                    break;
+                }
                 case '时': {
                     // 计算从计划开始日期到条形图开始日期的小时数
                     let fromPlanStartHours = dayjs(props.row[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'hours');
@@ -349,9 +442,10 @@ export default defineComponent({
             // 将 SVGSVGElement 转换为 HTMLElement
             let svg = SVG(barElement as unknown as HTMLElement);
             // 设置 SVG 元素的属性
+            const borderColor = getComputedStyle(barElement).getPropertyValue('--border') || '#cecece';
             barElement.setAttribute('data-x', dataX.toString());
             barElement.setAttribute('width', oldBarWidth.value.toString());
-            barElement.setAttribute('stroke', '#cecece');
+            barElement.setAttribute('stroke', borderColor);
             barElement.setAttribute('stroke-width', '1px');
             barElement.style.transform = `translate(${dataX}px, 0px)`;
 
@@ -392,7 +486,8 @@ export default defineComponent({
             }
             // 性能优化避免重绘
             if (!outerRect) {
-                outerRect = svg.rect(oldBarWidth.value, barHeight.value).radius(10).fill(p).stroke({ color: '#cecece', width: 1 });
+                const borderColor = getComputedStyle(barElement).getPropertyValue('--border') || '#cecece';
+                outerRect = svg.rect(oldBarWidth.value, barHeight.value).radius(10).fill(p).stroke({ color: borderColor, width: 1 });
                 // 外部矩形的鼠标悬停事件处理
                 outerRect.on('mouseover', () => {
                     outerRect.animate(200).attr({
@@ -598,8 +693,12 @@ export default defineComponent({
 })
 </script>
 <style lang="scss" scoped>
-.active {
-    background: #FFF3A1;
+.barRow.active {
+    background: var(--row-hover, #FFF3A1) !important;
+    
+    .cell {
+        background: var(--row-hover, #FFF3A1) !important;
+    }
 }
 
 .barRow {
@@ -630,15 +729,15 @@ export default defineComponent({
             box-sizing: border-box;
 
             &:first-child {
-                border-left: 1px solid #cecece;
+                border-left: 1px solid var(--border, #cecece);
             }
 
             &:not(:last-child) {
-                border-right: 1px solid #cecece;
+                border-right: 1px solid var(--border, #cecece);
             }
 
             &:last-child {
-                border-right: 1px solid #cecece;
+                border-right: 1px solid var(--border, #cecece);
             }
         }
     }
@@ -647,7 +746,7 @@ export default defineComponent({
 
         .cell {
             // 为 .cell 添加顶部和底部的伪元素来显示边框
-            border-top: 1px solid #cecece;
+            border-top: 1px solid var(--border, #cecece);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -658,22 +757,22 @@ export default defineComponent({
             box-sizing: border-box;
 
             &:first-child {
-                border-left: 1px solid #cecece;
+                border-left: 1px solid var(--border, #cecece);
             }
 
             &:not(:last-child) {
-                border-right: 1px solid #cecece;
+                border-right: 1px solid var(--border, #cecece);
             }
 
             &:last-child {
-                border-right: 1px solid #cecece;
+                border-right: 1px solid var(--border, #cecece);
             }
         }
     }
 
     &:last-child {
         .cell {
-            border-bottom: 1px solid #cecece;
+            border-bottom: 1px solid var(--border, #cecece);
         }
     }
 }

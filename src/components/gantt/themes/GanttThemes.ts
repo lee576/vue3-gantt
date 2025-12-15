@@ -1,0 +1,381 @@
+// 甘特图主题系统
+export interface GanttTheme {
+  id: string;
+  name: string;
+  description: string;
+  preview: string;
+  cssVariables: Record<string, string>;
+}
+
+export const ganttThemes: GanttTheme[] = [
+  {
+    id: 'metro',
+    name: 'Metro 金属',
+    description: 'Microsoft Metro设计语言，专业金属质感',
+    preview: '#0078d4',
+    cssVariables: {
+      // Metro 金属主题变量
+      '--primary': '#0078d4',
+      '--primary-dark': '#106ebe',
+      '--primary-light': '#1084d8',
+      '--secondary': '#0d5aa7',
+      
+      '--bg-metal-light': 'linear-gradient(145deg, #ffffff, #f5f5f5)',
+      '--bg-metal-normal': 'linear-gradient(145deg, #f5f5f5, #e8e8e8)',
+      '--bg-metal-dark': 'linear-gradient(145deg, #e6e6e6, #d0d0d0)',
+      '--bg-metal-pressed': 'linear-gradient(145deg, #e0e0e0, #f8f8f8)',
+      
+      '--bg-active': 'linear-gradient(145deg, #0078d4, #106ebe)',
+      '--bg-active-hover': 'linear-gradient(145deg, #1084d8, #0d5aa7)',
+      '--bg-active-pressed': 'linear-gradient(145deg, #0d5aa7, #1084d8)',
+      
+      '--border': '#d0d0d0',
+      '--border-dark': '#b0b0b0',
+      '--shadow-inset': 'inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(0, 0, 0, 0.1)',
+      '--shadow-outset': '0 2px 4px rgba(0, 0, 0, 0.1)',
+      '--shadow-active': 'inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.3)',
+      
+      '--text-primary': '#333333',
+      '--text-secondary': '#666666',
+      '--text-muted': '#999999',
+      '--text-white': '#ffffff',
+      
+      '--bg-primary': '#f8f8f8',
+      '--bg-secondary': '#e8e8e8',
+      '--bg-content': '#ffffff',
+      '--row-hover': '#FFF3A1',
+      
+      '--transition-fast': '0.15s ease',
+      '--transition-normal': '0.25s ease',
+      '--transition-slow': '0.35s ease',
+      
+      '--font-family': "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+      '--font-size-base': '12px',
+      '--font-weight-normal': '500',
+      '--font-weight-bold': '600'
+    }
+  },
+  {
+    id: 'dark',
+    name: '深色模式',
+    description: '护眼深色主题，适合长时间使用',
+    preview: '#00d4ff',
+    cssVariables: {
+      '--primary': '#00d4ff',
+      '--primary-dark': '#00b8e6',
+      '--primary-light': '#33ddff',
+      '--secondary': '#0099cc',
+      
+      '--bg-metal-light': 'linear-gradient(145deg, #3a3a3a, #2d2d2d)',
+      '--bg-metal-normal': 'linear-gradient(145deg, #2d2d2d, #1f1f1f)',
+      '--bg-metal-dark': 'linear-gradient(145deg, #1f1f1f, #0d0d0d)',
+      '--bg-metal-pressed': 'linear-gradient(145deg, #0d0d0d, #2d2d2d)',
+      
+      '--bg-active': 'linear-gradient(145deg, #00d4ff, #0099cc)',
+      '--bg-active-hover': 'linear-gradient(145deg, #33ddff, #00b8e6)',
+      '--bg-active-pressed': 'linear-gradient(145deg, #00b8e6, #33ddff)',
+      
+      '--border': '#404040',
+      '--border-dark': '#2d2d2d',
+      '--shadow-inset': 'inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)',
+      '--shadow-outset': '0 2px 8px rgba(0, 0, 0, 0.3)',
+      '--shadow-active': 'inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.5)',
+      
+      '--text-primary': '#ffffff',
+      '--text-secondary': '#cccccc',
+      '--text-muted': '#888888',
+      '--text-white': '#ffffff',
+      
+      '--bg-primary': '#1a1a1a',
+      '--bg-secondary': '#2d2d2d',
+      '--bg-content': '#262626',
+      '--row-hover': '#3a4a5a',
+      
+      '--transition-fast': '0.15s ease',
+      '--transition-normal': '0.25s ease',
+      '--transition-slow': '0.35s ease',
+      
+      '--font-family': "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+      '--font-size-base': '12px',
+      '--font-weight-normal': '500',
+      '--font-weight-bold': '600'
+    }
+  },
+  {
+    id: 'modern',
+    name: '现代简约',
+    description: '简洁现代设计，清爽舒适',
+    preview: '#6366f1',
+    cssVariables: {
+      '--primary': '#6366f1',
+      '--primary-dark': '#4f46e5',
+      '--primary-light': '#8b5cf6',
+      '--secondary': '#3730a3',
+      
+      '--bg-metal-light': 'linear-gradient(145deg, #fafafa, #f0f0f0)',
+      '--bg-metal-normal': 'linear-gradient(145deg, #f0f0f0, #e0e0e0)',
+      '--bg-metal-dark': 'linear-gradient(145deg, #e0e0e0, #d0d0d0)',
+      '--bg-metal-pressed': 'linear-gradient(145deg, #d8d8d8, #f0f0f0)',
+      
+      '--bg-active': 'linear-gradient(145deg, #6366f1, #4f46e5)',
+      '--bg-active-hover': 'linear-gradient(145deg, #8b5cf6, #6366f1)',
+      '--bg-active-pressed': 'linear-gradient(145deg, #4f46e5, #8b5cf6)',
+      
+      '--border': '#e0e0e0',
+      '--border-dark': '#c0c0c0',
+      '--shadow-inset': 'inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(0, 0, 0, 0.05)',
+      '--shadow-outset': '0 1px 3px rgba(0, 0, 0, 0.08)',
+      '--shadow-active': 'inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2)',
+      
+      '--text-primary': '#1f2937',
+      '--text-secondary': '#6b7280',
+      '--text-muted': '#9ca3af',
+      '--text-white': '#ffffff',
+      
+      '--bg-primary': '#ffffff',
+      '--bg-secondary': '#f9fafb',
+      '--bg-content': '#ffffff',
+      '--row-hover': '#e0e7ff',
+      
+      '--transition-fast': '0.15s ease',
+      '--transition-normal': '0.25s ease',
+      '--transition-slow': '0.35s ease',
+      
+      '--font-family': "'Inter', 'Segoe UI', sans-serif",
+      '--font-size-base': '12px',
+      '--font-weight-normal': '400',
+      '--font-weight-bold': '600'
+    }
+  },
+  {
+    id: 'classic',
+    name: '经典商务',
+    description: '传统商务风格，稳重大方',
+    preview: '#2563eb',
+    cssVariables: {
+      '--primary': '#2563eb',
+      '--primary-dark': '#1d4ed8',
+      '--primary-light': '#3b82f6',
+      '--secondary': '#1e40af',
+      
+      '--bg-metal-light': 'linear-gradient(145deg, #f8f9fa, #e9ecef)',
+      '--bg-metal-normal': 'linear-gradient(145deg, #e9ecef, #dee2e6)',
+      '--bg-metal-dark': 'linear-gradient(145deg, #dee2e6, #ced4da)',
+      '--bg-metal-pressed': 'linear-gradient(145deg, #ced4da, #e9ecef)',
+      
+      '--bg-active': 'linear-gradient(145deg, #2563eb, #1d4ed8)',
+      '--bg-active-hover': 'linear-gradient(145deg, #3b82f6, #2563eb)',
+      '--bg-active-pressed': 'linear-gradient(145deg, #1d4ed8, #3b82f6)',
+      
+      '--border': '#ced4da',
+      '--border-dark': '#adb5bd',
+      '--shadow-inset': 'inset 0 1px 0 rgba(255, 255, 255, 0.7), inset 0 -1px 0 rgba(0, 0, 0, 0.1)',
+      '--shadow-outset': '0 2px 4px rgba(0, 0, 0, 0.12)',
+      '--shadow-active': 'inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.25)',
+      
+      '--text-primary': '#212529',
+      '--text-secondary': '#495057',
+      '--text-muted': '#6c757d',
+      '--text-white': '#ffffff',
+      
+      '--bg-primary': '#ffffff',
+      '--bg-secondary': '#f8f9fa',
+      '--bg-content': '#ffffff',
+      '--row-hover': '#dbeafe',
+      
+      '--transition-fast': '0.15s ease',
+      '--transition-normal': '0.25s ease',
+      '--transition-slow': '0.35s ease',
+      
+      '--font-family': "'Times New Roman', serif",
+      '--font-size-base': '12px',
+      '--font-weight-normal': '400',
+      '--font-weight-bold': '700'
+    }
+  },
+  {
+    id: 'colorful',
+    name: '彩色活力',
+    description: '活泼彩色主题，充满活力',
+    preview: '#f59e0b',
+    cssVariables: {
+      '--primary': '#f59e0b',
+      '--primary-dark': '#d97706',
+      '--primary-light': '#fbbf24',
+      '--secondary': '#b45309',
+      
+      '--bg-metal-light': 'linear-gradient(145deg, #fef3c7, #fed7aa)',
+      '--bg-metal-normal': 'linear-gradient(145deg, #fed7aa, #fdba74)',
+      '--bg-metal-dark': 'linear-gradient(145deg, #fdba74, #fb923c)',
+      '--bg-metal-pressed': 'linear-gradient(145deg, #fb923c, #fed7aa)',
+      
+      '--bg-active': 'linear-gradient(145deg, #f59e0b, #d97706)',
+      '--bg-active-hover': 'linear-gradient(145deg, #fbbf24, #f59e0b)',
+      '--bg-active-pressed': 'linear-gradient(145deg, #d97706, #fbbf24)',
+      
+      '--border': '#fdba74',
+      '--border-dark': '#fb923c',
+      '--shadow-inset': 'inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.1)',
+      '--shadow-outset': '0 2px 6px rgba(245, 158, 11, 0.2)',
+      '--shadow-active': 'inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2)',
+      
+      '--text-primary': '#92400e',
+      '--text-secondary': '#b45309',
+      '--text-muted': '#d97706',
+      '--text-white': '#ffffff',
+      
+      '--bg-primary': '#fffbeb',
+      '--bg-secondary': '#fef3c7',
+      '--bg-content': '#ffffff',
+      '--row-hover': '#fef3c7',
+      
+      '--transition-fast': '0.15s ease',
+      '--transition-normal': '0.25s ease',
+      '--transition-slow': '0.35s ease',
+      
+      '--font-family': "'Comic Sans MS', cursive",
+      '--font-size-base': '12px',
+      '--font-weight-normal': '400',
+      '--font-weight-bold': '600'
+    }
+  }
+];
+
+export class GanttThemeManager {
+  private static instance: GanttThemeManager;
+  private currentTheme: string = 'metro';
+  private storageKey = 'gantt-theme';
+  private ganttContainer: HTMLElement | null = null;
+
+  private constructor() {}
+
+  static getInstance(): GanttThemeManager {
+    if (!GanttThemeManager.instance) {
+      GanttThemeManager.instance = new GanttThemeManager();
+    }
+    return GanttThemeManager.instance;
+  }
+
+  // 设置甘特图容器
+  setGanttContainer(container: HTMLElement): void {
+    console.log('Setting gantt container:', container);
+    this.ganttContainer = container;
+    this.loadTheme();
+  }
+
+  // 获取当前主题
+  getCurrentTheme(): string {
+    return this.currentTheme;
+  }
+
+  // 设置主题
+  setTheme(themeId: string): void {
+    const theme = ganttThemes.find(t => t.id === themeId);
+    if (!theme) {
+      console.warn(`Theme ${themeId} not found`);
+      return;
+    }
+
+    this.currentTheme = themeId;
+    this.applyTheme(theme);
+    this.saveTheme();
+  }
+
+  // 应用主题到甘特图容器
+  private applyTheme(theme: GanttTheme): void {
+    if (!this.ganttContainer) {
+      console.warn('No gantt container available for theme application');
+      return;
+    }
+
+    console.log('Applying theme:', theme.id, 'to container:', this.ganttContainer);
+
+    // 设置data-theme属性
+    this.ganttContainer.setAttribute('data-gantt-theme', theme.id);
+
+    // 应用CSS变量到甘特图容器
+    Object.entries(theme.cssVariables).forEach(([property, value]) => {
+      this.ganttContainer!.style.setProperty(property, value);
+    });
+    
+    console.log('Theme applied successfully. Container styles:', this.ganttContainer.style.cssText);
+  }
+
+  // 从本地存储加载主题
+  private loadTheme(): void {
+    try {
+      const savedTheme = localStorage.getItem(this.storageKey);
+      if (savedTheme && ganttThemes.find(t => t.id === savedTheme)) {
+        this.currentTheme = savedTheme;
+      }
+      
+      const theme = ganttThemes.find(t => t.id === this.currentTheme);
+      if (theme) {
+        this.applyTheme(theme);
+      }
+    } catch (error) {
+      console.warn('Failed to load theme from localStorage:', error);
+    }
+  }
+
+  // 保存主题到本地存储
+  private saveTheme(): void {
+    try {
+      localStorage.setItem(this.storageKey, this.currentTheme);
+    } catch (error) {
+      console.warn('Failed to save theme to localStorage:', error);
+    }
+  }
+
+  // 获取所有主题
+  getThemes(): GanttTheme[] {
+    return ganttThemes;
+  }
+
+  // 获取主题信息
+  getThemeInfo(themeId: string): GanttTheme | undefined {
+    return ganttThemes.find(t => t.id === themeId);
+  }
+
+  // 预览主题（临时应用，不保存）
+  previewTheme(themeId: string): void {
+    const theme = ganttThemes.find(t => t.id === themeId);
+    if (theme) {
+      this.applyTheme(theme);
+    }
+  }
+
+  // 取消预览，恢复当前主题
+  cancelPreview(): void {
+    const theme = ganttThemes.find(t => t.id === this.currentTheme);
+    if (theme) {
+      this.applyTheme(theme);
+    }
+  }
+
+  // 导出主题配置
+  exportThemeConfig(): string {
+    return JSON.stringify({
+      currentTheme: this.currentTheme,
+      timestamp: new Date().toISOString()
+    }, null, 2);
+  }
+
+  // 导入主题配置
+  importThemeConfig(configJson: string): boolean {
+    try {
+      const config = JSON.parse(configJson);
+      if (config.currentTheme && ganttThemes.find(t => t.id === config.currentTheme)) {
+        this.setTheme(config.currentTheme);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to import theme config:', error);
+      return false;
+    }
+  }
+}
+
+// 导出单例实例
+export const ganttThemeManager = GanttThemeManager.getInstance();

@@ -7,7 +7,8 @@
                     maxWidth: header.width + 'px',
                     height: rowHeight + 'px',
                     paddingLeft: '40px'
-                }">{{ row.no }}
+                }">
+                    <span class="no-text">{{ row.no }}</span>
                     <div class="toolbar" v-bind:style="{ height: rowHeight + 'px' }">
                         <svg @click="setSubTask(row)" class="btn" t="1646898128772" viewBox="0 0 1024 1024"
                             version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6933">
@@ -125,8 +126,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.active {
-    background: #FFF3A1;
+.active .row {
+    background: var(--row-hover, #FFF3A1) !important;
 }
 
 .row {
@@ -137,43 +138,55 @@ export default defineComponent({
     border-top: none;
     border-bottom: none;
     width: fit-content;
+    background: var(--bg-content, #ffffff);
+    color: var(--text-primary, #333333);
 
     &:first-child {
-        border-top: 1px solid #cecece;
+        border-top: 1px solid var(--border, #cecece);
         border-bottom: none;
     }
 
     &:not(:first-child:last-child) {
-        border-right: 1px solid #cecece;
-        border-top: 1px solid #cecece;
-        border-bottom: 1px solid #cecece;
+        border-right: 1px solid var(--border, #cecece);
+        border-top: 1px solid var(--border, #cecece);
+        border-bottom: 1px solid var(--border, #cecece);
     }
 
     &:last-child {
         border-top: none;
-        border-bottom: 1px solid #cecece;
+        border-bottom: 1px solid var(--border, #cecece);
     }
 
     .cellNo {
         display: flex;
         align-items: center;
-        justify-content: flex-start;
+        justify-content: space-between;
         font-size: 10px;
         border-top: none;
         border-bottom: none;
         margin: 0px 0px 0px 1px;
         position: relative;
+        color: var(--text-primary, #333333);
 
         &:first-child {
-            border-left: 1px solid #cecece;
+            border-left: 1px solid var(--border, #cecece);
         }
 
         &:not(:last-child) {
-            border-right: 1px solid #cecece;
+            border-right: 1px solid var(--border, #cecece);
         }
 
         &:last-child {
-            border-right: 1px solid #cecece;
+            border-right: 1px solid var(--border, #cecece);
+        }
+
+        .no-text {
+            flex: 0 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-right: 5px;
         }
 
         .toolbar {
@@ -181,9 +194,8 @@ export default defineComponent({
             flex-direction: column;
             align-items: center;
             justify-content: space-evenly;
-            position: absolute;
-            right: 0px;
             width: 30px;
+            flex-shrink: 0;
 
             .btn {
                 width: 15px;
@@ -191,7 +203,7 @@ export default defineComponent({
                 position: relative;
 
                 &:hover {
-                    filter: drop-shadow(0px 0px 0px #2B76B3);
+                    filter: drop-shadow(0px 0px 0px var(--primary, #2B76B3));
                 }
             }
         }
@@ -205,6 +217,7 @@ export default defineComponent({
         border-top: none;
         border-bottom: none;
         position: relative;
+        color: var(--text-primary, #333333);
 
         &::before {
             content: '';
@@ -213,11 +226,11 @@ export default defineComponent({
             top: 0;
             bottom: 0;
             width: 1px;
-            background: #cecece;
+            background: var(--border, #cecece);
         }
 
         &:first-child {
-            border-left: 1px solid #cecece;
+            border-left: 1px solid var(--border, #cecece);
 
             &::before {
                 display: none;
@@ -225,11 +238,11 @@ export default defineComponent({
         }
 
         &:not(:last-child) {
-            border-right: 1px solid #cecece;
+            border-right: 1px solid var(--border, #cecece);
         }
 
         &:last-child {
-            border-right: 1px solid #cecece;
+            border-right: 1px solid var(--border, #cecece);
         }
     }
 }

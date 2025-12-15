@@ -31,6 +31,7 @@
   height: 100%;
   display: flex;
   flex-flow: row nowrap;
+  background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
   
   .headerCaption {
     text-align: center;
@@ -39,7 +40,7 @@
     align-items: center;
     justify-content: center;
     position: relative;
-    color: #6b6b6b;
+    color: var(--text-primary, #6b6b6b);
     font-size: 15px;
     font-weight: bold;
     box-sizing: border-box;
@@ -51,8 +52,8 @@
       right: 0;
       bottom: 0;
       left: 0;
-      border-top: 1px solid #cecece;
-      border-bottom: 1px solid #cecece;
+      border-top: 1px solid var(--border, #cecece);
+      border-bottom: 1px solid var(--border, #cecece);
       pointer-events: none;
     }
     
@@ -62,16 +63,16 @@
       right: -1px;
       top: 0;
       bottom: 0;
-      background: #cecece;
-      border-left: 1px solid #cecece;
+      background: var(--border, #cecece);
+      border-left: 1px solid var(--border, #cecece);
     }
     
     &:first-child::before {
-      border-left: 1px solid #cecece;
+      border-left: 1px solid var(--border, #cecece);
     }
 
     &:last-child::before {
-      border-right: 1px solid #cecece;
+      border-right: 1px solid var(--border, #cecece);
     }
   }
 }
