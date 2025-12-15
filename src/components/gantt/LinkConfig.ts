@@ -28,6 +28,21 @@ export const LinkThemes = {
       color: '#95a5a6',
       width: 1,
       dashArray: '3,3'
+    },
+    // 各类型连线颜色
+    linkTypeColors: {
+      finishToStart: '#3498db',  // 蓝色 - FS
+      startToStart: '#2ecc71',   // 绿色 - SS
+      finishToFinish: '#e74c3c', // 红色 - FF
+      startToFinish: '#f39c12'   // 橙色 - SF
+    },
+    // 各类型连线显示控制
+    linkTypeVisibility: {
+      finishToStart: true,
+      startToStart: true,
+      finishToFinish: true,
+      startToFinish: true,
+      parentChild: true
     }
   },
   
@@ -53,6 +68,19 @@ export const LinkThemes = {
       color: '#7f8c8d',
       width: 2,
       dashArray: '5,2'
+    },
+    linkTypeColors: {
+      finishToStart: '#2c3e50',
+      startToStart: '#27ae60',
+      finishToFinish: '#c0392b',
+      startToFinish: '#d35400'
+    },
+    linkTypeVisibility: {
+      finishToStart: true,
+      startToStart: true,
+      finishToFinish: true,
+      startToFinish: true,
+      parentChild: true
     }
   },
   
@@ -78,6 +106,19 @@ export const LinkThemes = {
       color: '#90a4ae',
       width: 2,
       dashArray: '8,4'
+    },
+    linkTypeColors: {
+      finishToStart: '#00bcd4',
+      startToStart: '#4caf50',
+      finishToFinish: '#f44336',
+      startToFinish: '#ff9800'
+    },
+    linkTypeVisibility: {
+      finishToStart: true,
+      startToStart: true,
+      finishToFinish: true,
+      startToFinish: true,
+      parentChild: true
     }
   },
   
@@ -103,6 +144,19 @@ export const LinkThemes = {
       color: '#ccc',
       width: 1,
       dashArray: '2,2'
+    },
+    linkTypeColors: {
+      finishToStart: '#666',
+      startToStart: '#888',
+      finishToFinish: '#555',
+      startToFinish: '#777'
+    },
+    linkTypeVisibility: {
+      finishToStart: true,
+      startToStart: true,
+      finishToFinish: true,
+      startToFinish: true,
+      parentChild: true
     }
   },
   
@@ -128,6 +182,19 @@ export const LinkThemes = {
       color: '#4caf50',
       width: 2,
       dashArray: '4,3'
+    },
+    linkTypeColors: {
+      finishToStart: '#9c27b0',
+      startToStart: '#4caf50',
+      finishToFinish: '#e91e63',
+      startToFinish: '#ff9800'
+    },
+    linkTypeVisibility: {
+      finishToStart: true,
+      startToStart: true,
+      finishToFinish: true,
+      startToFinish: true,
+      parentChild: true
     }
   }
 } as const;

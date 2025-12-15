@@ -35,6 +35,7 @@ import { ref, onMounted } from 'vue';
 
 import dayjs from 'dayjs';
 import Gantt, { type DataConfig, type StyleConfig, type EventConfig } from './components/gantt/Gantt.vue';
+import { LinkType } from './components/gantt/Types';
 
 // 定义样式配置
 const styleConfig = ref<StyleConfig>({
@@ -57,6 +58,60 @@ const dataConfig = ref<DataConfig>({
   queryStartDate: '',
   queryEndDate: '',
   dataSource: [],
+  // 任务依赖关系（演示数据 - 展示4种依赖类型）
+  dependencies: [
+    // ===== 完成-开始 (FINISH_TO_START) - 最常见的依赖关系 =====
+    // 需求分析完成后才能开始技术选型
+    { sourceTaskId: '2', targetTaskId: '3', type: LinkType.FINISH_TO_START },
+    // 技术选型完成后才能开始架构设计
+    { sourceTaskId: '3', targetTaskId: '4', type: LinkType.FINISH_TO_START },
+    // 项目规划完成后才能开始开发阶段
+    { sourceTaskId: '1', targetTaskId: '5', type: LinkType.FINISH_TO_START },
+    // 页面布局完成后才能开始组件开发
+    { sourceTaskId: '7', targetTaskId: '8', type: LinkType.FINISH_TO_START },
+    // API设计完成后才能开始数据库设计
+    { sourceTaskId: '11', targetTaskId: '12', type: LinkType.FINISH_TO_START },
+    // 数据库设计完成后才能开始业务逻辑实现
+    { sourceTaskId: '12', targetTaskId: '13', type: LinkType.FINISH_TO_START },
+    // 开发阶段完成后才能开始测试阶段
+    { sourceTaskId: '5', targetTaskId: '14', type: LinkType.FINISH_TO_START },
+    // 单元测试完成后才能开始集成测试
+    { sourceTaskId: '15', targetTaskId: '16', type: LinkType.FINISH_TO_START },
+    // 集成测试完成后才能开始性能测试
+    { sourceTaskId: '16', targetTaskId: '17', type: LinkType.FINISH_TO_START },
+    // 测试阶段完成后才能开始部署上线
+    { sourceTaskId: '14', targetTaskId: '19', type: LinkType.FINISH_TO_START },
+    // 环境准备完成后才能开始代码部署
+    { sourceTaskId: '20', targetTaskId: '21', type: LinkType.FINISH_TO_START },
+    // 代码部署完成后才能开始上线验证
+    { sourceTaskId: '21', targetTaskId: '22', type: LinkType.FINISH_TO_START },
+    
+    // ===== 开始-开始 (START_TO_START) - 两个任务同时开始 =====
+    // 前端开发和后端开发同时开始
+    { sourceTaskId: '6', targetTaskId: '10', type: LinkType.START_TO_START },
+    // 组件开发和状态管理同时开始
+    { sourceTaskId: '8', targetTaskId: '9', type: LinkType.START_TO_START },
+    // 性能测试和用户验收测试同时开始
+    { sourceTaskId: '17', targetTaskId: '18', type: LinkType.START_TO_START },
+    // 技术文档和用户手册同时开始编写
+    { sourceTaskId: '27', targetTaskId: '28', type: LinkType.START_TO_START },
+    // 用户培训和技术支持同时开始
+    { sourceTaskId: '31', targetTaskId: '32', type: LinkType.START_TO_START },
+    
+    // ===== 完成-完成 (FINISH_TO_FINISH) - 两个任务同时完成 =====
+    // 前端开发和后端开发必须同时完成才能进入测试
+    { sourceTaskId: '6', targetTaskId: '10', type: LinkType.FINISH_TO_FINISH },
+    // 所有文档必须在部署上线前完成
+    { sourceTaskId: '26', targetTaskId: '19', type: LinkType.FINISH_TO_FINISH },
+    // 性能监控和用户反馈收集同时完成
+    { sourceTaskId: '24', targetTaskId: '25', type: LinkType.FINISH_TO_FINISH },
+    
+    // ===== 开始-完成 (START_TO_FINISH) - 较少使用，后续任务开始后前置任务才能完成 =====
+    // 部署上线开始后，维护优化才能完成准备
+    { sourceTaskId: '19', targetTaskId: '23', type: LinkType.START_TO_FINISH },
+    // 用户培训开始后，部署指南才能最终完成
+    { sourceTaskId: '31', targetTaskId: '29', type: LinkType.START_TO_FINISH }
+  ],
   // 数据源字段映射
   mapFields: {
     id: 'id',
@@ -100,15 +155,15 @@ const eventConfig = ref<EventConfig>({
     // 使用当前月份的日期作为示例数据
     const currentMonth = dayjs().format('YYYY-MM');
     dataConfig.value.dataSource = [
-      // 第一个主任务组
+      // 第一个主任务组 - 项目规划阶段
       {
         id: '1',
         pid: '0',
         taskNo: '项目规划阶段',
         level: '重要',
         start_date: `${currentMonth}-01 08:00:00`,
-        end_date: `${currentMonth}-05 18:00:00`,
-        job_progress: '0.8',
+        end_date: `${currentMonth}-06 18:00:00`,
+        job_progress: '0.85',
         spend_time: null
       },
       {
@@ -117,7 +172,7 @@ const eventConfig = ref<EventConfig>({
         taskNo: '需求分析',
         level: '紧急',
         start_date: `${currentMonth}-01 08:00:00`,
-        end_date: `${currentMonth}-03 18:00:00`,
+        end_date: `${currentMonth}-02 18:00:00`,
         job_progress: '1.0',
         spend_time: null
       },
@@ -126,7 +181,7 @@ const eventConfig = ref<EventConfig>({
         pid: '1',
         taskNo: '技术选型',
         level: '重要',
-        start_date: `${currentMonth}-02 08:00:00`,
+        start_date: `${currentMonth}-03 08:00:00`,
         end_date: `${currentMonth}-04 18:00:00`,
         job_progress: '0.9',
         spend_time: null
@@ -136,21 +191,21 @@ const eventConfig = ref<EventConfig>({
         pid: '1',
         taskNo: '架构设计',
         level: '重要',
-        start_date: `${currentMonth}-03 08:00:00`,
-        end_date: `${currentMonth}-05 18:00:00`,
-        job_progress: '0.6',
+        start_date: `${currentMonth}-05 08:00:00`,
+        end_date: `${currentMonth}-06 18:00:00`,
+        job_progress: '0.7',
         spend_time: null
       },
       
-      // 第二个主任务组
+      // 第二个主任务组 - 开发阶段
       {
         id: '5',
         pid: '0',
         taskNo: '开发阶段',
         level: '重要',
-        start_date: `${currentMonth}-06 08:00:00`,
-        end_date: `${currentMonth}-20 18:00:00`,
-        job_progress: '0.4',
+        start_date: `${currentMonth}-07 08:00:00`,
+        end_date: `${currentMonth}-18 18:00:00`,
+        job_progress: '0.5',
         spend_time: null
       },
       {
@@ -158,9 +213,9 @@ const eventConfig = ref<EventConfig>({
         pid: '5',
         taskNo: '前端开发',
         level: '重要',
-        start_date: `${currentMonth}-06 08:00:00`,
+        start_date: `${currentMonth}-07 08:00:00`,
         end_date: `${currentMonth}-15 18:00:00`,
-        job_progress: '0.5',
+        job_progress: '0.6',
         spend_time: null
       },
       {
@@ -168,9 +223,9 @@ const eventConfig = ref<EventConfig>({
         pid: '6',
         taskNo: '页面布局',
         level: '一般',
-        start_date: `${currentMonth}-06 08:00:00`,
-        end_date: `${currentMonth}-08 18:00:00`,
-        job_progress: '0.8',
+        start_date: `${currentMonth}-07 08:00:00`,
+        end_date: `${currentMonth}-09 18:00:00`,
+        job_progress: '1.0',
         spend_time: null
       },
       {
@@ -178,9 +233,9 @@ const eventConfig = ref<EventConfig>({
         pid: '6',
         taskNo: '组件开发',
         level: '重要',
-        start_date: `${currentMonth}-07 08:00:00`,
-        end_date: `${currentMonth}-12 18:00:00`,
-        job_progress: '0.6',
+        start_date: `${currentMonth}-10 08:00:00`,
+        end_date: `${currentMonth}-13 18:00:00`,
+        job_progress: '0.7',
         spend_time: null
       },
       {
@@ -190,7 +245,7 @@ const eventConfig = ref<EventConfig>({
         level: '重要',
         start_date: `${currentMonth}-10 08:00:00`,
         end_date: `${currentMonth}-15 18:00:00`,
-        job_progress: '0.3',
+        job_progress: '0.4',
         spend_time: null
       },
       {
@@ -198,9 +253,9 @@ const eventConfig = ref<EventConfig>({
         pid: '5',
         taskNo: '后端开发',
         level: '重要',
-        start_date: `${currentMonth}-08 08:00:00`,
+        start_date: `${currentMonth}-07 08:00:00`,
         end_date: `${currentMonth}-18 18:00:00`,
-        job_progress: '0.4',
+        job_progress: '0.5',
         spend_time: null
       },
       {
@@ -208,9 +263,9 @@ const eventConfig = ref<EventConfig>({
         pid: '10',
         taskNo: 'API设计',
         level: '紧急',
-        start_date: `${currentMonth}-08 08:00:00`,
-        end_date: `${currentMonth}-10 18:00:00`,
-        job_progress: '0.7',
+        start_date: `${currentMonth}-07 08:00:00`,
+        end_date: `${currentMonth}-09 18:00:00`,
+        job_progress: '1.0',
         spend_time: null
       },
       {
@@ -218,9 +273,9 @@ const eventConfig = ref<EventConfig>({
         pid: '10',
         taskNo: '数据库设计',
         level: '重要',
-        start_date: `${currentMonth}-09 08:00:00`,
+        start_date: `${currentMonth}-10 08:00:00`,
         end_date: `${currentMonth}-12 18:00:00`,
-        job_progress: '0.5',
+        job_progress: '0.8',
         spend_time: null
       },
       {
@@ -228,21 +283,21 @@ const eventConfig = ref<EventConfig>({
         pid: '10',
         taskNo: '业务逻辑实现',
         level: '重要',
-        start_date: `${currentMonth}-11 08:00:00`,
+        start_date: `${currentMonth}-13 08:00:00`,
         end_date: `${currentMonth}-18 18:00:00`,
-        job_progress: '0.2',
+        job_progress: '0.3',
         spend_time: null
       },
       
-      // 第三个主任务组
+      // 第三个主任务组 - 测试阶段
       {
         id: '14',
         pid: '0',
         taskNo: '测试阶段',
         level: '重要',
-        start_date: `${currentMonth}-16 08:00:00`,
-        end_date: `${currentMonth}-25 18:00:00`,
-        job_progress: '0.2',
+        start_date: `${currentMonth}-19 08:00:00`,
+        end_date: `${currentMonth}-24 18:00:00`,
+        job_progress: '0.3',
         spend_time: null
       },
       {
@@ -250,9 +305,9 @@ const eventConfig = ref<EventConfig>({
         pid: '14',
         taskNo: '单元测试',
         level: '重要',
-        start_date: `${currentMonth}-16 08:00:00`,
+        start_date: `${currentMonth}-19 08:00:00`,
         end_date: `${currentMonth}-20 18:00:00`,
-        job_progress: '0.3',
+        job_progress: '0.8',
         spend_time: null
       },
       {
@@ -260,9 +315,9 @@ const eventConfig = ref<EventConfig>({
         pid: '14',
         taskNo: '集成测试',
         level: '重要',
-        start_date: `${currentMonth}-18 08:00:00`,
+        start_date: `${currentMonth}-21 08:00:00`,
         end_date: `${currentMonth}-22 18:00:00`,
-        job_progress: '0.1',
+        job_progress: '0.4',
         spend_time: null
       },
       {
@@ -270,9 +325,9 @@ const eventConfig = ref<EventConfig>({
         pid: '14',
         taskNo: '性能测试',
         level: '一般',
-        start_date: `${currentMonth}-20 08:00:00`,
-        end_date: `${currentMonth}-23 18:00:00`,
-        job_progress: '0.0',
+        start_date: `${currentMonth}-23 08:00:00`,
+        end_date: `${currentMonth}-24 12:00:00`,
+        job_progress: '0.2',
         spend_time: null
       },
       {
@@ -280,20 +335,20 @@ const eventConfig = ref<EventConfig>({
         pid: '14',
         taskNo: '用户验收测试',
         level: '紧急',
-        start_date: `${currentMonth}-22 08:00:00`,
-        end_date: `${currentMonth}-25 18:00:00`,
-        job_progress: '0.0',
+        start_date: `${currentMonth}-23 08:00:00`,
+        end_date: `${currentMonth}-24 18:00:00`,
+        job_progress: '0.1',
         spend_time: null
       },
       
-      // 第四个主任务组
+      // 第四个主任务组 - 部署上线
       {
         id: '19',
         pid: '0',
         taskNo: '部署上线',
         level: '紧急',
-        start_date: `${currentMonth}-26 08:00:00`,
-        end_date: `${currentMonth}-28 18:00:00`,
+        start_date: `${currentMonth}-25 08:00:00`,
+        end_date: `${currentMonth}-27 18:00:00`,
         job_progress: '0.0',
         spend_time: null
       },
@@ -302,8 +357,8 @@ const eventConfig = ref<EventConfig>({
         pid: '19',
         taskNo: '环境准备',
         level: '重要',
-        start_date: `${currentMonth}-26 08:00:00`,
-        end_date: `${currentMonth}-27 12:00:00`,
+        start_date: `${currentMonth}-25 08:00:00`,
+        end_date: `${currentMonth}-25 18:00:00`,
         job_progress: '0.0',
         spend_time: null
       },
@@ -312,8 +367,8 @@ const eventConfig = ref<EventConfig>({
         pid: '19',
         taskNo: '代码部署',
         level: '紧急',
-        start_date: `${currentMonth}-27 08:00:00`,
-        end_date: `${currentMonth}-27 18:00:00`,
+        start_date: `${currentMonth}-26 08:00:00`,
+        end_date: `${currentMonth}-26 18:00:00`,
         job_progress: '0.0',
         spend_time: null
       },
@@ -322,19 +377,19 @@ const eventConfig = ref<EventConfig>({
         pid: '19',
         taskNo: '上线验证',
         level: '紧急',
-        start_date: `${currentMonth}-27 18:00:00`,
-        end_date: `${currentMonth}-28 18:00:00`,
+        start_date: `${currentMonth}-27 08:00:00`,
+        end_date: `${currentMonth}-27 18:00:00`,
         job_progress: '0.0',
         spend_time: null
       },
       
-      // 第五个主任务组
+      // 第五个主任务组 - 维护优化
       {
         id: '23',
         pid: '0',
         taskNo: '维护优化',
         level: '一般',
-        start_date: `${currentMonth}-29 08:00:00`,
+        start_date: `${currentMonth}-28 08:00:00`,
         end_date: `${currentMonth}-30 18:00:00`,
         job_progress: '0.0',
         spend_time: null
@@ -344,7 +399,7 @@ const eventConfig = ref<EventConfig>({
         pid: '23',
         taskNo: '性能监控',
         level: '重要',
-        start_date: `${currentMonth}-29 08:00:00`,
+        start_date: `${currentMonth}-28 08:00:00`,
         end_date: `${currentMonth}-30 12:00:00`,
         job_progress: '0.0',
         spend_time: null
@@ -354,21 +409,21 @@ const eventConfig = ref<EventConfig>({
         pid: '23',
         taskNo: '用户反馈收集',
         level: '一般',
-        start_date: `${currentMonth}-29 14:00:00`,
-        end_date: `${currentMonth}-30 18:00:00`,
+        start_date: `${currentMonth}-28 08:00:00`,
+        end_date: `${currentMonth}-30 12:00:00`,
         job_progress: '0.0',
         spend_time: null
       },
       
-      // 额外的独立任务
+      // 第六个主任务组 - 文档编写（贯穿整个项目）
       {
         id: '26',
         pid: '0',
         taskNo: '文档编写',
         level: '一般',
         start_date: `${currentMonth}-01 08:00:00`,
-        end_date: `${currentMonth}-30 18:00:00`,
-        job_progress: '0.4',
+        end_date: `${currentMonth}-25 18:00:00`,
+        job_progress: '0.5',
         spend_time: null
       },
       {
@@ -378,7 +433,7 @@ const eventConfig = ref<EventConfig>({
         level: '重要',
         start_date: `${currentMonth}-01 08:00:00`,
         end_date: `${currentMonth}-15 18:00:00`,
-        job_progress: '0.6',
+        job_progress: '0.7',
         spend_time: null
       },
       {
@@ -386,9 +441,9 @@ const eventConfig = ref<EventConfig>({
         pid: '26',
         taskNo: '用户手册',
         level: '一般',
-        start_date: `${currentMonth}-16 08:00:00`,
-        end_date: `${currentMonth}-25 18:00:00`,
-        job_progress: '0.2',
+        start_date: `${currentMonth}-01 08:00:00`,
+        end_date: `${currentMonth}-20 18:00:00`,
+        job_progress: '0.4',
         spend_time: null
       },
       {
@@ -396,19 +451,19 @@ const eventConfig = ref<EventConfig>({
         pid: '26',
         taskNo: '部署指南',
         level: '一般',
-        start_date: `${currentMonth}-20 08:00:00`,
-        end_date: `${currentMonth}-30 18:00:00`,
-        job_progress: '0.1',
+        start_date: `${currentMonth}-15 08:00:00`,
+        end_date: `${currentMonth}-25 18:00:00`,
+        job_progress: '0.3',
         spend_time: null
       },
       
-      // 第七个主任务组
+      // 第七个主任务组 - 培训支持
       {
         id: '30',
         pid: '0',
         taskNo: '培训支持',
         level: '一般',
-        start_date: `${currentMonth}-25 08:00:00`,
+        start_date: `${currentMonth}-26 08:00:00`,
         end_date: `${currentMonth}-30 18:00:00`,
         job_progress: '0.0',
         spend_time: null
@@ -418,7 +473,7 @@ const eventConfig = ref<EventConfig>({
         pid: '30',
         taskNo: '用户培训',
         level: '重要',
-        start_date: `${currentMonth}-25 08:00:00`,
+        start_date: `${currentMonth}-26 08:00:00`,
         end_date: `${currentMonth}-28 18:00:00`,
         job_progress: '0.0',
         spend_time: null

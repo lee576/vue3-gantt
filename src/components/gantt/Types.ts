@@ -14,6 +14,23 @@ export enum LinkPathType {
   RIGHT_ANGLE = 'right-angle' // 直角连线
 }
 
+// 连线类型颜色配置
+export interface LinkTypeColors {
+  finishToStart: string;  // FS - 完成-开始
+  startToStart: string;   // SS - 开始-开始
+  finishToFinish: string; // FF - 完成-完成
+  startToFinish: string;  // SF - 开始-完成
+}
+
+// 连线类型显示控制
+export interface LinkTypeVisibility {
+  finishToStart: boolean;  // FS - 完成-开始
+  startToStart: boolean;   // SS - 开始-开始
+  finishToFinish: boolean; // FF - 完成-完成
+  startToFinish: boolean;  // SF - 开始-完成
+  parentChild: boolean;    // 父子关系
+}
+
 // 基础连线配置接口
 export interface LinkConfig {
   color: string;
@@ -37,6 +54,8 @@ export interface LinkConfig {
     width: number;
     dashArray?: string;
   };
+  linkTypeColors?: LinkTypeColors;
+  linkTypeVisibility?: LinkTypeVisibility;
 }
 
 // 连线数据接口
@@ -76,6 +95,7 @@ export interface DataConfig {
   mapFields: Record<string, any>;
   queryStartDate: string;
   queryEndDate: string;
+  dependencies?: Omit<TaskDependency, 'id'>[];
 }
 
 // 事件配置接口

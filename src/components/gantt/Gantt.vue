@@ -49,26 +49,64 @@
                     </div>
                 </div>
             </div>
+            <!-- 连线类型图例 -->
+            <div class="link-legend">
+                <div class="legend-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 15l-6 6-1.42-1.42L15.17 16H4V4h2v10h9.17l-3.59-3.58L13 9l6 6z"/>
+                    </svg>
+                    连线图例
+                </div>
+                <div class="legend-items">
+                    <label class="legend-item" :class="{ disabled: !linkTypeVisibility.parentChild }" title="父子关系：显示任务的层级结构">
+                        <input type="checkbox" v-model="linkTypeVisibility.parentChild" @change="updateLinkVisibility" />
+                        <svg width="24" height="12" viewBox="0 0 24 12">
+                            <line x1="0" y1="6" x2="18" y2="6" stroke="#95a5a6" stroke-width="1.5" stroke-dasharray="3,3"/>
+                            <polygon points="24,6 18,3 18,9" fill="#95a5a6"/>
+                        </svg>
+                        <span class="legend-label">PC</span>
+                        <span class="legend-desc">父子关系</span>
+                    </label>
+                    <label class="legend-item" :class="{ disabled: !linkTypeVisibility.finishToStart }" title="完成-开始：前置任务完成后，后续任务才能开始">
+                        <input type="checkbox" v-model="linkTypeVisibility.finishToStart" @change="updateLinkVisibility" />
+                        <svg width="24" height="12" viewBox="0 0 24 12">
+                            <line x1="0" y1="6" x2="18" y2="6" :stroke="linkTypeColors.finishToStart" stroke-width="2"/>
+                            <polygon points="24,6 18,3 18,9" :fill="linkTypeColors.finishToStart"/>
+                        </svg>
+                        <span class="legend-label">FS</span>
+                        <span class="legend-desc">完成-开始</span>
+                    </label>
+                    <label class="legend-item" :class="{ disabled: !linkTypeVisibility.startToStart }" title="开始-开始：两个任务同时开始">
+                        <input type="checkbox" v-model="linkTypeVisibility.startToStart" @change="updateLinkVisibility" />
+                        <svg width="24" height="12" viewBox="0 0 24 12">
+                            <line x1="0" y1="6" x2="18" y2="6" :stroke="linkTypeColors.startToStart" stroke-width="2"/>
+                            <polygon points="24,6 18,3 18,9" :fill="linkTypeColors.startToStart"/>
+                        </svg>
+                        <span class="legend-label">SS</span>
+                        <span class="legend-desc">开始-开始</span>
+                    </label>
+                    <label class="legend-item" :class="{ disabled: !linkTypeVisibility.finishToFinish }" title="完成-完成：两个任务同时完成">
+                        <input type="checkbox" v-model="linkTypeVisibility.finishToFinish" @change="updateLinkVisibility" />
+                        <svg width="24" height="12" viewBox="0 0 24 12">
+                            <line x1="0" y1="6" x2="18" y2="6" :stroke="linkTypeColors.finishToFinish" stroke-width="2"/>
+                            <polygon points="24,6 18,3 18,9" :fill="linkTypeColors.finishToFinish"/>
+                        </svg>
+                        <span class="legend-label">FF</span>
+                        <span class="legend-desc">完成-完成</span>
+                    </label>
+                    <label class="legend-item" :class="{ disabled: !linkTypeVisibility.startToFinish }" title="开始-完成：前置任务开始后，后续任务才能完成">
+                        <input type="checkbox" v-model="linkTypeVisibility.startToFinish" @change="updateLinkVisibility" />
+                        <svg width="24" height="12" viewBox="0 0 24 12">
+                            <line x1="0" y1="6" x2="18" y2="6" :stroke="linkTypeColors.startToFinish" stroke-width="2"/>
+                            <polygon points="24,6 18,3 18,9" :fill="linkTypeColors.startToFinish"/>
+                        </svg>
+                        <span class="legend-label">SF</span>
+                        <span class="legend-desc">开始-完成</span>
+                    </label>
+                </div>
+            </div>
             <div class="config-buttons">
-                <GanttThemeSelector />
-                <button 
-                    class="link-config-btn" 
-                    @click="toggleLinkConfig"
-                    :class="{ active: showLinkConfig }"
-                    title="连线配置"
-                >
-                    <div class="btn-content">
-                        <div class="btn-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M6 9l6 6 6-6"/>
-                                <circle cx="4" cy="9" r="2"/>
-                                <circle cx="20" cy="9" r="2"/>
-                                <path d="M10 9h4"/>
-                            </svg>
-                        </div>
-                        <span class="btn-text">连线配置</span>
-                    </div>
-                </button>
+                <GanttConfigPanel />
             </div>
         </div>
         <div class="gantt">
@@ -84,16 +122,6 @@
                 </template>
             </SplitPane>
         </div>
-        
-        <!-- 连线配置面板 -->
-        <div v-if="showLinkConfig" class="config-panel-overlay" @click="toggleLinkConfig">
-            <div class="config-panel-container" @click.stop>
-                <LinkConfigPanel 
-                    @close="toggleLinkConfig"
-                    @configChange="onLinkConfigChange"
-                />
-            </div>
-        </div>
     </div>
 </template>
 
@@ -103,14 +131,14 @@ import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 dayjs.extend(customParseFormat);
 import { Symbols } from './Symbols';
+import { linkDataManager, useLinkConfig } from './LinkConfig';
 // 导入日期选择器组件
 import DatePicker from './DatePicker.vue';
 // 导入分割面板组件
 import SplitPane from './SplitPane.vue';
 import TaskTable from '../gantt/task/TaskTable.vue';
 import RightTable from './RightTable.vue';
-import LinkConfigPanel from './LinkConfigPanel.vue';
-import GanttThemeSelector from './GanttThemeSelector.vue';
+import GanttConfigPanel from './GanttConfigPanel.vue';
 import { store, mutations } from './Store';
 export type { DataConfig, StyleConfig, EventConfig, TaskHeader } from './Types';
 // 移除未使用的类型导入
@@ -183,6 +211,7 @@ export default defineComponent({
                 mapFields: Record<string, any>;
                 queryStartDate: string;
                 queryEndDate: string;
+                dependencies?: Omit<import('./Types').TaskDependency, 'id'>[];
             },
             required: true,
             default: () => ({
@@ -226,14 +255,32 @@ export default defineComponent({
         SplitPane,
         TaskTable,
         RightTable,
-        LinkConfigPanel,
-        GanttThemeSelector
+        GanttConfigPanel
     },
     setup(props) {
         // 缓存 mapFields 的结果
         const mapFields = computed(() => props.dataConfig.mapFields);
         // 缓存 dataSource 的结果
         const dataSource = computed(() => props.dataConfig.dataSource);
+
+        // 连线配置
+        const { config: linkConfig, updateConfig: updateLinkConfig } = useLinkConfig();
+
+        // 连线类型显示控制
+        const linkTypeVisibility = ref({
+            finishToStart: linkConfig.linkTypeVisibility?.finishToStart ?? true,
+            startToStart: linkConfig.linkTypeVisibility?.startToStart ?? true,
+            finishToFinish: linkConfig.linkTypeVisibility?.finishToFinish ?? true,
+            startToFinish: linkConfig.linkTypeVisibility?.startToFinish ?? true,
+            parentChild: linkConfig.linkTypeVisibility?.parentChild ?? true
+        });
+
+        // 更新连线类型显示配置
+        const updateLinkVisibility = () => {
+            updateLinkConfig({
+                linkTypeVisibility: { ...linkTypeVisibility.value }
+            });
+        };
 
         // 定义响应式数据
         const initData = ref<any[]>([]);
@@ -259,9 +306,6 @@ export default defineComponent({
         const startGanttDate = ref<string | null>(null);
         const endGanttDate = ref<string | null>(null);
         const result = ref('');
-        
-        // 连线配置相关状态
-        const showLinkConfig = ref(false);
         
         // 甘特图容器引用
         const ganttContainer = ref<HTMLElement>();
@@ -720,16 +764,32 @@ export default defineComponent({
         // 提供甘特图容器引用给主题选择器
         provide('ganttContainer', ganttContainer);
 
+        // 监听依赖关系变化
+        watch(() => props.dataConfig.dependencies, (newDependencies) => {
+            if (newDependencies && newDependencies.length > 0) {
+                console.log('Loading dependencies:', newDependencies);
+                // 清空现有依赖关系
+                linkDataManager.clear();
+                // 添加新的依赖关系
+                newDependencies.forEach(dep => {
+                    linkDataManager.addDependency(dep);
+                });
+            }
+        }, { immediate: true });
+
         // 连线配置变化处理
         const onLinkConfigChange = (config: any) => {
             console.log('连线配置已更新:', config);
             // 这里可以添加额外的处理逻辑，比如通知其他组件更新
         };
-        
-        // 切换连线配置面板
-        const toggleLinkConfig = () => {
-            showLinkConfig.value = !showLinkConfig.value;
-        };
+
+        // 连线类型颜色（从配置中读取，用于图例显示）
+        const linkTypeColors = computed(() => ({
+            finishToStart: linkConfig.linkTypeColors?.finishToStart || '#3498db',
+            startToStart: linkConfig.linkTypeColors?.startToStart || '#2ecc71',
+            finishToFinish: linkConfig.linkTypeColors?.finishToFinish || '#e74c3c',
+            startToFinish: linkConfig.linkTypeColors?.startToFinish || '#f39c12'
+        }));
 
         return {
             subTask,
@@ -748,10 +808,11 @@ export default defineComponent({
             confirmEnd,
             buttonClass,
             timeMode,
-            showLinkConfig,
-            toggleLinkConfig,
             onLinkConfigChange,
-            ganttContainer
+            ganttContainer,
+            linkTypeColors,
+            linkTypeVisibility,
+            updateLinkVisibility
         };
     }
 });
@@ -939,6 +1000,85 @@ $toolbarHeight: 70px;
             }
         }
         
+        .link-legend {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 16px;
+            background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
+            border: 1px solid var(--border, #d0d0d0);
+            border-radius: 4px;
+            margin-right: 16px;
+
+            .legend-title {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--text-secondary, #666666);
+                padding-right: 12px;
+                border-right: 1px solid var(--border, #d0d0d0);
+                
+                svg {
+                    color: var(--primary, #0078d4);
+                }
+            }
+
+            .legend-items {
+                display: flex;
+                gap: 12px;
+            }
+
+            .legend-item {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                cursor: pointer;
+                padding: 2px 6px;
+                border-radius: 3px;
+                transition: all var(--transition-fast, 0.15s ease);
+
+                input[type="checkbox"] {
+                    width: 14px;
+                    height: 14px;
+                    cursor: pointer;
+                    accent-color: var(--primary, #0078d4);
+                    margin: 0;
+                }
+
+                &:hover {
+                    background: var(--bg-secondary, #e8e8e8);
+                }
+
+                &.disabled {
+                    opacity: 0.5;
+                    
+                    svg {
+                        opacity: 0.4;
+                    }
+                    
+                    .legend-label,
+                    .legend-desc {
+                        text-decoration: line-through;
+                    }
+                }
+
+                .legend-label {
+                    font-size: 10px;
+                    font-weight: 700;
+                    color: var(--text-primary, #333333);
+                    min-width: 18px;
+                }
+
+                .legend-desc {
+                    font-size: 10px;
+                    color: var(--text-secondary, #666666);
+                    white-space: nowrap;
+                }
+            }
+        }
+
         .config-buttons {
             display: flex;
             gap: 12px;

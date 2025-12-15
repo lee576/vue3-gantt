@@ -57,6 +57,7 @@
 import { defineComponent, watch, ref, onMounted, onUnmounted } from 'vue';
 import { store } from './Store';
 import { LinkType, LinkPathType, type LinkConfig, type TaskLink } from './Types';
+import { linkDataManager } from './LinkConfig';
 
 
 
@@ -195,18 +196,48 @@ export default defineComponent({
       return alignToGridCenter(minBypassY);
     };
     
+    // 获取连线类型对应的颜色（从配置中读取）
+    const getLinkTypeColor = (linkType: LinkType): string => {
+      const colors = props.linkConfig.linkTypeColors;
+      if (!colors) {
+        // 默认颜色
+        const defaultColors: Record<LinkType, string> = {
+          [LinkType.FINISH_TO_START]: '#3498db',
+          [LinkType.START_TO_START]: '#2ecc71',
+          [LinkType.FINISH_TO_FINISH]: '#e74c3c',
+          [LinkType.START_TO_FINISH]: '#f39c12',
+          [LinkType.PARENT_CHILD]: '#95a5a6'
+        };
+        return defaultColors[linkType] || props.linkConfig.color;
+      }
+      
+      switch (linkType) {
+        case LinkType.FINISH_TO_START:
+          return colors.finishToStart || '#3498db';
+        case LinkType.START_TO_START:
+          return colors.startToStart || '#2ecc71';
+        case LinkType.FINISH_TO_FINISH:
+          return colors.finishToFinish || '#e74c3c';
+        case LinkType.START_TO_FINISH:
+          return colors.startToFinish || '#f39c12';
+        default:
+          return props.linkConfig.color;
+      }
+    };
+
     // 获取特定连线类型的样式
     const getLinkStyle = (linkType: LinkType) => {
       if (linkType === LinkType.PARENT_CHILD) {
         return {
-          color: props.linkConfig.parentChildStyle.color,
+          color: props.linkConfig.parentChildStyle.color || '#95a5a6',
           width: props.linkConfig.parentChildStyle.width,
           dashArray: props.linkConfig.parentChildStyle.dashArray
         };
       }
       
+      // 任务依赖连线使用对应类型的颜色
       return {
-        color: props.linkConfig.color,
+        color: getLinkTypeColor(linkType),
         width: props.linkConfig.width,
         dashArray: props.linkConfig.dashArray
       };
@@ -685,7 +716,7 @@ export default defineComponent({
       }
     };
     
-    // 生成箭头点（直接从子任务位置计算）
+    // 生成箭头点（直接从子任务位置计算）- 用于父子关系连线
     const generateArrowPoints = (childPos: any, arrowSize: number, _linkType: LinkType = LinkType.FINISH_TO_START): string => {
       if (!childPos) {
         console.warn('子任务位置无效');
@@ -711,44 +742,193 @@ export default defineComponent({
       }
     };
     
+    // 生成依赖连线的箭头点
+    const generateDependencyArrowPoints = (
+      sourcePos: any, 
+      targetPos: any, 
+      linkType: LinkType, 
+      arrowSize: number
+    ): string => {
+      if (!sourcePos || !targetPos) return '';
+      
+      try {
+        let endX: number, endY: number;
+        let direction: 'left' | 'right' | 'up' | 'down' = 'right';
+        
+        switch (linkType) {
+          case LinkType.FINISH_TO_START:
+            // 箭头指向目标任务的左边缘
+            endX = targetPos.leftX;
+            endY = targetPos.centerY;
+            direction = 'right';
+            break;
+            
+          case LinkType.START_TO_START:
+            // 箭头指向目标任务的左边缘
+            endX = targetPos.leftX;
+            endY = targetPos.centerY;
+            direction = 'right';
+            break;
+            
+          case LinkType.FINISH_TO_FINISH:
+            // 箭头指向目标任务的右边缘
+            endX = targetPos.rightX;
+            endY = targetPos.centerY;
+            direction = 'left';
+            break;
+            
+          case LinkType.START_TO_FINISH:
+            // 箭头指向目标任务的右边缘
+            endX = targetPos.rightX;
+            endY = targetPos.centerY;
+            direction = 'left';
+            break;
+            
+          default:
+            endX = targetPos.leftX;
+            endY = targetPos.centerY;
+            direction = 'right';
+        }
+        
+        // 根据方向生成箭头
+        let arrowPoint1X: number, arrowPoint1Y: number;
+        let arrowPoint2X: number, arrowPoint2Y: number;
+        
+        if (direction === 'right') {
+          // 箭头指向右边
+          arrowPoint1X = endX - arrowSize;
+          arrowPoint1Y = endY - arrowSize / 2;
+          arrowPoint2X = endX - arrowSize;
+          arrowPoint2Y = endY + arrowSize / 2;
+        } else {
+          // 箭头指向左边
+          arrowPoint1X = endX + arrowSize;
+          arrowPoint1Y = endY - arrowSize / 2;
+          arrowPoint2X = endX + arrowSize;
+          arrowPoint2Y = endY + arrowSize / 2;
+        }
+        
+        return `${endX},${endY} ${arrowPoint1X},${arrowPoint1Y} ${arrowPoint2X},${arrowPoint2Y}`;
+      } catch (e) {
+        console.error('依赖箭头生成失败:', e);
+        return '';
+      }
+    };
+    
     // 更新连线
     const updateLinks = () => {
       console.log('updateLinks called');
       const newLinks: TaskLink[] = [];
       
-      // 生成父子关系连线
-      store.tasks.forEach(task => {
-        const parentId = task[store.mapFields.parentId];
-        if (parentId && parentId !== '0') {
-          const parentPos = getTaskPosition(parentId);
-          const childPos = getTaskPosition(task[store.mapFields.id]);
-          
-          if (parentPos && childPos) {
-            const linkId = `parent-child-${parentId}-${task[store.mapFields.id]}`;
+      // 获取连线类型显示配置
+      const visibility = props.linkConfig.linkTypeVisibility || {
+        finishToStart: true,
+        startToStart: true,
+        finishToFinish: true,
+        startToFinish: true,
+        parentChild: true
+      };
+      
+      // 生成父子关系连线（根据 visibility 控制）
+      if (visibility.parentChild) {
+        store.tasks.forEach(task => {
+          const parentId = task[store.mapFields.parentId];
+          if (parentId && parentId !== '0') {
+            const parentPos = getTaskPosition(parentId);
+            const childPos = getTaskPosition(task[store.mapFields.id]);
             
-            // 为位置信息添加任务ID
-            const parentPosWithId = { ...parentPos, id: parentId, taskId: parentId };
-            const childPosWithId = { ...childPos, id: task[store.mapFields.id], taskId: task[store.mapFields.id] };
-            
-            const path = generateLinkPath(parentPosWithId, childPosWithId, LinkType.PARENT_CHILD, linkId);
-            const arrowPoints = props.linkConfig.showArrow ? 
-              generateArrowPoints(childPos, props.linkConfig.arrowSize, LinkType.PARENT_CHILD) : '';
-            
-            newLinks.push({
-              id: linkId,
-              sourceId: parentId,
-              targetId: task[store.mapFields.id],
-              type: LinkType.PARENT_CHILD,
-              path,
-              arrowPoints,
-              labelX: childPos.centerX,
-              labelY: childPos.centerY - 10
-            });
+            if (parentPos && childPos) {
+              const linkId = `parent-child-${parentId}-${task[store.mapFields.id]}`;
+              
+              // 为位置信息添加任务ID
+              const parentPosWithId = { ...parentPos, id: parentId, taskId: parentId };
+              const childPosWithId = { ...childPos, id: task[store.mapFields.id], taskId: task[store.mapFields.id] };
+              
+              const path = generateLinkPath(parentPosWithId, childPosWithId, LinkType.PARENT_CHILD, linkId);
+              const arrowPoints = props.linkConfig.showArrow ? 
+                generateArrowPoints(childPos, props.linkConfig.arrowSize, LinkType.PARENT_CHILD) : '';
+              
+              newLinks.push({
+                id: linkId,
+                sourceId: parentId,
+                targetId: task[store.mapFields.id],
+                type: LinkType.PARENT_CHILD,
+                path,
+                arrowPoints,
+                labelX: childPos.centerX,
+                labelY: childPos.centerY - 10
+              });
+            }
           }
+        });
+      }
+      
+      // 生成任务依赖连线
+      const dependencies = linkDataManager.getDependencies();
+      console.log('Dependencies:', dependencies);
+      
+      // 根据连线类型检查是否显示
+      const shouldShowLinkType = (linkType: LinkType): boolean => {
+        switch (linkType) {
+          case LinkType.FINISH_TO_START:
+            return visibility.finishToStart;
+          case LinkType.START_TO_START:
+            return visibility.startToStart;
+          case LinkType.FINISH_TO_FINISH:
+            return visibility.finishToFinish;
+          case LinkType.START_TO_FINISH:
+            return visibility.startToFinish;
+          case LinkType.PARENT_CHILD:
+            return visibility.parentChild;
+          default:
+            return true;
+        }
+      };
+      
+      dependencies.forEach(dep => {
+        // 根据 visibility 过滤连线类型
+        if (!shouldShowLinkType(dep.type)) {
+          return;
+        }
+        
+        const sourcePos = getTaskPosition(dep.sourceTaskId);
+        const targetPos = getTaskPosition(dep.targetTaskId);
+        
+        if (sourcePos && targetPos) {
+          const linkId = `dependency-${dep.id}`;
+          
+          // 为位置信息添加任务ID
+          const sourcePosWithId = { ...sourcePos, id: dep.sourceTaskId, taskId: dep.sourceTaskId };
+          const targetPosWithId = { ...targetPos, id: dep.targetTaskId, taskId: dep.targetTaskId };
+          
+          const path = generateLinkPath(sourcePosWithId, targetPosWithId, dep.type, linkId);
+          
+          // 根据连线类型生成箭头
+          const arrowPoints = props.linkConfig.showArrow ? 
+            generateDependencyArrowPoints(sourcePosWithId, targetPosWithId, dep.type, props.linkConfig.arrowSize) : '';
+          
+          // 获取连线类型的标签
+          const labelMap: Record<LinkType, string> = {
+            [LinkType.FINISH_TO_START]: 'FS',
+            [LinkType.START_TO_START]: 'SS',
+            [LinkType.FINISH_TO_FINISH]: 'FF',
+            [LinkType.START_TO_FINISH]: 'SF',
+            [LinkType.PARENT_CHILD]: ''
+          };
+          
+          newLinks.push({
+            id: linkId,
+            sourceId: dep.sourceTaskId,
+            targetId: dep.targetTaskId,
+            type: dep.type,
+            path,
+            arrowPoints,
+            label: labelMap[dep.type] || '',
+            labelX: (sourcePos.centerX + targetPos.centerX) / 2,
+            labelY: (sourcePos.centerY + targetPos.centerY) / 2 - 10
+          });
         }
       });
-      
-      // TODO: 添加其他类型的连线（依赖关系等）
       
       links.value = newLinks;
     };
@@ -784,7 +964,10 @@ export default defineComponent({
       requestAnimationFrame(updateLinks);
     }, { deep: true });
     
-
+    // 监听连线类型显示配置变化
+    watch(() => props.linkConfig.linkTypeVisibility, () => {
+      setTimeout(updateLinks, 50);
+    }, { deep: true });
     
     // 监听DOM变化（拖拽时重绘）
     let resizeObserver: ResizeObserver | null = null;
