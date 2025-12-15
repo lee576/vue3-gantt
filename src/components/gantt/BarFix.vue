@@ -376,7 +376,6 @@ export default defineComponent({
                             // 查找父任务
                             const parentTask = store.tasks.find(t => String(t[mapFields.value.id]) === String(currentParentId));
                             if (parentTask) {
-                                const parentStartDate = dayjs(parentTask[mapFields.value.startdate]);
                                 // 计算父任务开始时间对应的 X 坐标
                                 let parentStartX = 0;
                                 if (mode.value === '月' || mode.value === '日') {
