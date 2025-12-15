@@ -568,23 +568,76 @@ export default defineComponent({
                     },
                     end: (event: { target: SVGSVGElement; dx: number; rect: { width: number } }) => {
                         let target = event.target;
-                        // 计算新的 X 坐标
-                        let x = (parseFloat(target.getAttribute('data-x') || '0') || 0) + event.dx;
-                        let multiple = Math.floor(x / scale.value);
-                        x = multiple * scale.value;
-                        if (x > timelineCellCount.value * scale.value) {
-                            x = timelineCellCount.value * scale.value;
+                        // 获取当前的 data-x（已经在 move 中累加了 dx）
+                        let currentX = parseFloat(target.getAttribute('data-x') || '0') || 0;
+                        // 对齐到网格
+                        let multiple = Math.round(currentX / scale.value);
+                        let alignedX = multiple * scale.value;
+                        if (alignedX < 0) {
+                            alignedX = 0;
+                        }
+                        if (alignedX > timelineCellCount.value * scale.value) {
+                            alignedX = timelineCellCount.value * scale.value;
                         }
                         // 更新 SVG 元素的位置
-                        target.style.transform = `translate(${x}px, 0px)`;
+                        target.style.transform = `translate(${alignedX}px, 0px)`;
                         // 更新 SVG 元素的 data-x 属性
-                        target.setAttribute('data-x', x.toString());
-                        // 更新条形图的数据和 UI
-                        updateBarDataAndUI(event, {
-                            row: props.row,
-                            startGanttDate: props.startGanttDate || '',
-                            endGanttDate: props.endGanttDate || ''
-                        }, { value: mode.value || '' }, scale, oldBarDataX, oldBarWidth, barElement, barHeight, mapFields, setBarDate, false);
+                        target.setAttribute('data-x', alignedX.toString());
+                        
+                        // 计算实际移动的单元格数量
+                        const cellsMoved = Math.round((alignedX - oldBarDataX.value) / scale.value);
+                        
+                        // 根据模式计算日期偏移
+                        let daysOffset = 0;
+                        if (mode.value === '月' || mode.value === '日') {
+                            daysOffset = cellsMoved; // 每个单元格代表1天
+                        } else if (mode.value === '周') {
+                            daysOffset = cellsMoved * 7; // 每个单元格代表1周
+                        } else if (mode.value === '时') {
+                            // 时模式下以小时为单位
+                            const hoursOffset = cellsMoved;
+                            props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate])
+                                .add(hoursOffset, 'hours')
+                                .format('YYYY-MM-DD HH:mm:ss');
+                            props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate])
+                                .add(hoursOffset, 'hours')
+                                .format('YYYY-MM-DD HH:mm:ss');
+                            // 更新耗时
+                            const spendHours = dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'hours') + 1;
+                            props.row[mapFields.value.takestime] = spendHours + '小时';
+                            // 设置条形图的日期
+                            setBarDate({
+                                id: props.row[mapFields.value.id],
+                                startDate: props.row[mapFields.value.startdate],
+                                endDate: props.row[mapFields.value.enddate]
+                            });
+                            return;
+                        }
+                        
+                        // 更新任务的开始日期和结束日期（以天为单位）
+                        props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate])
+                            .add(daysOffset, 'days')
+                            .format('YYYY-MM-DD HH:mm:ss');
+                        props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate])
+                            .add(daysOffset, 'days')
+                            .format('YYYY-MM-DD HH:mm:ss');
+                        
+                        // 更新耗时信息
+                        if (mode.value === '月' || mode.value === '日') {
+                            const spendDays = dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'days') + 1;
+                            props.row[mapFields.value.takestime] = spendDays + '天';
+                        } else if (mode.value === '周') {
+                            const startWeek = dayjs(props.row[mapFields.value.startdate]).startOf('isoWeek');
+                            const endWeek = dayjs(props.row[mapFields.value.enddate]).startOf('isoWeek');
+                            props.row[mapFields.value.takestime] = endWeek.diff(startWeek, 'week') + 1 + '周';
+                        }
+                        
+                        // 设置条形图的日期
+                        setBarDate({
+                            id: props.row[mapFields.value.id],
+                            startDate: props.row[mapFields.value.startdate],
+                            endDate: props.row[mapFields.value.enddate]
+                        });
                     }
                 }
             });
