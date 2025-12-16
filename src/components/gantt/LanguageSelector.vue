@@ -191,6 +191,7 @@ export default defineComponent({
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 999;
   min-width: 140px;
+  color: var(--text-primary, #333333);
 }
 
 .lang-option {
@@ -201,6 +202,7 @@ export default defineComponent({
   justify-content: space-between;
   transition: all var(--transition-fast, 0.15s ease);
   border-bottom: 1px solid var(--border, #e8e8e8);
+  color: var(--text-primary, #333333);
 
   &:last-child {
     border-bottom: none;

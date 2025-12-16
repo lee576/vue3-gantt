@@ -843,6 +843,7 @@ export default defineComponent({
     .lang-label {
       font-size: 12px;
       flex: 1;
+      color: var(--text-primary, #333333);
     }
 
     .lang-check {
