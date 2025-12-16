@@ -663,8 +663,6 @@ MIT
 <details>
 <summary><h2>🇺🇸 English Documentation</h2></summary>
 
-## Vue3 Gantt Chart Component
-
 A feature-rich, highly customizable Vue 3 Gantt chart component that supports task management, dependency relationships, multiple view modes, and theme switching.
 
 <div align="center">
@@ -673,7 +671,34 @@ A feature-rich, highly customizable Vue 3 Gantt chart component that supports ta
   <img src="https://img.shields.io/badge/Vite-6.2.0-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite">
 </div>
 
-### Features
+**Note**: For better reading experience, you can also view the [separate English README file](README.en-US.md).
+
+## Interface Preview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        Vue3 Gantt Professional Component                    │
+├─────────────────┬───────────────────────────────────────────────────────────┤
+│ Task Name       │ 12/01  12/02  12/03  12/04  12/05  12/06  12/07  12/08   │
+├─────────────────┼───────────────────────────────────────────────────────────┤
+│ Main Task 1 - Planning│ ████████████████████████████████████████████ 85%    │
+│   Subtask 1.1 - Requirements│   ████████████ 100%                          │
+│ Main Task 2 - Development│       ████████████████████████████ 60%          │
+│ Main Task 3 - Testing│             ████████████████ 45%                    │
+│ Main Task 4 - Deployment│                   ████████ 30%                   │
+│ Main Task 5 - Maintenance│                       ████ 0%                    │
+└─────────────────┴───────────────────────────────────────────────────────────┘
+```
+
+**Key Features:**
+- 🎯 Left task list + Right Gantt chart timeline
+- 📊 Visual progress bars showing task completion
+- 🔗 Task dependency relationship lines
+- 🎨 Multi-theme support (Light/Dark/Colorful, etc.)
+- 🖱️ Drag to adjust task time and progress
+- 🌍 Multi-language support (Chinese/English/Japanese/Korean/French/German/Spanish/Russian)
+
+## Features
 
 - **Multiple View Modes** - Month, Day, Week, and Hour time granularity views
 - **Task Dependencies** - Support for FS, SS, FF, SF dependency types
@@ -684,69 +709,21 @@ A feature-rich, highly customizable Vue 3 Gantt chart component that supports ta
 - **Responsive Design** - Adjustable split panel ratio
 - **High Performance** - Virtual scrolling optimization for large datasets
 
-### Supported Languages
+### For complete English documentation including:
+- ✅ Detailed configuration guide
+- ✅ Task data format
+- ✅ Dependency relationships
+- ✅ View modes
+- ✅ Theme system
+- ✅ Internationalization
+- ✅ Interactive features
+- ✅ Link configuration
+- ✅ Performance optimization
+- ✅ Project structure
 
-- 🇨🇳 Simplified Chinese (zh-CN)
-- 🇺🇸 English (en-US)
-- 🇯🇵 Japanese (ja-JP)
-- 🇰🇷 Korean (ko-KR)
-- 🇫🇷 French (fr-FR)
-- 🇩🇪 German (de-DE)
-- 🇪🇸 Spanish (es-ES)
-- 🇷🇺 Russian (ru-RU)
+**Please visit**: [README.en-US.md](README.en-US.md) for the full English documentation.
 
-### Built-in Themes
-
-| Theme | Primary Color | Style |
-|-------|---------------|-------|
-| 🔷 **Metro** | `#0078d4` | Microsoft Metro design language |
-| 🌙 **Dark** | `#00d4ff` | Eye-friendly dark theme |
-| ✨ **Modern** | `#6366f1` | Clean modern design |
-| 💼 **Classic** | `#2563eb` | Traditional business style |
-| 🎨 **Colorful** | `#f59e0b` | Vibrant colorful theme |
-
-### Installation
-
-```bash
-# Clone repository
-git clone <repository-url>
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-### Quick Start
-
-```vue
-<template>
-  <gantt 
-    :styleConfig="styleConfig" 
-    :dataConfig="dataConfig" 
-    :eventConfig="eventConfig"
-  />
-</template>
-
-<script setup lang="ts">
-import Gantt from './components/gantt/Gantt.vue';
-// ... configuration code
-</script>
-```
-
-For complete documentation, please refer to:
-- **Separate English README**: [README.en-US.md](README.en-US.md)
-- **GitHub Repository**: View full documentation and examples
-
-### Browser Support
-
-- Chrome (Recommended)
-- Firefox
-- Safari
-- Edge
-
-### License
+## License
 
 MIT
 

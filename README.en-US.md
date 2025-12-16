@@ -10,7 +10,7 @@ A feature-rich, highly customizable Vue 3 Gantt chart component that supports ta
   <img src="https://img.shields.io/badge/Vite-6.2.0-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite">
 </div>
 
-## Preview
+## Interface Preview
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -18,12 +18,12 @@ A feature-rich, highly customizable Vue 3 Gantt chart component that supports ta
 ├─────────────────┬───────────────────────────────────────────────────────────┤
 │ Task Name       │ 12/01  12/02  12/03  12/04  12/05  12/06  12/07  12/08   │
 ├─────────────────┼───────────────────────────────────────────────────────────┤
-│ Main Task 1     │ ████████████████████████████████████████████ 85%        │
-│   Subtask 1.1   │   ████████████ 100%                                     │
-│ Main Task 2     │       ████████████████████████████ 60%                  │
-│ Main Task 3     │             ████████████████ 45%                        │
-│ Main Task 4     │                   ████████ 30%                          │
-│ Main Task 5     │                       ████ 0%                           │
+│ Main Task 1 - Planning│ ████████████████████████████████████████████ 85%    │
+│   Subtask 1.1 - Requirements│   ████████████ 100%                          │
+│ Main Task 2 - Development│       ████████████████████████████ 60%          │
+│ Main Task 3 - Testing│             ████████████████ 45%                    │
+│ Main Task 4 - Deployment│                   ████████ 30%                   │
+│ Main Task 5 - Maintenance│                       ████ 0%                    │
 └─────────────────┴───────────────────────────────────────────────────────────┘
 ```
 
@@ -33,7 +33,7 @@ A feature-rich, highly customizable Vue 3 Gantt chart component that supports ta
 - 🔗 Task dependency relationship lines
 - 🎨 Multi-theme support (Light/Dark/Colorful, etc.)
 - 🖱️ Drag to adjust task time and progress
-- 🌍 Multi-language support (8 languages)
+- 🌍 Multi-language support (Chinese/English/Japanese/Korean/French/German/Spanish/Russian)
 
 ## Features
 
@@ -79,6 +79,7 @@ npm run dev
   />
 </template>
 ```
+
 
 ```typescript
 import { ref, onMounted } from 'vue';
@@ -159,7 +160,7 @@ onMounted(() => {
 });
 ```
 
-## Configuration
+## Configuration Details
 
 ### StyleConfig
 
@@ -180,6 +181,72 @@ onMounted(() => {
 | mapFields | object | Field mapping configuration |
 | taskHeaders | array | Left task table column configuration |
 
+#### mapFields Field Mapping
+
+```typescript
+{
+  id: 'id',           // Task ID field
+  parentId: 'pid',    // Parent task ID field (for hierarchy)
+  task: 'taskNo',     // Task name field
+  priority: 'level',  // Priority field
+  startdate: 'start_date',  // Start date field
+  enddate: 'end_date',      // End date field
+  takestime: 'spend_time',  // Duration field
+  progress: 'job_progress'  // Progress field (0-1)
+}
+```
+
+#### taskHeaders Header Configuration
+
+```typescript
+{
+  title: string;      // Column title
+  width: number;      // Column width
+  property: string;   // Corresponds to property name in mapFields
+  show: boolean;      // Whether to display
+}
+```
+
+
+### EventConfig
+
+| Event | Parameters | Description |
+|-------|------------|-------------|
+| addRootTask | (row) | Triggered when adding a root task |
+| addSubTask | (task) | Triggered when adding a subtask |
+| removeTask | (task) | Triggered when removing a task |
+| editTask | (task) | Triggered when editing a task |
+| queryTask | (startDate, endDate, mode) | Triggered when querying tasks |
+| barDate | (id, startDate, endDate) | Triggered when task date changes |
+| allowChangeTaskDate | (allow) | Whether task date modification is allowed |
+| updateProgress | (detail) | Triggered when progress is updated |
+
+#### updateProgress Event Details
+
+```typescript
+interface ProgressUpdateDetail {
+  taskId: any;        // Task ID
+  oldProgress: number; // Old progress value (0-1)
+  newProgress: number; // New progress value (0-1)
+  task: object;       // Complete task object
+}
+```
+
+## Task Data Format
+
+```typescript
+{
+  id: '1',                              // Task ID
+  pid: '0',                             // Parent task ID, '0' means root task
+  taskNo: 'Project Planning Phase',     // Task name
+  level: 'Important',                   // Priority
+  start_date: '2024-12-01 08:00:00',   // Start time
+  end_date: '2024-12-06 18:00:00',     // End time
+  job_progress: '0.85',                // Progress (0-1)
+  spend_time: null                     // Duration (auto-calculated)
+}
+```
+
 ## Task Dependencies
 
 ```
@@ -199,10 +266,27 @@ Finish-Start (FS)  Start-Start (SS)   Finish-Finish (FF) Start-Finish (SF)
 
 | Type | Enum | Description |
 |------|------|-------------|
-| Finish-Start (FS) | FINISH_TO_START | Task B starts after Task A finishes |
+| Finish-Start (FS) | FINISH_TO_START | Successor task starts after predecessor finishes |
 | Start-Start (SS) | START_TO_START | Tasks start simultaneously |
 | Finish-Finish (FF) | FINISH_TO_FINISH | Tasks finish simultaneously |
-| Start-Finish (SF) | START_TO_FINISH | Task A finishes after Task B starts |
+| Start-Finish (SF) | START_TO_FINISH | Predecessor finishes after successor starts |
+
+### Configuration Example
+
+```typescript
+import { LinkType } from './components/gantt/Types';
+
+dependencies: [
+  // Task 2 starts after Task 1 finishes
+  { sourceTaskId: '1', targetTaskId: '2', type: LinkType.FINISH_TO_START },
+  
+  // Task 3 and Task 4 start simultaneously
+  { sourceTaskId: '3', targetTaskId: '4', type: LinkType.START_TO_START },
+  
+  // Task 5 and Task 6 must finish simultaneously
+  { sourceTaskId: '5', targetTaskId: '6', type: LinkType.FINISH_TO_FINISH },
+]
+```
 
 ## View Modes
 
@@ -213,23 +297,60 @@ Finish-Start (FS)  Start-Start (SS)   Finish-Finish (FF) Start-Finish (SF)
 | 📊 **Week** | Week | `W50 W51 W52 ...` | Mid-term project tracking |
 | ⏰ **Hour** | Hour | `08 09 10 11 12 ...` | Precise task scheduling |
 
+The component supports four time granularity views:
+
+| Mode | Description | Use Case |
+|------|-------------|----------|
+| Month | Display by day, month unit | Long-term project planning |
+| Day | Display by day, precise to day | Short-term task management |
+| Week | Display by week | Mid-term project tracking |
+| Hour | Display by hour | Precise task scheduling |
+
 ## Theme System
 
-| Theme | Primary Color | Style |
-|-------|---------------|-------|
-| 🔷 **Metro** | `#0078d4` | Microsoft Metro design language |
-| 🌙 **Dark** | `#00d4ff` | Eye-friendly dark theme |
-| ✨ **Modern** | `#6366f1` | Clean modern design |
-| 💼 **Classic** | `#2563eb` | Traditional business style |
-| 🎨 **Colorful** | `#f59e0b` | Vibrant colorful theme |
+| Theme | Primary Color | Style Features |
+|-------|---------------|----------------|
+| 🔷 **Metro** | `#0078d4` | Microsoft Metro design language, professional metallic texture |
+| 🌙 **Dark** | `#00d4ff` | Eye-friendly dark theme, suitable for extended use |
+| ✨ **Modern** | `#6366f1` | Clean modern design, refreshing and comfortable |
+| 💼 **Classic** | `#2563eb` | Traditional business style, stable and dignified |
+| 🎨 **Colorful** | `#f59e0b` | Vibrant colorful theme, full of vitality |
+
+### Built-in Themes
+
+| Theme ID | Name | Description |
+|----------|------|-------------|
+| metro | Metro | Microsoft Metro design language |
+| dark | Dark Mode | Eye-friendly dark theme |
+| modern | Modern | Clean modern design |
+| classic | Classic | Traditional business style |
+| colorful | Colorful | Vibrant colorful theme |
 
 ### Switching Themes
 
-Click the theme selector in the top right corner of the component. Theme settings are automatically saved to localStorage.
+A theme selector is provided in the top right corner of the component. Click to switch themes. Theme settings are automatically saved to localStorage.
 
-## Internationalization
+### Custom Theme CSS Variables
 
-The component has a complete i18n system built-in, supporting 8 languages with easy extensibility.
+```css
+:root {
+  --primary: #0078d4;           /* Primary color */
+  --primary-dark: #106ebe;      /* Primary color dark */
+  --primary-light: #1084d8;     /* Primary color light */
+  --bg-content: #ffffff;        /* Content background color */
+  --bg-metal-light: linear-gradient(145deg, #ffffff, #f5f5f5);
+  --bg-metal-normal: linear-gradient(145deg, #f5f5f5, #e8e8e8);
+  --border: #d0d0d0;            /* Border color */
+  --text-primary: #333333;      /* Primary text color */
+  --text-secondary: #666666;    /* Secondary text color */
+  --row-hover: #FFF3A1;         /* Row hover color */
+  --font-family: 'Segoe UI', sans-serif;
+}
+```
+
+## Internationalization Support
+
+The component has a built-in complete internationalization (i18n) system, supporting bilingual switching between Chinese and English, and can easily extend more languages.
 
 ### Supported Languages
 
@@ -246,7 +367,9 @@ The component has a complete i18n system built-in, supporting 8 languages with e
 
 ### Usage
 
-#### Switch Language
+#### 1. Switch Language
+
+In the top right corner of the Gantt chart toolbar, click the language selector to switch the interface language:
 
 ```typescript
 import { setLocale } from './components/gantt/i18n';
@@ -258,7 +381,15 @@ setLocale('en-US');
 setLocale('zh-CN');
 ```
 
-#### Use in Components
+#### 2. Get Current Language
+
+```typescript
+import { getLocale } from './components/gantt/i18n';
+
+const currentLang = getLocale(); // 'zh-CN' or 'en-US'
+```
+
+#### 3. Use Translation in Components
 
 ```vue
 <script setup lang="ts">
@@ -271,38 +402,134 @@ const { t, locale } = useI18n();
   <div>
     <h1>{{ t('common.title') }}</h1>
     <button>{{ t('common.confirm') }}</button>
+    <p>{{ t('task.name') }}</p>
   </div>
 </template>
 ```
 
 ### i18n Features
 
-- ✅ **Instant Switching** - No page refresh required
-- ✅ **Auto Save** - Language preference saved to localStorage
-- ✅ **Complete Coverage** - All interface text translated
-- ✅ **Dynamic Headers** - Timeline headers (months, weekdays) auto-formatted
-- ✅ **Type Safe** - Full TypeScript support
-- ✅ **Easy Extension** - Simple to add new languages
+- ✅ **Instant Switching** - No page refresh required to switch languages
+- ✅ **Auto Save** - Language selection automatically saved to browser localStorage
+- ✅ **Complete Coverage** - All interface text has been translated
+- ✅ **Dynamic Headers** - Timeline headers (months, weekdays, etc.) automatically formatted based on language
+- ✅ **Type Safe** - TypeScript provides complete type support
+- ✅ **Easy Extension** - Can easily add new language support
+
+### Translated Interface Elements
+
+#### Toolbar
+- Date picker separator ("to" / "至")
+- View mode buttons (Month/Week/Day/Hour)
+- Link legend title and all link types
+
+#### Task Headers
+- No. (序号)
+- Task Name (任务名称)
+- Priority (优先级)
+- Start Date (开始时间)
+- End Date (结束时间)
+- Duration (耗时)
+- Progress (进度)
+
+#### Timeline Headers
+- Month names (January/一月, February/二月...)
+- Weekday names (Monday/星期一, Tuesday/星期二...)
+- Date format (01/01日, 02/02日...)
+- Hour format (0:00/0点, 1:00/1点...)
+- Week title (Week 1/第1周)
+
+#### Configuration Panel
+- Gantt configuration title
+- Theme settings options
+- All link configuration options
+- All buttons and labels
+
+### Adding New Languages
+
+To add new language support, follow these steps:
+
+1. Create a new language file in the `src/components/gantt/i18n/locales/` directory (e.g., `ja-JP.ts`)
+2. Copy the structure from `zh-CN.ts` or `en-US.ts`
+3. Translate all text
+4. Import and register the new language in `src/components/gantt/i18n/index.ts`:
+
+```typescript
+import jaJP from './locales/ja-JP';
+import koKR from './locales/ko-KR';
+import frFR from './locales/fr-FR';
+import deDE from './locales/de-DE';
+import esES from './locales/es-ES';
+import ruRU from './locales/ru-RU';
+
+const messages: Record<Locale, Messages> = {
+  'zh-CN': zhCN,
+  'en-US': enUS,
+  'ja-JP': jaJP,  // Added Japanese
+  'ko-KR': koKR,  // Added Korean
+  'fr-FR': frFR,  // Added French
+  'de-DE': deDE,  // Added German
+  'es-ES': esES,  // Added Spanish
+  'ru-RU': ruRU   // Added Russian
+};
+```
+
+5. Update the `getLocales()` function to add new language options
+
+### Language Pack Structure
+
+```typescript
+export default {
+  common: {        // Common text
+    confirm: 'Confirm',
+    cancel: 'Cancel',
+    // ...
+  },
+  date: {          // Date and time
+    year: 'Year',
+    month: 'Month',
+    // ...
+  },
+  viewMode: {      // View mode
+    month: 'Month',
+    week: 'Week',
+    // ...
+  },
+  task: {          // Task related
+    name: 'Task Name',
+    priority: 'Priority',
+    // ...
+  },
+  // More categories...
+}
+```
+
 
 ## Interactive Features
 
 | Operation | Description | Effect |
 |-----------|-------------|--------|
 | 🖱️ **Drag & Move** | Drag entire task bar | Modify task start and end dates |
-| 📏 **Resize** | Drag task bar edges | Adjust task duration |
-| 📊 **Progress Adjust** | Drag triangle slider at bottom | Adjust task completion progress |
+| 📏 **Resize** | Drag task bar left/right edges | Adjust task duration |
+| 📊 **Progress Adjust** | Drag triangle slider at bottom of task bar | Adjust task completion progress |
 
-### Task Operations
+### Task Bar Operations
 
 - **Drag & Move** - Drag task bar to modify start and end dates
-- **Resize** - Drag task bar edges to adjust duration
-- **Progress Adjust** - Drag triangle slider to adjust progress
+- **Resize** - Drag task bar left/right edges to adjust duration
+- **Progress Adjust** - Drag triangle slider at bottom to adjust progress
 
-### Parent-Child Linkage
+### Parent-Child Task Linkage
 
-- Moving parent tasks moves child tasks
-- Resizing parent tasks checks child constraints
+- Moving parent tasks causes child tasks to move along
+- Resizing parent tasks checks child task constraints
 - Child tasks cannot start before parent tasks
+
+### Quick Operations
+
+- Click the **+** button in the top left to add root tasks
+- Click the calendar icon to jump to today
+- Right-click task rows to add subtasks, edit, or delete
 
 ## Link Configuration
 
@@ -324,18 +551,31 @@ interface LinkConfig {
 
 ### Path Types
 
+```
+Straight          Bezier Curve      Right Angle
+┌─────┐          ┌─────┐          ┌─────┐
+│Task A│ ────────▶│Task A│ ╭───────▶ │Task A│ ┐
+└─────┘          └─────┘ ╰─┐       └─────┘ │
+                          │                │
+                      ┌─────┐          ┌─────┐
+                      │Task B│          │Task B│
+                      └─────┘          └─────┘
+```
+
 | Type | Enum | Description |
 |------|------|-------------|
 | Straight | STRAIGHT | Direct connection |
-| Bezier | BEZIER | Smooth curve |
+| Bezier Curve | BEZIER | Smooth curve |
 | Right Angle | RIGHT_ANGLE | Right-angle connection |
 
 ## Performance Optimization
 
-- **Virtual Scrolling** - Render only visible tasks
-- **Throttled Updates** - Avoid frequent re-renders
-- **Computed Caching** - Cache complex calculations
-- **On-Demand Rendering** - Calculate and render links as needed
+The component includes multiple performance optimizations:
+
+- **Virtual Scrolling** - Only render tasks in the visible area
+- **Throttled Updates** - Use throttling to avoid frequent re-renders when data changes
+- **Cached Calculations** - Use computed to cache complex calculation results
+- **On-Demand Rendering** - Calculate and render elements like links on demand
 
 ## Project Structure
 
@@ -343,42 +583,57 @@ interface LinkConfig {
 src/
 ├── components/
 │   └── gantt/
-│       ├── Gantt.vue              # Main component
-│       ├── Bar.vue                # Task bar component
-│       ├── TaskLinks.vue          # Link component
-│       ├── TimelineHeader.vue     # Timeline header
-│       ├── DatePicker.vue         # Date picker
-│       ├── GanttConfigPanel.vue   # Configuration panel
-│       ├── Types.ts               # Type definitions
-│       ├── Store.ts               # State management
-│       ├── LinkConfig.ts          # Link configuration
-│       ├── i18n/                  # i18n system
-│       │   ├── index.ts           # i18n core
-│       │   └── locales/           # Language packs
-│       │       ├── zh-CN.ts       # Chinese
-│       │       ├── en-US.ts       # English
-│       │       ├── ja-JP.ts       # Japanese
-│       │       ├── ko-KR.ts       # Korean
-│       │       ├── fr-FR.ts       # French
-│       │       ├── de-DE.ts       # German
-│       │       ├── es-ES.ts       # Spanish
-│       │       └── ru-RU.ts       # Russian
-│       └── themes/                # Theme config
+│       ├── Gantt.vue           # Main component
+│       ├── Bar.vue             # Task bar component
+│       ├── BarRecursionRow.vue # Recursive row component
+│       ├── TaskLinks.vue       # Link component
+│       ├── TimelineHeader.vue  # Timeline header
+│       ├── TableContent.vue    # Table content
+│       ├── RightTable.vue      # Right Gantt chart area
+│       ├── SplitPane.vue       # Split panel
+│       ├── DatePicker.vue      # Date picker
+│       ├── GanttConfigPanel.vue    # Configuration panel
+│       ├── GanttThemeSelector.vue  # Theme selector
+│       ├── LanguageSelector.vue    # Language selector
+│       ├── LinkConfigPanel.vue     # Link configuration panel
+│       ├── Types.ts            # Type definitions
+│       ├── Store.ts            # State management
+│       ├── ShareState.ts       # Shared state
+│       ├── LinkConfig.ts       # Link configuration
+│       ├── Symbols.ts          # Injection symbols
+│       ├── ZodSchema.ts        # Data validation
+│       ├── i18n/               # Internationalization system
+│       │   ├── index.ts        # i18n core
+│       │   └── locales/        # Language packs
+│       │       ├── zh-CN.ts    # Chinese language pack
+│       │       ├── en-US.ts    # English language pack
+│       │       ├── ja-JP.ts    # Japanese language pack
+│       │       ├── ko-KR.ts    # Korean language pack
+│       │       ├── fr-FR.ts    # French language pack
+│       │       ├── de-DE.ts    # German language pack
+│       │       ├── es-ES.ts    # Spanish language pack
+│       │       └── ru-RU.ts    # Russian language pack
+│       ├── task/               # Task-related components
+│       │   ├── TaskTable.vue
+│       │   ├── TaskHeader.vue
+│       │   ├── TaskContent.vue
+│       │   └── TaskRow.vue
+│       └── themes/             # Theme configuration
 │           └── GanttThemes.ts
-├── App.vue                        # Example app
-├── main.ts                        # Entry point
-└── style.css                      # Global styles
+├── App.vue                     # Example application
+├── main.ts                     # Entry file
+└── style.css                   # Global styles
 ```
 
 ## Complete Example
 
-Refer to `src/App.vue` for a complete usage example including:
+Refer to `src/App.vue` for a complete usage example, including:
 
 - Multi-level task structure
 - Various dependency configurations
 - Custom color mapping
 - Event handling
-- i18n integration
+- Internationalization integration
 
 ## Browser Support
 
