@@ -10,20 +10,27 @@
 
 ## 界面预览
 
-<div align="center">
-  <table>
-    <tr>
-      <td align="center">
-        <img width="400" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjI1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8IS0tIEJhY2tncm91bmQgLS0+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2Y4ZjhmOCIvPgogIAogIDwhLS0gSGVhZGVyIC0tPgogIDxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAiIGZpbGw9IiNlOGU4ZTgiIHN0cm9rZT0iI2QwZDBkMCIvPgogIDx0ZXh0IHg9IjIwMCIgeT0iMjUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMzMzMiPlZ1ZTMgR2FudHQg5LiT5Lia57uE5Lu2PC90ZXh0PgogIAogIDwhLS0gTGVmdCBUYWJsZSAtLT4KICA8cmVjdCB4PSIwIiB5PSI0MCIgd2lkdGg9IjE1MCIgaGVpZ2h0PSIzMCIgZmlsbD0iI2Y1ZjVmNSIgc3Ryb2tlPSIjZDBkMGQwIi8+CiAgPHRleHQgeD0iNzUiIHk9IjU4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjYiPuS7u+WKoeWQjeensDwvdGV4dD4KICA8cmVjdCB4PSIwIiB5PSI3MCIgd2lkdGg9IjE1MCIgaGVpZ2h0PSIzMCIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjZDBkMGQwIi8+CiAgPHRleHQgeD0iMTAiIHk9Ijg4IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMzMzMiPuS4u+S7u+WKoTEgLSDpobnnm67op4TliJI8L3RleHQ+CiAgPHJlY3QgeD0iMCIgeT0iMTAwIiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjMwIiBmaWxsPSIjZmZmIiBzdHJva2U9IiNkMGQwZDAiLz4KICA8dGV4dCB4PSIyMCIgeT0iMTE4IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMzMzMiPuWtkOS7u+WKoTEuMSAtIOmcgOaxguWIhuaekDwvdGV4dD4KICA8cmVjdCB4PSIwIiB5PSIxMzAiIHdpZHRoPSIxNTAiIGhlaWdodD0iMzAiIGZpbGw9IiNmZmYiIHN0cm9rZT0iI2QwZDBkMCIvPgogIDx0ZXh0IHg9IjEwIiB5PSIxNDgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzMzMyI+5Li75Lu75YqhMiAtIOW8gOWPkemYtuautTwvdGV4dD4KICA8cmVjdCB4PSIwIiB5PSIxNjAiIHdpZHRoPSIxNTAiIGhlaWdodD0iMzAiIGZpbGw9IiNmZmYiIHN0cm9rZT0iI2QwZDBkMCIvPgogIDx0ZXh0IHg9IjEwIiB5PSIxNzgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzMzMyI+5Li75Lu75YqhMyAtIOa1i+ivlemYtuautTwvdGV4dD4KICA8cmVjdCB4PSIwIiB5PSIxOTAiIHdpZHRoPSIxNTAiIGhlaWdodD0iMzAiIGZpbGw9IiNmZmYiIHN0cm9rZT0iI2QwZDBkMCIvPgogIDx0ZXh0IHg9IjEwIiB5PSIyMDgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzMzMyI+5Li75Lu75YqhNCAtIOmDqOe9suS4iue6vzwvdGV4dD4KICA8cmVjdCB4PSIwIiB5PSIyMjAiIHdpZHRoPSIxNTAiIGhlaWdodD0iMzAiIGZpbGw9IiNmZmYiIHN0cm9rZT0iI2QwZDBkMCIvPgogIDx0ZXh0IHg9IjEwIiB5PSIyMzgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzMzMyI+5Li75Lu75Yqh5LiOIOe7tOaKpOmqjOivgTwvdGV4dD4KICA8IS0tIFJpZ2h0IEdhbnR0IC0tPgogIDxyZWN0IHg9IjE1MCIgeT0iNDAiIHdpZHRoPSIyNTAiIGhlaWdodD0iMzAiIGZpbGw9IiNmNWY1ZjUiIHN0cm9rZT0iI2QwZDBkMCIvPgogIDx0ZXh0IHg9IjE3MCIgeT0iNTgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzY2NiI+MTIvMDE8L3RleHQ+CiAgPHRleHQgeD0iMjIwIiB5PSI1OCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjNjY2Ij4xMi8wMjwvdGV4dD4KICA8dGV4dCB4PSIyNzAiIHk9IjU4IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiM2NjYiPjEyLzAzPC90ZXh0PgogIDx0ZXh0IHg9IjMyMCIgeT0iNTgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzY2NiI+MTIvMDQ8L3RleHQ+CiAgPHRleHQgeD0iMzcwIiB5PSI1OCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjNjY2Ij4xMi8wNTwvdGV4dD4KICA8IS0tIEdhbnR0IEJhcnMgLS0+CiAgPHJlY3QgeD0iMTcwIiB5PSI3NSIgd2lkdGg9IjE4MCIgaGVpZ2h0PSIyMCIgZmlsbD0iIzAwNzhkNCIgcng9IjMiLz4KICA8dGV4dCB4PSIyNjAiIHk9Ijg4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IndoaXRlIj44NSU8L3RleHQ+CiAgPHJlY3QgeD0iMTgwIiB5PSIxMDUiIHdpZHRoPSI2MCIgaGVpZ2h0PSIyMCIgZmlsbD0iIzI4YTc0NSIgcng9IjMiLz4KICA8dGV4dCB4PSIyMTAiIHk9IjExOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSJ3aGl0ZSI+MTAwJTwvdGV4dD4KICA8cmVjdCB4PSIxNzAiIHk9IjEzNSIgd2lkdGg9IjEyMCIgaGVpZ2h0PSIyMCIgZmlsbD0iI2ZmNjM0NyIgcng9IjMiLz4KICA8dGV4dCB4PSIyMzAiIHk9IjE0OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSJ3aGl0ZSI+NjAlPC90ZXh0PgogIDxyZWN0IHg9IjE5MCIgeT0iMTY1IiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjZmY5NTAwIiByeD0iMyIvPgogIDx0ZXh0IHg9IjI0MCIgeT0iMTc4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IndoaXRlIj40NSU8L3RleHQ+CiAgPHJlY3QgeD0iMjEwIiB5PSIxOTUiIHdpZHRoPSI4MCIgaGVpZ2h0PSIyMCIgZmlsbD0iIzY2NjY2NiIgcng9IjMiLz4KICA8dGV4dCB4PSIyNTAiIHk9IjIwOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSJ3aGl0ZSI+MzAlPC90ZXh0PgogIDxyZWN0IHg9IjIzMCIgeT0iMjI1IiB3aWR0aD0iNjAiIGhlaWdodD0iMjAiIGZpbGw9IiM5OTk5OTkiIHJ4PSIzIi8+CiAgPHRleHQgeD0iMjYwIiB5PSIyMzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgZmlsbD0id2hpdGUiPjAlPC90ZXh0PgogIDwhLS0gUHJvZ3Jlc3MgVHJpYW5nbGVzIC0tPgogIDxwb2x5Z29uIHBvaW50cz0iMzQ0LDE4NSAzNTAsMTk1IDM1NiwxODUiIGZpbGw9IiMwMDc4ZDQiIHN0cm9rZT0iIzAwNjNiMSIvPgogIDxwb2x5Z29uIHBvaW50cz0iMjM0LDIwNSAyNDAsMjE1IDI0NiwyMDUiIGZpbGw9IiMyOGE3NDUiIHN0cm9rZT0iIzFmN2YzNiIvPgogIDxwb2x5Z29uIHBvaW50cz0iMjg0LDIzNSAyOTAsMjQ1IDI5NiwyMzUiIGZpbGw9IiNmZjk1MDAiIHN0cm9rZT0iI2U2ODUwMCIvPgogIDwhLS0gRGVwZW5kZW5jeSBBcnJvd3MgLS0+CiAgPGxpbmUgeDE9IjI0MCIgeTE9Ijk1IiB4Mj0iMTgwIiB5Mj0iMTA1IiBzdHJva2U9IiM2NjY2NjYiIHN0cm9rZS13aWR0aD0iMiIgbWFya2VyLWVuZD0idXJsKCNhcnJvdykiLz4KICA8bGluZSB4MT0iMjQwIiB5MT0iMTI1IiB4Mj0iMTkwIiB5Mj0iMTM1IiBzdHJva2U9IiM2NjY2NjYiIHN0cm9rZS13aWR0aD0iMiIgbWFya2VyLWVuZD0idXJsKCNhcnJvdykiLz4KICA8IS0tIEFycm93IE1hcmtlciAtLT4KICA8ZGVmcz4KICAgIDxtYXJrZXIgaWQ9ImFycm93IiBtYXJrZXJXaWR0aD0iMTAiIG1hcmtlckhlaWdodD0iMTAiIHJlZlg9IjkiIHJlZlk9IjMiIG9yaWVudD0iYXV0byIgbWFya2VyVW5pdHM9InN0cm9rZVdpZHRoIj4KICAgICAgPHBhdGggZD0iTTAsMCBMMCw2IEw5LDMgeiIgZmlsbD0iIzY2NjY2NiIvPgogICAgPC9tYXJrZXI+CiAgPC9kZWZzPgo8L3N2Zz4K" alt="甘特图界面预览">
-        <br><strong>主界面</strong>
-      </td>
-      <td align="center">
-        <img width="400" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjI1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8IS0tIEJhY2tncm91bmQgLS0+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzFhMWExYSIvPgogIAogIDwhLS0gSGVhZGVyIC0tPgogIDxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAiIGZpbGw9IiMyZDJkMmQiIHN0cm9rZT0iIzQwNDA0MCIvPgogIDx0ZXh0IHg9IjIwMCIgeT0iMjUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiNmZmYiPuaen+iJsuaooeebrCAtIOa3seiJsuS4u+mimDwvdGV4dD4KICA8IS0tIExlZnQgVGFibGUgLS0+CiAgPHJlY3QgeD0iMCIgeT0iNDAiIHdpZHRoPSIxNTAiIGhlaWdodD0iMzAiIGZpbGw9IiMzYTNhM2EiIHN0cm9rZT0iIzQwNDA0MCIvPgogIDx0ZXh0IHg9Ijc1IiB5PSI1OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjY2NjIj7ku7vliqHlkI3np7A8L3RleHQ+CiAgPHJlY3QgeD0iMCIgeT0iNzAiIHdpZHRoPSIxNTAiIGhlaWdodD0iMzAiIGZpbGw9IiMyNjI2MjYiIHN0cm9rZT0iIzQwNDA0MCIvPgogIDx0ZXh0IHg9IjEwIiB5PSI4OCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjExIiBmaWxsPSIjZmZmIj7kuLvku7vliqExIC0g6aG555uu6KeE5YiSPC90ZXh0PgogIDxyZWN0IHg9IjAiIHk9IjEwMCIgd2lkdGg9IjE1MCIgaGVpZ2h0PSIzMCIgZmlsbD0iIzI2MjYyNiIgc3Ryb2tlPSIjNDA0MDQwIi8+CiAgPHRleHQgeD0iMjAiIHk9IjExOCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjExIiBmaWxsPSIjZmZmIj7lrZDku7vliqExLjEgLSDpnIDmsYLliIbmnpA8L3RleHQ+CiAgPHJlY3QgeD0iMCIgeT0iMTMwIiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjMwIiBmaWxsPSIjMjYyNjI2IiBzdHJva2U9IiM0MDQwNDAiLz4KICA8dGV4dCB4PSIxMCIgeT0iMTQ4IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNmZmYiPuS4u+S7u+WKoTIgLSDlvIDlj5HpmLbmrrU8L3RleHQ+CiAgPHJlY3QgeD0iMCIgeT0iMTYwIiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjMwIiBmaWxsPSIjMjYyNjI2IiBzdHJva2U9IiM0MDQwNDAiLz4KICA8dGV4dCB4PSIxMCIgeT0iMTc4IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNmZmYiPuS4u+S7u+WKoTMgLSDmtYvor5XpmLbmrrU8L3RleHQ+CiAgPCEtLSBSaWdodCBHYW50dCAtLT4KICA8cmVjdCB4PSIxNTAiIHk9IjQwIiB3aWR0aD0iMjUwIiBoZWlnaHQ9IjMwIiBmaWxsPSIjM2EzYTNhIiBzdHJva2U9IiM0MDQwNDAiLz4KICA8dGV4dCB4PSIxNzAiIHk9IjU4IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiNjY2MiPjEyLzAxPC90ZXh0PgogIDx0ZXh0IHg9IjIyMCIgeT0iNTgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgZmlsbD0iI2NjYyI+MTIvMDI8L3RleHQ+CiAgPHRleHQgeD0iMjcwIiB5PSI1OCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjY2NjIj4xMi8wMzwvdGV4dD4KICA8dGV4dCB4PSIzMjAiIHk9IjU4IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiNjY2MiPjEyLzA0PC90ZXh0PgogIDx0ZXh0IHg9IjM3MCIgeT0iNTgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgZmlsbD0iI2NjYyI+MTIvMDU8L3RleHQ+CiAgPCEtLSBHYW50dCBCYXJzIC0tPgogIDxyZWN0IHg9IjE3MCIgeT0iNzUiIHdpZHRoPSIxODAiIGhlaWdodD0iMjAiIGZpbGw9IiMwMGQ0ZmYiIHJ4PSIzIi8+CiAgPHRleHQgeD0iMjYwIiB5PSI4OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjMDAwIj44NSU8L3RleHQ+CiAgPHJlY3QgeD0iMTgwIiB5PSIxMDUiIHdpZHRoPSI2MCIgaGVpZ2h0PSIyMCIgZmlsbD0iIzAwZDRmZiIgcng9IjMiLz4KICA8dGV4dCB4PSIyMTAiIHk9IjExOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjMDAwIj4xMDAlPC90ZXh0PgogIDxyZWN0IHg9IjE3MCIgeT0iMTM1IiB3aWR0aD0iMTIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjMDBkNGZmIiByeD0iMyIvPgogIDx0ZXh0IHg9IjIzMCIgeT0iMTQ4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiMwMDAiPjYwJTwvdGV4dD4KICA8cmVjdCB4PSIxOTAiIHk9IjE2NSIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIyMCIgZmlsbD0iIzAwZDRmZiIgcng9IjMiLz4KICA8dGV4dCB4PSIyNDAiIHk9IjE3OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjMDAwIj40NSU8L3RleHQ+CiAgPCEtLSBQcm9ncmVzcyBUcmlhbmdsZXMgLS0+CiAgPHBvbHlnb24gcG9pbnRzPSIzNDQsMTg1IDM1MCwxOTUgMzU2LDE4NSIgZmlsbD0iIzAwZDRmZiIgc3Ryb2tlPSIjMDBiOGU2Ii8+CiAgPHBvbHlnb24gcG9pbnRzPSIyMzQsMjA1IDI0MCwyMTUgMjQ2LDIwNSIgZmlsbD0iIzAwZDRmZiIgc3Ryb2tlPSIjMDBiOGU2Ii8+CiAgPHBvbHlnb24gcG9pbnRzPSIyODQsMjM1IDI5MCwyNDUgMjk2LDIzNSIgZmlsbD0iIzAwZDRmZiIgc3Ryb2tlPSIjMDBiOGU2Ii8+Cjwvc3ZnPgo=" alt="深色主题">
-        <br><strong>深色主题</strong>
-      </td>
-    </tr>
-  </table>
-</div>
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        Vue3 Gantt 专业组件                                  │
+├─────────────────┬───────────────────────────────────────────────────────────┤
+│ 任务名称        │ 12/01  12/02  12/03  12/04  12/05  12/06  12/07  12/08   │
+├─────────────────┼───────────────────────────────────────────────────────────┤
+│ 主任务1 - 项目规划│ ████████████████████████████████████████████ 85%        │
+│   子任务1.1 - 需求│   ████████████ 100%                                     │
+│ 主任务2 - 开发阶段│       ████████████████████████████ 60%                  │
+│ 主任务3 - 测试阶段│             ████████████████ 45%                        │
+│ 主任务4 - 部署上线│                   ████████ 30%                          │
+│ 主任务5 - 维护优化│                       ████ 0%                           │
+└─────────────────┴───────────────────────────────────────────────────────────┘
+```
+
+**主要特点：**
+- 🎯 左侧任务列表 + 右侧甘特图时间轴
+- 📊 可视化进度条显示任务完成度
+- 🔗 任务间依赖关系连线
+- 🎨 多主题支持（浅色/深色/彩色等）
+- 🖱️ 拖拽调整任务时间和进度
 
 ## 特性
 
@@ -238,88 +245,17 @@ interface ProgressUpdateDetail {
 
 ## 任务依赖关系
 
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="25%">
-        <svg width="150" height="100" xmlns="http://www.w3.org/2000/svg">
-          <!-- FS: Finish to Start -->
-          <rect x="10" y="20" width="60" height="20" fill="#0078d4" rx="3"/>
-          <text x="40" y="33" text-anchor="middle" font-family="Arial" font-size="9" fill="white">任务A</text>
-          <rect x="80" y="50" width="60" height="20" fill="#28a745" rx="3"/>
-          <text x="110" y="63" text-anchor="middle" font-family="Arial" font-size="9" fill="white">任务B</text>
-          <!-- Arrow -->
-          <path d="M70,30 Q75,40 80,50" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrow1)"/>
-          <text x="75" y="85" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">FS</text>
-          <defs>
-            <marker id="arrow1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L9,3 z" fill="#666"/>
-            </marker>
-          </defs>
-        </svg>
-        <br><strong>完成-开始 (FS)</strong><br>
-        <small>A完成后B开始</small>
-      </td>
-      <td align="center" width="25%">
-        <svg width="150" height="100" xmlns="http://www.w3.org/2000/svg">
-          <!-- SS: Start to Start -->
-          <rect x="10" y="20" width="60" height="20" fill="#0078d4" rx="3"/>
-          <text x="40" y="33" text-anchor="middle" font-family="Arial" font-size="9" fill="white">任务A</text>
-          <rect x="10" y="50" width="60" height="20" fill="#28a745" rx="3"/>
-          <text x="40" y="63" text-anchor="middle" font-family="Arial" font-size="9" fill="white">任务B</text>
-          <!-- Arrow -->
-          <path d="M10,30 L10,50" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrow2)"/>
-          <text x="75" y="85" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">SS</text>
-          <defs>
-            <marker id="arrow2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L9,3 z" fill="#666"/>
-            </marker>
-          </defs>
-        </svg>
-        <br><strong>开始-开始 (SS)</strong><br>
-        <small>A和B同时开始</small>
-      </td>
-      <td align="center" width="25%">
-        <svg width="150" height="100" xmlns="http://www.w3.org/2000/svg">
-          <!-- FF: Finish to Finish -->
-          <rect x="10" y="20" width="60" height="20" fill="#0078d4" rx="3"/>
-          <text x="40" y="33" text-anchor="middle" font-family="Arial" font-size="9" fill="white">任务A</text>
-          <rect x="30" y="50" width="60" height="20" fill="#28a745" rx="3"/>
-          <text x="60" y="63" text-anchor="middle" font-family="Arial" font-size="9" fill="white">任务B</text>
-          <!-- Arrow -->
-          <path d="M70,30 L90,50" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrow3)"/>
-          <text x="75" y="85" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">FF</text>
-          <defs>
-            <marker id="arrow3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L9,3 z" fill="#666"/>
-            </marker>
-          </defs>
-        </svg>
-        <br><strong>完成-完成 (FF)</strong><br>
-        <small>A和B同时完成</small>
-      </td>
-      <td align="center" width="25%">
-        <svg width="150" height="100" xmlns="http://www.w3.org/2000/svg">
-          <!-- SF: Start to Finish -->
-          <rect x="30" y="20" width="60" height="20" fill="#0078d4" rx="3"/>
-          <text x="60" y="33" text-anchor="middle" font-family="Arial" font-size="9" fill="white">任务A</text>
-          <rect x="10" y="50" width="60" height="20" fill="#28a745" rx="3"/>
-          <text x="40" y="63" text-anchor="middle" font-family="Arial" font-size="9" fill="white">任务B</text>
-          <!-- Arrow -->
-          <path d="M30,50 Q25,35 30,30" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrow4)"/>
-          <text x="75" y="85" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">SF</text>
-          <defs>
-            <marker id="arrow4" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L9,3 z" fill="#666"/>
-            </marker>
-          </defs>
-        </svg>
-        <br><strong>开始-完成 (SF)</strong><br>
-        <small>B开始后A完成</small>
-      </td>
-    </tr>
-  </table>
-</div>
+```
+完成-开始 (FS)    开始-开始 (SS)    完成-完成 (FF)    开始-完成 (SF)
+┌─────────┐      ┌─────────┐      ┌─────────┐      ┌─────────┐
+│ 任务 A  │──┐   │ 任务 A  │──┐   │ 任务 A  │──┐   │ 任务 A  │◄─┐
+└─────────┘  │   └─────────┘  │   └─────────┘  │   └─────────┘  │
+             ▼                ▼                ▼                │
+         ┌─────────┐      ┌─────────┐      ┌─────────┐      ┌─────────┐
+         │ 任务 B  │      │ 任务 B  │      │ 任务 B  │      │ 任务 B  │
+         └─────────┘      └─────────┘      └─────────┘      └─────────┘
+      A完成后B开始        A和B同时开始       A和B同时完成       B开始后A完成
+```
 
 ### 依赖类型
 
@@ -349,90 +285,12 @@ dependencies: [
 
 ## 视图模式
 
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="25%">
-        <svg width="150" height="100" xmlns="http://www.w3.org/2000/svg">
-          <!-- Month View -->
-          <rect width="100%" height="100%" fill="#f8f8f8"/>
-          <rect x="10" y="10" width="130" height="20" fill="#e8e8e8" stroke="#d0d0d0"/>
-          <text x="75" y="23" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">2024年12月</text>
-          <rect x="10" y="35" width="25" height="15" fill="#f5f5f5" stroke="#d0d0d0"/>
-          <text x="22" y="45" text-anchor="middle" font-family="Arial" font-size="8" fill="#666">01</text>
-          <rect x="35" y="35" width="25" height="15" fill="#f5f5f5" stroke="#d0d0d0"/>
-          <text x="47" y="45" text-anchor="middle" font-family="Arial" font-size="8" fill="#666">02</text>
-          <rect x="60" y="35" width="25" height="15" fill="#f5f5f5" stroke="#d0d0d0"/>
-          <text x="72" y="45" text-anchor="middle" font-family="Arial" font-size="8" fill="#666">03</text>
-          <rect x="85" y="35" width="25" height="15" fill="#f5f5f5" stroke="#d0d0d0"/>
-          <text x="97" y="45" text-anchor="middle" font-family="Arial" font-size="8" fill="#666">04</text>
-          <rect x="110" y="35" width="30" height="15" fill="#f5f5f5" stroke="#d0d0d0"/>
-          <text x="125" y="45" text-anchor="middle" font-family="Arial" font-size="8" fill="#666">05</text>
-          <rect x="15" y="55" width="60" height="12" fill="#0078d4" rx="2"/>
-          <text x="75" y="80" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">月视图</text>
-        </svg>
-        <br><strong>月视图</strong><br>
-        <small>按天显示，适合长期规划</small>
-      </td>
-      <td align="center" width="25%">
-        <svg width="150" height="100" xmlns="http://www.w3.org/2000/svg">
-          <!-- Day View -->
-          <rect width="100%" height="100%" fill="#f8f8f8"/>
-          <rect x="10" y="10" width="130" height="20" fill="#e8e8e8" stroke="#d0d0d0"/>
-          <text x="75" y="23" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">2024-12-16</text>
-          <rect x="10" y="35" width="130" height="15" fill="#f5f5f5" stroke="#d0d0d0"/>
-          <text x="75" y="45" text-anchor="middle" font-family="Arial" font-size="8" fill="#666">星期一</text>
-          <rect x="15" y="55" width="80" height="12" fill="#28a745" rx="2"/>
-          <text x="75" y="80" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">日视图</text>
-        </svg>
-        <br><strong>日视图</strong><br>
-        <small>精确到天，适合短期管理</small>
-      </td>
-      <td align="center" width="25%">
-        <svg width="150" height="100" xmlns="http://www.w3.org/2000/svg">
-          <!-- Week View -->
-          <rect width="100%" height="100%" fill="#f8f8f8"/>
-          <rect x="10" y="10" width="130" height="20" fill="#e8e8e8" stroke="#d0d0d0"/>
-          <text x="75" y="23" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">2024年第51周</text>
-          <rect x="10" y="35" width="40" height="15" fill="#f5f5f5" stroke="#d0d0d0"/>
-          <text x="30" y="45" text-anchor="middle" font-family="Arial" font-size="8" fill="#666">W50</text>
-          <rect x="50" y="35" width="40" height="15" fill="#f5f5f5" stroke="#d0d0d0"/>
-          <text x="70" y="45" text-anchor="middle" font-family="Arial" font-size="8" fill="#666">W51</text>
-          <rect x="90" y="35" width="50" height="15" fill="#f5f5f5" stroke="#d0d0d0"/>
-          <text x="115" y="45" text-anchor="middle" font-family="Arial" font-size="8" fill="#666">W52</text>
-          <rect x="15" y="55" width="100" height="12" fill="#ff9500" rx="2"/>
-          <text x="75" y="80" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">周视图</text>
-        </svg>
-        <br><strong>周视图</strong><br>
-        <small>按周显示，适合中期跟踪</small>
-      </td>
-      <td align="center" width="25%">
-        <svg width="150" height="100" xmlns="http://www.w3.org/2000/svg">
-          <!-- Hour View -->
-          <rect width="100%" height="100%" fill="#f8f8f8"/>
-          <rect x="10" y="10" width="130" height="20" fill="#e8e8e8" stroke="#d0d0d0"/>
-          <text x="75" y="23" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">2024-12-16</text>
-          <rect x="10" y="35" width="20" height="15" fill="#f5f5f5" stroke="#d0d0d0"/>
-          <text x="20" y="45" text-anchor="middle" font-family="Arial" font-size="7" fill="#666">08</text>
-          <rect x="30" y="35" width="20" height="15" fill="#f5f5f5" stroke="#d0d0d0"/>
-          <text x="40" y="45" text-anchor="middle" font-family="Arial" font-size="7" fill="#666">09</text>
-          <rect x="50" y="35" width="20" height="15" fill="#f5f5f5" stroke="#d0d0d0"/>
-          <text x="60" y="45" text-anchor="middle" font-family="Arial" font-size="7" fill="#666">10</text>
-          <rect x="70" y="35" width="20" height="15" fill="#f5f5f5" stroke="#d0d0d0"/>
-          <text x="80" y="45" text-anchor="middle" font-family="Arial" font-size="7" fill="#666">11</text>
-          <rect x="90" y="35" width="20" height="15" fill="#f5f5f5" stroke="#d0d0d0"/>
-          <text x="100" y="45" text-anchor="middle" font-family="Arial" font-size="7" fill="#666">12</text>
-          <rect x="110" y="35" width="30" height="15" fill="#f5f5f5" stroke="#d0d0d0"/>
-          <text x="125" y="45" text-anchor="middle" font-family="Arial" font-size="7" fill="#666">13</text>
-          <rect x="15" y="55" width="40" height="12" fill="#6366f1" rx="2"/>
-          <text x="75" y="80" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">时视图</text>
-        </svg>
-        <br><strong>时视图</strong><br>
-        <small>按小时显示，适合精细调度</small>
-      </td>
-    </tr>
-  </table>
-</div>
+| 模式 | 时间单位 | 表头示例 | 适用场景 |
+|------|----------|----------|----------|
+| 🗓️ **月视图** | 天 | `01 02 03 04 05 ...` | 长期项目规划 |
+| 📅 **日视图** | 天 | `周一 周二 周三 ...` | 短期任务管理 |
+| 📊 **周视图** | 周 | `W50 W51 W52 ...` | 中期项目跟踪 |
+| ⏰ **时视图** | 小时 | `08 09 10 11 12 ...` | 精细任务调度 |
 
 组件支持四种时间粒度视图：
 
@@ -445,67 +303,13 @@ dependencies: [
 
 ## 主题系统
 
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="20%">
-        <svg width="120" height="80" xmlns="http://www.w3.org/2000/svg">
-          <!-- Metro Theme -->
-          <rect width="100%" height="100%" fill="#f8f8f8"/>
-          <rect x="10" y="10" width="100" height="15" fill="linear-gradient(145deg, #f5f5f5, #e8e8e8)" stroke="#d0d0d0"/>
-          <rect x="15" y="30" width="60" height="12" fill="#0078d4" rx="2"/>
-          <rect x="15" y="45" width="80" height="12" fill="#106ebe" rx="2"/>
-          <text x="60" y="70" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">Metro</text>
-        </svg>
-        <br><strong>Metro 金属</strong>
-      </td>
-      <td align="center" width="20%">
-        <svg width="120" height="80" xmlns="http://www.w3.org/2000/svg">
-          <!-- Dark Theme -->
-          <rect width="100%" height="100%" fill="#1a1a1a"/>
-          <rect x="10" y="10" width="100" height="15" fill="linear-gradient(145deg, #3a3a3a, #2d2d2d)" stroke="#404040"/>
-          <rect x="15" y="30" width="60" height="12" fill="#00d4ff" rx="2"/>
-          <rect x="15" y="45" width="80" height="12" fill="#00b8e6" rx="2"/>
-          <text x="60" y="70" text-anchor="middle" font-family="Arial" font-size="9" fill="#fff">Dark</text>
-        </svg>
-        <br><strong>深色模式</strong>
-      </td>
-      <td align="center" width="20%">
-        <svg width="120" height="80" xmlns="http://www.w3.org/2000/svg">
-          <!-- Modern Theme -->
-          <rect width="100%" height="100%" fill="#ffffff"/>
-          <rect x="10" y="10" width="100" height="15" fill="linear-gradient(145deg, #fafafa, #f0f0f0)" stroke="#e0e0e0"/>
-          <rect x="15" y="30" width="60" height="12" fill="#6366f1" rx="2"/>
-          <rect x="15" y="45" width="80" height="12" fill="#4f46e5" rx="2"/>
-          <text x="60" y="70" text-anchor="middle" font-family="Arial" font-size="9" fill="#1f2937">Modern</text>
-        </svg>
-        <br><strong>现代简约</strong>
-      </td>
-      <td align="center" width="20%">
-        <svg width="120" height="80" xmlns="http://www.w3.org/2000/svg">
-          <!-- Classic Theme -->
-          <rect width="100%" height="100%" fill="#ffffff"/>
-          <rect x="10" y="10" width="100" height="15" fill="linear-gradient(145deg, #f8f9fa, #e9ecef)" stroke="#ced4da"/>
-          <rect x="15" y="30" width="60" height="12" fill="#2563eb" rx="2"/>
-          <rect x="15" y="45" width="80" height="12" fill="#1d4ed8" rx="2"/>
-          <text x="60" y="70" text-anchor="middle" font-family="Arial" font-size="9" fill="#212529">Classic</text>
-        </svg>
-        <br><strong>经典商务</strong>
-      </td>
-      <td align="center" width="20%">
-        <svg width="120" height="80" xmlns="http://www.w3.org/2000/svg">
-          <!-- Colorful Theme -->
-          <rect width="100%" height="100%" fill="#fffbeb"/>
-          <rect x="10" y="10" width="100" height="15" fill="linear-gradient(145deg, #fef3c7, #fed7aa)" stroke="#fdba74"/>
-          <rect x="15" y="30" width="60" height="12" fill="#f59e0b" rx="2"/>
-          <rect x="15" y="45" width="80" height="12" fill="#d97706" rx="2"/>
-          <text x="60" y="70" text-anchor="middle" font-family="Arial" font-size="9" fill="#92400e">Colorful</text>
-        </svg>
-        <br><strong>彩色活力</strong>
-      </td>
-    </tr>
-  </table>
-</div>
+| 主题 | 主色调 | 风格特点 |
+|------|--------|----------|
+| 🔷 **Metro 金属** | `#0078d4` | Microsoft Metro 设计语言，专业金属质感 |
+| 🌙 **深色模式** | `#00d4ff` | 护眼深色主题，适合长时间使用 |
+| ✨ **现代简约** | `#6366f1` | 简洁现代设计，清爽舒适 |
+| 💼 **经典商务** | `#2563eb` | 传统商务风格，稳重大方 |
+| 🎨 **彩色活力** | `#f59e0b` | 活泼彩色主题，充满活力 |
 
 ### 内置主题
 
@@ -542,60 +346,11 @@ dependencies: [
 
 ## 交互功能
 
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="33%">
-        <svg width="200" height="120" xmlns="http://www.w3.org/2000/svg">
-          <!-- Background -->
-          <rect width="100%" height="100%" fill="#f8f8f8"/>
-          <!-- Task Bar -->
-          <rect x="20" y="40" width="120" height="25" fill="#0078d4" rx="3"/>
-          <text x="80" y="57" text-anchor="middle" font-family="Arial" font-size="10" fill="white">任务条</text>
-          <!-- Drag Arrows -->
-          <path d="M10,52 L20,52 M15,47 L20,52 L15,57" stroke="#ff6347" stroke-width="2" fill="none"/>
-          <path d="M140,52 L150,52 M145,47 L150,52 L145,57" stroke="#ff6347" stroke-width="2" fill="none"/>
-          <text x="100" y="85" text-anchor="middle" font-family="Arial" font-size="11" fill="#333">拖拽移动</text>
-        </svg>
-        <br><strong>拖拽移动</strong><br>
-        <small>修改任务开始和结束日期</small>
-      </td>
-      <td align="center" width="33%">
-        <svg width="200" height="120" xmlns="http://www.w3.org/2000/svg">
-          <!-- Background -->
-          <rect width="100%" height="100%" fill="#f8f8f8"/>
-          <!-- Task Bar -->
-          <rect x="40" y="40" width="120" height="25" fill="#28a745" rx="3"/>
-          <text x="100" y="57" text-anchor="middle" font-family="Arial" font-size="10" fill="white">任务条</text>
-          <!-- Resize Handles -->
-          <rect x="35" y="38" width="8" height="29" fill="#ff6347" rx="2"/>
-          <rect x="157" y="38" width="8" height="29" fill="#ff6347" rx="2"/>
-          <text x="100" y="85" text-anchor="middle" font-family="Arial" font-size="11" fill="#333">调整大小</text>
-        </svg>
-        <br><strong>调整大小</strong><br>
-        <small>拖拽边缘调整任务时长</small>
-      </td>
-      <td align="center" width="33%">
-        <svg width="200" height="120" xmlns="http://www.w3.org/2000/svg">
-          <!-- Background -->
-          <rect width="100%" height="100%" fill="#f8f8f8"/>
-          <!-- Task Bar -->
-          <rect x="40" y="40" width="120" height="25" fill="#ff9500" rx="3"/>
-          <!-- Progress Bar -->
-          <rect x="40" y="40" width="72" height="25" fill="#ff6347" rx="3"/>
-          <text x="100" y="57" text-anchor="middle" font-family="Arial" font-size="10" fill="white">60%</text>
-          <!-- Progress Triangle -->
-          <polygon points="106,65 112,75 118,65" fill="#0078d4" stroke="#0063b1"/>
-          <!-- Guide Line -->
-          <line x1="112" y1="40" x2="112" y2="65" stroke="#e74c3c" stroke-width="2" stroke-dasharray="3,2"/>
-          <text x="100" y="90" text-anchor="middle" font-family="Arial" font-size="11" fill="#333">进度调整</text>
-        </svg>
-        <br><strong>进度调整</strong><br>
-        <small>拖拽三角形滑块调整进度</small>
-      </td>
-    </tr>
-  </table>
-</div>
+| 操作类型 | 说明 | 效果 |
+|----------|------|------|
+| 🖱️ **拖拽移动** | 拖拽任务条整体 | 修改任务开始和结束日期 |
+| 📏 **调整大小** | 拖拽任务条左右边缘 | 调整任务时长 |
+| 📊 **进度调整** | 拖拽任务条底部三角形滑块 | 调整任务完成进度 |
 
 ### 任务条操作
 
@@ -635,57 +390,16 @@ interface LinkConfig {
 
 ### 路径类型
 
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="33%">
-        <svg width="150" height="80" xmlns="http://www.w3.org/2000/svg">
-          <!-- Straight Line -->
-          <rect x="10" y="20" width="40" height="15" fill="#0078d4" rx="2"/>
-          <rect x="100" y="45" width="40" height="15" fill="#28a745" rx="2"/>
-          <line x1="50" y1="27" x2="100" y2="52" stroke="#666" stroke-width="2" marker-end="url(#arrow5)"/>
-          <text x="75" y="75" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">直线</text>
-          <defs>
-            <marker id="arrow5" markerWidth="8" markerHeight="8" refX="7" refY="2" orient="auto">
-              <path d="M0,0 L0,4 L7,2 z" fill="#666"/>
-            </marker>
-          </defs>
-        </svg>
-        <br><strong>直线连接</strong>
-      </td>
-      <td align="center" width="33%">
-        <svg width="150" height="80" xmlns="http://www.w3.org/2000/svg">
-          <!-- Bezier Curve -->
-          <rect x="10" y="20" width="40" height="15" fill="#0078d4" rx="2"/>
-          <rect x="100" y="45" width="40" height="15" fill="#28a745" rx="2"/>
-          <path d="M50,27 Q75,20 100,52" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrow6)"/>
-          <text x="75" y="75" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">贝塞尔曲线</text>
-          <defs>
-            <marker id="arrow6" markerWidth="8" markerHeight="8" refX="7" refY="2" orient="auto">
-              <path d="M0,0 L0,4 L7,2 z" fill="#666"/>
-            </marker>
-          </defs>
-        </svg>
-        <br><strong>平滑曲线</strong>
-      </td>
-      <td align="center" width="33%">
-        <svg width="150" height="80" xmlns="http://www.w3.org/2000/svg">
-          <!-- Right Angle -->
-          <rect x="10" y="20" width="40" height="15" fill="#0078d4" rx="2"/>
-          <rect x="100" y="45" width="40" height="15" fill="#28a745" rx="2"/>
-          <path d="M50,27 L75,27 L75,52 L100,52" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrow7)"/>
-          <text x="75" y="75" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">直角连线</text>
-          <defs>
-            <marker id="arrow7" markerWidth="8" markerHeight="8" refX="7" refY="2" orient="auto">
-              <path d="M0,0 L0,4 L7,2 z" fill="#666"/>
-            </marker>
-          </defs>
-        </svg>
-        <br><strong>直角折线</strong>
-      </td>
-    </tr>
-  </table>
-</div>
+```
+直线连接          贝塞尔曲线        直角连线
+┌─────┐          ┌─────┐          ┌─────┐
+│任务A│ ────────▶│任务A│ ╭───────▶ │任务A│ ┐
+└─────┘          └─────┘ ╰─┐       └─────┘ │
+                          │                │
+                      ┌─────┐          ┌─────┐
+                      │任务B│          │任务B│
+                      └─────┘          └─────┘
+```
 
 | 类型 | 枚举值 | 说明 |
 |------|--------|------|
