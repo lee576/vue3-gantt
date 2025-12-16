@@ -28,6 +28,32 @@
         </div>
 
         <div class="panel-content">
+          <!-- 语言配置区域 -->
+          <div class="config-section">
+            <h4 class="section-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+              </svg>
+              {{ t('configPanel.languageSettings') }}
+            </h4>
+            <div class="language-selector-inline">
+              <div
+                v-for="locale in locales"
+                :key="locale.value"
+                class="language-option"
+                :class="{ active: currentLocale === locale.value }"
+                @click="selectLocale(locale.value)"
+              >
+                <span class="lang-label">{{ locale.label }}</span>
+                <div v-if="currentLocale === locale.value" class="lang-check">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- 主题配置区域 -->
           <div class="config-section">
             <h4 class="section-title">
@@ -435,18 +461,26 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, watch, inject, type Ref } from 'vue';
+import { defineComponent, ref, onMounted, watch, inject, computed, type Ref } from 'vue';
 import { ganttThemes, ganttThemeManager, type GanttTheme } from './themes/GanttThemes';
 import { useLinkConfig, LinkPathType } from './LinkConfig';
-import { useI18n } from './i18n';
+import { useI18n, type Locale } from './i18n';
 
 export default defineComponent({
   name: 'GanttConfigPanel',
   setup() {
-    const { t } = useI18n();
+    const { t, locale, setLocale, getLocales } = useI18n();
     const isOpen = ref(false);
     const themes = ref<GanttTheme[]>(ganttThemes);
     const currentTheme = ref<string>('metro');
+    
+    // 语言选择器相关
+    const currentLocale = computed(() => locale.value);
+    const locales = computed(() => getLocales());
+    
+    const selectLocale = (localeValue: Locale) => {
+      setLocale(localeValue);
+    };
     
     // 注入甘特图容器引用
     const ganttContainer = inject<Ref<HTMLElement | undefined>>('ganttContainer');
@@ -546,10 +580,13 @@ export default defineComponent({
       currentTheme,
       linkConfig,
       pathTypes,
+      currentLocale,
+      locales,
       togglePanel,
       closePanel,
       selectTheme,
       selectPathType,
+      selectLocale,
       updateLinkConfig
     };
   }
@@ -721,7 +758,18 @@ export default defineComponent({
 
   &.active {
     border-color: var(--primary, #0078d4);
-    background: var(--bg-active-hover, linear-gradient(145deg, #e3f2fd, #bbdefb));
+    background: var(--bg-content, #ffffff);
+    box-shadow: 0 0 0 2px var(--primary, #0078d4), 0 2px 8px rgba(0, 120, 212, 0.15);
+    
+    .theme-info {
+      .theme-name {
+        color: var(--primary, #0078d4);
+      }
+      
+      .theme-desc {
+        color: var(--text-primary, #333333);
+      }
+    }
   }
 
   .theme-preview {
@@ -755,6 +803,53 @@ export default defineComponent({
   .theme-check {
     color: var(--primary, #0078d4);
     flex-shrink: 0;
+  }
+}
+
+.language-selector-inline {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  
+  .language-option {
+    padding: 10px 12px;
+    border: 1px solid var(--border, #d0d0d0);
+    background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all var(--transition-fast, 0.15s ease);
+    box-shadow: var(--shadow-inset, inset 0 1px 0 rgba(255, 255, 255, 0.8));
+
+    &:hover {
+      border-color: var(--primary, #0078d4);
+      background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
+      transform: translateY(-1px);
+    }
+
+    &.active {
+      border-color: var(--primary, #0078d4);
+      background: var(--bg-content, #ffffff);
+      box-shadow: 0 0 0 2px var(--primary, #0078d4), 0 2px 8px rgba(0, 120, 212, 0.15);
+      
+      .lang-label {
+        color: var(--primary, #0078d4);
+        font-weight: 600;
+      }
+    }
+
+    .lang-label {
+      font-size: 12px;
+      flex: 1;
+    }
+
+    .lang-check {
+      color: var(--primary, #0078d4);
+      display: flex;
+      align-items: center;
+      margin-left: 8px;
+    }
   }
 }
 
@@ -854,8 +949,12 @@ export default defineComponent({
 
     &.active {
       border-color: var(--primary, #0078d4);
-      background: var(--bg-active-hover, linear-gradient(145deg, #e3f2fd, #bbdefb));
-      color: var(--primary, #0078d4);
+      background: var(--bg-content, #ffffff);
+      box-shadow: 0 0 0 2px var(--primary, #0078d4), 0 2px 8px rgba(0, 120, 212, 0.15);
+      
+      .path-name {
+        color: var(--primary, #0078d4);
+      }
     }
 
     .path-name {

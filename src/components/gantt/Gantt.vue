@@ -106,7 +106,6 @@
                 </div>
             </div>
             <div class="config-buttons">
-                <LanguageSelector />
                 <GanttConfigPanel />
             </div>
         </div>
@@ -149,7 +148,6 @@ import SplitPane from './SplitPane.vue';
 import TaskTable from '../gantt/task/TaskTable.vue';
 import RightTable from './RightTable.vue';
 import GanttConfigPanel from './GanttConfigPanel.vue';
-import LanguageSelector from './LanguageSelector.vue';
 import { store, mutations } from './Store';
 export type { DataConfig, StyleConfig, EventConfig, TaskHeader } from './Types';
 // 移除未使用的类型导入
@@ -267,8 +265,7 @@ export default defineComponent({
         SplitPane,
         TaskTable,
         RightTable,
-        GanttConfigPanel,
-        LanguageSelector
+        GanttConfigPanel
     },
     setup(props) {
         // 国际化
