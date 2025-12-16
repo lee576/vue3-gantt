@@ -6,9 +6,15 @@
 import { ref, computed } from 'vue';
 import zhCN from './locales/zh-CN';
 import enUS from './locales/en-US';
+import jaJP from './locales/ja-JP';
+import koKR from './locales/ko-KR';
+import frFR from './locales/fr-FR';
+import deDE from './locales/de-DE';
+import esES from './locales/es-ES';
+import ruRU from './locales/ru-RU';
 
 // 支持的语言类型
-export type Locale = 'zh-CN' | 'en-US';
+export type Locale = 'zh-CN' | 'en-US' | 'ja-JP' | 'ko-KR' | 'fr-FR' | 'de-DE' | 'es-ES' | 'ru-RU';
 
 // 语言包类型
 export type Messages = typeof zhCN;
@@ -16,7 +22,13 @@ export type Messages = typeof zhCN;
 // 所有语言包
 const messages: Record<Locale, Messages> = {
   'zh-CN': zhCN,
-  'en-US': enUS
+  'en-US': enUS,
+  'ja-JP': jaJP,
+  'ko-KR': koKR,
+  'fr-FR': frFR,
+  'de-DE': deDE,
+  'es-ES': esES,
+  'ru-RU': ruRU
 };
 
 // 当前语言
@@ -71,8 +83,14 @@ export function getLocale(): Locale {
  */
 export function getLocales(): { value: Locale; label: string }[] {
   return [
-    { value: 'zh-CN', label: '简体中文' },
-    { value: 'en-US', label: 'English' }
+    { value: 'zh-CN', label: '🇨🇳 简体中文' },
+    { value: 'en-US', label: '🇺🇸 English' },
+    { value: 'ja-JP', label: '🇯🇵 日本語' },
+    { value: 'ko-KR', label: '🇰🇷 한국어' },
+    { value: 'fr-FR', label: '🇫🇷 Français' },
+    { value: 'de-DE', label: '🇩🇪 Deutsch' },
+    { value: 'es-ES', label: '🇪🇸 Español' },
+    { value: 'ru-RU', label: '🇷🇺 Русский' }
   ];
 }
 

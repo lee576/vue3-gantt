@@ -55,7 +55,17 @@
       const { locale } = useI18n();
 
       const isToday = (title: string) => {
-        const dayjsLocale = locale.value === 'en-US' ? 'en' : 'zh-cn';
+        const localeMap: Record<string, string> = {
+          'zh-CN': 'zh-cn',
+          'en-US': 'en',
+          'ja-JP': 'ja',
+          'ko-KR': 'ko',
+          'fr-FR': 'fr',
+          'de-DE': 'de',
+          'es-ES': 'es',
+          'ru-RU': 'ru'
+        };
+        const dayjsLocale = localeMap[locale.value] || 'en';
         return title === dayjs().locale(dayjsLocale).format('YYYY-MM-DD');
       };
 

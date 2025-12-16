@@ -1,8 +1,8 @@
 // 甘特图主题系统
 export interface GanttTheme {
   id: string;
-  name: string;
-  description: string;
+  nameKey: string;  // 主题名称的翻译键
+  descKey: string;  // 主题描述的翻译键
   preview: string;
   cssVariables: Record<string, string>;
 }
@@ -10,8 +10,8 @@ export interface GanttTheme {
 export const ganttThemes: GanttTheme[] = [
   {
     id: 'metro',
-    name: 'Metro 金属',
-    description: 'Microsoft Metro设计语言，专业金属质感',
+    nameKey: 'theme.metro',
+    descKey: 'theme.metroDesc',
     preview: '#0078d4',
     cssVariables: {
       // Metro 金属主题变量
@@ -57,8 +57,8 @@ export const ganttThemes: GanttTheme[] = [
   },
   {
     id: 'dark',
-    name: '深色模式',
-    description: '护眼深色主题，适合长时间使用',
+    nameKey: 'theme.dark',
+    descKey: 'theme.darkDesc',
     preview: '#00d4ff',
     cssVariables: {
       '--primary': '#00d4ff',
@@ -103,8 +103,8 @@ export const ganttThemes: GanttTheme[] = [
   },
   {
     id: 'modern',
-    name: '现代简约',
-    description: '简洁现代设计，清爽舒适',
+    nameKey: 'theme.light',
+    descKey: 'theme.lightDesc',
     preview: '#6366f1',
     cssVariables: {
       '--primary': '#6366f1',
@@ -149,8 +149,8 @@ export const ganttThemes: GanttTheme[] = [
   },
   {
     id: 'classic',
-    name: '经典商务',
-    description: '传统商务风格，稳重大方',
+    nameKey: 'theme.metro',
+    descKey: 'theme.metroDesc',
     preview: '#2563eb',
     cssVariables: {
       '--primary': '#2563eb',
@@ -195,8 +195,8 @@ export const ganttThemes: GanttTheme[] = [
   },
   {
     id: 'colorful',
-    name: '彩色活力',
-    description: '活泼彩色主题，充满活力',
+    nameKey: 'theme.colorful',
+    descKey: 'theme.colorfulDesc',
     preview: '#f59e0b',
     cssVariables: {
       '--primary': '#f59e0b',

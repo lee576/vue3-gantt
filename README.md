@@ -31,14 +31,14 @@
 - 🔗 任务间依赖关系连线
 - 🎨 多主题支持（浅色/深色/彩色等）
 - 🖱️ 拖拽调整任务时间和进度
-- 🌍 多语言支持（中文/English）
+- 🌍 多语言支持（中文/English/日本語/한국어/Français/Deutsch/Español/Русский）
 
 ## 特性
 
 - **多视图模式** - 支持月、日、周、时四种时间粒度视图
 - **任务依赖关系** - 支持 FS、SS、FF、SF 四种依赖类型
 - **主题系统** - 内置 5 种主题，支持自定义主题
-- **国际化支持** - 完整的中英文双语支持，可扩展更多语言
+- **国际化支持** - 内置 8 种语言，可扩展更多语言
 - **进度管理** - 可视化进度条，支持拖拽调整进度
 - **交互操作** - 支持任务拖拽、调整大小、父子任务联动
 - **响应式设计** - 可调整分割面板比例
@@ -355,6 +355,12 @@ dependencies: [
 |------|------|------|
 | 🇨🇳 简体中文 | zh-CN | ✅ 完整支持 |
 | 🇺🇸 English | en-US | ✅ 完整支持 |
+| 🇯🇵 日本語 | ja-JP | ✅ 完整支持 |
+| 🇰🇷 한국어 | ko-KR | ✅ 完整支持 |
+| 🇫🇷 Français | fr-FR | ✅ 完整支持 |
+| 🇩🇪 Deutsch | de-DE | ✅ 完整支持 |
+| 🇪🇸 Español | es-ES | ✅ 完整支持 |
+| 🇷🇺 Русский | ru-RU | ✅ 完整支持 |
 
 ### 使用方法
 
@@ -447,11 +453,21 @@ const { t, locale } = useI18n();
 
 ```typescript
 import jaJP from './locales/ja-JP';
+import koKR from './locales/ko-KR';
+import frFR from './locales/fr-FR';
+import deDE from './locales/de-DE';
+import esES from './locales/es-ES';
+import ruRU from './locales/ru-RU';
 
 const messages: Record<Locale, Messages> = {
   'zh-CN': zhCN,
   'en-US': enUS,
-  'ja-JP': jaJP  // 新增日语
+  'ja-JP': jaJP,  // 新增日语
+  'ko-KR': koKR,  // 新增韩语
+  'fr-FR': frFR,  // 新增法语
+  'de-DE': deDE,  // 新增德语
+  'es-ES': esES,  // 新增西班牙语
+  'ru-RU': ruRU   // 新增俄语
 };
 ```
 
@@ -587,7 +603,13 @@ src/
 │       │   ├── index.ts        # i18n 核心
 │       │   └── locales/        # 语言包
 │       │       ├── zh-CN.ts    # 中文语言包
-│       │       └── en-US.ts    # 英文语言包
+│       │       ├── en-US.ts    # 英文语言包
+│       │       ├── ja-JP.ts    # 日语语言包
+│       │       ├── ko-KR.ts    # 韩语语言包
+│       │       ├── fr-FR.ts    # 法语语言包
+│       │       ├── de-DE.ts    # 德语语言包
+│       │       ├── es-ES.ts    # 西班牙语语言包
+│       │       └── ru-RU.ts    # 俄语语言包
 │       ├── task/               # 任务相关组件
 │       │   ├── TaskTable.vue
 │       │   ├── TaskHeader.vue

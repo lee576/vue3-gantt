@@ -132,6 +132,12 @@ import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import 'dayjs/locale/zh-cn';
 import 'dayjs/locale/en';
+import 'dayjs/locale/ja';
+import 'dayjs/locale/ko';
+import 'dayjs/locale/fr';
+import 'dayjs/locale/de';
+import 'dayjs/locale/es';
+import 'dayjs/locale/ru';
 dayjs.extend(customParseFormat);
 import { Symbols } from './Symbols';
 import { linkDataManager, useLinkConfig } from './LinkConfig';
@@ -270,7 +276,17 @@ export default defineComponent({
         
         // 根据当前语言设置 dayjs locale
         const getDayjsLocale = () => {
-            return locale.value === 'en-US' ? 'en' : 'zh-cn';
+            const localeMap: Record<string, string> = {
+                'zh-CN': 'zh-cn',
+                'en-US': 'en',
+                'ja-JP': 'ja',
+                'ko-KR': 'ko',
+                'fr-FR': 'fr',
+                'de-DE': 'de',
+                'es-ES': 'es',
+                'ru-RU': 'ru'
+            };
+            return localeMap[locale.value] || 'en';
         };
         
         // 缓存 mapFields 的结果
@@ -401,9 +417,11 @@ export default defineComponent({
 
                     let currentDate = start;
                     while (currentDate.isBefore(end) || currentDate.isSame(end, 'day')) {
-                        const caption = locale.value === 'en-US' 
-                            ? currentDate.format('DD')
-                            : currentDate.format('DD') + '日';
+                        // 中日韩语言需要添加“日”后缀
+                        const needsDaySuffix = ['zh-CN', 'ja-JP', 'ko-KR'].includes(locale.value);
+                        const caption = needsDaySuffix
+                            ? currentDate.format('DD') + '日'
+                            : currentDate.format('DD');
                         const fullDate = currentDate.format('YYYY-MM-DD');
                         const week = currentDate.locale(getDayjsLocale()).format('dddd');
                         weekHeaders.value.push({
@@ -454,9 +472,11 @@ export default defineComponent({
                         }
                         
                         if (weekCount > 0) {
-                            const monthTitle = locale.value === 'en-US'
-                                ? monthStart.locale(getDayjsLocale()).format('MMMM YYYY')
-                                : monthStart.format('YYYY年MM月');
+                            // 根据语言选择月份格式
+                            const isAsian = ['zh-CN', 'ja-JP', 'ko-KR'].includes(locale.value);
+                            const monthTitle = isAsian
+                                ? monthStart.format('YYYY年MM月')
+                                : monthStart.locale(getDayjsLocale()).format('MMMM YYYY');
                             monthHeaders.value.push({
                                 title: monthTitle,
                                 width: weekCount * scale.value
@@ -470,9 +490,10 @@ export default defineComponent({
                         const weekEnd = currentDate.endOf('isoWeek');
                         
                         // 周表头 - 显示周数和日期范围
-                        const weekTitle = locale.value === 'en-US'
-                            ? `Week ${currentDate.isoWeek()} (${weekStart.format('MM/DD')}-${weekEnd.format('MM/DD')})`
-                            : `第${currentDate.isoWeek()}周 (${weekStart.format('MM/DD')}-${weekEnd.format('MM/DD')})`;
+                        const isAsian = ['zh-CN', 'ja-JP', 'ko-KR'].includes(locale.value);
+                        const weekTitle = isAsian
+                            ? `第${currentDate.isoWeek()}周 (${weekStart.format('MM/DD')}-${weekEnd.format('MM/DD')})`
+                            : `Week ${currentDate.isoWeek()} (${weekStart.format('MM/DD')}-${weekEnd.format('MM/DD')})`;
                         weekHeaders.value.push({
                             title: weekTitle,
                             width: scale.value,
@@ -489,9 +510,11 @@ export default defineComponent({
                     scale.value = 80;
                     let currentDate = start;
                     while (currentDate.isBefore(end) || currentDate.isSame(end, 'day')) {
-                        const caption = locale.value === 'en-US'
-                            ? currentDate.locale(getDayjsLocale()).format('MMMM DD')
-                            : currentDate.locale(getDayjsLocale()).format('MMMM DD') + '日';
+                        // 中日韩语言需要添加“日”后缀
+                        const needsDaySuffix = ['zh-CN', 'ja-JP', 'ko-KR'].includes(locale.value);
+                        const caption = needsDaySuffix
+                            ? currentDate.locale(getDayjsLocale()).format('MMMM DD') + '日'
+                            : currentDate.locale(getDayjsLocale()).format('MMMM DD');
                         const fullDate = currentDate.format('YYYY-MM-DD');
                         const week = currentDate.locale(getDayjsLocale()).format('dddd');
                         weekHeaders.value.push({
@@ -515,9 +538,11 @@ export default defineComponent({
                     // 预先计算结束日期
                     const endOfEndDay = end.endOf('day');
                     while (currentDate.isBefore(endOfEndDay)) {
-                        const caption = locale.value === 'en-US'
-                            ? currentDate.locale(getDayjsLocale()).format('MMMM DD')
-                            : currentDate.locale(getDayjsLocale()).format('MMMM DD') + '日';
+                        // 中日韩语言需要添加“日”后缀
+                        const needsDaySuffix = ['zh-CN', 'ja-JP', 'ko-KR'].includes(locale.value);
+                        const caption = needsDaySuffix
+                            ? currentDate.locale(getDayjsLocale()).format('MMMM DD') + '日'
+                            : currentDate.locale(getDayjsLocale()).format('MMMM DD');
                         const fullDate = currentDate.format('YYYY-MM-DD');
                         const week = currentDate.locale(getDayjsLocale()).format('dddd');
                         weekHeaders.value.push({
@@ -531,8 +556,10 @@ export default defineComponent({
                             fulldate: fullDate
                         });
                         for (let i = 0; i <= 23; i++) {
+                            // 中日韩语言使用“点”，其他语言使用 :00 格式
+                            const needsHourSuffix = ['zh-CN', 'ja-JP', 'ko-KR'].includes(locale.value);
                             hourHeaders.value.push({
-                                title: locale.value === 'en-US' ? `${i}:00` : i + '点',
+                                title: needsHourSuffix ? i + '点' : `${i}:00`,
                                 width: scale.value
                             });
                         }

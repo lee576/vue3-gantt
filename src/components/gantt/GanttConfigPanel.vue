@@ -46,8 +46,8 @@
               >
                 <div class="theme-preview" :style="{ background: theme.preview }"></div>
                 <div class="theme-info">
-                  <div class="theme-name">{{ theme.name }}</div>
-                  <div class="theme-desc">{{ theme.description }}</div>
+                  <div class="theme-name">{{ t(theme.nameKey) }}</div>
+                  <div class="theme-desc">{{ t(theme.descKey) }}</div>
                 </div>
                 <div v-if="currentTheme === theme.id" class="theme-check">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -104,7 +104,7 @@
 
               <!-- 基础样式配置 -->
               <div class="config-group">
-                <label class="config-label">颜色</label>
+                <label class="config-label">{{ t('configPanel.linkConfig.color') }}</label>
                 <input 
                   type="color" 
                   v-model="linkConfig.color" 
@@ -139,7 +139,7 @@
 
               <!-- 贝塞尔曲线配置 -->
               <div v-if="linkConfig.pathType === 'bezier'" class="config-group">
-                <label class="config-label">弯曲度: {{ linkConfig.bezierCurvature }}</label>
+                <label class="config-label">{{ t('configPanel.linkConfig.curvature') }}: {{ linkConfig.bezierCurvature }}</label>
                 <input 
                   type="range" 
                   v-model.number="linkConfig.bezierCurvature" 
@@ -154,7 +154,7 @@
               <!-- 直角连线配置 -->
               <template v-if="linkConfig.pathType === 'right-angle'">
                 <div class="config-group">
-                  <label class="config-label">偏移距离: {{ linkConfig.rightAngleOffset }}px</label>
+                  <label class="config-label">{{ t('configPanel.linkConfig.offset') }}: {{ linkConfig.rightAngleOffset }}px</label>
                   <input 
                     type="range" 
                     v-model.number="linkConfig.rightAngleOffset" 
@@ -173,12 +173,12 @@
                       v-model="linkConfig.smoothCorners" 
                       @change="updateLinkConfig"
                     />
-                    平滑转角
+                    {{ t('configPanel.linkConfig.smoothCorners') }}
                   </label>
                 </div>
 
                 <div v-if="linkConfig.smoothCorners" class="config-group">
-                  <label class="config-label">转角半径: {{ linkConfig.cornerRadius }}px</label>
+                  <label class="config-label">{{ t('configPanel.linkConfig.cornerRadius') }}: {{ linkConfig.cornerRadius }}px</label>
                   <input 
                     type="range" 
                     v-model.number="linkConfig.cornerRadius" 
@@ -199,13 +199,13 @@
                     v-model="linkConfig.showArrow" 
                     @change="updateLinkConfig"
                   />
-                  显示箭头
+                  {{ t('configPanel.linkConfig.showArrow') }}
                 </label>
               </div>
 
               <template v-if="linkConfig.showArrow">
                 <div class="config-group">
-                  <label class="config-label">箭头大小: {{ linkConfig.arrowSize }}px</label>
+                  <label class="config-label">{{ t('configPanel.linkConfig.arrowSize') }}: {{ linkConfig.arrowSize }}px</label>
                   <input 
                     type="range" 
                     v-model.number="linkConfig.arrowSize" 
@@ -218,7 +218,7 @@
                 </div>
 
                 <div class="config-group">
-                  <label class="config-label">箭头颜色</label>
+                  <label class="config-label">{{ t('configPanel.linkConfig.arrowColor') }}</label>
                   <div class="color-group">
                     <input 
                       type="color" 
@@ -229,9 +229,9 @@
                     <button 
                       @click="linkConfig.arrowColor = linkConfig.color; updateLinkConfig()" 
                       class="sync-btn"
-                      title="与线条颜色同步"
+                      :title="t('tooltip.syncArrowColor')"
                     >
-                      同步
+                      {{ t('configPanel.linkConfig.syncColor') }}
                     </button>
                   </div>
                 </div>
@@ -245,12 +245,12 @@
                     v-model="linkConfig.enableDashAnimation" 
                     @change="updateLinkConfig"
                   />
-                  虚线流动动画
+                  {{ t('configPanel.linkConfig.dashAnimation') }}
                 </label>
               </div>
 
               <div v-if="linkConfig.enableDashAnimation" class="config-group">
-                <label class="config-label">动画速度: {{ linkConfig.dashAnimationSpeed }}s</label>
+                <label class="config-label">{{ t('configPanel.linkConfig.animationSpeed') }}: {{ linkConfig.dashAnimationSpeed }}s</label>
                 <input 
                   type="range" 
                   v-model.number="linkConfig.dashAnimationSpeed" 
@@ -270,13 +270,13 @@
                     v-model="linkConfig.showLabels" 
                     @change="updateLinkConfig"
                   />
-                  显示标签
+                  {{ t('configPanel.linkConfig.showLabels') }}
                 </label>
               </div>
 
               <template v-if="linkConfig.showLabels">
                 <div class="config-group">
-                  <label class="config-label">标签颜色</label>
+                  <label class="config-label">{{ t('configPanel.linkConfig.labelColor') }}</label>
                   <input 
                     type="color" 
                     v-model="linkConfig.labelColor" 
@@ -286,7 +286,7 @@
                 </div>
 
                 <div class="config-group">
-                  <label class="config-label">字体大小: {{ linkConfig.labelFontSize }}px</label>
+                  <label class="config-label">{{ t('configPanel.linkConfig.fontSize') }}: {{ linkConfig.labelFontSize }}px</label>
                   <input 
                     type="range" 
                     v-model.number="linkConfig.labelFontSize" 
@@ -305,7 +305,7 @@
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;">
                     <path d="M19 15l-6 6-1.42-1.42L15.17 16H4V4h2v10h9.17l-3.59-3.58L13 9l6 6z"/>
                   </svg>
-                  依赖类型颜色
+                  {{ t('configPanel.linkConfig.typeColors') }}
                 </h5>
                 
                 <div class="link-type-colors">
@@ -316,8 +316,8 @@
                         <polygon :points="'20,5 14,2 14,8'" :fill="linkConfig.linkTypeColors.finishToStart"/>
                       </svg>
                     </div>
-                    <span class="color-label">FS</span>
-                    <span class="color-desc">完成-开始</span>
+                    <span class="color-label">{{ t('link.fs') }}</span>
+                    <span class="color-desc">{{ t('link.finishToStart') }}</span>
                     <input 
                       type="color" 
                       v-model="linkConfig.linkTypeColors.finishToStart" 
@@ -333,8 +333,8 @@
                         <polygon :points="'20,5 14,2 14,8'" :fill="linkConfig.linkTypeColors.startToStart"/>
                       </svg>
                     </div>
-                    <span class="color-label">SS</span>
-                    <span class="color-desc">开始-开始</span>
+                    <span class="color-label">{{ t('link.ss') }}</span>
+                    <span class="color-desc">{{ t('link.startToStart') }}</span>
                     <input 
                       type="color" 
                       v-model="linkConfig.linkTypeColors.startToStart" 
@@ -350,8 +350,8 @@
                         <polygon :points="'20,5 14,2 14,8'" :fill="linkConfig.linkTypeColors.finishToFinish"/>
                       </svg>
                     </div>
-                    <span class="color-label">FF</span>
-                    <span class="color-desc">完成-完成</span>
+                    <span class="color-label">{{ t('link.ff') }}</span>
+                    <span class="color-desc">{{ t('link.finishToFinish') }}</span>
                     <input 
                       type="color" 
                       v-model="linkConfig.linkTypeColors.finishToFinish" 
@@ -367,8 +367,8 @@
                         <polygon :points="'20,5 14,2 14,8'" :fill="linkConfig.linkTypeColors.startToFinish"/>
                       </svg>
                     </div>
-                    <span class="color-label">SF</span>
-                    <span class="color-desc">开始-完成</span>
+                    <span class="color-label">{{ t('link.sf') }}</span>
+                    <span class="color-desc">{{ t('link.startToFinish') }}</span>
                     <input 
                       type="color" 
                       v-model="linkConfig.linkTypeColors.startToFinish" 
@@ -385,14 +385,14 @@
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
                   </svg>
-                  父子关系连线样式
+                  {{ t('configPanel.linkConfig.parentChildStyle') }}
                 </h5>
                 <div class="config-info-box" style="margin-bottom: 12px;">
-                  <span style="font-size: 11px;">用于显示父任务与子任务之间的层级结构关系</span>
+                  <span style="font-size: 11px;">{{ t('configPanel.linkConfig.parentChildInfo') }}</span>
                 </div>
                 
                 <div class="config-group">
-                  <label class="config-label">颜色</label>
+                  <label class="config-label">{{ t('configPanel.linkConfig.color') }}</label>
                   <input 
                     type="color" 
                     v-model="linkConfig.parentChildStyle.color" 
@@ -402,7 +402,7 @@
                 </div>
 
                 <div class="config-group">
-                  <label class="config-label">线宽: {{ linkConfig.parentChildStyle.width }}px</label>
+                  <label class="config-label">{{ t('configPanel.linkConfig.width') }}: {{ linkConfig.parentChildStyle.width }}px</label>
                   <input 
                     type="range" 
                     v-model.number="linkConfig.parentChildStyle.width" 
@@ -415,12 +415,12 @@
                 </div>
 
                 <div class="config-group">
-                  <label class="config-label">虚线样式</label>
+                  <label class="config-label">{{ t('configPanel.linkConfig.dashStyle') }}</label>
                   <select v-model="linkConfig.parentChildStyle.dashArray" @change="updateLinkConfig" class="select-input">
-                    <option :value="undefined">实线</option>
-                    <option value="3,3">短虚线</option>
-                    <option value="5,5">中虚线</option>
-                    <option value="8,4">长虚线</option>
+                    <option :value="undefined">{{ t('configPanel.linkConfig.solid') }}</option>
+                    <option value="3,3">{{ t('configPanel.linkConfig.shortDash') }}</option>
+                    <option value="5,5">{{ t('configPanel.linkConfig.mediumDash') }}</option>
+                    <option value="8,4">{{ t('configPanel.linkConfig.longDash') }}</option>
                   </select>
                 </div>
               </div>
@@ -493,9 +493,9 @@ export default defineComponent({
     });
 
     const pathTypes = ref([
-      { value: LinkPathType.STRAIGHT, name: '直线', preview: 'M 10 20 L 50 20' },
-      { value: LinkPathType.BEZIER, name: '贝塞尔', preview: 'M 10 20 C 25 20 35 20 50 20' },
-      { value: LinkPathType.RIGHT_ANGLE, name: '直角', preview: 'M 10 20 L 30 20 L 30 30 L 50 30' }
+      { value: LinkPathType.STRAIGHT, name: t('configPanel.linkConfig.straight'), preview: 'M 10 20 L 50 20' },
+      { value: LinkPathType.BEZIER, name: t('configPanel.linkConfig.bezier'), preview: 'M 10 20 C 25 20 35 20 50 20' },
+      { value: LinkPathType.RIGHT_ANGLE, name: t('configPanel.linkConfig.rightAngle'), preview: 'M 10 20 L 30 20 L 30 30 L 50 30' }
     ]);
 
     const togglePanel = () => {
