@@ -2,11 +2,16 @@
     <div v-if='showRow' @mouseover="hoverActive()" @mouseleave="hoverInactive()" :class="{ active: hover }">
         <div class="row" @dblclick="setEditTask(row)" v-bind:style="{ height: rowHeight + 'px' }">
             <template v-for='(header, headerIndex) in headers'>
-                <div class="cellNo" :key="headerIndex" v-if="header.property === 'no'" v-bind:style="{
-                    minWidth: header.width + 'px',
-                    maxWidth: header.width + 'px',
-                    height: rowHeight + 'px'
-                }">
+                <div 
+                    class="cellNo" 
+                    :key="headerIndex" 
+                    :columnindex="headerIndex"
+                    v-if="header.property === 'no'" 
+                    v-bind:style="{
+                        minWidth: header.width + 'px',
+                        maxWidth: header.width + 'px',
+                        height: rowHeight + 'px'
+                    }">
                     <div class="no-cell-content">
                         <!-- 左侧：折叠按钮 + 序号 -->
                         <div class="no-left-section" :style="{ paddingLeft: (row.treeLevel || 0) * 16 + 'px' }">
@@ -63,9 +68,15 @@
                         </div>
                     </div>
                 </div>
-                <div v-else v-show="header.show" class="cell" :key="headerIndex + '-header'"
+                <div 
+                    v-else 
+                    v-show="header.show" 
+                    class="cell" 
+                    :key="headerIndex + '-header'"
+                    :columnindex="headerIndex"
                     :style="{ minWidth: header.width + 'px', maxWidth: header.width + 'px', height: rowHeight + 'px' }">
-                    {{ checkField(row, header.property) }}</div>
+                    {{ checkField(row, header.property) }}
+                </div>
             </template>
         </div>
     </div>
