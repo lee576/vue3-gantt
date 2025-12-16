@@ -6,7 +6,7 @@
                     minWidth: header.width + 'px',
                     maxWidth: header.width + 'px',
                     height: rowHeight + 'px',
-                    paddingLeft: '40px'
+                    paddingLeft: '10px'
                 }">
                     <span class="no-text">{{ row.no }}</span>
                     <div class="toolbar" v-bind:style="{ height: rowHeight + 'px' }">
@@ -160,13 +160,14 @@ export default defineComponent({
     .cellNo {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
         font-size: 10px;
         border-top: none;
         border-bottom: none;
         margin: 0px 0px 0px 1px;
         position: relative;
         color: var(--text-primary, #333333);
+        gap: 8px;
 
         &:first-child {
             border-left: 1px solid var(--border, #cecece);
