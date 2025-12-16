@@ -15,9 +15,8 @@
         </template>
     </div>
 </template>
-
 <script lang="ts">
-import { defineComponent, inject, ref, computed, watch, onMounted, onDeactivated, onBeforeUnmount } from 'vue';
+import { defineComponent, watch, ref, computed, onMounted, onDeactivated, onBeforeUnmount, inject } from 'vue';
 import SVG from 'svg.js';
 import interact from 'interactjs';
 import dayjs from 'dayjs';
@@ -25,25 +24,9 @@ import isoWeek from 'dayjs/plugin/isoWeek';
 // 扩展 dayjs 功能，使其支持 ISO 周
 dayjs.extend(isoWeek);
 import { store, mutations } from './Store';
+import sharedState from '../gantt/ShareState';
 import { Symbols } from './Symbols';
 
-// 定义注入的 Symbol，用于组件间通信
-const ReturnBarColorSymbol = Symbol('ReturnBarColor');
-const BarHoverSymbol = Symbol('BarHover');
-const MoveToBarStartSymbol = Symbol('MoveToBarStart');
-const MoveToBarEndSymbol = Symbol('MoveToBarEnd');
-const ScrollToBarSymbol = Symbol('ScrollToBar');
-const TaskHoverSymbol = Symbol('TaskHover');
-
-/**
- * Bar 组件
- * 该组件用于渲染甘特图中的条形图，支持拖动和调整大小。
- * 
- * @props {number} rowHeight - 行的高度
- * @props {Record<string, any>} row - 行数据对象
- * @props {string} startGanttDate - 甘特图的开始日期
- * @props {string} endGanttDate - 甘特图的结束日期
- */
 export default defineComponent({
     name: 'Bar',
     props: {
@@ -99,97 +82,108 @@ export default defineComponent({
             return (progressValue * 100).toFixed(2) + '%';
         });
 
-        // 注入事件处理函数
-        const returnBarColor = inject(ReturnBarColorSymbol) as ((callback: (rowId: any, color: string) => void) => void) | undefined;
-        const barHover = inject(BarHoverSymbol) as ((callback: (rowId: any, hover: boolean) => void) => void) | undefined;
-        const moveToBarStart = inject(MoveToBarStartSymbol) as ((callback: (rowId: any) => void) => void) | undefined;
-        const moveToBarEnd = inject(MoveToBarEndSymbol) as ((callback: (rowId: any) => void) => void) | undefined;
-        const scrollToBar = inject(ScrollToBarSymbol) as ((x: number) => void) | undefined;
         const setBarColor = inject(Symbols.SetBarColorSymbol) as ((row: any) => string) | undefined;
-        const taskHover = inject(TaskHoverSymbol) as ((rowId: any, hover: boolean) => void) | undefined;
 
-        // 接收设置 Bar 颜色的事件
-        if (returnBarColor) {
-            returnBarColor((rowId, color) => {
-                // 如果当前行的 ID 与传入的 ID 匹配，则更新条形图的颜色
-                if (props.row[mapFields.value['id']] === rowId) {
-                    barColor.value = color;
-                }
-            });
-        }
+        watch(() => sharedState.highlightedId, (newId) => {
+            if (props.row[mapFields.value['id']] === newId) {
+                hover.value = true;
+            } else {
+                hover.value = false;
+            }
+        });
 
-        // 接收 Bar 悬停事件
-        if (barHover) {
-            barHover((rowId, hoverValue) => {
-                // 如果当前行的 ID 与传入的 ID 匹配，则更新悬停状态
-                if (props.row[mapFields.value['id']] === rowId) {
-                    hover.value = hoverValue;
-                }
-            });
-        }
+        const hoverActive = () => {
+            sharedState.triggerHighlight(props.row[mapFields.value.id] as number | null);
+        };
 
-        // 接收滚动到 Bar 开始位置的事件
-        if (moveToBarStart) {
-            moveToBarStart((rowId) => {
-                if (props.row[mapFields.value['id']] === rowId) {
-                    if (bar.value) {
-                        if (scrollToBar) {
-                            // 滚动到条形图的开始位置
-                            scrollToBar(Number(bar.value.getAttribute('data-x')));
-                        }
+        const hoverInactive = () => {
+            sharedState.triggerHighlight(null);
+        };
+
+        /**
+         * 根据日期计算单元格的背景颜色
+         * 
+         * @param {number} count - 日期的偏移量
+         * @returns {string | undefined} - 背景颜色
+         */
+        const WeekEndColor = (count: number) => {
+            // 触发响应式更新（通过访问themeVersion）
+            themeVersion.value;
+            
+            // 从甘特图容器读取主题颜色
+            let bgContent = '#ffffff';
+            let bgSecondary = '#f8f8f8';
+            if (bar.value) {
+                // 向上查找带有 data-gantt-theme 属性的容器
+                let element = bar.value.parentElement;
+                while (element) {
+                    if (element.hasAttribute('data-gantt-theme')) {
+                        bgContent = getComputedStyle(element).getPropertyValue('--bg-content').trim() || '#ffffff';
+                        bgSecondary = getComputedStyle(element).getPropertyValue('--bg-secondary').trim() || '#f8f8f8';
+                        break;
                     }
+                    element = element.parentElement;
                 }
-            });
-        }
-
-        // 接收滚动到 Bar 结束位置的事件
-        if (moveToBarEnd) {
-            moveToBarEnd((rowId) => {
-                if (props.row[mapFields.value['id']] === rowId) {
-                    if (bar.value) {
-                        if (scrollToBar) {
-                            // 滚动到条形图的结束位置
-                            scrollToBar(Number(bar.value.getAttribute('data-x')) + Number(bar.value.width.baseVal.value) - Number(scale.value));
-                        }
+            }
+            
+            switch (mode.value) {
+                case '月':
+                case '日': {
+                    // 计算当前日期
+                    let currentDate = dayjs(props.startGanttDate).add(count, 'days');
+                    // 如果是周六或周日，返回主题的次要背景色（与主题协调）
+                    if (currentDate.isoWeekday() === 7 || currentDate.isoWeekday() === 1) {
+                        return bgSecondary;
                     }
+                    // 非周末返回主题的内容背景色
+                    return bgContent;
                 }
-            });
-        }
+                case '周': {
+                    // 周模式下，返回主题的内容背景色
+                    return bgContent;
+                }
+                case '时': {
+                    // 时模式下，返回主题的内容背景色
+                    return bgContent;
+                }
+            }
+        };
+        
+        // 监听DOM变化以检测主题切换
+        onMounted(() => {
+            if (bar.value) {
+                // 向上查找甘特图容器
+                let ganttContainer = bar.value.parentElement;
+                while (ganttContainer && !ganttContainer.hasAttribute('data-gantt-theme')) {
+                    ganttContainer = ganttContainer.parentElement;
+                }
+                
+                if (ganttContainer) {
+                    // 使用MutationObserver监听主题属性变化
+                    const observer = new MutationObserver(() => {
+                        themeVersion.value++;
+                    });
+                    
+                    observer.observe(ganttContainer, {
+                        attributes: true,
+                        attributeFilter: ['data-gantt-theme', 'style']
+                    });
+                    
+                    // 组件卸载时断开观察
+                    onBeforeUnmount(() => {
+                        observer.disconnect();
+                    });
+                }
+            }
+        });
 
         // 从 mutations 中获取设置条形图日期的函数
         const setBarDate = mutations.setBarDate;
         // 从 mutations 中获取设置是否允许更改任务日期的函数
         const setAllowChangeTaskDate = mutations.setAllowChangeTaskDate;
 
-        /**
-         * 检查一个节点是否是另一个节点的子节点
-         * 
-         * @param {Node | null} child - 子节点
-         * @param {Node | null} parent - 父节点
-         * @returns {boolean} - 如果是子节点返回 true，否则返回 false
-         */
-        const isChildOf = (child: Node | null, parent: Node | null): boolean => {
-            if (child && parent) {
-                let parentNode = child.parentNode;
-                // 循环遍历父节点，直到找到匹配的父节点或到达根节点
-                while (parentNode) {
-                    if (parent === parentNode) {
-                        return true;
-                    }
-                    parentNode = parentNode.parentNode;
-                }
-            }
-            return false;
-        };
-
-        /**
-         * 绘制条形图
-         * 
-         * @param {SVGSVGElement} barElement - SVG 元素
-         */
         const drowBar = (barElement: SVGSVGElement) => {
-            // 清空 SVG 元素的内容，确保重绘时没有旧元素
-            barElement.innerHTML = '';
+            // 优化：不清空SVG内容，复用已有元素
             let dataX = 0;
             // 根据甘特图的模式计算条形图的位置和宽度
             switch (mode.value) {
@@ -282,7 +276,6 @@ export default defineComponent({
             // 性能优化避免重绘
             if (!outerRect) {
                 const borderColor = getComputedStyle(barElement).getPropertyValue('--border') || '#cecece';
-                const primaryColor = getComputedStyle(barElement).getPropertyValue('--primary') || '#0066ff';
                 outerRect = svg.rect(oldBarWidth.value, barHeight.value).radius(10).fill(p).stroke({ color: borderColor, width: 1 });
                 // 外部矩形的鼠标悬停事件处理
                 outerRect.on('mouseover', () => {
@@ -295,7 +288,7 @@ export default defineComponent({
                 // 外部矩形的鼠标离开事件处理
                 outerRect.on('mouseleave', () => {
                     outerRect.animate(200).attr({
-                        stroke: primaryColor,
+                        stroke: '#0066ff',
                         strokeWidth: 10,
                         opacity: 0.4,
                     });
@@ -453,12 +446,13 @@ export default defineComponent({
                         
                         // 联动更新子任务：如果子任务开始时间早于当前任务新开始时间，则同步移动
                         const currentTaskId = props.row[mapFields.value.id];
+                        const parentIdFieldForChildren = mapFields.value.parentId || 'pid';
                         
                         // 递归获取所有子任务
                         const getAllChildren = (parentId: any, tasks: any[]): any[] => {
                             const children: any[] = [];
                             for (const task of tasks) {
-                                if (String(task[parentIdField]) === String(parentId)) {
+                                if (String(task[parentIdFieldForChildren]) === String(parentId)) {
                                     children.push(task);
                                     // 递归获取子任务的子任务
                                     children.push(...getAllChildren(task[mapFields.value.id], tasks));
@@ -527,6 +521,7 @@ export default defineComponent({
                 }
             });
 
+
             // 使 SVG 元素可调整大小
             interact(barElement).resizable({
                 edges: { left: true, right: true, bottom: false, top: false },
@@ -588,7 +583,6 @@ export default defineComponent({
                             }
                         }
                         
-                        // 更新 SVG 元素
                         target.setAttribute('width', newWidth.toString());
                         target.style.width = newWidth + 'px';
                         target.style.transform = `translate(${currentX}px, 0px)`;
@@ -721,131 +715,6 @@ export default defineComponent({
             });
         };
 
-        /**
-         * 处理鼠标悬停激活事件
-         */
-        const hoverActive = () => {
-            // 设置悬停状态为 true
-            hover.value = true;
-            if (taskHover) {
-                // 触发任务悬停事件
-                taskHover(props.row[mapFields.value['id']], hover.value);
-            }
-        };
-
-        /**
-         * 处理鼠标悬停取消事件
-         */
-        const hoverInactive = () => {
-            // 设置悬停状态为 false
-            hover.value = false;
-            if (taskHover) {
-                // 触发任务悬停事件
-                taskHover(props.row[mapFields.value['id']], hover.value);
-            }
-        };
-
-        /**
-         * 根据日期计算单元格的背景颜色
-         * 
-         * @param {number} count - 日期的偏移量
-         * @returns {string | undefined} - 背景颜色
-         */
-        const WeekEndColor = (count: number) => {
-            // 触发响应式更新（通过访问themeVersion）
-            themeVersion.value;
-            
-            // 从甘特图容器读取主题颜色
-            let bgContent = '#ffffff';
-            let bgSecondary = '#f8f8f8';
-            if (bar.value) {
-                // 向上查找带有 data-gantt-theme 属性的容器
-                let element = bar.value.parentElement;
-                while (element) {
-                    if (element.hasAttribute('data-gantt-theme')) {
-                        bgContent = getComputedStyle(element).getPropertyValue('--bg-content').trim() || '#ffffff';
-                        bgSecondary = getComputedStyle(element).getPropertyValue('--bg-secondary').trim() || '#f8f8f8';
-                        break;
-                    }
-                    element = element.parentElement;
-                }
-            }
-            
-            switch (mode.value) {
-                case '月':
-                case '日': {
-                    // 计算当前日期
-                    let currentDate = dayjs(props.startGanttDate).add(count, 'days');
-                    // 如果是周六或周日，返回主题的次要背景色（与主题协调）
-                    if (currentDate.isoWeekday() === 7 || currentDate.isoWeekday() === 1) {
-                        return bgSecondary;
-                    }
-                    // 非周末返回主题的内容背景色
-                    return bgContent;
-                }
-                case '周': {
-                    // 周模式下，返回主题的内容背景色
-                    return bgContent;
-                }
-                case '时': {
-                    // 时模式下，返回主题的内容背景色
-                    return bgContent;
-                }
-            }
-        };
-
-        // 监听模式变化，重新绘制bar
-        watch(() => store.mode, () => {
-            if (bar.value) {
-                // 清除旧的交互设置
-                if (interact.isSet(bar.value)) {
-                    interact(bar.value).unset();
-                }
-                // 重新绘制bar
-                drowBar(bar.value);
-                isBarInteracted.value = true;
-            }
-        });
-
-        // 监听scale变化，重新绘制bar
-        watch(() => store.scale, () => {
-            if (bar.value) {
-                // 清除旧的交互设置
-                if (interact.isSet(bar.value)) {
-                    interact(bar.value).unset();
-                }
-                // 重新绘制bar
-                drowBar(bar.value);
-                isBarInteracted.value = true;
-            }
-        });
-
-        // 监听时间轴变化，重新绘制bar
-        watch(() => store.timelineCellCount, () => {
-            if (bar.value) {
-                // 清除旧的交互设置
-                if (interact.isSet(bar.value)) {
-                    interact(bar.value).unset();
-                }
-                // 重新绘制bar
-                drowBar(bar.value);
-                isBarInteracted.value = true;
-            }
-        });
-
-        // 监听甘特图日期范围变化，重新绘制bar
-        watch(() => [store.startGanttDate, store.endGanttDate], () => {
-            if (bar.value) {
-                // 清除旧的交互设置
-                if (interact.isSet(bar.value)) {
-                    interact(bar.value).unset();
-                }
-                // 重新绘制bar
-                drowBar(bar.value);
-                isBarInteracted.value = true;
-            }
-        });
-
         // 监听 row 的日期变化，重新绘制 bar（用于父任务拖拽时联动子任务）
         watch(
             () => [props.row[mapFields.value.startdate], props.row[mapFields.value.enddate]],
@@ -860,11 +729,13 @@ export default defineComponent({
 
         // 组件挂载后执行的钩子函数
         onMounted(() => {
+            console.log(`[Bar] Component mounted, task: ${props.row[mapFields.value.id]}, mode: ${store.mode}`);
             if (bar.value && !isBarInteracted.value) {
                 // 绘制条形图
                 drowBar(bar.value);
                 // 设置标志变量为 true，表示元素已经设置了交互
                 isBarInteracted.value = true;
+                console.log(`[Bar] Initial bar drawn, width: ${bar.value.getAttribute('width')}`);
             }
             if (setBarColor) {
                 // 设置条形图的颜色
@@ -874,53 +745,35 @@ export default defineComponent({
                     drowBar(bar.value);
                 }
             }
-            
-            // 监听主题变化
-            if (bar.value) {
-                // 向上查找甘特图容器
-                let ganttContainer = bar.value.parentElement;
-                while (ganttContainer && !ganttContainer.hasAttribute('data-gantt-theme')) {
-                    ganttContainer = ganttContainer.parentElement;
-                }
-                
-                if (ganttContainer) {
-                    // 使用MutationObserver监听主题属性变化
-                    const observer = new MutationObserver(() => {
-                        themeVersion.value++;
-                    });
-                    
-                    observer.observe(ganttContainer, {
-                        attributes: true,
-                        attributeFilter: ['data-gantt-theme', 'style']
-                    });
-                    
-                    // 组件卸载时断开观察
-                    onBeforeUnmount(() => {
-                        observer.disconnect();
-                    });
-                }
-            }
         });
 
         // keep-alive 停用时的清理
         onDeactivated(() => {
-            if (bar.value && interact.isSet(bar.value)) {
-                // 取消 SVG 元素的交互设置
-                interact(bar.value).unset()
+            if (bar.value) {
+                try {
+                    // 尝试取消交互设置，但不检查isSet
+                    interact(bar.value).unset();
+                } catch (e) {
+                    // 忽略错误
+                }
             }
             // 隐藏行
-            showRow.value = false
-        })
+            showRow.value = false;
+        });
 
         // 组件卸载前的清理
         onBeforeUnmount(() => {
-            if (bar.value && interact.isSet(bar.value)) {
-                // 取消 SVG 元素的交互设置
-                interact(bar.value).unset()
+            if (bar.value) {
+                try {
+                    // 尝试取消交互设置，但不检查isSet
+                    interact(bar.value).unset();
+                } catch (e) {
+                    // 忽略错误
+                }
             }
             // 隐藏行
-            showRow.value = false
-        })
+            showRow.value = false;
+        });
 
         return {
             bar,
@@ -935,16 +788,12 @@ export default defineComponent({
             scale,
             mode,
             mapFields,
-            setBarDate,
-            setAllowChangeTaskDate,
-            isChildOf,
-            drowBar,
             hoverActive,
             hoverInactive,
             WeekEndColor
         };
-    }
-});
+    },
+})
 </script>
 <style lang="scss" scoped>
 .barRow.active {
@@ -960,49 +809,74 @@ export default defineComponent({
     flex-flow: row nowrap;
     align-items: center;
     justify-content: flex-start;
-    border-top: 1px solid var(--border, #cecece);
-    border-right: 0px solid var(--border, #cecece);
-    border-bottom: 0px solid var(--border, #cecece);
-    margin: 0px 1px -1px -1px;
     width: fit-content;
     position: relative;
 
     .bar {
         position: absolute;
         z-index: 100;
-        background-color: var(--bg-content, #faf7ec);
+        background-color: #faf7ec;
         border-radius: 10px;
     }
 
-    .cell {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
-        // 只保留右边框，避免重复计算宽度
-        border-right: 1px solid var(--border, #cecece);
-        // 顶部和底部边框通过伪元素实现，不影响宽度
-        position: relative;
-        margin: -1px 0px 0px 0px;
-        box-sizing: border-box;
+    &:first-child {
+        .cell {
+            border-top: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            // 顶部和底部边框通过伪元素实现，不影响宽度
+            position: relative;
+            margin: 0px 0px 0px 0px;
+            box-sizing: border-box;
+
+            &:first-child {
+                border-left: 1px solid var(--border, #cecece);
+            }
+
+            &:not(:last-child) {
+                border-right: 1px solid var(--border, #cecece);
+            }
+
+            &:last-child {
+                border-right: 1px solid var(--border, #cecece);
+            }
+        }
     }
 
-    // 为 .cell 添加顶部和底部的伪元素来显示边框
-    .cell::before,
-    .cell::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        right: 0;
-        border-top: 1px solid var(--border, #cecece);
+    &:not(:first-child) {
+
+        .cell {
+            // 为 .cell 添加顶部和底部的伪元素来显示边框
+            border-top: 1px solid var(--border, #cecece);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            // 顶部和底部边框通过伪元素实现，不影响宽度
+            position: relative;
+            margin: 0px 0px 0px 0px;
+            box-sizing: border-box;
+
+            &:first-child {
+                border-left: 1px solid var(--border, #cecece);
+            }
+
+            &:not(:last-child) {
+                border-right: 1px solid var(--border, #cecece);
+            }
+
+            &:last-child {
+                border-right: 1px solid var(--border, #cecece);
+            }
+        }
     }
 
-    .cell::before {
-        top: 0;
-    }
-
-    .cell::after {
-        bottom: 0;
+    &:last-child {
+        .cell {
+            border-bottom: 1px solid var(--border, #cecece);
+        }
     }
 }
 </style>
