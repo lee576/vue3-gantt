@@ -526,7 +526,8 @@ export default defineComponent({
       }
     });
 
-    const pathTypes = ref([
+    // 路径类型 - 使用 computed 以响应语言变化
+    const pathTypes = computed(() => [
       { value: LinkPathType.STRAIGHT, name: t('configPanel.linkConfig.straight'), preview: 'M 10 20 L 50 20' },
       { value: LinkPathType.BEZIER, name: t('configPanel.linkConfig.bezier'), preview: 'M 10 20 C 25 20 35 20 50 20' },
       { value: LinkPathType.RIGHT_ANGLE, name: t('configPanel.linkConfig.rightAngle'), preview: 'M 10 20 L 30 20 L 30 30 L 50 30' }
