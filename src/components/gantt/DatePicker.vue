@@ -324,7 +324,12 @@ export default defineComponent({
       copyMinDate.value = { ...splitDate(props.minDate || '1970-01-01') };
       copyMaxDate.value = { ...splitDate(props.maxDate || '2099-12-31') };
       selectDate.value = { ...showDate.value };
-      selectedDateText.value = showDate.value.date;
+      
+      // 使用国际化日期格式
+      const dayjsLocale = getDayjsLocale();
+      const dateObj = dayjs(showDate.value.date).locale(dayjsLocale);
+      const dateFormat = t('dateFormat.full');
+      selectedDateText.value = dateObj.format(dateFormat);
     };
 
     watchEffect(() => {
@@ -450,9 +455,12 @@ export default defineComponent({
       selectDate.value.week = new Date(showDate.value.year, showDate.value.month - 1, dayValue).getDay() + 1;
       const dayjsLocale = getDayjsLocale();
       selectDate.value.weekStr = dayjs().day(selectDate.value.week).locale(dayjsLocale).format('dddd');
-      selectedDateText.value = `${selectDate.value.year}-${keepDoubleDigit(
-        selectDate.value.month
-      )}-${keepDoubleDigit(selectDate.value.day)}`;
+      
+      // 使用国际化日期格式
+      const dateObj = dayjs(`${selectDate.value.year}-${keepDoubleDigit(selectDate.value.month)}-${keepDoubleDigit(selectDate.value.day)}`).locale(dayjsLocale);
+      const dateFormat = t('dateFormat.full');
+      selectedDateText.value = dateObj.format(dateFormat);
+      
       showCalendar.value = false; // 选择日期后隐藏日期选择器
     };
 

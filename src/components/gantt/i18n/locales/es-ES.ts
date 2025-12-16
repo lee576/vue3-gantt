@@ -50,6 +50,14 @@ export default {
     december: 'Diciembre'
   },
   
+  // Date Format
+  dateFormat: {
+    full: 'DD [de] MMMM [de] YYYY',
+    short: 'DD/MM/YYYY',
+    monthDay: 'DD MMM',
+    yearMonth: 'MMMM YYYY'
+  },
+  
   // View Mode
   viewMode: {
     month: 'Mes',

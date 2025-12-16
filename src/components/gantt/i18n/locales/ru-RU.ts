@@ -50,6 +50,14 @@ export default {
     december: 'Декабрь'
   },
   
+  // Date Format
+  dateFormat: {
+    full: 'DD MMMM YYYY г.',
+    short: 'DD.MM.YYYY',
+    monthDay: 'DD MMM',
+    yearMonth: 'MMMM YYYY'
+  },
+  
   // View Mode
   viewMode: {
     month: 'Месяц',

@@ -49,6 +49,14 @@ export default {
     december: 'December'
   },
   
+  // Date Format
+  dateFormat: {
+    full: 'MMMM DD, YYYY',
+    short: 'MM/DD/YYYY',
+    monthDay: 'MMM DD',
+    yearMonth: 'MMMM YYYY'
+  },
+  
   // View Mode
   viewMode: {
     month: 'Month',

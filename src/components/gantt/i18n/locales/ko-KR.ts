@@ -50,6 +50,14 @@ export default {
     december: '12월'
   },
   
+  // Date Format
+  dateFormat: {
+    full: 'YYYY년 MM월 DD일',
+    short: 'YYYY-MM-DD',
+    monthDay: 'MM월 DD일',
+    yearMonth: 'YYYY년 MM월'
+  },
+  
   // View Mode
   viewMode: {
     month: '월',

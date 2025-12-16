@@ -49,6 +49,14 @@ export default {
     december: '十二月'
   },
   
+  // 日期格式
+  dateFormat: {
+    full: 'YYYY年MM月DD日',
+    short: 'YYYY-MM-DD',
+    monthDay: 'MM月DD日',
+    yearMonth: 'YYYY年MM月'
+  },
+  
   // 视图模式
   viewMode: {
     month: '月',
