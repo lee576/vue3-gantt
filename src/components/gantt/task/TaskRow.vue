@@ -13,9 +13,50 @@
                         height: rowHeight + 'px'
                     }">
                     <div class="no-cell-content">
+                        <!-- 树形连线 -->
+                        <div class="tree-lines">
+                            <!-- 祖先节点的贯穿线（连接兄弟节点） -->
+                            <div 
+                                v-for="level in getAncestorLines" 
+                                :key="'ancestor-' + level" 
+                                class="tree-line-vertical ancestor"
+                                :style="{ left: level * 16 + 8 + 'px' }"
+                            ></div>
+                            
+                            <!-- 顶级节点有子节点且未折叠时，显示向下的竖线 -->
+                            <div 
+                                v-if="row.treeLevel === 1 && hasChildren && !isCollapsed"
+                                class="tree-line-vertical parent-to-child"
+                                :style="{ left: row.treeLevel * 16 + 8 + 'px' }"
+                            ></div>
+                            
+                            <!-- 子节点的连接线 -->
+                            <template v-if="row.treeLevel && row.treeLevel > 1">
+                                <!-- 当前节点的垂直线 -->
+                                <div 
+                                    class="tree-line-vertical current"
+                                    :class="{ 'is-last-child': isLastChild }"
+                                    :style="{ left: (row.treeLevel - 1) * 16 + 8 + 'px' }"
+                                ></div>
+                                
+                                <!-- 水平线（连接到当前节点） -->
+                                <div 
+                                    class="tree-line-horizontal"
+                                    :style="{ left: (row.treeLevel - 1) * 16 + 8 + 'px', width: '32px' }"
+                                ></div>
+                                
+                                <!-- 如果当前节点有子节点且未折叠，显示向下的竖线 -->
+                                <div 
+                                    v-if="hasChildren && !isCollapsed"
+                                    class="tree-line-vertical parent-to-child"
+                                    :style="{ left: row.treeLevel * 16 + 8 + 'px' }"
+                                ></div>
+                            </template>
+                        </div>
+                        
                         <!-- 左侧：折叠按钮 + 序号 -->
                         <div class="no-left-section" :style="{ paddingLeft: (row.treeLevel || 0) * 16 + 'px' }">
-                            <!-- 折叠/展开按钮 (macOS风格) -->
+                            <!-- 折叠/展开按钮 -->
                             <button 
                                 v-if="hasChildren" 
                                 @click.stop="toggleCollapse" 
@@ -23,21 +64,16 @@
                                 :class="{ collapsed: isCollapsed }"
                                 :title="isCollapsed ? '展开' : '折叠'"
                             >
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                    <!-- 外圆环 -->
-                                    <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1" opacity="0.3"/>
-                                    <!-- 箭头 -->
+                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                    <!-- 三角形箭头 -->
                                     <path 
                                         class="arrow" 
-                                        d="M5.5 7 L8 9.5 L10.5 7" 
-                                        stroke="currentColor" 
-                                        stroke-width="1.5" 
-                                        stroke-linecap="round" 
-                                        stroke-linejoin="round"
-                                        fill="none"
+                                        d="M5 4 L14 9 L5 14 Z" 
+                                        fill="currentColor"
                                     />
                                 </svg>
                             </button>
+                            <!-- 无子节点时的占位空间（透明，不遮挡横线） -->
                             <span v-else class="collapse-placeholder"></span>
                             
                             <!-- 序号 -->
@@ -126,7 +162,81 @@ export default defineComponent({
             const currentId = props.row[mapFields.value['id']];
             return collapsedTasks.value.has(currentId);
         });
-
+        
+        // 判断是否是最后一个子节点
+        const isLastChild = computed(() => {
+            const parentId = props.row[mapFields.value['parentId']];
+            if (!parentId || parentId === '0') return false;
+            
+            const siblings = store.tasks.filter(task => 
+                task[mapFields.value['parentId']] === parentId
+            );
+            
+            if (siblings.length === 0) return false;
+            
+            const currentId = props.row[mapFields.value['id']];
+            const lastSibling = siblings[siblings.length - 1];
+            return lastSibling[mapFields.value['id']] === currentId;
+        });
+        
+        // 获取需要显示祖先贯穿线的层级
+        const getAncestorLines = computed(() => {
+            const lines: number[] = [];
+            const treeLevel = props.row.treeLevel || 0;
+            
+            if (treeLevel <= 1) return lines;
+            
+            // 当前节点的 current 线位置对应的层级（需要过滤掉，避免重叠）
+            const currentLineLevel = treeLevel - 1;
+            
+            // 构建从根到当前节点的路径
+            const path: any[] = [];
+            let currentTask = props.row;
+            
+            while (currentTask) {
+                path.unshift(currentTask);
+                const parentId = currentTask[mapFields.value['parentId']];
+                if (!parentId || parentId === '0') break;
+                
+                const parent = store.tasks.find(task => 
+                    task[mapFields.value['id']] === parentId
+                );
+                if (!parent) break;
+                currentTask = parent;
+            }
+            
+            // 从直接父节点开始向上检查，遇到"最后一个子节点"就停止
+            for (let i = path.length - 2; i >= 0; i--) {
+                const node = path[i];
+                const nodeId = node[mapFields.value['id']];
+                const parentId = node[mapFields.value['parentId']];
+                
+                // 查找该节点的所有兄弟节点
+                const siblings = store.tasks.filter(task => 
+                    task[mapFields.value['parentId']] === parentId
+                );
+                
+                if (siblings.length > 0) {
+                    const lastSibling = siblings[siblings.length - 1];
+                    const isLast = lastSibling[mapFields.value['id']] === nodeId;
+                    
+                    if (isLast) {
+                        // 如果这个节点是最后一个子节点，停止添加贯穿线
+                        break;
+                    } else {
+                        // 如果不是最后一个，需要显示贯穿线
+                        const nodeTreeLevel = node.treeLevel;
+                        // 过滤掉和 current 线位置相同的层级
+                        if (nodeTreeLevel && nodeTreeLevel >= 1 && nodeTreeLevel !== currentLineLevel) {
+                            lines.push(nodeTreeLevel);
+                        }
+                    }
+                }
+            }
+            
+            return lines;
+        });
+        
         // 切换折叠状态
         const toggleCollapse = () => {
             const currentId = props.row[mapFields.value['id']];
@@ -181,6 +291,8 @@ export default defineComponent({
             subTask,
             hasChildren,
             isCollapsed,
+            isLastChild,
+            getAncestorLines,
             toggleCollapse,
             setSubTask,
             setEditTask,
@@ -256,6 +368,7 @@ export default defineComponent({
             justify-content: space-between;
             width: 100%;
             height: 100%;
+            position: relative;
         }
 
         .no-left-section {
@@ -266,64 +379,109 @@ export default defineComponent({
             min-width: 0;
         }
 
+        .tree-lines {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .tree-line-vertical {
+            position: absolute;
+            width: 1px;
+            background: var(--border, #d0d0d0);
+            
+            // 祖先贯穿线（从顶部到底部）
+            &.ancestor {
+                top: 0;
+                bottom: 0;
+            }
+            
+            &.current {
+                top: 0;
+                bottom: 0;  // 默认贯穿整行，连接兄弟节点
+                
+                // 如果是最后一个子节点，垂直线只到中间（└ 形状）
+                &.is-last-child {
+                    bottom: 50%;
+                }
+            }
+            
+            // 父节点到子节点的连接线（从中间向下）
+            &.parent-to-child {
+                top: 50%;
+                bottom: 0;
+            }
+        }
+
+        .tree-line-horizontal {
+            position: absolute;
+            top: 50%;
+            height: 1px;
+            background: var(--border, #d0d0d0);
+        }
+
         .collapse-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             padding: 0;
             border: none;
-            background: transparent;
-            color: var(--text-secondary, #86909c);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #6c757d;
             cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 6px;
+            transition: all 0.2s ease;
             flex-shrink: 0;
             position: relative;
+            z-index: 1;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
 
             svg {
                 width: 16px;
                 height: 16px;
-                transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: all 0.2s ease;
             }
 
-            // 箭头旋转动画
+            // 箭头旋转动画 - 展开状态向下
             .arrow {
                 transform-origin: center;
-                transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: transform 0.2s ease;
+                transform: rotate(90deg);
             }
 
-            // 折叠状态：箭头向右旋转90度
+            // 折叠状态：箭头向右
             &.collapsed .arrow {
-                transform: rotate(-90deg);
+                transform: rotate(0deg);
             }
 
-            // 悬停效果 (macOS 风格)
+            // 悬停效果
             &:hover {
-                background: var(--hover-bg, rgba(0, 0, 0, 0.04));
-                color: var(--primary, #3370ff);
+                background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+                color: #495057;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.9);
                 
                 svg {
                     transform: scale(1.1);
-                }
-
-                circle {
-                    opacity: 0.6;
-                    stroke-width: 1.2;
                 }
             }
 
             // 激活状态
             &:active {
-                background: var(--active-bg, rgba(0, 0, 0, 0.08));
+                background: linear-gradient(135deg, #dee2e6 0%, #ced4da 100%);
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(0, 0, 0, 0.1);
                 
                 svg {
                     transform: scale(0.95);
                 }
             }
 
-            // 聚焦状态 (键盘导航)
+            // 聚焦状态
             &:focus-visible {
                 outline: 2px solid var(--primary, #3370ff);
                 outline-offset: 2px;
@@ -331,9 +489,12 @@ export default defineComponent({
         }
 
         .collapse-placeholder {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+            // 透明背景，不遮挡横线
         }
 
         .no-text {
@@ -345,6 +506,8 @@ export default defineComponent({
             font-size: 12px;
             font-weight: 500;
             color: var(--text-primary, #333333);
+            position: relative;
+            z-index: 1;
         }
 
         .action-buttons {
