@@ -126,7 +126,7 @@ const dataConfig = ref<DataConfig>({
   taskHeaders: [
     { title: 'id', width: 100, property: 'id', show: false },
     { title: '父id', width: 100, property: 'parentId', show: false },
-    { title: '序号', width: 80, property: 'no', show: true },
+    { title: '序号', width: 160, property: 'no', show: true },
     { title: '任务名称', width: 190, property: 'task', show: true },
     { title: '优先级', width: 90, property: 'priority', show: true },
     { title: '开始时间', width: 150, property: 'startdate', show: true },

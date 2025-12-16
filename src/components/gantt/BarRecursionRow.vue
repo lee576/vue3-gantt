@@ -36,6 +36,25 @@
       const startGanttDate = computed(() => store.startGanttDate ? store.startGanttDate.toISOString() : undefined);
       const endGanttDate = computed(() => store.endGanttDate ? store.endGanttDate.toISOString() : undefined);
       const mapFields = computed(() => store.mapFields);
+      const collapsedTasks = computed(() => store.collapsedTasks);
+  
+      // 获取所有被折叠的子任务
+      const getAllCollapsedChildren = (parentId: any): Set<any> => {
+        const collapsedChildren = new Set<any>();
+        
+        const collectChildren = (pid: any) => {
+          const children = allTask.value.filter(task => task[mapFields.value['parentId']] === pid);
+          children.forEach(child => {
+            const childId = child[mapFields.value['id']];
+            collapsedChildren.add(childId);
+            // 递归收集所有子孙任务
+            collectChildren(childId);
+          });
+        };
+        
+        collectChildren(parentId);
+        return collapsedChildren;
+      };
   
       // 优化：使用Set提高查找性能
       const hiddenTaskIds = computed(() => {
@@ -44,7 +63,16 @@
 
       const filterTask = computed(() => {
         const hiddenIds = hiddenTaskIds.value;
-        return store.tasks.filter(task => !hiddenIds.has(task[mapFields.value.id]));
+        const tasks = store.tasks.filter(task => !hiddenIds.has(task[mapFields.value.id]));
+        
+        // 过滤折叠的子任务
+        const allCollapsedIds = new Set<any>();
+        collapsedTasks.value.forEach(collapsedId => {
+          const children = getAllCollapsedChildren(collapsedId);
+          children.forEach(childId => allCollapsedIds.add(childId));
+        });
+        
+        return tasks.filter(task => !allCollapsedIds.has(task[mapFields.value.id]));
       });
   
       const expandRow = computed({

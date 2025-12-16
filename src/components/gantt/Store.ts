@@ -19,6 +19,7 @@ interface StoreType {
     pid: number;
     expand: boolean;
   };
+  collapsedTasks: Set<any>; // 记录已折叠的任务ID集合
   rootTask: any;
   subTask: any;
   editTask: any;
@@ -50,6 +51,7 @@ const initialStore: StoreType = {
     pid: 0,
     expand: true
   },
+  collapsedTasks: new Set(),
   rootTask: {},
   subTask: {},
   editTask: {},
@@ -82,6 +84,7 @@ interface MutationsType {
   setScrollFlag: (scrollFlag: boolean) => void;
   setMode: (mode: string | null) => void;
   setExpandRow: (expandRow: { pid: number; expand: boolean }) => void;
+  toggleTaskCollapse: (taskId: any) => void; // 切换任务折叠状态
   setRootTask: (rootTask: any) => void;
   setSubTask: (subTask: any) => void;
   setEditTask: (editTask: any) => void;
@@ -133,6 +136,15 @@ export let mutations: MutationsType = {
   },
   setExpandRow(expandRow: { pid: number; expand: boolean }): void {
     store.expandRow = expandRow;
+  },
+  toggleTaskCollapse(taskId: any): void {
+    if (store.collapsedTasks.has(taskId)) {
+      store.collapsedTasks.delete(taskId);
+    } else {
+      store.collapsedTasks.add(taskId);
+    }
+    // 触发响应式更新
+    store.collapsedTasks = new Set(store.collapsedTasks);
   },
   setRootTask(rootTask: any): void {
     store.rootTask = rootTask;

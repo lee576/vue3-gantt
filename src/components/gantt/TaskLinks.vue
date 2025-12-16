@@ -797,6 +797,36 @@ export default defineComponent({
     };
     
     // 更新连线
+    // 获取所有被折叠的子任务ID集合（递归）
+    const getAllCollapsedChildren = (parentId: any): Set<any> => {
+      const collapsedChildren = new Set<any>();
+      
+      const collectChildren = (pid: any) => {
+        const children = store.tasks.filter(task => task[store.mapFields.parentId] === pid);
+        children.forEach(child => {
+          const childId = child[store.mapFields.id];
+          collapsedChildren.add(childId);
+          // 递归收集所有子孙任务
+          collectChildren(childId);
+        });
+      };
+      
+      collectChildren(parentId);
+      return collapsedChildren;
+    };
+    
+    // 检查任务是否被折叠（任务本身或其任何祖先被折叠）
+    const isTaskCollapsed = (taskId: any): boolean => {
+      // 检查所有已折叠的任务
+      for (const collapsedId of store.collapsedTasks) {
+        const collapsedChildren = getAllCollapsedChildren(collapsedId);
+        if (collapsedChildren.has(taskId)) {
+          return true;
+        }
+      }
+      return false;
+    };
+    
     const updateLinks = () => {
       console.log('updateLinks called');
       const newLinks: TaskLink[] = [];
@@ -814,16 +844,23 @@ export default defineComponent({
       if (visibility.parentChild) {
         store.tasks.forEach(task => {
           const parentId = task[store.mapFields.parentId];
+          const childId = task[store.mapFields.id];
+          
           if (parentId && parentId !== '0') {
+            // 检查子任务是否被折叠，如果被折叠则不显示连线
+            if (isTaskCollapsed(childId)) {
+              return; // 跳过该连线
+            }
+            
             const parentPos = getTaskPosition(parentId);
-            const childPos = getTaskPosition(task[store.mapFields.id]);
+            const childPos = getTaskPosition(childId);
             
             if (parentPos && childPos) {
-              const linkId = `parent-child-${parentId}-${task[store.mapFields.id]}`;
+              const linkId = `parent-child-${parentId}-${childId}`;
               
               // 为位置信息添加任务ID
               const parentPosWithId = { ...parentPos, id: parentId, taskId: parentId };
-              const childPosWithId = { ...childPos, id: task[store.mapFields.id], taskId: task[store.mapFields.id] };
+              const childPosWithId = { ...childPos, id: childId, taskId: childId };
               
               const path = generateLinkPath(parentPosWithId, childPosWithId, LinkType.PARENT_CHILD, linkId);
               const arrowPoints = props.linkConfig.showArrow ? 
@@ -832,7 +869,7 @@ export default defineComponent({
               newLinks.push({
                 id: linkId,
                 sourceId: parentId,
-                targetId: task[store.mapFields.id],
+                targetId: childId,
                 type: LinkType.PARENT_CHILD,
                 path,
                 arrowPoints,
@@ -947,6 +984,11 @@ export default defineComponent({
     
     // 监听连线类型显示配置变化
     watch(() => props.linkConfig.linkTypeVisibility, () => {
+      setTimeout(updateLinks, 50);
+    }, { deep: true });
+    
+    // 监听折叠状态变化
+    watch(() => store.collapsedTasks, () => {
       setTimeout(updateLinks, 50);
     }, { deep: true });
     
