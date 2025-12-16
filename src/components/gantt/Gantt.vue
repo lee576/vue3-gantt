@@ -386,7 +386,7 @@ export default defineComponent({
                     if (months.length === 1) {
                         const days = end.diff(start, 'day') + 1;
                         monthHeaders.value.push({
-                            title: start.format('MMMM'),
+                            title: start.locale(getDayjsLocale()).format('MMMM'),
                             width: days * scale.value
                         });
                     } else {
