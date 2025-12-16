@@ -74,10 +74,10 @@
     flex-flow: column nowrap;
     align-items: center;
     justify-content: flex-start;
-    background: var(--bg-metal-normal);
+    background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
     font-size: 12px;
     font-weight: 600;
-    font-family: var(--font-family);
+    font-family: var(--font-family, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
   }
 
   .header {
@@ -86,7 +86,7 @@
     display: flex;
     flex-flow: row nowrap;
     justify-content: flex-start;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--border, #cecece);
   }
 
   .headerCaption {
@@ -95,14 +95,13 @@
     flex-flow: column nowrap;
     align-items: center;
     justify-content: center;
-    color: var(--text-primary);
-    font-size: 11px;
+    color: var(--text-primary, #333333);
+    font-size: 12px;
     font-weight: 600;
-    background: var(--bg-metal-light);
+    background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
     position: relative;
-    text-transform: uppercase;
     letter-spacing: 0.5px;
-    transition: all var(--transition-fast);
+    transition: all var(--transition-fast, 0.15s ease);
     
     &::before {
         content: '';
@@ -111,14 +110,14 @@
         right: 0;
         bottom: 0;
         left: 0;
-        border-top: 1px solid var(--border);
-        border-right: 1px solid var(--border);
+        border-top: 1px solid var(--border, #cecece);
+        border-right: 1px solid var(--border, #cecece);
         pointer-events: none;
     }
 
     &:hover {
-      background: var(--bg-metal-normal);
-      color: var(--primary);
+      background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
+      color: var(--primary, #0078d4);
     }
 }
 

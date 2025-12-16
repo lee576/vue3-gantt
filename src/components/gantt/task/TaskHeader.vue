@@ -32,6 +32,7 @@
   display: flex;
   flex-flow: row nowrap;
   background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
+  font-family: var(--font-family, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
   
   .headerCaption {
     text-align: center;
@@ -40,10 +41,13 @@
     align-items: center;
     justify-content: center;
     position: relative;
-    color: var(--text-primary, #6b6b6b);
-    font-size: 15px;
-    font-weight: bold;
+    color: var(--text-primary, #333333);
+    font-size: 14px;
+    font-weight: 600;
     box-sizing: border-box;
+    letter-spacing: 0.5px;
+    background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
+    transition: all var(--transition-fast, 0.15s ease);
     
     &::before {
       content: '';
@@ -73,6 +77,11 @@
 
     &:last-child::before {
       border-right: 1px solid var(--border, #cecece);
+    }
+
+    &:hover {
+      background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
+      color: var(--primary, #0078d4);
     }
   }
 }
