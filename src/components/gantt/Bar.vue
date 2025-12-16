@@ -2,7 +2,7 @@
     <div v-if='showRow' class="barRow" :style="{ height: rowHeight + 'px' }" @mouseover="hoverActive()"
         @mouseleave="hoverInactive()" :class="{ active: hover }" :data-task-id="row[mapFields.id]">
         <svg key="row.no" v-if='showRow' ref='bar' class="bar" :height="barHeight + 'px'"
-            :class="{ active: hover }"></svg>
+            :class="{ active: hover }" style="overflow: visible;"></svg>
         <template v-for='(count) in timelineCellCount'
             :key="count + row.id + timelineCellCount + showRow + '_template'">
             <div class="cell"
@@ -187,68 +187,149 @@ export default defineComponent({
                 .fill('#000').attr('opacity', 1).attr('dominant-baseline', 'middle')
                 .center(innerRect.width() / 2 + textBBox.width / 2, innerRect.height() / 2);
 
-            // 进度调节滑块 - 圆形拖拽手柄
-            const handleRadius = 6;
-            const handleX = innerRectWidth;
-            const handleY = barHeight.value / 2; // 垂直居中
+            // 进度调节滑块 - 三角形拖拽手柄 + 对齐虚线
+            const handleWidth = 12;
+            const handleHeight = 8;
+            const handleX = innerRectWidth - handleWidth / 2;
+            // 三角形位置：Bar底部边缘穿过三角形中心
+            const handleY = barHeight.value - handleHeight / 2;
+            const lineX = innerRectWidth;
+            
+            // 获取主题颜色的辅助函数
+            const getThemeColors = () => {
+                let primary = '#f59e0b', primaryDark = '#d97706', primaryLight = '#fbbf24';
+                let element = barElement.parentElement;
+                while (element) {
+                    if (element.hasAttribute('data-gantt-theme')) {
+                        primary = getComputedStyle(element).getPropertyValue('--primary').trim() || primary;
+                        primaryDark = getComputedStyle(element).getPropertyValue('--primary-dark').trim() || primaryDark;
+                        primaryLight = getComputedStyle(element).getPropertyValue('--primary-light').trim() || primaryLight;
+                        break;
+                    }
+                    element = element.parentElement;
+                }
+                return { primary, primaryDark, primaryLight };
+            };
+            
+            // 查找或创建对齐虚线
+            let guideLineEl = barElement.querySelector('.progressGuideLine') as SVGLineElement | null;
+            const themeColors = getThemeColors();
+            
+            if (!guideLineEl) {
+                // 创建对齐虚线
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('class', 'progressGuideLine');
+                line.setAttribute('x1', String(lineX));
+                line.setAttribute('y1', '0');
+                line.setAttribute('x2', String(lineX));
+                line.setAttribute('y2', String(handleY));
+                line.setAttribute('stroke', themeColors.primaryDark);
+                line.setAttribute('stroke-width', '2');
+                line.setAttribute('stroke-dasharray', '4,3');
+                line.setAttribute('opacity', '0.8');
+                barElement.appendChild(line);
+                guideLineEl = line;
+            }
+            // 始终更新位置和可见性
+            guideLineEl.setAttribute('x1', String(lineX));
+            guideLineEl.setAttribute('x2', String(lineX));
+            guideLineEl.setAttribute('y2', String(handleY));
+            guideLineEl.setAttribute('stroke', themeColors.primaryDark);
+            guideLineEl.setAttribute('opacity', '0.8');
             
             if (!progressHandle) {
-                // 创建圆形手柄
-                progressHandle = svg.circle(handleRadius * 2)
-                    .fill('#fff')
-                    .stroke({ color: '#3b82f6', width: 2 })
-                    .addClass('progressHandle')
-                    .center(handleX, handleY);
+                // 创建三角形手柄
+                const trianglePoints = `${handleWidth/2},0 0,${handleHeight} ${handleWidth},${handleHeight}`;
+                progressHandle = svg.polygon(trianglePoints)
+                    .fill(themeColors.primary)
+                    .stroke({ color: themeColors.primaryDark, width: 1 })
+                    .addClass('progressHandle');
                 
-                const handleElement = progressHandle.node as unknown as SVGCircleElement;
+                const handleElement = progressHandle.node as unknown as SVGPolygonElement;
                 handleElement.style.cursor = 'ew-resize';
                 handleElement.style.pointerEvents = 'auto';
+                progressHandle.move(handleX, handleY);
                 
-                // 鼠标悬停效果
+                // 用于记录当前X位置
+                let currentHandleX = handleX;
+                
+                // 悬停效果 - 高亮显示
                 handleElement.addEventListener('mouseenter', () => {
                     if (!isProgressDragging.value) {
-                        progressHandle.fill('#3b82f6').stroke({ color: '#2563eb', width: 3 });
-                        progressHandle.radius(handleRadius * 1.2);
+                        const colors = getThemeColors();
+                        handleElement.setAttribute('fill', colors.primaryLight);
+                        handleElement.setAttribute('stroke', colors.primary);
+                        handleElement.setAttribute('stroke-width', '2');
+                        guideLineEl!.setAttribute('stroke', colors.primaryLight);
+                        guideLineEl!.setAttribute('stroke-width', '2');
+                        guideLineEl!.setAttribute('opacity', '1');
                     }
                 });
                 handleElement.addEventListener('mouseleave', () => {
                     if (!isProgressDragging.value) {
-                        progressHandle.fill('#fff').stroke({ color: '#3b82f6', width: 2 });
-                        progressHandle.radius(handleRadius);
+                        const colors = getThemeColors();
+                        handleElement.setAttribute('fill', colors.primary);
+                        handleElement.setAttribute('stroke', colors.primaryDark);
+                        handleElement.setAttribute('stroke-width', '1');
+                        guideLineEl!.setAttribute('stroke', colors.primaryDark);
+                        guideLineEl!.setAttribute('stroke-width', '2');
+                        guideLineEl!.setAttribute('opacity', '0.8');
                     }
                 });
                 
-                // 进度滑块交互
+                // 拖拽交互
                 interact(handleElement).draggable({
                     inertia: false,
                     listeners: {
                         start: () => { 
                             isProgressDragging.value = true;
-                            progressHandle.fill('#2563eb').stroke({ color: '#1e40af', width: 3 });
+                            const colors = getThemeColors();
+                            handleElement.setAttribute('fill', colors.primaryDark);
+                            handleElement.setAttribute('stroke', colors.primaryDark);
+                            handleElement.setAttribute('stroke-width', '2');
+                            guideLineEl!.setAttribute('stroke', colors.primaryDark);
+                            guideLineEl!.setAttribute('stroke-width', '2');
+                            guideLineEl!.setAttribute('opacity', '1');
                         },
                         move: (event) => {
-                            const currentCX = progressHandle.cx();
-                            let newCX = currentCX + event.dx;
-                            newCX = Math.max(0, Math.min(newCX, oldBarWidth.value));
-                            progressHandle.cx(newCX);
-                            const newProgress = Math.min(1, Math.max(0, newCX / oldBarWidth.value));
+                            currentHandleX += event.dx;
+                            currentHandleX = Math.max(-handleWidth / 2, Math.min(currentHandleX, oldBarWidth.value - handleWidth / 2));
+                            
+                            progressHandle.move(currentHandleX, handleY);
+                            
+                            // 更新虚线位置
+                            const newLineX = currentHandleX + handleWidth / 2;
+                            guideLineEl!.setAttribute('x1', String(newLineX));
+                            guideLineEl!.setAttribute('x2', String(newLineX));
+                            
+                            // 更新进度
+                            const newProgress = Math.min(1, Math.max(0, (currentHandleX + handleWidth / 2) / oldBarWidth.value));
                             innerRect.width(newProgress * oldBarWidth.value);
                             (text as any).text((newProgress * 100).toFixed(2) + '%');
                             (text as any).center(innerRect.width() / 2 + textBBox.width / 2, innerRect.height() / 2);
                         },
                         end: () => {
                             isProgressDragging.value = false;
-                            progressHandle.fill('#fff').stroke({ color: '#3b82f6', width: 2 });
-                            progressHandle.radius(handleRadius);
-                            const hCX = progressHandle.cx();
-                            const newProgress = Math.min(1, Math.max(0, hCX / oldBarWidth.value));
+                            const colors = getThemeColors();
+                            handleElement.setAttribute('fill', colors.primary);
+                            handleElement.setAttribute('stroke', colors.primaryDark);
+                            handleElement.setAttribute('stroke-width', '1');
+                            guideLineEl!.setAttribute('stroke', colors.primaryDark);
+                            guideLineEl!.setAttribute('stroke-width', '2');
+                            guideLineEl!.setAttribute('opacity', '0.8');
+                            
+                            const newProgress = Math.min(1, Math.max(0, (currentHandleX + handleWidth / 2) / oldBarWidth.value));
                             props.row[mapFields.value.progress] = newProgress;
                             emitProgressUpdate(newProgress);
                         }
                     }
                 });
             } else {
-                progressHandle.center(handleX, handleY);
+                progressHandle.move(handleX, handleY);
+                // 更新已存在的三角形颜色以响应主题变化
+                const handleElement = progressHandle.node as unknown as SVGPolygonElement;
+                handleElement.setAttribute('fill', themeColors.primary);
+                handleElement.setAttribute('stroke', themeColors.primaryDark);
             }
 
             setBarDate({ id: props.row[mapFields.value.id], startDate: props.row[mapFields.value.startdate], endDate: props.row[mapFields.value.enddate] });
@@ -532,8 +613,8 @@ export default defineComponent({
 .barRow.active { background: var(--row-hover, #FFF3A1) !important; .cell { background: var(--row-hover, #FFF3A1) !important; } }
 .barRow {
     display: flex; flex-flow: row nowrap; align-items: center; justify-content: flex-start;
-    width: fit-content; position: relative;
-    .bar { position: absolute; z-index: 100; background-color: #faf7ec; border-radius: 10px; }
+    width: fit-content; position: relative; overflow: visible;
+    .bar { position: absolute; z-index: 100; background-color: #faf7ec; border-radius: 10px; overflow: visible; }
     &:first-child .cell {
         border-top: none; display: flex; align-items: center; justify-content: center; font-size: 10px;
         position: relative; margin: 0; box-sizing: border-box;

@@ -148,6 +148,11 @@ const eventConfig = ref<EventConfig>({
   editTask: (row: { id: string }) => {
     console.log(row);
   },
+  updateProgress: (detail) => {
+    console.log('进度更新:', detail);
+    // 这里可以调用服务端API更新进度
+    // 例如: await api.updateTaskProgress(detail.taskId, detail.newProgress);
+  },
   queryTask: async (queryStart: string, queryEnd: string) => {
     console.log('queryTask called:', queryStart, queryEnd);
     dataConfig.value.queryStartDate = queryStart;

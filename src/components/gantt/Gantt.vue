@@ -126,7 +126,7 @@
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, computed, provide, onBeforeMount, onMounted, nextTick, watch } from 'vue';
+import { ref, defineComponent, computed, provide, onBeforeMount, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 dayjs.extend(customParseFormat);
@@ -246,6 +246,7 @@ export default defineComponent({
                 queryTask: (startDate: string, endDate: string, mode: string) => void;
                 barDate: (id: any, startDate: string, endDate: string) => void;
                 allowChangeTaskDate: (allow: boolean) => void;
+                updateProgress?: (detail: { taskId: any; oldProgress: number; newProgress: number; task: Record<string, any> }) => void;
             },
             required: true
         }
@@ -712,6 +713,14 @@ export default defineComponent({
             }
         });
 
+        // 进度更新事件处理
+        const handleProgressUpdate = (event: Event) => {
+            const customEvent = event as CustomEvent;
+            if (props.eventConfig.updateProgress) {
+                props.eventConfig.updateProgress(customEvent.detail);
+            }
+        };
+
         onMounted(() => {
             monthHeaders.value = [];
             weekHeaders.value = [];
@@ -727,6 +736,9 @@ export default defineComponent({
                 mode.value = '月';
                 mutations.setMode(mode.value)
             });
+            
+            // 监听进度更新事件
+            window.addEventListener('taskProgressUpdate', handleProgressUpdate);
         });
         
         // 优化：监听dataSource变化，使用节流避免频繁更新
@@ -751,6 +763,11 @@ export default defineComponent({
                 mutations.setTasks([]);
             }
         }, { immediate: false });
+
+        onBeforeUnmount(() => {
+            // 清理进度更新事件监听
+            window.removeEventListener('taskProgressUpdate', handleProgressUpdate);
+        });
 
         provide(Symbols.AddRootTaskSymbol, (row: Record<string, any>) => {
             return props.eventConfig.addRootTask(row);

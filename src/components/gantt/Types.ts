@@ -98,6 +98,14 @@ export interface DataConfig {
   dependencies?: Omit<TaskDependency, 'id'>[];
 }
 
+// 进度更新事件详情接口
+export interface ProgressUpdateDetail {
+  taskId: any;
+  oldProgress: number;
+  newProgress: number;
+  task: Record<string, any>;
+}
+
 // 事件配置接口
 export interface EventConfig {
   addRootTask: (row: Record<string, any> | null) => void;
@@ -107,6 +115,7 @@ export interface EventConfig {
   queryTask: (startDate: string, endDate: string, mode: string) => void;
   barDate: (id: any, startDate: string, endDate: string) => void;
   allowChangeTaskDate: (allow: boolean) => void;
+  updateProgress?: (detail: ProgressUpdateDetail) => void;
 }
 
 // 任务表头接口
