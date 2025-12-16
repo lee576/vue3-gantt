@@ -2,7 +2,7 @@
   <div>
     <!-- 添加文本框 -->
     <div class="date-picker-input-wrapper">
-      <input type="text" v-model="selectedDateText" @click="showCalendar = true" readonly placeholder="请选择日期"
+      <input type="text" v-model="selectedDateText" @click="showCalendar = true" readonly :placeholder="t('datePicker.selectDate')"
         class="date-picker-input" ref="inputRef" />
       <span class="clear-date-button" @click="clearDate" v-if="selectedDateText">
         <svg viewBox="0 0 24 24">
@@ -61,13 +61,7 @@
           </div>
         </div>
         <div class="e-calendar-week">
-          <span class="e-calendar-week-day">一</span>
-          <span class="e-calendar-week-day">二</span>
-          <span class="e-calendar-week-day">三</span>
-          <span class="e-calendar-week-day">四</span>
-          <span class="e-calendar-week-day">五</span>
-          <span class="e-calendar-week-day">六</span>
-          <span class="e-calendar-week-day">日</span>
+          <span v-for="(weekName, index) in getWeekNames" :key="index" class="e-calendar-week-day">{{ weekName }}</span>
         </div>
         <div class="e-calendar-monthday">
           <transition :name="fadeXType">
@@ -104,7 +98,7 @@
         active: item === selectDate.month,
         hover: isMonthHovered(index)
       }" @click="selectMonth(item)" @mouseenter="handleMonthMouseEnter(index)" @mouseleave="handleMonthMouseLeave()">
-          {{ item }}
+          {{ getMonthName(item) }}
         </li>
       </ul>
     </div>
@@ -112,32 +106,17 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onBeforeMount, onMounted, onUnmounted, watchEffect } from 'vue';
-
-// 阿拉伯数字 转 汉字数字的基本库
-const weekJson = {
-  1: '星期一',
-  2: '星期二',
-  3: '星期三',
-  4: '星期四',
-  5: '星期五',
-  6: '星期六',
-  7: '星期日',
-};
-const monthJson = {
-  1: '一月',
-  2: '二月',
-  3: '三月',
-  4: '四月',
-  5: '五月',
-  6: '六月',
-  7: '七月',
-  8: '八月',
-  9: '九月',
-  10: '十月',
-  11: '十一月',
-  12: '十二月',
-};
+import { defineComponent, ref, computed, onBeforeMount, onMounted, onUnmounted, watchEffect, watch } from 'vue';
+import { useI18n } from './i18n';
+import dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/en';
+import 'dayjs/locale/ja';
+import 'dayjs/locale/ko';
+import 'dayjs/locale/fr';
+import 'dayjs/locale/de';
+import 'dayjs/locale/es';
+import 'dayjs/locale/ru';
 
 export default defineComponent({
   props: {
@@ -152,6 +131,41 @@ export default defineComponent({
     maxDate: String,
   },
   setup(props, { emit }) {
+    const { t, locale } = useI18n();
+    
+    // 获取 dayjs locale
+    const getDayjsLocale = () => {
+      const localeMap: Record<string, string> = {
+        'zh-CN': 'zh-cn',
+        'en-US': 'en',
+        'ja-JP': 'ja',
+        'ko-KR': 'ko',
+        'fr-FR': 'fr',
+        'de-DE': 'de',
+        'es-ES': 'es',
+        'ru-RU': 'ru'
+      };
+      return localeMap[locale.value] || 'en';
+    };
+    
+    // 获取星期名称
+    const getWeekNames = computed(() => {
+      const dayjsLocale = getDayjsLocale();
+      const weekNames = [];
+      for (let i = 1; i <= 7; i++) {
+        // 使用 dayjs 获取本地化的星期名称（简写）
+        const day = dayjs().day(i).locale(dayjsLocale);
+        weekNames.push(day.format('dd'));
+      }
+      return weekNames;
+    });
+    
+    // 获取月份名称
+    const getMonthName = (month: number) => {
+      const dayjsLocale = getDayjsLocale();
+      return dayjs().month(month - 1).locale(dayjsLocale).format('MMMM');
+    };
+    
     // 定义响应式数据
     let selectDate = ref({
       year: 0,
@@ -249,7 +263,7 @@ export default defineComponent({
           row = [];
         }
       }
-      showDate.value.monthStr = monthJson[showDate.value.month as keyof typeof monthJson];
+      showDate.value.monthStr = getMonthName(showDate.value.month);
       return result;
     });
 
@@ -285,8 +299,9 @@ export default defineComponent({
         };
         if (addStr) {
           result.week = new Date(result.year, result.month - 1, result.day).getDay() + 1;
-          result.monthStr = monthJson[result.month as keyof typeof monthJson];
-          result.weekStr = weekJson[result.week as 1 | 2 | 3 | 4 | 5 | 6 | 7];
+          result.monthStr = getMonthName(result.month);
+          const dayjsLocale = getDayjsLocale();
+          result.weekStr = dayjs().day(result.week).locale(dayjsLocale).format('dddd');
         }
       } catch (error) {
         console.error(error);
@@ -433,7 +448,8 @@ export default defineComponent({
       selectDate.value.monthStr = showDate.value.monthStr;
       selectDate.value.day = dayValue;
       selectDate.value.week = new Date(showDate.value.year, showDate.value.month - 1, dayValue).getDay() + 1;
-      selectDate.value.weekStr = weekJson[selectDate.value.week as keyof typeof weekJson];
+      const dayjsLocale = getDayjsLocale();
+      selectDate.value.weekStr = dayjs().day(selectDate.value.week).locale(dayjsLocale).format('dddd');
       selectedDateText.value = `${selectDate.value.year}-${keepDoubleDigit(
         selectDate.value.month
       )}-${keepDoubleDigit(selectDate.value.day)}`;
@@ -611,6 +627,10 @@ export default defineComponent({
     });
 
     return {
+      t,
+      locale,
+      getWeekNames,
+      getMonthName,
       selectDate,
       showDate,
       copyMinDate,
