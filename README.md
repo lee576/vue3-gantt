@@ -1,5 +1,16 @@
 # Vue3 Gantt 甘特图组件
 
+**Languages / 语言选择:** [English](#english-documentation) | [简体中文](#chinese-documentation) | [View Separate Files](.) 
+
+> 💡 **提示**: GitHub 上也可查看独立语言版本文件：[README.md](README.md) (默认中文) | [README.en-US.md](README.en-US.md) (English)
+
+---
+
+<div id="chinese-documentation"></div>
+
+<details open>
+<summary><h2>🇨🇳 简体中文文档</h2></summary>
+
 一个功能丰富、高度可定制的 Vue 3 甘特图组件，支持任务管理、依赖关系、多种视图模式和主题切换。
 
 <div align="center">
@@ -642,3 +653,101 @@ src/
 ## License
 
 MIT
+
+</details>
+
+---
+
+<div id="english-documentation"></div>
+
+<details>
+<summary><h2>🇺🇸 English Documentation</h2></summary>
+
+## Vue3 Gantt Chart Component
+
+A feature-rich, highly customizable Vue 3 Gantt chart component that supports task management, dependency relationships, multiple view modes, and theme switching.
+
+<div align="center">
+  <img src="https://img.shields.io/badge/Vue-3.5.13-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white" alt="Vue 3">
+  <img src="https://img.shields.io/badge/TypeScript-5.7.2-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Vite-6.2.0-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite">
+</div>
+
+### Features
+
+- **Multiple View Modes** - Month, Day, Week, and Hour time granularity views
+- **Task Dependencies** - Support for FS, SS, FF, SF dependency types
+- **Theme System** - 5 built-in themes with custom theme support
+- **Internationalization** - Built-in 8 languages, easily extensible
+- **Progress Management** - Visual progress bars with drag-to-adjust
+- **Interactive Operations** - Task dragging, resizing, parent-child linkage
+- **Responsive Design** - Adjustable split panel ratio
+- **High Performance** - Virtual scrolling optimization for large datasets
+
+### Supported Languages
+
+- 🇨🇳 Simplified Chinese (zh-CN)
+- 🇺🇸 English (en-US)
+- 🇯🇵 Japanese (ja-JP)
+- 🇰🇷 Korean (ko-KR)
+- 🇫🇷 French (fr-FR)
+- 🇩🇪 German (de-DE)
+- 🇪🇸 Spanish (es-ES)
+- 🇷🇺 Russian (ru-RU)
+
+### Built-in Themes
+
+| Theme | Primary Color | Style |
+|-------|---------------|-------|
+| 🔷 **Metro** | `#0078d4` | Microsoft Metro design language |
+| 🌙 **Dark** | `#00d4ff` | Eye-friendly dark theme |
+| ✨ **Modern** | `#6366f1` | Clean modern design |
+| 💼 **Classic** | `#2563eb` | Traditional business style |
+| 🎨 **Colorful** | `#f59e0b` | Vibrant colorful theme |
+
+### Installation
+
+```bash
+# Clone repository
+git clone <repository-url>
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+### Quick Start
+
+```vue
+<template>
+  <gantt 
+    :styleConfig="styleConfig" 
+    :dataConfig="dataConfig" 
+    :eventConfig="eventConfig"
+  />
+</template>
+
+<script setup lang="ts">
+import Gantt from './components/gantt/Gantt.vue';
+// ... configuration code
+</script>
+```
+
+For complete documentation, please refer to:
+- **Separate English README**: [README.en-US.md](README.en-US.md)
+- **GitHub Repository**: View full documentation and examples
+
+### Browser Support
+
+- Chrome (Recommended)
+- Firefox
+- Safari
+- Edge
+
+### License
+
+MIT
+
+</details>
