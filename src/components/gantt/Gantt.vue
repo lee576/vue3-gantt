@@ -909,6 +909,9 @@ $toolbarHeight: 70px;
         align-items: center;
         justify-content: flex-start;
         padding: calc($toolbarHeight / 2);
+        background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
+        border-bottom: 1px solid var(--border, #d0d0d0);
+        transition: all var(--transition-normal, 0.25s ease);
 
         .dateInput {
             cursor: pointer;
@@ -920,8 +923,9 @@ $toolbarHeight: 70px;
             justify-content: center;
             margin-right: 20px;
             border-radius: 5px;
-            color: #00BCD4;
+            color: var(--primary, #0078d4);
             font-size: 14px;
+            transition: color var(--transition-fast, 0.15s ease);
         }
 
         .buttonGroup {

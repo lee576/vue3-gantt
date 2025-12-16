@@ -140,11 +140,15 @@ export default {
     dark: 'Oscuro',
     colorful: 'Colorido',
     ocean: 'Océano',
+    apple: 'Apple',
+    classic: 'Clásico',
     metroDesc: 'Estilo Metro Windows clásico',
     lightDesc: 'Estilo claro fresco y brillante',
     darkDesc: 'Estilo oscuro elegante y profesional',
     colorfulDesc: 'Estilo colorido vibrante',
-    oceanDesc: 'Estilo océano tranquilo y cómodo'
+    oceanDesc: 'Estilo océano tranquilo y cómodo',
+    appleDesc: 'Estilo macOS minimalista y elegante',
+    classicDesc: 'Estilo empresarial tradicional y estable'
   },
   
   // Date Picker

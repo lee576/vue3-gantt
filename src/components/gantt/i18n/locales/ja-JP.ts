@@ -140,11 +140,15 @@ export default {
     dark: 'ダーク',
     colorful: 'カラフル',
     ocean: 'オーシャン',
+    apple: 'Apple',
+    classic: 'クラシック',
     metroDesc: 'クラシックWindowsメトロスタイル',
     lightDesc: '明るく爽やかなライトスタイル',
     darkDesc: 'エレガントでプロフェッショナルなダークスタイル',
     colorfulDesc: '活気あるカラフルスタイル',
-    oceanDesc: '落ち着いた快適なオーシャンスタイル'
+    oceanDesc: '落ち着いた快適なオーシャンスタイル',
+    appleDesc: 'ミニマルでエレガントなmacOSスタイル',
+    classicDesc: '伝統的で安定感のあるビジネススタイル'
   },
   
   // Date Picker

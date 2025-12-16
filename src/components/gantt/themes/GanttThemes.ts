@@ -149,8 +149,8 @@ export const ganttThemes: GanttTheme[] = [
   },
   {
     id: 'classic',
-    nameKey: 'theme.metro',
-    descKey: 'theme.metroDesc',
+    nameKey: 'theme.classic',
+    descKey: 'theme.classicDesc',
     preview: '#2563eb',
     cssVariables: {
       '--primary': '#2563eb',
@@ -235,6 +235,53 @@ export const ganttThemes: GanttTheme[] = [
       
       '--font-family': "'Comic Sans MS', cursive",
       '--font-size-base': '12px',
+      '--font-weight-normal': '400',
+      '--font-weight-bold': '600'
+    }
+  },
+  {
+    id: 'apple',
+    nameKey: 'theme.apple',
+    descKey: 'theme.appleDesc',
+    preview: '#007aff',
+    cssVariables: {
+      // Apple/macOS 风格主题变量
+      '--primary': '#007aff',
+      '--primary-dark': '#0051d5',
+      '--primary-light': '#4da3ff',
+      '--secondary': '#5856d6',
+      
+      '--bg-metal-light': 'linear-gradient(145deg, #fafafa, #f2f2f7)',
+      '--bg-metal-normal': 'linear-gradient(145deg, #f2f2f7, #e5e5ea)',
+      '--bg-metal-dark': 'linear-gradient(145deg, #e5e5ea, #d1d1d6)',
+      '--bg-metal-pressed': 'linear-gradient(145deg, #d1d1d6, #f2f2f7)',
+      
+      '--bg-active': 'linear-gradient(145deg, #007aff, #0051d5)',
+      '--bg-active-hover': 'linear-gradient(145deg, #4da3ff, #007aff)',
+      '--bg-active-pressed': 'linear-gradient(145deg, #0051d5, #4da3ff)',
+      
+      '--border': '#d1d1d6',
+      '--border-dark': '#c7c7cc',
+      '--shadow-inset': 'inset 0 0.5px 0 rgba(255, 255, 255, 0.9), inset 0 -0.5px 0 rgba(0, 0, 0, 0.08)',
+      '--shadow-outset': '0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08)',
+      '--shadow-active': 'inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2)',
+      
+      '--text-primary': '#000000',
+      '--text-secondary': '#3c3c43',
+      '--text-muted': '#8e8e93',
+      '--text-white': '#ffffff',
+      
+      '--bg-primary': '#ffffff',
+      '--bg-secondary': '#f2f2f7',
+      '--bg-content': '#ffffff',
+      '--row-hover': '#e8f4fd',
+      
+      '--transition-fast': '0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+      '--transition-normal': '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      '--transition-slow': '0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+      
+      '--font-family': "'-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Helvetica Neue', sans-serif",
+      '--font-size-base': '13px',
       '--font-weight-normal': '400',
       '--font-weight-bold': '600'
     }
