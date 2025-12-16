@@ -4,7 +4,7 @@
             <div class="dateInput">
                 <DatePicker :date="startDate" :min-date="minStartDate" :max-date="maxStartDate"
                     @confirm="confirmStart" />
-                <span style="margin-right:20px;margin-left:20px;color:#606266">至</span>
+                <span style="margin-right:20px;margin-left:20px;color:#606266">{{ t('common.to') }}</span>
                 <DatePicker :date="endDate" :min-date="minEndDate" :max-date="maxEndDate" @confirm="confirmEnd" />
             </div>
             <div class="buttonGroup">
@@ -15,7 +15,7 @@
                                 <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
                             </svg>
                         </div>
-                        <div class="metro-text">月</div>
+                        <div class="metro-text">{{ t('viewMode.month') }}</div>
                     </div>
                 </div>
                 <div :class="buttonClass[1]" class="metro-btn" @click="timeMode('周')">
@@ -25,7 +25,7 @@
                                 <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
                             </svg>
                         </div>
-                        <div class="metro-text">周</div>
+                        <div class="metro-text">{{ t('viewMode.week') }}</div>
                     </div>
                 </div>
                 <div :class="buttonClass[2]" class="metro-btn" @click="timeMode('日')">
@@ -35,7 +35,7 @@
                                 <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h8c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H6V4h8v16z"/>
                             </svg>
                         </div>
-                        <div class="metro-text">日</div>
+                        <div class="metro-text">{{ t('viewMode.day') }}</div>
                     </div>
                 </div>
                 <div :class="buttonClass[3]" class="metro-btn" @click="timeMode('时')">
@@ -45,7 +45,7 @@
                                 <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
                             </svg>
                         </div>
-                        <div class="metro-text">时</div>
+                        <div class="metro-text">{{ t('viewMode.hour') }}</div>
                     </div>
                 </div>
             </div>
@@ -55,7 +55,7 @@
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M19 15l-6 6-1.42-1.42L15.17 16H4V4h2v10h9.17l-3.59-3.58L13 9l6 6z"/>
                     </svg>
-                    连线图例
+                    {{ t('link.legend') }}
                 </div>
                 <div class="legend-items">
                     <label class="legend-item" :class="{ disabled: !linkTypeVisibility.parentChild }" title="父子关系：显示任务的层级结构">
@@ -64,8 +64,8 @@
                             <line x1="0" y1="6" x2="18" y2="6" stroke="#95a5a6" stroke-width="1.5" stroke-dasharray="3,3"/>
                             <polygon points="24,6 18,3 18,9" fill="#95a5a6"/>
                         </svg>
-                        <span class="legend-label">PC</span>
-                        <span class="legend-desc">父子关系</span>
+                        <span class="legend-label">{{ t('link.pc') }}</span>
+                        <span class="legend-desc">{{ t('link.parentChild') }}</span>
                     </label>
                     <label class="legend-item" :class="{ disabled: !linkTypeVisibility.finishToStart }" title="完成-开始：前置任务完成后，后续任务才能开始">
                         <input type="checkbox" v-model="linkTypeVisibility.finishToStart" @change="updateLinkVisibility" />
@@ -73,8 +73,8 @@
                             <line x1="0" y1="6" x2="18" y2="6" :stroke="linkTypeColors.finishToStart" stroke-width="2"/>
                             <polygon points="24,6 18,3 18,9" :fill="linkTypeColors.finishToStart"/>
                         </svg>
-                        <span class="legend-label">FS</span>
-                        <span class="legend-desc">完成-开始</span>
+                        <span class="legend-label">{{ t('link.fs') }}</span>
+                        <span class="legend-desc">{{ t('link.finishToStart') }}</span>
                     </label>
                     <label class="legend-item" :class="{ disabled: !linkTypeVisibility.startToStart }" title="开始-开始：两个任务同时开始">
                         <input type="checkbox" v-model="linkTypeVisibility.startToStart" @change="updateLinkVisibility" />
@@ -82,8 +82,8 @@
                             <line x1="0" y1="6" x2="18" y2="6" :stroke="linkTypeColors.startToStart" stroke-width="2"/>
                             <polygon points="24,6 18,3 18,9" :fill="linkTypeColors.startToStart"/>
                         </svg>
-                        <span class="legend-label">SS</span>
-                        <span class="legend-desc">开始-开始</span>
+                        <span class="legend-label">{{ t('link.ss') }}</span>
+                        <span class="legend-desc">{{ t('link.startToStart') }}</span>
                     </label>
                     <label class="legend-item" :class="{ disabled: !linkTypeVisibility.finishToFinish }" title="完成-完成：两个任务同时完成">
                         <input type="checkbox" v-model="linkTypeVisibility.finishToFinish" @change="updateLinkVisibility" />
@@ -91,8 +91,8 @@
                             <line x1="0" y1="6" x2="18" y2="6" :stroke="linkTypeColors.finishToFinish" stroke-width="2"/>
                             <polygon points="24,6 18,3 18,9" :fill="linkTypeColors.finishToFinish"/>
                         </svg>
-                        <span class="legend-label">FF</span>
-                        <span class="legend-desc">完成-完成</span>
+                        <span class="legend-label">{{ t('link.ff') }}</span>
+                        <span class="legend-desc">{{ t('link.finishToFinish') }}</span>
                     </label>
                     <label class="legend-item" :class="{ disabled: !linkTypeVisibility.startToFinish }" title="开始-完成：前置任务开始后，后续任务才能完成">
                         <input type="checkbox" v-model="linkTypeVisibility.startToFinish" @change="updateLinkVisibility" />
@@ -100,12 +100,13 @@
                             <line x1="0" y1="6" x2="18" y2="6" :stroke="linkTypeColors.startToFinish" stroke-width="2"/>
                             <polygon points="24,6 18,3 18,9" :fill="linkTypeColors.startToFinish"/>
                         </svg>
-                        <span class="legend-label">SF</span>
-                        <span class="legend-desc">开始-完成</span>
+                        <span class="legend-label">{{ t('link.sf') }}</span>
+                        <span class="legend-desc">{{ t('link.startToFinish') }}</span>
                     </label>
                 </div>
             </div>
             <div class="config-buttons">
+                <LanguageSelector />
                 <GanttConfigPanel />
             </div>
         </div>
@@ -129,9 +130,12 @@
 import { ref, defineComponent, computed, provide, onBeforeMount, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/en';
 dayjs.extend(customParseFormat);
 import { Symbols } from './Symbols';
 import { linkDataManager, useLinkConfig } from './LinkConfig';
+import { useI18n } from './i18n';
 // 导入日期选择器组件
 import DatePicker from './DatePicker.vue';
 // 导入分割面板组件
@@ -139,6 +143,7 @@ import SplitPane from './SplitPane.vue';
 import TaskTable from '../gantt/task/TaskTable.vue';
 import RightTable from './RightTable.vue';
 import GanttConfigPanel from './GanttConfigPanel.vue';
+import LanguageSelector from './LanguageSelector.vue';
 import { store, mutations } from './Store';
 export type { DataConfig, StyleConfig, EventConfig, TaskHeader } from './Types';
 // 移除未使用的类型导入
@@ -256,9 +261,18 @@ export default defineComponent({
         SplitPane,
         TaskTable,
         RightTable,
-        GanttConfigPanel
+        GanttConfigPanel,
+        LanguageSelector
     },
     setup(props) {
+        // 国际化
+        const { t, locale } = useI18n();
+        
+        // 根据当前语言设置 dayjs locale
+        const getDayjsLocale = () => {
+            return locale.value === 'en-US' ? 'en' : 'zh-cn';
+        };
+        
         // 缓存 mapFields 的结果
         const mapFields = computed(() => props.dataConfig.mapFields);
         // 缓存 dataSource 的结果
@@ -288,14 +302,14 @@ export default defineComponent({
         const paneLengthPercent = ref(35);
         const buttonClass = ref(['button is-active', 'button', 'button', 'button']);
         const mode = ref('月');
-        const startDate = ref(dayjs().locale('zh-cn').format('YYYY-MM-DD'));
-        const minStartDate = ref(dayjs().locale('zh-cn').add(-5, 'y').format('YYYY-MM-DD'));
-        const maxStartDate = ref(dayjs().locale('zh-cn').add(5, 'y').format('YYYY-MM-DD'));
+        const startDate = ref(dayjs().locale(getDayjsLocale()).format('YYYY-MM-DD'));
+        const minStartDate = ref(dayjs().locale(getDayjsLocale()).add(-5, 'y').format('YYYY-MM-DD'));
+        const maxStartDate = ref(dayjs().locale(getDayjsLocale()).add(5, 'y').format('YYYY-MM-DD'));
         const showStartDatePicker = ref(false);
         const selectedStartDate = ref('点击选择日期');
-        const endDate = ref(dayjs().locale('zh-cn').format('YYYY-MM-DD'));
+        const endDate = ref(dayjs().locale(getDayjsLocale()).format('YYYY-MM-DD'));
         const minEndDate = ref(startDate.value);
-        const maxEndDate = ref(dayjs(startDate.value).locale('zh-cn').add(5, 'y').format('YYYY-MM-DD'));
+        const maxEndDate = ref(dayjs(startDate.value).locale(getDayjsLocale()).add(5, 'y').format('YYYY-MM-DD'));
         const showEndDatePicker = ref(false);
         const selectedEndDate = ref('点击选择日期');
         const monthHeaders = ref<MonthHeaders[]>([]);
@@ -365,20 +379,20 @@ export default defineComponent({
                                 const endOfMonth = start.endOf('month').format('YYYY-MM-DD');
                                 const days = dayjs(endOfMonth).diff(start, 'day') + 1;
                                 monthHeaders.value.push({
-                                    title: dayjs(month).format('MMMM'),
+                                    title: dayjs(month).locale(getDayjsLocale()).format('MMMM'),
                                     width: days * scale.value
                                 });
                             } else if (index === months.length - 1) {
                                 const startOfMonth = end.startOf('month').format('YYYY-MM-DD');
                                 const days = end.diff(dayjs(startOfMonth), 'day') + 1;
                                 monthHeaders.value.push({
-                                    title: dayjs(month).format('MMMM'),
+                                    title: dayjs(month).locale(getDayjsLocale()).format('MMMM'),
                                     width: days * scale.value
                                 });
                             } else {
                                 const days = dayjs(month, 'YYYY-MM').daysInMonth();
                                 monthHeaders.value.push({
-                                    title: dayjs(month).format('MMMM'),
+                                    title: dayjs(month).locale(getDayjsLocale()).format('MMMM'),
                                     width: days * scale.value
                                 });
                             }
@@ -387,9 +401,11 @@ export default defineComponent({
 
                     let currentDate = start;
                     while (currentDate.isBefore(end) || currentDate.isSame(end, 'day')) {
-                        const caption = currentDate.format('DD日');
+                        const caption = locale.value === 'en-US' 
+                            ? currentDate.format('DD')
+                            : currentDate.format('DD') + '日';
                         const fullDate = currentDate.format('YYYY-MM-DD');
-                        const week = currentDate.format('dddd');
+                        const week = currentDate.locale(getDayjsLocale()).format('dddd');
                         weekHeaders.value.push({
                             title: week,
                             width: scale.value,
@@ -438,8 +454,11 @@ export default defineComponent({
                         }
                         
                         if (weekCount > 0) {
+                            const monthTitle = locale.value === 'en-US'
+                                ? monthStart.locale(getDayjsLocale()).format('MMMM YYYY')
+                                : monthStart.format('YYYY年MM月');
                             monthHeaders.value.push({
-                                title: monthStart.format('YYYY年MM月'),
+                                title: monthTitle,
                                 width: weekCount * scale.value
                             });
                         }
@@ -451,8 +470,11 @@ export default defineComponent({
                         const weekEnd = currentDate.endOf('isoWeek');
                         
                         // 周表头 - 显示周数和日期范围
+                        const weekTitle = locale.value === 'en-US'
+                            ? `Week ${currentDate.isoWeek()} (${weekStart.format('MM/DD')}-${weekEnd.format('MM/DD')})`
+                            : `第${currentDate.isoWeek()}周 (${weekStart.format('MM/DD')}-${weekEnd.format('MM/DD')})`;
                         weekHeaders.value.push({
-                            title: `第${currentDate.isoWeek()}周 (${weekStart.format('MM/DD')}-${weekEnd.format('MM/DD')})`,
+                            title: weekTitle,
                             width: scale.value,
                             fulldate: weekStart.format('YYYY-MM-DD')
                         });
@@ -467,9 +489,11 @@ export default defineComponent({
                     scale.value = 80;
                     let currentDate = start;
                     while (currentDate.isBefore(end) || currentDate.isSame(end, 'day')) {
-                        const caption = currentDate.format('MMMM DD日');
+                        const caption = locale.value === 'en-US'
+                            ? currentDate.locale(getDayjsLocale()).format('MMMM DD')
+                            : currentDate.locale(getDayjsLocale()).format('MMMM DD') + '日';
                         const fullDate = currentDate.format('YYYY-MM-DD');
-                        const week = currentDate.format('dddd');
+                        const week = currentDate.locale(getDayjsLocale()).format('dddd');
                         weekHeaders.value.push({
                             title: week,
                             width: scale.value,
@@ -491,9 +515,11 @@ export default defineComponent({
                     // 预先计算结束日期
                     const endOfEndDay = end.endOf('day');
                     while (currentDate.isBefore(endOfEndDay)) {
-                        const caption = currentDate.format('MMMM DD日');
+                        const caption = locale.value === 'en-US'
+                            ? currentDate.locale(getDayjsLocale()).format('MMMM DD')
+                            : currentDate.locale(getDayjsLocale()).format('MMMM DD') + '日';
                         const fullDate = currentDate.format('YYYY-MM-DD');
-                        const week = currentDate.format('dddd');
+                        const week = currentDate.locale(getDayjsLocale()).format('dddd');
                         weekHeaders.value.push({
                             title: week,
                             width: 24 * scale.value,
@@ -506,7 +532,7 @@ export default defineComponent({
                         });
                         for (let i = 0; i <= 23; i++) {
                             hourHeaders.value.push({
-                                title: i + '点',
+                                title: locale.value === 'en-US' ? `${i}:00` : i + '点',
                                 width: scale.value
                             });
                         }
@@ -618,6 +644,11 @@ export default defineComponent({
             if (newMode !== oldMode || newStartDate !== oldStartDate || newEndDate !== oldEndDate) {
                 setTimeLineHeaders(newMode);
             }
+        });
+        
+        // 监听语言变化，重新生成时间轴表头
+        watch(locale, () => {
+            setTimeLineHeaders(mode.value);
         });
 
         watch(rootTask, (newVal) => {            
@@ -809,6 +840,7 @@ export default defineComponent({
         }));
 
         return {
+            t,
             subTask,
             editTask,
             removeTask,

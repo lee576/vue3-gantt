@@ -2,7 +2,7 @@
     <div class="header">
       <template v-for='(item, index) in headers' :key="index">
         <div :property='item.property' :columnindex='index' v-show="item.show" class="headerCaption">
-          <span :style="{ width: `${item.width}px` }">{{ item.title }}</span>
+          <span :style="{ width: `${item.width}px` }">{{ getHeaderTitle(item) }}</span>
         </div>
       </template>
     </div>
@@ -10,6 +10,7 @@
 
   <script lang="ts">
   import { defineComponent } from 'vue';
+  import { useI18n } from '../i18n';
 
   export default defineComponent({
     props: {
@@ -22,6 +23,40 @@
         }[],
         required: true
       }
+    },
+    setup() {
+      const { t } = useI18n();
+      
+      // 根据 property 获取翻译后的标题
+      const getHeaderTitle = (header: { property: string; title: string }) => {
+        const propertyMap: Record<string, string> = {
+          'no': 'task.serialNumber',
+          'task': 'task.name',
+          'priority': 'task.priority',
+          'startdate': 'task.startDate',
+          'enddate': 'task.endDate',
+          'takestime': 'task.duration',
+          'progress': 'task.progress',
+          'id': 'ID',
+          'parentId': 'Parent ID'
+        };
+        
+        const translationKey = propertyMap[header.property];
+        if (translationKey) {
+          // 如果有翻译键且不是纯字符串，使用翻译
+          if (translationKey.includes('.')) {
+            return t(translationKey);
+          }
+          // 否则直接返回（如 ID）
+          return translationKey;
+        }
+        // 如果没有映射，返回原标题
+        return header.title;
+      };
+      
+      return {
+        getHeaderTitle
+      };
     }
   });
   </script>

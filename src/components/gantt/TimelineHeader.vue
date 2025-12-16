@@ -29,6 +29,7 @@
   <script lang="ts">
   import { defineComponent, toRefs } from 'vue';
   import dayjs from 'dayjs';
+  import { useI18n } from './i18n';
 
   export default defineComponent({
     props: {
@@ -51,9 +52,11 @@
     },
     setup(props) {
       const { weekHeaders, dayHeaders, monthHeaders, hourHeaders } = toRefs(props);
+      const { locale } = useI18n();
 
       const isToday = (title: string) => {
-        return title === dayjs().locale('zh-cn').format('YYYY-MM-DD');
+        const dayjsLocale = locale.value === 'en-US' ? 'en' : 'zh-cn';
+        return title === dayjs().locale(dayjsLocale).format('YYYY-MM-DD');
       };
 
       return {

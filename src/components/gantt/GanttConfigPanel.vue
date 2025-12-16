@@ -4,7 +4,7 @@
       class="config-btn" 
       @click="togglePanel"
       :class="{ active: isOpen }"
-      title="配置"
+      :title="t('configPanel.title')"
     >
       <div class="btn-content">
         <div class="btn-icon">
@@ -12,15 +12,15 @@
             <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
           </svg>
         </div>
-        <span class="btn-text">配置</span>
+        <span class="btn-text">{{ t('common.config') }}</span>
       </div>
     </button>
 
     <transition name="panel-fade">
       <div v-if="isOpen" class="config-panel" @click.stop>
         <div class="panel-header">
-          <h3>甘特图配置</h3>
-          <button class="close-btn" @click="closePanel" title="关闭">
+          <h3>{{ t('configPanel.title') }}</h3>
+          <button class="close-btn" @click="closePanel" :title="t('common.close')">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
             </svg>
@@ -34,7 +34,7 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
               </svg>
-              主题设置
+              {{ t('configPanel.themeSettings') }}
             </h4>
             <div class="theme-grid">
               <div
@@ -67,7 +67,7 @@
                 <circle cx="20" cy="9" r="2"/>
                 <path d="M10 9h4"/>
               </svg>
-              连线设置
+              {{ t('configPanel.linkSettings') }}
             </h4>
             <div class="link-config-content">
               <!-- 说明文字 -->
@@ -75,12 +75,12 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink: 0;">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
                 </svg>
-                <span>以下配置用于任务依赖连线（完成-开始、开始-开始等关系）</span>
+                <span>{{ t('configPanel.linkConfig.info') }}</span>
               </div>
 
               <!-- 路径类型选择 -->
               <div class="config-group">
-                <label class="config-label">路径类型</label>
+                <label class="config-label">{{ t('configPanel.linkConfig.pathType') }}</label>
                 <div class="path-type-grid">
                   <div 
                     v-for="pathType in pathTypes" 
@@ -114,7 +114,7 @@
               </div>
 
               <div class="config-group">
-                <label class="config-label">线宽: {{ linkConfig.width }}px</label>
+                <label class="config-label">{{ t('configPanel.linkConfig.width') }}: {{ linkConfig.width }}px</label>
                 <input 
                   type="range" 
                   v-model.number="linkConfig.width" 
@@ -127,13 +127,13 @@
               </div>
 
               <div class="config-group">
-                <label class="config-label">虚线样式</label>
+                <label class="config-label">{{ t('configPanel.linkConfig.dashStyle') }}</label>
                 <select v-model="linkConfig.dashArray" @change="updateLinkConfig" class="select-input">
-                  <option :value="undefined">实线</option>
-                  <option value="3,3">短虚线</option>
-                  <option value="5,5">中虚线</option>
-                  <option value="8,4">长虚线</option>
-                  <option value="2,2,8,2">点划线</option>
+                  <option :value="undefined">{{ t('configPanel.linkConfig.solid') }}</option>
+                  <option value="3,3">{{ t('configPanel.linkConfig.shortDash') }}</option>
+                  <option value="5,5">{{ t('configPanel.linkConfig.mediumDash') }}</option>
+                  <option value="8,4">{{ t('configPanel.linkConfig.longDash') }}</option>
+                  <option value="2,2,8,2">{{ t('configPanel.linkConfig.dotDash') }}</option>
                 </select>
               </div>
 
@@ -438,10 +438,12 @@
 import { defineComponent, ref, onMounted, watch, inject, type Ref } from 'vue';
 import { ganttThemes, ganttThemeManager, type GanttTheme } from './themes/GanttThemes';
 import { useLinkConfig, LinkPathType } from './LinkConfig';
+import { useI18n } from './i18n';
 
 export default defineComponent({
   name: 'GanttConfigPanel',
   setup() {
+    const { t } = useI18n();
     const isOpen = ref(false);
     const themes = ref<GanttTheme[]>(ganttThemes);
     const currentTheme = ref<string>('metro');
@@ -538,6 +540,7 @@ export default defineComponent({
     }, { deep: true });
 
     return {
+      t,
       isOpen,
       themes,
       currentTheme,

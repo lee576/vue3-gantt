@@ -31,16 +31,18 @@
 - 🔗 任务间依赖关系连线
 - 🎨 多主题支持（浅色/深色/彩色等）
 - 🖱️ 拖拽调整任务时间和进度
+- 🌍 多语言支持（中文/English）
 
 ## 特性
 
-- 多视图模式 - 支持月、日、周、时四种时间粒度视图
-- 任务依赖关系 - 支持 FS、SS、FF、SF 四种依赖类型
-- 主题系统 - 内置 5 种主题，支持自定义主题
-- 进度管理 - 可视化进度条，支持拖拽调整进度
-- 交互操作 - 支持任务拖拽、调整大小、父子任务联动
-- 响应式设计 - 可调整分割面板比例
-- 高性能 - 虚拟滚动优化，支持大量任务数据
+- **多视图模式** - 支持月、日、周、时四种时间粒度视图
+- **任务依赖关系** - 支持 FS、SS、FF、SF 四种依赖类型
+- **主题系统** - 内置 5 种主题，支持自定义主题
+- **国际化支持** - 完整的中英文双语支持，可扩展更多语言
+- **进度管理** - 可视化进度条，支持拖拽调整进度
+- **交互操作** - 支持任务拖拽、调整大小、父子任务联动
+- **响应式设计** - 可调整分割面板比例
+- **高性能** - 虚拟滚动优化，支持大量任务数据
 
 ## 安装
 
@@ -343,6 +345,146 @@ dependencies: [
 }
 ```
 
+## 国际化支持
+
+组件内置完整的国际化（i18n）系统，支持中英文双语切换，并可轻松扩展更多语言。
+
+### 支持的语言
+
+| 语言 | 代码 | 状态 |
+|------|------|------|
+| 🇨🇳 简体中文 | zh-CN | ✅ 完整支持 |
+| 🇺🇸 English | en-US | ✅ 完整支持 |
+
+### 使用方法
+
+#### 1. 切换语言
+
+在甘特图工具栏右上角，点击语言选择器即可切换界面语言：
+
+```typescript
+import { setLocale } from './components/gantt/i18n';
+
+// 切换到英文
+setLocale('en-US');
+
+// 切换到中文
+setLocale('zh-CN');
+```
+
+#### 2. 获取当前语言
+
+```typescript
+import { getLocale } from './components/gantt/i18n';
+
+const currentLang = getLocale(); // 'zh-CN' 或 'en-US'
+```
+
+#### 3. 在组件中使用翻译
+
+```vue
+<script setup lang="ts">
+import { useI18n } from './components/gantt/i18n';
+
+const { t, locale } = useI18n();
+</script>
+
+<template>
+  <div>
+    <h1>{{ t('common.title') }}</h1>
+    <button>{{ t('common.confirm') }}</button>
+    <p>{{ t('task.name') }}</p>
+  </div>
+</template>
+```
+
+### 国际化功能特性
+
+- ✅ **即时切换** - 无需刷新页面即可切换语言
+- ✅ **自动保存** - 语言选择自动保存到浏览器 localStorage
+- ✅ **完整覆盖** - 所有界面文本均已翻译
+- ✅ **动态表头** - 时间轴表头（月份、星期等）根据语言自动格式化
+- ✅ **类型安全** - TypeScript 提供完整类型支持
+- ✅ **易于扩展** - 可轻松添加新语言支持
+
+### 已翻译的界面元素
+
+#### 工具栏
+- 日期选择器分隔符（"至" / "to"）
+- 视图模式按钮（月/周/日/时）
+- 连线图例标题和所有连线类型
+
+#### 任务表头
+- 序号 (No.)
+- 任务名称 (Task Name)
+- 优先级 (Priority)
+- 开始时间 (Start Date)
+- 结束时间 (End Date)
+- 耗时 (Duration)
+- 进度 (Progress)
+
+#### 时间轴表头
+- 月份名称（一月/January、二月/February...）
+- 星期名称（星期一/Monday、星期二/Tuesday...）
+- 日期格式（01日/01、02日/02...）
+- 小时格式（0点/0:00、1点/1:00...）
+- 周标题（第1周/Week 1）
+
+#### 配置面板
+- 甘特图配置标题
+- 主题设置选项
+- 连线配置所有选项
+- 所有按钮和标签
+
+### 添加新语言
+
+如需添加新语言支持，请按以下步骤操作：
+
+1. 在 `src/components/gantt/i18n/locales/` 目录下创建新语言文件（如 `ja-JP.ts`）
+2. 复制 `zh-CN.ts` 或 `en-US.ts` 的结构
+3. 翻译所有文本
+4. 在 `src/components/gantt/i18n/index.ts` 中导入并注册新语言：
+
+```typescript
+import jaJP from './locales/ja-JP';
+
+const messages: Record<Locale, Messages> = {
+  'zh-CN': zhCN,
+  'en-US': enUS,
+  'ja-JP': jaJP  // 新增日语
+};
+```
+
+5. 更新 `getLocales()` 函数添加新语言选项
+
+### 语言包结构
+
+```typescript
+export default {
+  common: {        // 通用文本
+    confirm: '确定',
+    cancel: '取消',
+    // ...
+  },
+  date: {          // 日期时间
+    year: '年',
+    month: '月',
+    // ...
+  },
+  viewMode: {      // 视图模式
+    month: '月',
+    week: '周',
+    // ...
+  },
+  task: {          // 任务相关
+    name: '任务名称',
+    priority: '优先级',
+    // ...
+  },
+  // 更多类别...
+}
+```
+
 
 ## 交互功能
 
@@ -433,6 +575,7 @@ src/
 │       ├── DatePicker.vue      # 日期选择器
 │       ├── GanttConfigPanel.vue    # 配置面板
 │       ├── GanttThemeSelector.vue  # 主题选择器
+│       ├── LanguageSelector.vue    # 语言选择器
 │       ├── LinkConfigPanel.vue     # 连线配置面板
 │       ├── Types.ts            # 类型定义
 │       ├── Store.ts            # 状态管理
@@ -440,6 +583,11 @@ src/
 │       ├── LinkConfig.ts       # 连线配置
 │       ├── Symbols.ts          # 注入符号
 │       ├── ZodSchema.ts        # 数据验证
+│       ├── i18n/               # 国际化系统
+│       │   ├── index.ts        # i18n 核心
+│       │   └── locales/        # 语言包
+│       │       ├── zh-CN.ts    # 中文语言包
+│       │       └── en-US.ts    # 英文语言包
 │       ├── task/               # 任务相关组件
 │       │   ├── TaskTable.vue
 │       │   ├── TaskHeader.vue
@@ -460,6 +608,7 @@ src/
 - 各种依赖关系配置
 - 自定义颜色映射
 - 事件处理
+- 国际化功能集成
 
 ## 浏览器支持
 
