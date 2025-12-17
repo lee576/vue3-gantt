@@ -39,6 +39,7 @@ A feature-rich, highly customizable Vue 3 Gantt chart component that supports ta
 
 - **Multiple View Modes** - Month, Day, Week, and Hour time granularity views
 - **Task Dependencies** - Support for FS, SS, FF, SF dependency types
+- **Milestone Support** - Diamond markers for key project milestones with dependency support
 - **Theme System** - 5 built-in themes with custom theme support
 - **Internationalization** - Built-in 8 languages, easily extensible
 - **Progress Management** - Visual progress bars with drag-to-adjust
@@ -256,6 +257,8 @@ interface ProgressUpdateDetail {
 
 ## Task Data Format
 
+### Regular Task
+
 ```typescript
 {
   id: '1',                              // Task ID
@@ -268,6 +271,29 @@ interface ProgressUpdateDetail {
   spend_time: null                     // Duration (auto-calculated)
 }
 ```
+
+### Milestone Task
+
+Milestones are key project checkpoints, displayed with diamond icons. The key characteristic is **start date equals end date**:
+
+```typescript
+{
+  id: 'milestone-1',                   // Milestone ID
+  pid: '0',                             // Parent task ID
+  taskNo: '🎯 Requirements Complete', // Milestone name
+  level: 'Urgent',                      // Priority
+  start_date: '2024-12-02 18:00:00',   // Start time
+  end_date: '2024-12-02 18:00:00',     // End time (same as start)
+  job_progress: '1.0',                 // Milestones are usually 100%
+  spend_time: null,
+  type: 'milestone'                    // Optional: explicitly mark as milestone
+}
+```
+
+**Milestone Recognition Rules**:
+1. **Auto-detection**: Automatically displayed as diamond when `start_date === end_date`
+2. **Explicit marking**: Set `type: 'milestone'` field
+3. **Custom function**: Custom logic via `styleConfig.setTaskType`
 
 ## Task Dependencies
 
@@ -295,6 +321,8 @@ Finish-Start (FS)  Start-Start (SS)   Finish-Finish (FF) Start-Finish (SF)
 
 ### Configuration Example
 
+#### Regular Task Dependencies
+
 ```typescript
 import { LinkType } from './components/gantt/Types';
 
@@ -302,12 +330,32 @@ dependencies: [
   // Task 2 starts after Task 1 finishes
   { sourceTaskId: '1', targetTaskId: '2', type: LinkType.FINISH_TO_START },
   
-  // Task 3 and Task 4 start simultaneously
+  // Task 3 and Task 4 start together
   { sourceTaskId: '3', targetTaskId: '4', type: LinkType.START_TO_START },
   
-  // Task 5 and Task 6 must finish simultaneously
+  // Task 5 and Task 6 must finish together
   { sourceTaskId: '5', targetTaskId: '6', type: LinkType.FINISH_TO_FINISH },
 ]
+```
+
+#### Milestone Dependencies
+
+Milestones support being **source** or **target** in dependency relationships:
+
+```typescript
+dependencies: [
+  // Task completion → Milestone
+  { sourceTaskId: 'task-5', targetTaskId: 'milestone-1', type: LinkType.FINISH_TO_START },
+  
+  // Milestone → Task starts
+  { sourceTaskId: 'milestone-1', targetTaskId: 'task-6', type: LinkType.FINISH_TO_START },
+  
+  // Multiple tasks → Same milestone
+  { sourceTaskId: 'frontend-dev', targetTaskId: 'milestone-2', type: LinkType.FINISH_TO_START },
+  { sourceTaskId: 'backend-dev', targetTaskId: 'milestone-2', type: LinkType.FINISH_TO_START },
+]
+```
+
 ```
 
 ## View Modes

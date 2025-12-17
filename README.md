@@ -48,6 +48,7 @@
 
 - **多视图模式** - 支持月、日、周、时四种时间粒度视图
 - **任务依赖关系** - 支持 FS、SS、FF、SF 四种依赖类型
+- **里程碑功能** - 菱形图标标记项目关键节点，支持作为依赖源和目标
 - **主题系统** - 内置 5 种主题，支持自定义主题
 - **国际化支持** - 内置 8 种语言，可扩展更多语言
 - **进度管理** - 可视化进度条，支持拖拽调整进度
@@ -265,6 +266,8 @@ interface ProgressUpdateDetail {
 
 ## 任务数据格式
 
+### 普通任务
+
 ```typescript
 {
   id: '1',                              // 任务ID
@@ -277,6 +280,29 @@ interface ProgressUpdateDetail {
   spend_time: null                     // 耗时（自动计算）
 }
 ```
+
+### 里程碑任务
+
+里程碑是项目中的关键节点，使用菱形图标显示，特点是**开始日期等于结束日期**：
+
+```typescript
+{
+  id: 'milestone-1',                   // 里程碑ID
+  pid: '0',                             // 父任务ID
+  taskNo: '🎯 需求分析完成',         // 里程碑名称
+  level: '紧急',                        // 优先级
+  start_date: '2024-12-02 18:00:00',   // 开始时间
+  end_date: '2024-12-02 18:00:00',     // 结束时间（与开始时间相同）
+  job_progress: '1.0',                 // 里程碑通常为100%
+  spend_time: null,
+  type: 'milestone'                    // 可选：显式标记为里程碑
+}
+```
+
+**里程碑识别规则**：
+1. **自动识别**：当 `start_date === end_date` 时自动显示为菱形
+2. **显式标记**：设置 `type: 'milestone'` 字段
+3. **自定义函数**：通过 `styleConfig.setTaskType` 自定义判断逻辑
 
 ## 任务依赖关系
 
@@ -303,6 +329,8 @@ interface ProgressUpdateDetail {
 
 ### 配置示例
 
+#### 普通任务依赖
+
 ```typescript
 import { LinkType } from './components/gantt/Types';
 
@@ -315,6 +343,24 @@ dependencies: [
   
   // 任务5和任务6必须同时完成
   { sourceTaskId: '5', targetTaskId: '6', type: LinkType.FINISH_TO_FINISH },
+]
+```
+
+#### 里程碑依赖
+
+里程碑支持作为依赖关系的**源**或**目标**：
+
+```typescript
+dependencies: [
+  // 任务完成 → 里程碑
+  { sourceTaskId: 'task-5', targetTaskId: 'milestone-1', type: LinkType.FINISH_TO_START },
+  
+  // 里程碑 → 任务开始
+  { sourceTaskId: 'milestone-1', targetTaskId: 'task-6', type: LinkType.FINISH_TO_START },
+  
+  // 多个任务 → 同一个里程碑
+  { sourceTaskId: 'frontend-dev', targetTaskId: 'milestone-2', type: LinkType.FINISH_TO_START },
+  { sourceTaskId: 'backend-dev', targetTaskId: 'milestone-2', type: LinkType.FINISH_TO_START },
 ]
 ```
 
@@ -724,6 +770,7 @@ A feature-rich, highly customizable Vue 3 Gantt chart component that supports ta
 
 - **Multiple View Modes** - Month, Day, Week, and Hour time granularity views
 - **Task Dependencies** - Support for FS, SS, FF, SF dependency types
+- **Milestone Support** - Diamond markers for key project milestones with dependency support
 - **Theme System** - 5 built-in themes with custom theme support
 - **Internationalization** - Built-in 8 languages, easily extensible
 - **Progress Management** - Visual progress bars with drag-to-adjust
