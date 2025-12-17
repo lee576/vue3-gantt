@@ -107,12 +107,20 @@ export default defineComponent({
       const task = store.tasks.find(t => t[store.mapFields.id] === taskId);
       if (!task) return null;
       
-      // 查找对应的DOM元素 - 查找barRow而不是bar
+      // 查找对应的DOM元素 - 查找barRow或milestoneRow
       const barElement = document.querySelector(`[data-task-id="${taskId}"]`) as HTMLElement;
       if (!barElement) return null;
       
-      // 查找SVG bar元素获取实际位置
-      const svgBar = barElement.querySelector('.bar') as SVGSVGElement;
+      // 尝试查找SVG bar元素或milestone元素获取实际位置
+      let svgBar = barElement.querySelector('.bar') as SVGSVGElement;
+      let isMilestone = false;
+      
+      if (!svgBar) {
+        // 如果不是bar，尝试查找里程碑
+        svgBar = barElement.querySelector('.milestone') as SVGSVGElement;
+        isMilestone = true;
+      }
+      
       if (!svgBar) return null;
       
       // 获取容器 - 使用更精确的选择器
@@ -121,7 +129,15 @@ export default defineComponent({
       
       // 获取SVG的transform属性
       const dataX = parseFloat(svgBar.getAttribute('data-x') || '0');
-      const barWidth = svgBar.width.baseVal.value;
+      
+      let barWidth: number;
+      if (isMilestone) {
+        // 里程碑的宽度是菱形大小（通常是 rowHeight * 0.6）
+        const barRowRect = barElement.getBoundingClientRect();
+        barWidth = barRowRect.height * 0.6; // 菱形大小
+      } else {
+        barWidth = svgBar.width.baseVal.value;
+      }
       
       // 获取任务在当前容器中的位置
       const barRowRect = barElement.getBoundingClientRect();
@@ -130,18 +146,36 @@ export default defineComponent({
       // 计算任务相对于容器的位置
       const relativeY = barRowRect.top - containerRect.top;
       
-      return {
-        x: dataX,
-        y: relativeY,
-        width: barWidth,
-        height: barRowRect.height,
-        centerX: dataX + barWidth / 2,
-        centerY: relativeY + barRowRect.height / 2,
-        rightX: dataX + barWidth,
-        leftX: dataX,
-        topY: relativeY,
-        bottomY: relativeY + barRowRect.height
-      };
+      if (isMilestone) {
+        // 里程碑：菱形的中心点是连接点
+        const halfSize = barWidth / 2;
+        return {
+          x: dataX,
+          y: relativeY,
+          width: barWidth,
+          height: barRowRect.height,
+          centerX: dataX + halfSize,
+          centerY: relativeY + barRowRect.height / 2,
+          rightX: dataX + barWidth,  // 菱形右顶点
+          leftX: dataX,              // 菱形左顶点
+          topY: relativeY,
+          bottomY: relativeY + barRowRect.height
+        };
+      } else {
+        // 普通任务条
+        return {
+          x: dataX,
+          y: relativeY,
+          width: barWidth,
+          height: barRowRect.height,
+          centerX: dataX + barWidth / 2,
+          centerY: relativeY + barRowRect.height / 2,
+          rightX: dataX + barWidth,
+          leftX: dataX,
+          topY: relativeY,
+          bottomY: relativeY + barRowRect.height
+        };
+      }
     };
     
     // 获取父任务的子任务索引（用于计算偏移）

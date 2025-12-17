@@ -57,23 +57,18 @@
       const getTaskType = (row: any): string => {
         // 如果提供了自定义函数，使用自定义函数
         if (setTaskType) {
-          const result = setTaskType(row);
-          console.log('[getTaskType] Custom function result for', row.id, ':', result);
-          return result;
+          return setTaskType(row);
         }
         
         // 默认逻辑：检查任务数据中是否有 type 字段
         if (row.type) {
-          console.log('[getTaskType] Using type field for', row.id, ':', row.type);
           return row.type;
         }
         
         // 检查开始日期和结束日期是否相同（里程碑的特征）
         const startDate = row[mapFields.value.startdate];
         const endDate = row[mapFields.value.enddate];
-        console.log('[getTaskType] Checking dates for', row.id, '- start:', startDate, 'end:', endDate, 'equal?', startDate === endDate);
         if (startDate && endDate && startDate === endDate) {
-          console.log('[getTaskType] Auto-detected MILESTONE for', row.id);
           return TaskType.MILESTONE;
         }
         

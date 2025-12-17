@@ -521,6 +521,28 @@ const eventConfig = ref<EventConfig>({
       }
     ],
     dependencies: [
+      // ===== 里程碑依赖关系 =====
+      // 需求分析完成后达到里程碑
+      { sourceTaskId: '2', targetTaskId: 'milestone-1', type: LinkType.FINISH_TO_START },
+      // 项目规划完成后达到里程碑
+      { sourceTaskId: '4', targetTaskId: 'milestone-2', type: LinkType.FINISH_TO_START },
+      // 里程碑完成后开始开发阶段
+      { sourceTaskId: 'milestone-2', targetTaskId: '5', type: LinkType.FINISH_TO_START },
+      // 前端开发完成后达到里程碑
+      { sourceTaskId: '6', targetTaskId: 'milestone-3', type: LinkType.FINISH_TO_START },
+      // 后端开发完成后达到里程碑
+      { sourceTaskId: '10', targetTaskId: 'milestone-3', type: LinkType.FINISH_TO_START },
+      // 里程碑完成后开始测试阶段
+      { sourceTaskId: 'milestone-3', targetTaskId: '14', type: LinkType.FINISH_TO_START },
+      // 测试阶段完成后达到里程碑
+      { sourceTaskId: '18', targetTaskId: 'milestone-4', type: LinkType.FINISH_TO_START },
+      // 里程碑完成后开始部署上线
+      { sourceTaskId: 'milestone-4', targetTaskId: '19', type: LinkType.FINISH_TO_START },
+      // 上线验证完成后达到里程碑
+      { sourceTaskId: '22', targetTaskId: 'milestone-5', type: LinkType.FINISH_TO_START },
+      // 所有任务完成后达到最终里程碑
+      { sourceTaskId: '32', targetTaskId: 'milestone-6', type: LinkType.FINISH_TO_START },
+      
       // ===== 完成-开始 (FINISH_TO_START) - 最常见的依赖关系 =====
       // 需求分析完成后才能开始技术选型
       { sourceTaskId: '2', targetTaskId: '3', type: LinkType.FINISH_TO_START },

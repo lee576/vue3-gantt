@@ -127,13 +127,25 @@ export default defineComponent({
 
             // 获取主题颜色
             let primary = '#f59e0b';
+            let textColor = '#333333'; // 默认文字颜色
+            let bgColor = '#ffffff'; // 默认背景色
             let element = milestoneElement.parentElement;
             while (element) {
                 if (element.hasAttribute('data-gantt-theme')) {
-                    primary = getComputedStyle(element).getPropertyValue('--primary').trim() || primary;
+                    const computedStyle = getComputedStyle(element);
+                    primary = computedStyle.getPropertyValue('--primary').trim() || primary;
+                    textColor = computedStyle.getPropertyValue('--text-primary').trim() || textColor;
+                    bgColor = computedStyle.getPropertyValue('--bg-content').trim() || bgColor;
                     break;
                 }
                 element = element.parentElement;
+            }
+            
+            // 如果背景是深色，确保文字是浅色
+            if (bgColor.includes('#1') || bgColor.includes('#2') || bgColor.toLowerCase().includes('dark')) {
+                if (textColor === '#333333') {
+                    textColor = '#ffffff'; // 深色背景强制使用白色文字
+                }
             }
 
             // 清除旧内容
@@ -176,9 +188,33 @@ export default defineComponent({
 
             // 添加任务名称标签（在菱形右侧）
             const text = svg.text(props.row[mapFields.value.task] || 'Milestone')
-                .font({ size: 13, anchor: 'start', family: 'Arial' })
-                .fill('#333')
-                .move(size + 5, centerY - 7);
+                .move(size + 5, centerY - 7)
+                .fill(textColor)
+                .attr({
+                    'font-size': '14px',
+                    'font-family': "'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif",
+                    'font-weight': '400',  // 使用 400 正常字重，平衡粗细和对比度
+                    'text-anchor': 'start',
+                    'dominant-baseline': 'auto'
+                });
+            
+            // 添加文字描边增强对比度
+            const isDarkTheme = bgColor.includes('#1') || bgColor.includes('#2') || bgColor.toLowerCase().includes('dark');
+            if (isDarkTheme) {
+                // 深色主题：添加深色描边
+                text.attr({
+                    'stroke': '#000000',
+                    'stroke-width': '0.5px',
+                    'paint-order': 'stroke fill'
+                });
+            } else {
+                // 浅色主题：添加浅色描边
+                text.attr({
+                    'stroke': '#ffffff',
+                    'stroke-width': '0.5px',
+                    'paint-order': 'stroke fill'
+                });
+            }
 
             setBarDate({ 
                 id: props.row[mapFields.value.id], 
