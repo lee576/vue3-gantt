@@ -77,7 +77,11 @@ export default {
     endDate: 'End Date',
     duration: 'Duration',
     progress: 'Progress',
-    serialNumber: 'No.'
+    serialNumber: 'No.',
+    type: 'Type',
+    taskType: 'Task',
+    projectType: 'Project',
+    milestoneType: 'Milestone'
   },
   
   // Link Legend

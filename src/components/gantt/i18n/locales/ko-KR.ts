@@ -78,7 +78,11 @@ export default {
     endDate: '종료일',
     duration: '기간',
     progress: '진행률',
-    serialNumber: '번호'
+    serialNumber: '번호',
+    type: '유형',
+    taskType: '작업',
+    projectType: '프로젝트',
+    milestoneType: '마일스톤'
   },
   
   // Link Legend

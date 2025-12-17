@@ -1,7 +1,16 @@
 <template>
     <div>
       <template v-for="(item) in filterTask" :key="item.id">
+        <!-- 根据任务类型渲染不同组件 -->
+        <Milestone 
+          v-if="getTaskType(item) === TaskType.MILESTONE"
+          :startGanttDate="startGanttDate" 
+          :endGanttDate="endGanttDate" 
+          :row="item" 
+          :rowHeight="rowHeight" 
+        />
         <Bar 
+          v-else
           :startGanttDate="startGanttDate" 
           :endGanttDate="endGanttDate" 
           :row="item" 
@@ -12,9 +21,12 @@
   </template>
   
   <script lang="ts">
-  import { defineComponent, ref, computed, watch } from 'vue';
+  import { defineComponent, ref, computed, watch, inject } from 'vue';
   import { store, mutations } from '../gantt/Store';
   import Bar from '../gantt/Bar.vue';
+  import Milestone from '../gantt/Milestone.vue';
+  import { TaskType } from './Types';
+  import { Symbols } from './Symbols';
   
   export default defineComponent({
     name: 'BarRecursionRow',
@@ -28,6 +40,9 @@
       
       const hiddenTask = ref<any[]>([]);
       const componentKey = ref(0);
+      
+      // 注入自定义任务类型判断函数
+      const setTaskType = inject(Symbols.SetTaskTypeSymbol) as ((row: any) => TaskType) | undefined;
   
       const allTask = computed(() => store.tasks);
       const timelineCellCount = computed(() => store.timelineCellCount);
@@ -37,6 +52,34 @@
       const endGanttDate = computed(() => store.endGanttDate ? store.endGanttDate.toISOString() : undefined);
       const mapFields = computed(() => store.mapFields);
       const collapsedTasks = computed(() => store.collapsedTasks);
+      
+      // 判断任务类型
+      const getTaskType = (row: any): string => {
+        // 如果提供了自定义函数，使用自定义函数
+        if (setTaskType) {
+          const result = setTaskType(row);
+          console.log('[getTaskType] Custom function result for', row.id, ':', result);
+          return result;
+        }
+        
+        // 默认逻辑：检查任务数据中是否有 type 字段
+        if (row.type) {
+          console.log('[getTaskType] Using type field for', row.id, ':', row.type);
+          return row.type;
+        }
+        
+        // 检查开始日期和结束日期是否相同（里程碑的特征）
+        const startDate = row[mapFields.value.startdate];
+        const endDate = row[mapFields.value.enddate];
+        console.log('[getTaskType] Checking dates for', row.id, '- start:', startDate, 'end:', endDate, 'equal?', startDate === endDate);
+        if (startDate && endDate && startDate === endDate) {
+          console.log('[getTaskType] Auto-detected MILESTONE for', row.id);
+          return TaskType.MILESTONE;
+        }
+        
+        // 默认为普通任务
+        return TaskType.TASK;
+      };
   
       // 获取所有被折叠的子任务
       const getAllCollapsedChildren = (parentId: any): Set<any> => {
@@ -114,10 +157,12 @@
         filterTask,
         expandRow,
         setExpandRow,
-        recursionRow
+        recursionRow,
+        getTaskType,
+        TaskType // 导出 TaskType 枚举供模板使用
       };
     },
-    components: { Bar },
+    components: { Bar, Milestone },
     mounted() {
       this.$nextTick(() => {
         // 可以在这里添加挂载后的逻辑

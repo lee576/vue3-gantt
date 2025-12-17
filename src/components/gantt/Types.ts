@@ -1,3 +1,10 @@
+// 任务类型枚举
+export enum TaskType {
+  TASK = 'task',           // 普通任务
+  PROJECT = 'project',     // 项目（有子任务的任务）
+  MILESTONE = 'milestone'  // 里程碑（零持续时间）
+}
+
 // 连线类型枚举
 export enum LinkType {
   FINISH_TO_START = 'finish-to-start',  // 完成-开始（最常用）
@@ -86,6 +93,7 @@ export interface StyleConfig {
   headersHeight: number;
   rowHeight: number;
   setBarColor: (row: Record<string, any>) => string;
+  setTaskType?: (row: Record<string, any>) => TaskType; // 可选：自定义任务类型判断
 }
 
 // 数据配置接口

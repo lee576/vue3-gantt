@@ -194,6 +194,7 @@ export default defineComponent({
                 headersHeight: number;
                 rowHeight: number;
                 setBarColor: (row: Record<string, any>) => string;
+                setTaskType?: (row: Record<string, any>) => import('./Types').TaskType;
             },
             required: true,
             default: () => ({
@@ -782,11 +783,9 @@ export default defineComponent({
             dayHeaders.value = [];
             hourHeaders.value = [];
 
-            console.log('Gantt onMounted, dataSource:', dataSource.value);
             let level: number = 0;
             RecursionData('0', dataSource.value, level);
             mutations.setTasks(initData.value);
-            console.log('initData after RecursionData:', initData.value);
             nextTick(() => {
                 mode.value = '月';
                 mutations.setMode(mode.value)
@@ -799,7 +798,6 @@ export default defineComponent({
         // 优化：监听dataSource变化，使用节流避免频繁更新
         let updateTimer: ReturnType<typeof setTimeout> | null = null;
         watch(dataSource, (newVal) => {
-            console.log('dataSource changed:', newVal);
             if (newVal && newVal.length > 0) {
                 // 使用节流，避免频繁更新
                 if (updateTimer) {
@@ -810,7 +808,6 @@ export default defineComponent({
                     let level: number = 0;
                     RecursionData('0', newVal, level);
                     mutations.setTasks(initData.value);
-                    console.log('Tasks updated:', initData.value);
                     updateTimer = null;
                 }, 100);
             } else if (newVal && newVal.length === 0) {
@@ -833,13 +830,17 @@ export default defineComponent({
             return props.styleConfig.setBarColor(row);
         });
         
+        // 设置任务类型判断函数（只有当用户提供了自定义函数时才 provide）
+        if (props.styleConfig.setTaskType) {
+            provide(Symbols.SetTaskTypeSymbol, props.styleConfig.setTaskType);
+        }
+        
         // 提供甘特图容器引用给主题选择器
         provide('ganttContainer', ganttContainer);
 
         // 监听依赖关系变化
         watch(() => props.dataConfig.dependencies, (newDependencies) => {
             if (newDependencies && newDependencies.length > 0) {
-                console.log('Loading dependencies:', newDependencies);
                 // 清空现有依赖关系
                 linkDataManager.clear();
                 // 添加新的依赖关系
@@ -851,7 +852,6 @@ export default defineComponent({
 
         // 连线配置变化处理
         const onLinkConfigChange = (config: any) => {
-            console.log('连线配置已更新:', config);
             // 这里可以添加额外的处理逻辑，比如通知其他组件更新
         };
 

@@ -305,7 +305,6 @@ export class GanttThemeManager {
 
   // 设置甘特图容器
   setGanttContainer(container: HTMLElement): void {
-    console.log('Setting gantt container:', container);
     this.ganttContainer = container;
     this.loadTheme();
   }
@@ -335,8 +334,6 @@ export class GanttThemeManager {
       return;
     }
 
-    console.log('Applying theme:', theme.id, 'to container:', this.ganttContainer);
-
     // 设置data-theme属性
     this.ganttContainer.setAttribute('data-gantt-theme', theme.id);
 
@@ -344,8 +341,6 @@ export class GanttThemeManager {
     Object.entries(theme.cssVariables).forEach(([property, value]) => {
       this.ganttContainer!.style.setProperty(property, value);
     });
-    
-    console.log('Theme applied successfully. Container styles:', this.ganttContainer.style.cssText);
   }
 
   // 从本地存储加载主题

@@ -112,10 +112,6 @@ export default defineComponent({
     };
 
     const selectTheme = (themeId: string) => {
-      console.log('🎯 selectTheme called with:', themeId);
-      console.log('📦 ganttContainer:', ganttContainer);
-      console.log('📦 ganttContainer.value:', ganttContainer?.value);
-      
       currentTheme.value = themeId;
       previewTheme.value = '';
       
@@ -127,38 +123,32 @@ export default defineComponent({
       
       if (ganttContainer && ganttContainer.value) {
         container = ganttContainer.value;
-        console.log('✅ Using injected container reference');
       } else {
         // 备用方案：直接查找DOM元素
         container = document.querySelector('.gantt-container') || 
                    document.querySelector('.page') ||
                    document.querySelector('[class*="gantt"]');
-        console.log('🔍 Using DOM query fallback, found:', container);
       }
       
       if (container) {
         // 设置容器属性
         container.setAttribute('data-gantt-theme', themeId);
-        console.log('✅ Container attribute set:', container.getAttribute('data-gantt-theme'));
         
         // 同时设置到页面根元素
         const pageElement = document.querySelector('.page');
         if (pageElement) {
           pageElement.setAttribute('data-gantt-theme', themeId);
-          console.log('✅ Page element attribute set');
         }
         
         // 保存到localStorage
         try {
           localStorage.setItem('gantt-theme', themeId);
-          console.log('💾 Theme saved to localStorage:', themeId);
         } catch (error) {
           console.warn('Failed to save theme:', error);
         }
         
         // 强制触发重绘
         setTimeout(() => {
-          console.log('🔄 Forcing style recalculation...');
           if (container) {
             container.style.display = 'none';
             container.offsetHeight; // 触发重排
@@ -166,11 +156,6 @@ export default defineComponent({
           }
         }, 50);
         
-      } else {
-        console.error('❌ No gantt container found! Available elements:');
-        console.log('Available .page elements:', document.querySelectorAll('.page'));
-        console.log('Available .gantt-container elements:', document.querySelectorAll('.gantt-container'));
-        console.log('Available elements with gantt in class:', document.querySelectorAll('[class*="gantt"]'));
       }
       
       closeSelector();
@@ -241,22 +226,16 @@ export default defineComponent({
 
     // 动态注入主题样式 - 增强版
     const injectThemeStyles = (themeId: string) => {
-      console.log('🎨 Starting theme injection for:', themeId);
-      
       // 移除之前的主题样式
       const existingStyle = document.getElementById('gantt-theme-styles');
       if (existingStyle) {
         existingStyle.remove();
-        console.log('🗑️ Removed existing theme styles');
       }
       
       const theme = ganttThemes.find(t => t.id === themeId);
       if (!theme) {
-        console.error('❌ Theme not found:', themeId);
         return;
       }
-      
-      console.log('📋 Theme found:', t(theme.nameKey), 'Variables count:', Object.keys(theme.cssVariables).length);
       
       // 创建样式元素
       const style = document.createElement('style');

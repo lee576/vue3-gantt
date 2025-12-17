@@ -35,7 +35,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lee576/vue3-gantt.git"
+    "url": "git+https://github.com/lee576/vue3-gantt.git"
   },
   "bugs": {
     "url": "https://github.com/lee576/vue3-gantt/issues"

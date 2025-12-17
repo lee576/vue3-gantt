@@ -58,60 +58,8 @@ const dataConfig = ref<DataConfig>({
   queryStartDate: '',
   queryEndDate: '',
   dataSource: [],
-  // 任务依赖关系（演示数据 - 展示4种依赖类型）
-  dependencies: [
-    // ===== 完成-开始 (FINISH_TO_START) - 最常见的依赖关系 =====
-    // 需求分析完成后才能开始技术选型
-    { sourceTaskId: '2', targetTaskId: '3', type: LinkType.FINISH_TO_START },
-    // 技术选型完成后才能开始架构设计
-    { sourceTaskId: '3', targetTaskId: '4', type: LinkType.FINISH_TO_START },
-    // 项目规划完成后才能开始开发阶段
-    { sourceTaskId: '1', targetTaskId: '5', type: LinkType.FINISH_TO_START },
-    // 页面布局完成后才能开始组件开发
-    { sourceTaskId: '7', targetTaskId: '8', type: LinkType.FINISH_TO_START },
-    // API设计完成后才能开始数据库设计
-    { sourceTaskId: '11', targetTaskId: '12', type: LinkType.FINISH_TO_START },
-    // 数据库设计完成后才能开始业务逻辑实现
-    { sourceTaskId: '12', targetTaskId: '13', type: LinkType.FINISH_TO_START },
-    // 开发阶段完成后才能开始测试阶段
-    { sourceTaskId: '5', targetTaskId: '14', type: LinkType.FINISH_TO_START },
-    // 单元测试完成后才能开始集成测试
-    { sourceTaskId: '15', targetTaskId: '16', type: LinkType.FINISH_TO_START },
-    // 集成测试完成后才能开始性能测试
-    { sourceTaskId: '16', targetTaskId: '17', type: LinkType.FINISH_TO_START },
-    // 测试阶段完成后才能开始部署上线
-    { sourceTaskId: '14', targetTaskId: '19', type: LinkType.FINISH_TO_START },
-    // 环境准备完成后才能开始代码部署
-    { sourceTaskId: '20', targetTaskId: '21', type: LinkType.FINISH_TO_START },
-    // 代码部署完成后才能开始上线验证
-    { sourceTaskId: '21', targetTaskId: '22', type: LinkType.FINISH_TO_START },
-    
-    // ===== 开始-开始 (START_TO_START) - 两个任务同时开始 =====
-    // 前端开发和后端开发同时开始
-    { sourceTaskId: '6', targetTaskId: '10', type: LinkType.START_TO_START },
-    // 组件开发和状态管理同时开始
-    { sourceTaskId: '8', targetTaskId: '9', type: LinkType.START_TO_START },
-    // 性能测试和用户验收测试同时开始
-    { sourceTaskId: '17', targetTaskId: '18', type: LinkType.START_TO_START },
-    // 技术文档和用户手册同时开始编写
-    { sourceTaskId: '27', targetTaskId: '28', type: LinkType.START_TO_START },
-    // 用户培训和技术支持同时开始
-    { sourceTaskId: '31', targetTaskId: '32', type: LinkType.START_TO_START },
-    
-    // ===== 完成-完成 (FINISH_TO_FINISH) - 两个任务同时完成 =====
-    // 前端开发和后端开发必须同时完成才能进入测试
-    { sourceTaskId: '6', targetTaskId: '10', type: LinkType.FINISH_TO_FINISH },
-    // 所有文档必须在部署上线前完成
-    { sourceTaskId: '26', targetTaskId: '19', type: LinkType.FINISH_TO_FINISH },
-    // 性能监控和用户反馈收集同时完成
-    { sourceTaskId: '24', targetTaskId: '25', type: LinkType.FINISH_TO_FINISH },
-    
-    // ===== 开始-完成 (START_TO_FINISH) - 较少使用，后续任务开始后前置任务才能完成 =====
-    // 部署上线开始后，维护优化才能完成准备
-    { sourceTaskId: '19', targetTaskId: '23', type: LinkType.START_TO_FINISH },
-    // 用户培训开始后，部署指南才能最终完成
-    { sourceTaskId: '31', targetTaskId: '29', type: LinkType.START_TO_FINISH }
-  ],
+  // 任务依赖关系（由后端返回）
+  dependencies: [],
   // 数据源字段映射
   mapFields: {
     id: 'id',
@@ -137,29 +85,35 @@ const dataConfig = ref<DataConfig>({
 // 定义事件配置
 const eventConfig = ref<EventConfig>({
   addRootTask: () => {
-    console.log('root');
+    // 添加根任务
   },
   addSubTask: (row: { id: string }) => {
-    console.log(row);
+    // 添加子任务
   },
   removeTask: (row: { id: string }) => {
-    console.log(row);
+    // 删除任务
   },
   editTask: (row: { id: string }) => {
-    console.log(row);
+    // 编辑任务
   },
   updateProgress: (detail) => {
-    console.log('进度更新:', detail);
     // 这里可以调用服务端API更新进度
     // 例如: await api.updateTaskProgress(detail.taskId, detail.newProgress);
   },
   queryTask: async (queryStart: string, queryEnd: string) => {
-    console.log('queryTask called:', queryStart, queryEnd);
     dataConfig.value.queryStartDate = queryStart;
     dataConfig.value.queryEndDate = queryEnd;
-    // 使用当前月份的日期作为示例数据
+    
+    // 模拟后端 API 调用
+    // const response = await fetch('/api/gantt/tasks', {
+    //   method: 'POST',
+    //   body: JSON.stringify({ startDate: queryStart, endDate: queryEnd })
+    // }).then(res => res.json());
+    
+    // 模拟后端返回的完整数据结构
     const currentMonth = dayjs().format('YYYY-MM');
-    dataConfig.value.dataSource = [
+    const mockResponse = {
+      tasks: [
       // 第一个主任务组 - 项目规划阶段
       {
         id: '1',
@@ -181,6 +135,18 @@ const eventConfig = ref<EventConfig>({
         job_progress: '1.0',
         spend_time: null
       },
+      // 里程碑：需求分析完成
+      {
+        id: 'milestone-1',
+        pid: '1',
+        taskNo: '🎯 需求分析完成',
+        level: '紧急',
+        start_date: `${currentMonth}-02 18:00:00`,
+        end_date: `${currentMonth}-02 18:00:00`,
+        job_progress: '1.0',
+        spend_time: null,
+        type: 'milestone'
+      },
       {
         id: '3',
         pid: '1',
@@ -200,6 +166,18 @@ const eventConfig = ref<EventConfig>({
         end_date: `${currentMonth}-06 18:00:00`,
         job_progress: '0.7',
         spend_time: null
+      },
+      // 里程碑：项目规划完成
+      {
+        id: 'milestone-2',
+        pid: '0',
+        taskNo: '✅ 项目规划阶段完成',
+        level: '重要',
+        start_date: `${currentMonth}-06 18:00:00`,
+        end_date: `${currentMonth}-06 18:00:00`,
+        job_progress: '1.0',
+        spend_time: null,
+        type: 'milestone'
       },
       
       // 第二个主任务组 - 开发阶段
@@ -273,6 +251,18 @@ const eventConfig = ref<EventConfig>({
         job_progress: '1.0',
         spend_time: null
       },
+      // 里程碑：API设计完成
+      {
+        id: 'milestone-3',
+        pid: '10',
+        taskNo: '🔧 API设计完成',
+        level: '紧急',
+        start_date: `${currentMonth}-09 18:00:00`,
+        end_date: `${currentMonth}-09 18:00:00`,
+        job_progress: '1.0',
+        spend_time: null,
+        type: 'milestone'
+      },
       {
         id: '12',
         pid: '10',
@@ -292,6 +282,18 @@ const eventConfig = ref<EventConfig>({
         end_date: `${currentMonth}-18 18:00:00`,
         job_progress: '0.3',
         spend_time: null
+      },
+      // 里程碑：开发阶段完成
+      {
+        id: 'milestone-4',
+        pid: '0',
+        taskNo: '🚀 开发阶段完成',
+        level: '重要',
+        start_date: `${currentMonth}-18 18:00:00`,
+        end_date: `${currentMonth}-18 18:00:00`,
+        job_progress: '0.5',
+        spend_time: null,
+        type: 'milestone'
       },
       
       // 第三个主任务组 - 测试阶段
@@ -345,6 +347,18 @@ const eventConfig = ref<EventConfig>({
         job_progress: '0.1',
         spend_time: null
       },
+      // 里程碑：测试阶段完成
+      {
+        id: 'milestone-5',
+        pid: '0',
+        taskNo: '✔️ 测试阶段完成',
+        level: '重要',
+        start_date: `${currentMonth}-24 18:00:00`,
+        end_date: `${currentMonth}-24 18:00:00`,
+        job_progress: '0.3',
+        spend_time: null,
+        type: 'milestone'
+      },
       
       // 第四个主任务组 - 部署上线
       {
@@ -386,6 +400,18 @@ const eventConfig = ref<EventConfig>({
         end_date: `${currentMonth}-27 18:00:00`,
         job_progress: '0.0',
         spend_time: null
+      },
+      // 里程碑：项目上线
+      {
+        id: 'milestone-6',
+        pid: '0',
+        taskNo: '🎉 项目正式上线',
+        level: '紧急',
+        start_date: `${currentMonth}-27 18:00:00`,
+        end_date: `${currentMonth}-27 18:00:00`,
+        job_progress: '0.0',
+        spend_time: null,
+        type: 'milestone'
       },
       
       // 第五个主任务组 - 维护优化
@@ -493,16 +519,71 @@ const eventConfig = ref<EventConfig>({
         job_progress: '0.0',
         spend_time: null
       }
-    ];
-    console.log('dataSource updated:', dataConfig.value.dataSource);
+    ],
+    dependencies: [
+      // ===== 完成-开始 (FINISH_TO_START) - 最常见的依赖关系 =====
+      // 需求分析完成后才能开始技术选型
+      { sourceTaskId: '2', targetTaskId: '3', type: LinkType.FINISH_TO_START },
+      // 技术选型完成后才能开始架构设计
+      { sourceTaskId: '3', targetTaskId: '4', type: LinkType.FINISH_TO_START },
+      // 项目规划完成后才能开始开发阶段
+      { sourceTaskId: '1', targetTaskId: '5', type: LinkType.FINISH_TO_START },
+      // 页面布局完成后才能开始组件开发
+      { sourceTaskId: '7', targetTaskId: '8', type: LinkType.FINISH_TO_START },
+      // API设计完成后才能开始数据库设计
+      { sourceTaskId: '11', targetTaskId: '12', type: LinkType.FINISH_TO_START },
+      // 数据库设计完成后才能开始业务逻辑实现
+      { sourceTaskId: '12', targetTaskId: '13', type: LinkType.FINISH_TO_START },
+      // 开发阶段完成后才能开始测试阶段
+      { sourceTaskId: '5', targetTaskId: '14', type: LinkType.FINISH_TO_START },
+      // 单元测试完成后才能开始集成测试
+      { sourceTaskId: '15', targetTaskId: '16', type: LinkType.FINISH_TO_START },
+      // 集成测试完成后才能开始性能测试
+      { sourceTaskId: '16', targetTaskId: '17', type: LinkType.FINISH_TO_START },
+      // 测试阶段完成后才能开始部署上线
+      { sourceTaskId: '14', targetTaskId: '19', type: LinkType.FINISH_TO_START },
+      // 环境准备完成后才能开始代码部署
+      { sourceTaskId: '20', targetTaskId: '21', type: LinkType.FINISH_TO_START },
+      // 代码部署完成后才能开始上线验证
+      { sourceTaskId: '21', targetTaskId: '22', type: LinkType.FINISH_TO_START },
+      
+      // ===== 开始-开始 (START_TO_START) - 两个任务同时开始 =====
+      // 前端开发和后端开发同时开始
+      { sourceTaskId: '6', targetTaskId: '10', type: LinkType.START_TO_START },
+      // 组件开发和状态管理同时开始
+      { sourceTaskId: '8', targetTaskId: '9', type: LinkType.START_TO_START },
+      // 性能测试和用户验收测试同时开始
+      { sourceTaskId: '17', targetTaskId: '18', type: LinkType.START_TO_START },
+      // 技术文档和用户手册同时开始编写
+      { sourceTaskId: '27', targetTaskId: '28', type: LinkType.START_TO_START },
+      // 用户培训和技术支持同时开始
+      { sourceTaskId: '31', targetTaskId: '32', type: LinkType.START_TO_START },
+      
+      // ===== 完成-完成 (FINISH_TO_FINISH) - 两个任务同时完成 =====
+      // 前端开发和后端开发必须同时完成才能进入测试
+      { sourceTaskId: '6', targetTaskId: '10', type: LinkType.FINISH_TO_FINISH },
+      // 所有文档必须在部署上线前完成
+      { sourceTaskId: '26', targetTaskId: '19', type: LinkType.FINISH_TO_FINISH },
+      // 性能监控和用户反馈收集同时完成
+      { sourceTaskId: '24', targetTaskId: '25', type: LinkType.FINISH_TO_FINISH },
+      
+      // ===== 开始-完成 (START_TO_FINISH) - 较少使用，后续任务开始后前置任务才能完成 =====
+      // 部署上线开始后，维护优化才能完成准备
+      { sourceTaskId: '19', targetTaskId: '23', type: LinkType.START_TO_FINISH },
+      // 用户培训开始后，部署指南才能最终完成
+      { sourceTaskId: '31', targetTaskId: '29', type: LinkType.START_TO_FINISH }
+    ]
+    };
+    
+    // 使用后端返回的数据
+    dataConfig.value.dataSource = mockResponse.tasks;
+    dataConfig.value.dependencies = mockResponse.dependencies;
   },
   barDate: (id: string, startDate: string, endDate: string) => {
-    console.log(id);
-    console.log(startDate);
-    console.log(endDate);
+    // 任务日期变更
   },
   allowChangeTaskDate: (allow: boolean) => {
-    console.log('allowChangeTaskDate:', allow);
+    // 允许改变任务日期
   }
 });
 

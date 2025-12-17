@@ -77,7 +77,11 @@ export default {
     endDate: '结束时间',
     duration: '耗时',
     progress: '进度',
-    serialNumber: '序号'
+    serialNumber: '序号',
+    type: '类型',
+    taskType: '任务',
+    projectType: '项目',
+    milestoneType: '里程碑'
   },
   
   // 连线图例

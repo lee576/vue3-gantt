@@ -27,7 +27,7 @@ export type {
 } from './components/gantt/Types';
 
 // 导出枚举
-export { LinkType, LinkPathType } from './components/gantt/Types';
+export { LinkType, LinkPathType, TaskType } from './components/gantt/Types';
 
 // 导出主题系统
 export { ganttThemes, type GanttTheme } from './components/gantt/themes/GanttThemes.ts';

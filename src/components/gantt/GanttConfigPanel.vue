@@ -554,13 +554,11 @@ export default defineComponent({
     const updateLinkConfig = () => {
       // 更新到连线配置管理器
       updateLinkConfigManager(linkConfig.value);
-      console.log('Link config updated:', linkConfig.value);
     };
 
     onMounted(() => {
       // 设置甘特图容器到主题管理器
       if (ganttContainer?.value) {
-        console.log('GanttConfigPanel: Setting gantt container to theme manager');
         ganttThemeManager.setGanttContainer(ganttContainer.value);
       } else {
         console.warn('GanttConfigPanel: ganttContainer not available');

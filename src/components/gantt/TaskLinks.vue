@@ -828,7 +828,6 @@ export default defineComponent({
     };
     
     const updateLinks = () => {
-      console.log('updateLinks called');
       const newLinks: TaskLink[] = [];
       
       // 获取连线类型显示配置
@@ -883,7 +882,6 @@ export default defineComponent({
       
       // 生成任务依赖连线
       const dependencies = linkDataManager.getDependencies();
-      console.log('Dependencies:', dependencies);
       
       // 根据连线类型检查是否显示
       const shouldShowLinkType = (linkType: LinkType): boolean => {
