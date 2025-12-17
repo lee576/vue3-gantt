@@ -1,12 +1,52 @@
 {
-  "name": "vue3-gantt",
-  "private": true,
+  "name": "@lee576/vue3-gantt",
   "version": "1.0.0",
+  "description": "A powerful Vue3 Gantt chart component with rich features: task dependencies, multiple view modes, themes, i18n support",
   "type": "module",
+  "main": "./dist/vue3-gantt.umd.js",
+  "module": "./dist/vue3-gantt.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/vue3-gantt.es.js",
+      "require": "./dist/vue3-gantt.umd.js"
+    },
+    "./style.css": "./dist/vue3-gantt.css"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "README.en-US.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "vue",
+    "vue3",
+    "gantt",
+    "gantt-chart",
+    "task-management",
+    "project-management",
+    "timeline",
+    "i18n",
+    "typescript"
+  ],
+  "author": "lee576 <lee576@example.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lee576/vue3-gantt.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lee576/vue3-gantt/issues"
+  },
+  "homepage": "https://github.com/lee576/vue3-gantt#readme",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "build:lib": "vite build --mode lib",
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build:lib"
   },
   "dependencies": {
     "@vueuse/core": "^13.0.0",
@@ -24,6 +64,7 @@
     "sass-embedded": "^1.85.1",
     "typescript": "~5.7.2",
     "vite": "^6.2.0",
+    "vite-plugin-dts": "^4.5.4",
     "vue-tsc": "^2.2.4"
   }
 }

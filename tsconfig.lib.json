@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "./dist",
+    "emitDeclarationOnly": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": ["src/index.ts", "src/components/gantt/**/*.ts", "src/components/gantt/**/*.vue"],
+  "exclude": ["src/main.ts", "src/App.vue", "src/style.css", "node_modules", "dist"]
+}

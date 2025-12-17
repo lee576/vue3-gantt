@@ -48,9 +48,24 @@ A feature-rich, highly customizable Vue 3 Gantt chart component that supports ta
 
 ## Installation
 
+### Option 1: Install via npm (Recommended)
+
+```bash
+# Using npm
+npm install @lee576/vue3-gantt
+
+# Or using yarn
+yarn add @lee576/vue3-gantt
+
+# Or using pnpm
+pnpm add @lee576/vue3-gantt
+```
+
+### Option 2: Build from Source
+
 ```bash
 # Clone repository
-git clone <repository-url>
+git clone https://github.com/lee576/vue3-gantt.git
 
 # Install dependencies
 npm install
@@ -70,6 +85,23 @@ npm run dev
 
 ## Basic Usage
 
+### 1. Import Component and Styles
+
+```typescript
+import { ref, onMounted } from 'vue';
+import dayjs from 'dayjs';
+// Import Gantt component and types
+import Gantt, { 
+  type DataConfig, 
+  type StyleConfig, 
+  type EventConfig 
+} from '@lee576/vue3-gantt';
+// Import styles
+import '@lee576/vue3-gantt/style.css';
+import { LinkType } from '@lee576/vue3-gantt';
+
+### 2. Configure Component
+
 ```vue
 <template>
   <gantt 
@@ -80,17 +112,7 @@ npm run dev
 </template>
 ```
 
-
 ```typescript
-import { ref, onMounted } from 'vue';
-import dayjs from 'dayjs';
-import Gantt, { 
-  type DataConfig, 
-  type StyleConfig, 
-  type EventConfig 
-} from './components/gantt/Gantt.vue';
-import { LinkType } from './components/gantt/Types';
-
 // Style configuration
 const styleConfig = ref<StyleConfig>({
   headersHeight: 100,  // Header height

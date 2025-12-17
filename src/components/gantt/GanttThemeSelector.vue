@@ -48,8 +48,8 @@
             </div>
           </div>
           <div class="theme-info">
-            <h4 class="theme-name">{{ theme.name }}</h4>
-            <p class="theme-description">{{ theme.description }}</p>
+            <h4 class="theme-name">{{ t(theme.nameKey) }}</h4>
+            <p class="theme-description">{{ t(theme.descKey) }}</p>
           </div>
           <div class="theme-status">
             <div v-if="currentTheme === theme.id" class="status-badge current">当前</div>
@@ -87,10 +87,12 @@
 <script lang="ts">
 import { defineComponent, ref, onMounted, onUnmounted, inject, watchEffect, nextTick } from 'vue';
 import { ganttThemes, ganttThemeManager, type GanttTheme } from './themes/GanttThemes';
+import { useI18n } from './i18n';
 
 export default defineComponent({
   name: 'GanttThemeSelector',
   setup() {
+    const { t } = useI18n();
     const isOpen = ref(false);
     const currentTheme = ref('metro');
     const previewTheme = ref('');
@@ -254,7 +256,7 @@ export default defineComponent({
         return;
       }
       
-      console.log('📋 Theme found:', theme.name, 'Variables count:', Object.keys(theme.cssVariables).length);
+      console.log('📋 Theme found:', t(theme.nameKey), 'Variables count:', Object.keys(theme.cssVariables).length);
       
       // 创建样式元素
       const style = document.createElement('style');
@@ -410,6 +412,7 @@ export default defineComponent({
     });
 
     return {
+      t,
       availableThemes,
       isOpen,
       currentTheme,

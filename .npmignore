@@ -1,0 +1,41 @@
+# 发布时忽略的文件和目录
+
+# 源代码
+src/
+public/
+
+# 配置文件
+vite.config.ts
+tsconfig*.json
+.gitignore
+.editorconfig
+
+# 开发文件
+*.html
+!index.html
+
+# 测试文件
+*.test.ts
+*.spec.ts
+
+# 文档(保留README)
+*.md
+!README.md
+!README.en-US.md
+
+# 依赖和缓存
+node_modules/
+.npm/
+.pnpm-store/
+
+# 构建临时文件
+.vscode/
+.idea/
+*.log
+*.local
+.DS_Store
+Thumbs.db
+
+# 其他开发文件
+*.map
+.env*

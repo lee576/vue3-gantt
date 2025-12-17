@@ -57,9 +57,24 @@
 
 ## 安装
 
+### 方式一：通过 npm 安装（推荐）
+
+```bash
+# 使用 npm 安装
+npm install @lee576/vue3-gantt
+
+# 或使用 yarn
+yarn add @lee576/vue3-gantt
+
+# 或使用 pnpm
+pnpm add @lee576/vue3-gantt
+```
+
+### 方式二：从源码构建
+
 ```bash
 # 克隆项目
-git clone <repository-url>
+git clone https://github.com/lee576/vue3-gantt.git
 
 # 安装依赖
 npm install
@@ -79,6 +94,23 @@ npm run dev
 
 ## 基本使用
 
+### 1. 引入组件和样式
+
+```typescript
+import { ref, onMounted } from 'vue';
+import dayjs from 'dayjs';
+// 引入甘特图组件和类型
+import Gantt, { 
+  type DataConfig, 
+  type StyleConfig, 
+  type EventConfig 
+} from '@lee576/vue3-gantt';
+// 引入样式文件
+import '@lee576/vue3-gantt/style.css';
+import { LinkType } from '@lee576/vue3-gantt';
+
+### 2. 配置组件
+
 ```vue
 <template>
   <gantt 
@@ -89,17 +121,7 @@ npm run dev
 </template>
 ```
 
-
 ```typescript
-import { ref, onMounted } from 'vue';
-import dayjs from 'dayjs';
-import Gantt, { 
-  type DataConfig, 
-  type StyleConfig, 
-  type EventConfig 
-} from './components/gantt/Gantt.vue';
-import { LinkType } from './components/gantt/Types';
-
 // 样式配置
 const styleConfig = ref<StyleConfig>({
   headersHeight: 100,  // 表头高度
