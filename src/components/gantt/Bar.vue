@@ -569,7 +569,6 @@ export default defineComponent({
         }, { deep: false });
 
         onMounted(() => {
-            console.log(`[Bar] Component mounted, task: ${props.row[mapFields.value.id]}, mode: ${store.mode}`);
             if (bar.value && !isBarInteracted.value) {
                 drowBar(bar.value);
                 isBarInteracted.value = true;

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vue3 Gantt 独立组件示例</title>
+
+  <!-- 引入 Vue 3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <!-- 引入依赖库 -->
+  <script src="https://unpkg.com/dayjs@1.11.13/dayjs.min.js"></script>
+  <script src="https://unpkg.com/@vueuse/core@11.3.0/index.iife.min.js"></script>
+  <script src="https://unpkg.com/interactjs@1.10.27/dist/interact.min.js"></script>
+  <script src="https://unpkg.com/svg.js@2.7.1/dist/svg.min.js"></script>
+  <!-- zod 不需要在浏览器环境中加载，组件内部已经处理 -->
+
+  <!-- 引入 Gantt 组件样式 -->
+  <link rel="stylesheet" href="./dist/vue3-gantt.css">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    #app {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .demo-header {
+      background: linear-gradient(145deg, #f5f5f5, #e8e8e8);
+      border-bottom: 1px solid #d0d0d0;
+      padding: 16px 24px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .demo-header h1 {
+      margin: 0;
+      font-size: 20px;
+      color: #333;
+    }
+
+    .demo-header p {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .gantt-wrapper {
+      flex: 1;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div class="demo-header">
+      <h1>🎯 Vue3 Gantt 独立组件示例</h1>
+      <p>✅ 所有样式已打包，无需外部依赖 | ✅ 支持 7 种主题 | ✅ 支持 8 种语言</p>
+    </div>
+    <div class="gantt-wrapper">
+      <gantt :style-config="styleConfig" :data-config="dataConfig" :event-config="eventConfig">
+      </gantt>
+    </div>
+  </div>
+
+  <!-- 引入 Gantt 组件 UMD 包 -->
+  <script src="./dist/vue3-gantt.umd.js"></script>
+
+  <script>
+    const { createApp } = Vue;
+    // 从 Vue3Gantt 中解构所需内容
+    const Gantt = Vue3Gantt.default || Vue3Gantt.Gantt;
+    const LinkType = Vue3Gantt.LinkType || {
+      FINISH_TO_START: 0,
+      START_TO_START: 1,
+      FINISH_TO_FINISH: 2,
+      START_TO_FINISH: 3
+    };
+
+    const app = createApp({
+      components: {
+        Gantt
+      },
+      data() {
+        const today = dayjs();
+        const currentMonth = today.format('YYYY-MM');
+        const startOfMonth = today.startOf('month').format('YYYY-MM-DD');
+        const endOfMonth = today.endOf('month').format('YYYY-MM-DD');
+              
+        console.log('📅 初始化时间范围:', startOfMonth, '到', endOfMonth);
+              
+        return {
+          styleConfig: {
+            headersHeight: 100,
+            rowHeight: 60,
+            setBarColor: (row) => {
+              const colorMap = {
+                '紧急': '#e74c3c',
+                '重要': '#3498db',
+                '一般': '#95a5a6',
+                '不重要': '#f39c12'
+              };
+              return colorMap[row.level] || '#333333';
+            }
+          },
+          dataConfig: {
+            queryStartDate: startOfMonth,
+            queryEndDate: endOfMonth,
+            dataSource: [
+              {
+                id: '1',
+                pid: '0',
+                taskNo: '项目规划阶段',
+                level: '重要',
+                start_date: `${currentMonth}-01 08:00:00`,
+                end_date: `${currentMonth}-06 18:00:00`,
+                job_progress: '0.85',
+                spend_time: null
+              },
+              {
+                id: '2',
+                pid: '1',
+                taskNo: '需求分析',
+                level: '紧急',
+                start_date: `${currentMonth}-01 08:00:00`,
+                end_date: `${currentMonth}-02 18:00:00`,
+                job_progress: '1.0',
+                spend_time: null
+              },
+              {
+                id: '3',
+                pid: '1',
+                taskNo: '技术选型',
+                level: '重要',
+                start_date: `${currentMonth}-03 08:00:00`,
+                end_date: `${currentMonth}-04 18:00:00`,
+                job_progress: '0.9',
+                spend_time: null
+              },
+              {
+                id: '4',
+                pid: '1',
+                taskNo: '架构设计',
+                level: '重要',
+                start_date: `${currentMonth}-05 08:00:00`,
+                end_date: `${currentMonth}-06 18:00:00`,
+                job_progress: '0.7',
+                spend_time: null
+              },
+              {
+                id: '5',
+                pid: '0',
+                taskNo: '开发阶段',
+                level: '重要',
+                start_date: `${currentMonth}-07 08:00:00`,
+                end_date: `${currentMonth}-18 18:00:00`,
+                job_progress: '0.5',
+                spend_time: null
+              },
+              {
+                id: '6',
+                pid: '5',
+                taskNo: '前端开发',
+                level: '重要',
+                start_date: `${currentMonth}-07 08:00:00`,
+                end_date: `${currentMonth}-13 18:00:00`,
+                job_progress: '0.6',
+                spend_time: null
+              },
+              {
+                id: '7',
+                pid: '5',
+                taskNo: '后端开发',
+                level: '重要',
+                start_date: `${currentMonth}-10 08:00:00`,
+                end_date: `${currentMonth}-18 18:00:00`,
+                job_progress: '0.5',
+                spend_time: null
+              }
+            ],
+            dependencies: [
+              { sourceTaskId: '2', targetTaskId: '3', type: 0 }, // FINISH_TO_START
+              { sourceTaskId: '3', targetTaskId: '4', type: 0 }, // FINISH_TO_START
+              { sourceTaskId: '1', targetTaskId: '5', type: 0 }, // FINISH_TO_START
+              { sourceTaskId: '6', targetTaskId: '7', type: 1 }  // START_TO_START
+            ],
+            mapFields: {
+              id: 'id',
+              parentId: 'pid',
+              task: 'taskNo',
+              priority: 'level',
+              startdate: 'start_date',
+              enddate: 'end_date',
+              takestime: 'spend_time',
+              progress: 'job_progress'
+            },
+            taskHeaders: [
+              { title: '序号', width: 160, property: 'no', show: true },
+              { title: '任务名称', width: 190, property: 'task', show: true },
+              { title: '优先级', width: 90, property: 'priority', show: true },
+              { title: '开始时间', width: 150, property: 'startdate', show: true },
+              { title: '结束时间', width: 150, property: 'enddate', show: true },
+              { title: '耗时', width: 90, property: 'takestime', show: true }
+            ]
+          },
+          eventConfig: {
+            addRootTask: (row) => {
+              console.log('添加根任务', row);
+            },
+            addSubTask: (task) => {
+              console.log('添加子任务', task);
+            },
+            removeTask: (task) => {
+              console.log('删除任务', task);
+            },
+            editTask: (task) => {
+              console.log('编辑任务', task);
+            },
+            queryTask: (startDate, endDate, mode) => {
+              console.log('查询任务', { startDate, endDate, mode });
+              // 注意：这里不需要重新设置 dataSource，因为已经在 data 中初始化了
+            },
+            barDate: (id, startDate, endDate) => {
+              console.log('任务日期变更', { id, startDate, endDate });
+            },
+            allowChangeTaskDate: (allow) => {
+              console.log('是否允许改变任务日期', allow);
+            },
+            updateProgress: (detail) => {
+              console.log('进度更新', detail);
+            }
+          }
+        };
+      },
+      mounted() {
+        console.log('✅ Vue3 Gantt 组件加载成功！');
+        console.log('📦 数据源:', this.dataConfig.dataSource.length, '条任务');
+
+        // 重要：需要等待一个 tick 让组件完全初始化
+        setTimeout(() => {
+          const startDate = this.dataConfig.queryStartDate;
+          const endDate = this.dataConfig.queryEndDate;
+
+          console.log('🔄 触发 queryTask:', startDate, '到', endDate);
+
+          if (this.eventConfig.queryTask) {
+            this.eventConfig.queryTask(startDate, endDate, '月');
+          }
+        }, 100); // 延迟 100ms 确保组件完全挂载
+      }
+    });
+
+    app.mount('#app');
+  </script>
+</body>
+
+</html>

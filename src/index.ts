@@ -1,6 +1,10 @@
 import type { App } from 'vue';
 import Gantt from './components/gantt/Gantt.vue';
 
+// 导入组件样式（包含基础样式、滚动条样式、CSS变量默认值和 Liquid Glass 主题）
+import './components/gantt/gantt.css';
+import './components/gantt/themes/LiquidGlass.css';
+
 // 导出组件
 export { default as Gantt } from './components/gantt/Gantt.vue';
 export { default } from './components/gantt/Gantt.vue';

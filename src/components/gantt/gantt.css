@@ -1,0 +1,163 @@
+/* Vue3 Gantt 组件独立样式包 */
+/* 包含所有必要的基础样式、主题样式和滚动条样式 */
+
+/* ==================== 基础样式重置 ==================== */
+/* 确保组件内所有元素使用 border-box */
+.gantt-container,
+.gantt-container *,
+.gantt-container *::before,
+.gantt-container *::after {
+  box-sizing: border-box;
+}
+
+/* ==================== CSS 变量默认值定义 ==================== */
+/* 为所有主题提供默认的 CSS 变量，确保组件在任何环境下都能正常显示 */
+.gantt-container {
+  /* Metro 主题默认变量 */
+  --primary: #0078d4;
+  --primary-dark: #106ebe;
+  --primary-light: #1084d8;
+  --secondary: #0d5aa7;
+  
+  --bg-metal-light: linear-gradient(145deg, #ffffff, #f5f5f5);
+  --bg-metal-normal: linear-gradient(145deg, #f5f5f5, #e8e8e8);
+  --bg-metal-dark: linear-gradient(145deg, #e6e6e6, #d0d0d0);
+  --bg-metal-pressed: linear-gradient(145deg, #e0e0e0, #f8f8f8);
+  
+  --bg-active: linear-gradient(145deg, #0078d4, #106ebe);
+  --bg-active-hover: linear-gradient(145deg, #1084d8, #0d5aa7);
+  --bg-active-pressed: linear-gradient(145deg, #0d5aa7, #1084d8);
+  
+  --border: #d0d0d0;
+  --border-dark: #b0b0b0;
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  --shadow-outset: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-active: inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --text-white: #ffffff;
+  
+  --bg-primary: #f8f8f8;
+  --bg-secondary: #e8e8e8;
+  --bg-content: #ffffff;
+  --row-hover: #FFF3A1;
+  
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.35s ease;
+  
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-size-base: 12px;
+  --font-weight-normal: 500;
+  --font-weight-bold: 600;
+}
+
+/* ==================== 自定义滚动条样式 ==================== */
+/* 为甘特图提供美观的滚动条 */
+.gantt-container ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.gantt-container ::-webkit-scrollbar-track {
+  background: var(--bg-secondary, #f5f5f5);
+  border-radius: 6px;
+}
+
+.gantt-container ::-webkit-scrollbar-thumb {
+  background: var(--border, #d0d0d0);
+  border-radius: 6px;
+  border: 2px solid var(--bg-secondary, #f5f5f5);
+  transition: background var(--transition-fast, 0.15s ease);
+}
+
+.gantt-container ::-webkit-scrollbar-thumb:hover {
+  background: var(--primary, #0078d4);
+}
+
+.gantt-container ::-webkit-scrollbar-corner {
+  background: var(--bg-secondary, #f5f5f5);
+}
+
+/* Firefox 滚动条样式 */
+.gantt-container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border, #d0d0d0) var(--bg-secondary, #f5f5f5);
+}
+
+/* ==================== 选中文本样式 ==================== */
+.gantt-container ::selection {
+  background: var(--primary, #0078d4);
+  color: var(--text-white, #ffffff);
+}
+
+.gantt-container ::-moz-selection {
+  background: var(--primary, #0078d4);
+  color: var(--text-white, #ffffff);
+}
+
+/* ==================== 基础字体设置 ==================== */
+.gantt-container {
+  font-family: var(--font-family, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+  font-size: var(--font-size-base, 12px);
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--text-primary, #333333);
+}
+
+/* ==================== 输入框和按钮基础样式 ==================== */
+.gantt-container input,
+.gantt-container select,
+.gantt-container textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+.gantt-container button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* ==================== Teleport 组件样式继承 ==================== */
+/* 确保通过 Teleport 传送的组件（如日历弹出框）也能正确应用主题样式 */
+[data-gantt-theme] {
+  /* 继承所有 CSS 变量 */
+  --primary: inherit;
+  --primary-dark: inherit;
+  --primary-light: inherit;
+  --secondary: inherit;
+  --bg-metal-light: inherit;
+  --bg-metal-normal: inherit;
+  --bg-metal-dark: inherit;
+  --bg-metal-pressed: inherit;
+  --bg-active: inherit;
+  --bg-active-hover: inherit;
+  --bg-active-pressed: inherit;
+  --border: inherit;
+  --border-dark: inherit;
+  --shadow-inset: inherit;
+  --shadow-outset: inherit;
+  --shadow-active: inherit;
+  --text-primary: inherit;
+  --text-secondary: inherit;
+  --text-muted: inherit;
+  --text-white: inherit;
+  --bg-primary: inherit;
+  --bg-secondary: inherit;
+  --bg-content: inherit;
+  --row-hover: inherit;
+  --transition-fast: inherit;
+  --transition-normal: inherit;
+  --transition-slow: inherit;
+  --font-family: inherit;
+  --font-size-base: inherit;
+  --font-weight-normal: inherit;
+  --font-weight-bold: inherit;
+}
+
+/* ==================== 导入 Liquid Glass 主题样式 ==================== */
+/* Liquid Glass 主题的完整样式定义 */

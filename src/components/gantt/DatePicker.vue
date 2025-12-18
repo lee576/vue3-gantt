@@ -18,16 +18,16 @@
       <div class="e-date-select">
         <div class="e-date-year">
           <transition name="fadeY">
-            <div :key="selectDate.year" class="e-date-year-select" @click="openYearList" :class="{ active: showYear }">
-              {{ selectDate.year }}
+            <div :key="showDate.year" class="e-date-year-select" @click="openYearList" :class="{ active: showYear }">
+              {{ showDate.year }}
             </div>
           </transition>
         </div>
         <div class="e-date-monthday">
           <transition name="fadeY">
-            <div :key="selectDate.day" class="e-date-monthday-select" :class="{ active: !showYear }"
+            <div :key="showDate.year + '-' + showDate.month" class="e-date-monthday-select" :class="{ active: !showYear }"
               @click="openCalendarList">
-              <span>{{ keepDoubleDigit(selectDate.month) }}-{{ keepDoubleDigit(selectDate.day) }}</span>&nbsp;
+              <span>{{ keepDoubleDigit(showDate.month) }}-{{ keepDoubleDigit(selectDate.day) }}</span>&nbsp;
               <span style="cursor: pointer;" @click="openMonthList">{{ showDate.monthStr }}</span>
             </div>
           </transition>
@@ -46,7 +46,7 @@
           </div>
           <div class="e-calendar-toolbar-title">
             <transition :name="fadeXType">
-              <div :key="showDate.monthStr" class="e-calendar-toolbar-title-content">
+              <div :key="showDate.year + '-' + showDate.month" class="e-calendar-toolbar-title-content">
                 <strong>{{ showDate.year }}</strong>&nbsp;
                 <span style="cursor: pointer;" @click="openMonthList">{{ showDate.monthStr }}</span>
               </div>
@@ -65,8 +65,7 @@
           <span v-for="(weekName, index) in getWeekNames" :key="index" class="e-calendar-week-day">{{ weekName }}</span>
         </div>
         <div class="e-calendar-monthday">
-          <transition :name="fadeXType">
-            <div :key="showDate.monthStr" class="e-calendar-monthday-wrapper">
+            <div :key="updateKey" class="e-calendar-monthday-wrapper">
               <div v-for="(row, index) in rows" :key="index" class="e-calendar-monthday-row">
                 <span v-for="(day, dayIndex) in row" :key="dayIndex" class="e-calendar-monthday-row-day"
                   @click="selectDay(day)" @mouseenter="handleDayMouseEnter(dayIndex, index)"
@@ -83,10 +82,9 @@
                 </span>
               </div>
             </div>
-          </transition>
         </div>
       </div>
-      <ul class="e-calendar-year" v-show="showYear" ref="yearList">
+      <ul class="e-calendar-year" v-show="showYear" ref="yearListRef">
         <li v-for="(item, index) in yearList" :key="index" :class="{
         active: item === selectDate.year,
         hover: isYearHovered(index)
@@ -94,7 +92,7 @@
           {{ item }}
         </li>
       </ul>
-      <ul class="e-calendar-year" v-show="showMonth" ref="monthList">
+      <ul class="e-calendar-year" v-show="showMonth" ref="monthListRef">
         <li v-for="(item, index) in monthList" :key="index" :class="{
         active: item === selectDate.month,
         hover: isMonthHovered(index)
@@ -204,6 +202,7 @@ export default defineComponent({
     const prevMonthClick = ref(false);
     const showYear = ref(false);
     const showMonth = ref(false);
+    const updateKey = ref(0); // 用于强制更新视图
     const yearListRef = ref<HTMLUListElement | null>(null);
     const monthListRef = ref<HTMLUListElement | null>(null);
     const showCalendar = ref(false); // 控制日期选择器的显示和隐藏
@@ -277,7 +276,6 @@ export default defineComponent({
           row = [];
         }
       }
-      showDate.value.monthStr = getMonthName(showDate.value.month);
       return result;
     });
 
@@ -424,12 +422,22 @@ export default defineComponent({
       }
       const { year, month } = showDate.value;
       // 判断当前月份，如果已经等于1（1就是一月，而不是二月）
+      let newYear = year;
+      let newMonth = month;
       if (month <= 1) {
-        showDate.value.year = year - 1;
-        showDate.value.month = 12;
+        newYear = year - 1;
+        newMonth = 12;
       } else {
-        showDate.value.month -= 1;
+        newMonth = month - 1;
       }
+      // 替换整个对象以触发响应式更新
+      showDate.value = {
+        ...showDate.value,
+        year: newYear,
+        month: newMonth,
+        monthStr: getMonthName(newMonth)
+      };
+      updateKey.value++; // 强制更新视图
     };
 
     // 切换到下一个月
@@ -448,12 +456,22 @@ export default defineComponent({
       }
       const { year, month } = showDate.value;
       // 判断当前月份，如果已经等于12（12就是十二月）
+      let newYear = year;
+      let newMonth = month;
       if (month >= 12) {
-        showDate.value.year = year + 1;
-        showDate.value.month = 1;
+        newYear = year + 1;
+        newMonth = 1;
       } else {
-        showDate.value.month += 1;
+        newMonth = month + 1;
       }
+      // 替换整个对象以触发响应式更新
+      showDate.value = {
+        ...showDate.value,
+        year: newYear,
+        month: newMonth,
+        monthStr: getMonthName(newMonth)
+      };
+      updateKey.value++; // 强制更新视图
     };
 
     // 重置选择日期
@@ -496,63 +514,34 @@ export default defineComponent({
       });
     };
 
-    // 选择月份
+    // 选择月份 - 只切换月份视图，不直接选定日期
     const selectMonth = (value: number) => {
       showYear.value = false;
       showMonth.value = false;
       showDate.value.month = value;
-      let type: 'copyMinDate' | 'copyMaxDate' | undefined;
-      // 当月份在最小值之外，日期换成最小值日期 或者 当月份在最大值之外，日期换成最大值日期
-      if (isMinLimitMonth()) {
-        type = 'copyMinDate';
-      } else if (isMaxLimitMonth()) {
-        type = 'copyMaxDate';
-      }
-      if (type) {
-        showDate.value.day = type === 'copyMinDate' ? copyMinDate.value.day : copyMaxDate.value.day;
-        resetSelectDate(showDate.value.day);
-        return;
-      }
-      let dayValue = selectDate.value.day;
-      // 判断日是最大值，防止另一个月没有这个日期
-      const daysInMonth = new Date(showDate.value.year, showDate.value.month + 1, 0).getDate();
-      dayValue = Math.min(dayValue, daysInMonth); // 确保日期不超过当前月份的最大天数
-      resetSelectDate(dayValue);
+      // 更新月份字符串显示
+      showDate.value.monthStr = getMonthName(value);
     };
 
-    // 选择年份
+    // 选择年份 - 只切换年份视图，不直接选定日期
     const selectYear = (value: number) => {
       showYear.value = false;
       showMonth.value = false;
       showDate.value.year = value;
-      let type: 'copyMinDate' | 'copyMaxDate' | undefined;
-      // 当日期在最小值之外，月份换成最小值月份 或者 当日期在最大值之外，月份换成最大值月份
-      if (isMinLimitMonth()) {
-        type = 'copyMinDate';
-      } else if (isMaxLimitMonth()) {
-        type = 'copyMaxDate';
-      }
-      if (type) {
-        showDate.value.month = type === 'copyMinDate' ? copyMinDate.value.month : copyMaxDate.value.month;
-        showDate.value.day = type === 'copyMinDate' ? copyMinDate.value.day : copyMaxDate.value.day;
-        resetSelectDate(showDate.value.day);
-        return;
-      }
-      let dayValue = selectDate.value.day;
-      // 判断日是最大值，防止另一个月没有这个日期
-      const months = new Date(showDate.value.year, showDate.value.month, 0).getDate();
-      dayValue = Math.min(dayValue, months); // 确保日期不超过当前月份的最大天数
-      resetSelectDate(dayValue);
+      // 更新月份字符串显示
+      showDate.value.monthStr = getMonthName(showDate.value.month);
     };
 
     // 判断是否为最小月份限制
     const isMinLimitMonth = () => {
-      return showDate.value.year <= copyMinDate.value.year && showDate.value.month <= copyMinDate.value.month;
+      return showDate.value.year < copyMinDate.value.year || 
+        (showDate.value.year === copyMinDate.value.year && showDate.value.month <= copyMinDate.value.month);
     };
 
     // 判断是否为最大月份限制
     const isMaxLimitMonth = () => {
-      return showDate.value.year >= copyMaxDate.value.year && showDate.value.month >= copyMaxDate.value.month;
+      return showDate.value.year > copyMaxDate.value.year || 
+        (showDate.value.year === copyMaxDate.value.year && showDate.value.month >= copyMaxDate.value.month);
     };
 
     // 打开年份列表
@@ -708,6 +697,7 @@ export default defineComponent({
       prevMonthClick,
       keepDoubleDigit,
       showYear,
+      updateKey,
       yearList,
       rows,
       yearListRef,

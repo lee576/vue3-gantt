@@ -139,8 +139,6 @@ import 'dayjs/locale/es';
 import 'dayjs/locale/ru';
 dayjs.extend(customParseFormat);
 
-// Liquid Glass 主题样式
-import './themes/LiquidGlass.css';
 import { Symbols } from './Symbols';
 import { linkDataManager, useLinkConfig } from './LinkConfig';
 import { useI18n } from './i18n';

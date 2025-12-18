@@ -123,7 +123,7 @@ export default defineComponent({
 
   .content {
     overflow-y: auto;
-    overflow-x: auto;
+    overflow-x: hidden;
   }
 }
 </style>
