@@ -153,13 +153,15 @@ export default {
     ocean: 'Ocean',
     apple: 'Apple',
     classic: 'Classic',
+    liquidGlass: 'Liquid Glass',
     metroDesc: 'Classic Windows Metro style',
     lightDesc: 'Fresh and bright light style',
     darkDesc: 'Elegant and professional dark style',
     colorfulDesc: 'Vibrant and colorful style',
     oceanDesc: 'Calm and comfortable ocean style',
     appleDesc: 'Minimalist and elegant macOS style',
-    classicDesc: 'Traditional and stable business style'
+    classicDesc: 'Traditional and stable business style',
+    liquidGlassDesc: 'iOS 26 Liquid Glass effect with translucent fluidity'
   },
   
   // Date Picker

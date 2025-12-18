@@ -154,13 +154,15 @@ export default {
     ocean: 'Océano',
     apple: 'Apple',
     classic: 'Clásico',
+    liquidGlass: 'Cristal Líquido',
     metroDesc: 'Estilo Metro Windows clásico',
     lightDesc: 'Estilo claro fresco y brillante',
     darkDesc: 'Estilo oscuro elegante y profesional',
     colorfulDesc: 'Estilo colorido vibrante',
     oceanDesc: 'Estilo océano tranquilo y cómodo',
     appleDesc: 'Estilo macOS minimalista y elegante',
-    classicDesc: 'Estilo empresarial tradicional y estable'
+    classicDesc: 'Estilo empresarial tradicional y estable',
+    liquidGlassDesc: 'Efecto de Cristal Líquido iOS 26 con fluidez translúcida'
   },
   
   // Date Picker

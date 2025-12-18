@@ -154,13 +154,15 @@ export default {
     ocean: 'オーシャン',
     apple: 'Apple',
     classic: 'クラシック',
+    liquidGlass: 'リキッドグラス',
     metroDesc: 'クラシックWindowsメトロスタイル',
     lightDesc: '明るく爽やかなライトスタイル',
     darkDesc: 'エレガントでプロフェッショナルなダークスタイル',
     colorfulDesc: '活気あるカラフルスタイル',
     oceanDesc: '落ち着いた快適なオーシャンスタイル',
     appleDesc: 'ミニマルでエレガントなmacOSスタイル',
-    classicDesc: '伝統的で安定感のあるビジネススタイル'
+    classicDesc: '伝統的で安定感のあるビジネススタイル',
+    liquidGlassDesc: 'iOS 26 リキッドグラス効果、半透明で流動的な質感'
   },
   
   // Date Picker

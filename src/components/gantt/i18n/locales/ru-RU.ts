@@ -154,13 +154,15 @@ export default {
     ocean: 'Океан',
     apple: 'Apple',
     classic: 'Классический',
+    liquidGlass: 'Жидкое стекло',
     metroDesc: 'Классический стиль Windows Metro',
     lightDesc: 'Свежий и яркий светлый стиль',
     darkDesc: 'Элегантный и профессиональный темный стиль',
     colorfulDesc: 'Яркий красочный стиль',
     oceanDesc: 'Спокойный и комфортный океанский стиль',
     appleDesc: 'Минималистичный и элегантный стиль macOS',
-    classicDesc: 'Традиционный и стабильный деловой стиль'
+    classicDesc: 'Традиционный и стабильный деловой стиль',
+    liquidGlassDesc: 'Эффект жидкого стекла iOS 26 с полупрозрачной текучестью'
   },
   
   // Date Picker

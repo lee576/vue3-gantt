@@ -285,6 +285,67 @@ export const ganttThemes: GanttTheme[] = [
       '--font-weight-normal': '400',
       '--font-weight-bold': '600'
     }
+  },
+  {
+    id: 'liquidGlass',
+    nameKey: 'theme.liquidGlass',
+    descKey: 'theme.liquidGlassDesc',
+    preview: 'linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(220,240,255,0.6) 100%)',
+    cssVariables: {
+      // iOS 26 Liquid Glass 液态玻璃主题变量
+      '--primary': '#007aff',
+      '--primary-dark': '#0051d5',
+      '--primary-light': '#4da3ff',
+      '--secondary': '#5856d6',
+      
+      // 液态玻璃背景 - 半透明带模糊
+      '--bg-metal-light': 'rgba(255, 255, 255, 0.65)',
+      '--bg-metal-normal': 'rgba(245, 247, 250, 0.55)',
+      '--bg-metal-dark': 'rgba(230, 235, 241, 0.6)',
+      '--bg-metal-pressed': 'rgba(220, 228, 238, 0.7)',
+      
+      '--bg-active': 'rgba(0, 122, 255, 0.75)',
+      '--bg-active-hover': 'rgba(77, 163, 255, 0.8)',
+      '--bg-active-pressed': 'rgba(0, 81, 213, 0.85)',
+      
+      // 玻璃效果边框
+      '--border': 'rgba(255, 255, 255, 0.4)',
+      '--border-dark': 'rgba(200, 210, 220, 0.5)',
+      
+      // 液态玻璃阴影 - 浮动感和高光
+      '--shadow-inset': 'inset 0 1px 2px rgba(255, 255, 255, 0.95), inset 0 -1px 1px rgba(0, 0, 0, 0.05)',
+      '--shadow-outset': '0 8px 32px rgba(0, 122, 255, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08), 0 0 1px rgba(255, 255, 255, 0.8)',
+      '--shadow-active': 'inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 122, 255, 0.25)',
+      
+      '--text-primary': '#1d1d1f',
+      '--text-secondary': '#424245',
+      '--text-muted': '#86868b',
+      '--text-white': '#ffffff',
+      
+      // 背景使用半透明玻璃效果
+      '--bg-primary': 'rgba(250, 250, 252, 0.85)',
+      '--bg-secondary': 'rgba(242, 242, 247, 0.75)',
+      '--bg-content': 'rgba(255, 255, 255, 0.7)',
+      '--row-hover': 'rgba(232, 244, 253, 0.6)',
+      
+      // 流动性过渡
+      '--transition-fast': '0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+      '--transition-normal': '0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+      '--transition-slow': '0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+      
+      '--font-family': "'-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Helvetica Neue', sans-serif",
+      '--font-size-base': '13px',
+      '--font-weight-normal': '400',
+      '--font-weight-bold': '600',
+      
+      // Liquid Glass 特有的CSS变量
+      '--glass-blur': '12px',
+      '--glass-saturation': '180%',
+      '--glass-brightness': '105%',
+      '--glass-edge-highlight': 'rgba(255, 255, 255, 0.9)',
+      '--glass-edge-shadow': 'rgba(0, 0, 0, 0.1)',
+      '--glass-reflection': 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 100%)'
+    }
   }
 ];
 

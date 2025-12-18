@@ -153,13 +153,15 @@ export default {
     ocean: '海洋主题',
     apple: 'Apple 苹果风格',
     classic: '经典商务',
+    liquidGlass: 'Liquid Glass 液态玻璃',
     metroDesc: '经典 Windows Metro 风格',
     lightDesc: '清爽明亮的浅色风格',
     darkDesc: '优雅专业的深色风格',
     colorfulDesc: '活力四射的多彩风格',
     oceanDesc: '沉静舒适的海洋风格',
     appleDesc: '简约优雅的 macOS 风格',
-    classicDesc: '传统稳重的商务风格'
+    classicDesc: '传统稳重的商务风格',
+    liquidGlassDesc: 'iOS 26 液态玻璃效果，半透明流动质感'
   },
   
   // 日期选择器

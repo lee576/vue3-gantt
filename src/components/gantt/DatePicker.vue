@@ -2,7 +2,7 @@
   <div>
     <!-- 添加文本框 -->
     <div class="date-picker-input-wrapper">
-      <input type="text" v-model="selectedDateText" @click="showCalendar = true" readonly :placeholder="t('datePicker.selectDate')"
+      <input type="text" v-model="selectedDateText" @click="openCalendar" readonly :placeholder="t('datePicker.selectDate')"
         class="date-picker-input" ref="inputRef" />
       <span class="clear-date-button" @click="clearDate" v-if="selectedDateText">
         <svg viewBox="0 0 24 24">
@@ -12,8 +12,9 @@
         </svg>
       </span>
     </div>
-    <!-- 日期选择器 -->
-    <div class="e-calendar" v-show="showCalendar" ref="calendarRef">
+    <!-- 日期选择器 - 使用 Teleport 传送到 body 避免被父容器 overflow:hidden 裁剪 -->
+    <Teleport to="body">
+      <div class="e-calendar" v-show="showCalendar" ref="calendarRef" :style="calendarPosition">
       <div class="e-date-select">
         <div class="e-date-year">
           <transition name="fadeY">
@@ -102,12 +103,14 @@
         </li>
       </ul>
     </div>
+    </Teleport>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, computed, onBeforeMount, onMounted, onUnmounted, watchEffect, watch } from 'vue';
 import { useI18n } from './i18n';
+import { ganttThemeManager } from './themes/GanttThemes';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import 'dayjs/locale/en';
@@ -207,6 +210,17 @@ export default defineComponent({
     const selectedDateText = ref(''); // 文本框显示的日期
     const calendarRef = ref<HTMLDivElement | null>(null); // 日期组件的引用
     const inputRef = ref<HTMLInputElement | null>(null); // 新增文本框引用
+    const calendarTop = ref(0);
+    const calendarLeft = ref(0);
+    const currentTheme = ref(ganttThemeManager.getCurrentTheme());
+
+    // 计算日历弹出层的位置（因为使用了 Teleport 传送到 body）
+    const calendarPosition = computed(() => ({
+      position: 'fixed' as const,
+      top: `${calendarTop.value}px`,
+      left: `${calendarLeft.value}px`,
+      zIndex: 100002
+    }));
 
     const hoveredYearIndex = ref(-1);
     const hoveredMonthIndex = ref(-1);
@@ -585,6 +599,38 @@ export default defineComponent({
       showCalendar.value = false;
     };
 
+    // 将主题CSS变量应用到日历元素
+    const applyThemeToCalendar = (themeId: string) => {
+      if (!calendarRef.value) return;
+      
+      const theme = ganttThemeManager.getThemeInfo(themeId);
+      if (!theme) return;
+      
+      // 设置主题属性
+      calendarRef.value.setAttribute('data-gantt-theme', themeId);
+      
+      // 应用CSS变量到日历元素
+      Object.entries(theme.cssVariables).forEach(([property, value]) => {
+        calendarRef.value!.style.setProperty(property, value);
+      });
+    };
+
+    // 打开日历并计算位置
+    const openCalendar = () => {
+      if (inputRef.value) {
+        const rect = inputRef.value.getBoundingClientRect();
+        calendarTop.value = rect.bottom + 5;
+        calendarLeft.value = rect.left;
+      }
+      showCalendar.value = true;
+      
+      // 设置当前主题和CSS变量到日历元素
+      setTimeout(() => {
+        currentTheme.value = ganttThemeManager.getCurrentTheme();
+        applyThemeToCalendar(currentTheme.value);
+      }, 0);
+    };
+
     // 点击文本框和日期组件以外的区域，隐藏日期组件
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -628,6 +674,20 @@ export default defineComponent({
 
     onMounted(() => {
       document.addEventListener('click', handleClickOutside);
+      
+      // 监听主题变化，更新日历的 data-gantt-theme 属性和CSS变量
+      const checkThemeChange = setInterval(() => {
+        const newTheme = ganttThemeManager.getCurrentTheme();
+        if (newTheme !== currentTheme.value) {
+          currentTheme.value = newTheme;
+          applyThemeToCalendar(newTheme);
+        }
+      }, 100);
+      
+      // 组件卸载时清除定时器
+      onUnmounted(() => {
+        clearInterval(checkThemeChange);
+      });
     });
 
     onUnmounted(() => {
@@ -663,10 +723,12 @@ export default defineComponent({
       selectMonth,
       openCalendarList,
       showCalendar,
+      openCalendar,
       selectedDateText,
       clearDate,
       calendarRef,
       inputRef,
+      calendarPosition,
       isYearHovered,
       isMonthHovered,
       isDayHovered,
@@ -1070,5 +1132,221 @@ export default defineComponent({
   width: 0;
   height: 0;
   transform: translate3d(12px, 12px, 0);
+}
+</style>
+
+<!-- 非 scoped 样式 - 用于 Teleport 到 body 的日历组件 -->
+<style lang="scss">
+/* Teleport 到 body 的日历组件样式 - 非 LiquidGlass 主题使用 */
+/* 注意：LiquidGlass 主题的样式在 LiquidGlass.css 中定义 */
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) {
+  background: var(--bg-content, #ffffff); /* 使用CSS变量支持主题切换 */
+  width: 310px;
+  border: 1px solid var(--border, #d0d0d0);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-date-select {
+  background: var(--bg-active, #0078d4);
+  padding: 12px 20px;
+  color: var(--text-white, #ffffff);
+  font-weight: 600;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-active);
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-date-year {
+  font-size: 18px;
+  padding-bottom: 4px;
+  position: relative;
+  width: 66px;
+  height: 25px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-date-year-select {
+  position: absolute;
+  opacity: 0.7;
+  font-size: 20px;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-date-year-select.active {
+  opacity: 1;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-date-monthday {
+  font-size: 26px;
+  position: relative;
+  width: 100%;
+  height: 36px;
+  overflow: hidden;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-date-monthday-select {
+  position: absolute;
+  opacity: 0.7;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-date-monthday-select.active {
+  opacity: 1;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-container {
+  padding: 8px;
+  background: var(--bg-content, #ffffff); /* 使用CSS变量支持主题切换 */
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-toolbar {
+  margin: 0 0 8px 0;
+  height: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-metal-normal, #f0f0f0);
+  border: 1px solid var(--border, #d0d0d0);
+  padding: 0 8px;
+  border-radius: 4px;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-toolbar-title {
+  position: relative;
+  width: 120px;
+  height: 22px;
+  text-align: center;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-toolbar-title-content {
+  position: absolute;
+  width: 100%;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #333);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-svg {
+  padding: 6px;
+  position: relative;
+  height: 32px;
+  width: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg-metal-normal, #f0f0f0);
+  border: 1px solid var(--border, #d0d0d0);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-svg:hover {
+  background: var(--bg-metal-light, #e8e8e8);
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-svg-icon {
+  display: block;
+  fill: var(--text-secondary, #666);
+  height: 20px;
+  width: 20px;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-week {
+  width: 100%;
+  display: flex;
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+  border-bottom: 1px solid var(--border, #d0d0d0);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  background: var(--bg-secondary, #f8f9fa); /* 使用CSS变量支持主题切换 */
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-week-day {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-monthday {
+  width: 100%;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-monthday-row {
+  display: flex;
+  width: 100%;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-monthday-row-day {
+  flex: 1;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-content, #ffffff); /* 使用CSS变量支持主题切换 */
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-monthday-row-day.pointer {
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+  background: var(--bg-secondary, #f8f9fa); /* 使用CSS变量支持主题切换 */
+  margin: 2px;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-monthday-row-day.pointer:hover {
+  background: var(--bg-hover, rgba(0, 120, 212, 0.1));
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-monthday-row-day.active {
+  background: var(--bg-active, #0078d4);
+  color: #fff;
+  border-radius: 4px;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-monthday-row-day-value {
+  font-size: 14px;
+  color: var(--text-primary, #333);
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-monthday-row-day.active .e-calendar-monthday-row-day-value {
+  color: #fff;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-monthday-row-day.disabled .e-calendar-monthday-row-day-value {
+  color: var(--text-disabled, #ccc);
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-year {
+  list-style: none;
+  padding: 8px;
+  margin: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--bg-content, #ffffff); /* 使用CSS变量支持主题切换 */
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-year li {
+  padding: 10px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+  font-size: 16px;
+  color: var(--text-primary, #333);
+  background: var(--bg-secondary, #f8f9fa); /* 使用CSS变量支持主题切换 */
+  margin: 2px 0;
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-year li:hover {
+  background: var(--bg-hover, rgba(0, 120, 212, 0.1));
+}
+
+body > .e-calendar:not([data-gantt-theme="liquidGlass"]) .e-calendar-year li.active {
+  background: var(--bg-active, #0078d4);
+  color: #fff;
 }
 </style>

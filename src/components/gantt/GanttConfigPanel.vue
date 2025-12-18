@@ -16,8 +16,10 @@
       </div>
     </button>
 
-    <transition name="panel-fade">
-      <div v-if="isOpen" class="config-panel" @click.stop>
+    <!-- 使用 Teleport 传送到 body 避免被父容器 overflow:hidden 裁剪 -->
+    <Teleport to="body">
+      <transition name="panel-fade">
+      <div v-if="isOpen" class="config-panel" @click.stop ref="configPanelRef" :data-gantt-theme="currentTheme">
         <div class="panel-header">
           <h3>{{ t('configPanel.title') }}</h3>
           <button class="close-btn" @click="closePanel" :title="t('common.close')">
@@ -454,9 +456,10 @@
           </div>
         </div>
       </div>
-    </transition>
+      </transition>
 
-    <div v-if="isOpen" class="panel-overlay" @click="closePanel"></div>
+      <div v-if="isOpen" class="panel-overlay" @click="closePanel" :data-gantt-theme="currentTheme"></div>
+    </Teleport>
   </div>
 </template>
 
@@ -473,6 +476,7 @@ export default defineComponent({
     const isOpen = ref(false);
     const themes = ref<GanttTheme[]>(ganttThemes);
     const currentTheme = ref<string>('metro');
+    const configPanelRef = ref<HTMLDivElement | null>(null);
     
     // 语言选择器相关
     const currentLocale = computed(() => locale.value);
@@ -535,15 +539,39 @@ export default defineComponent({
 
     const togglePanel = () => {
       isOpen.value = !isOpen.value;
+      // 打开面板时设置主题属性和CSS变量
+      if (isOpen.value) {
+        setTimeout(() => {
+          applyThemeToPanel(currentTheme.value);
+        }, 0);
+      }
     };
 
     const closePanel = () => {
       isOpen.value = false;
     };
 
+    // 将主题CSS变量应用到配置面板
+    const applyThemeToPanel = (themeId: string) => {
+      if (!configPanelRef.value) return;
+      
+      const theme = ganttThemeManager.getThemeInfo(themeId);
+      if (!theme) return;
+      
+      // 设置主题属性
+      configPanelRef.value.setAttribute('data-gantt-theme', themeId);
+      
+      // 应用CSS变量到配置面板
+      Object.entries(theme.cssVariables).forEach(([property, value]) => {
+        configPanelRef.value!.style.setProperty(property, value);
+      });
+    };
+
     const selectTheme = (themeId: string) => {
       currentTheme.value = themeId;
       ganttThemeManager.setTheme(themeId);
+      // 立即更新配置面板的主题属性和CSS变量
+      applyThemeToPanel(themeId);
     };
 
     const selectPathType = (pathType: string) => {
@@ -586,7 +614,8 @@ export default defineComponent({
       selectTheme,
       selectPathType,
       selectLocale,
-      updateLinkConfig
+      updateLinkConfig,
+      configPanelRef
     };
   }
 });
@@ -1105,5 +1134,86 @@ export default defineComponent({
 .panel-fade-enter-from,
 .panel-fade-leave-to {
   opacity: 0;
+}
+</style>
+
+<!-- 非 scoped 样式 - 用于 Teleport 到 body 的配置面板 -->
+<style lang="scss">
+/* Teleport 到 body 的配置面板样式 - 非 LiquidGlass 主题使用 */
+/* 注意：LiquidGlass 主题的样式在 LiquidGlass.css 中定义 */
+
+/* 遮罩层 - 非 LiquidGlass 主题 */
+.panel-overlay:not([data-gantt-theme="liquidGlass"]) {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* 标准遮罩，不透明度 50% */
+  z-index: 100000;
+}
+
+/* 配置面板 - 非 LiquidGlass 主题，使用CSS变量支持主题切换 */
+.config-panel:not([data-gantt-theme="liquidGlass"]) {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 1000px;
+  max-height: 85vh;
+  background: var(--bg-content, #ffffff); /* 使用CSS变量支持主题切换 */
+  border: 1px solid var(--border, #d0d0d0);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+  z-index: 100001;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-family);
+  border-radius: 8px;
+}
+
+/* 配置面板头部 - 非 LiquidGlass 主题 */
+.config-panel:not([data-gantt-theme="liquidGlass"]) .panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
+  border-bottom: 1px solid var(--border, #d0d0d0);
+  border-radius: 8px 8px 0 0;
+}
+
+.config-panel:not([data-gantt-theme="liquidGlass"]) .panel-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #333333);
+}
+
+.config-panel:not([data-gantt-theme="liquidGlass"]) .panel-header .close-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--text-secondary, #666666);
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+}
+
+.config-panel:not([data-gantt-theme="liquidGlass"]) .panel-header .close-btn:hover {
+  color: var(--primary, #0078d4);
+  transform: scale(1.1);
+}
+
+/* 配置面板内容 - 非 LiquidGlass 主题 */
+.config-panel:not([data-gantt-theme="liquidGlass"]) .panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  background: var(--bg-content, #ffffff); /* 使用CSS变量支持主题切换 */
 }
 </style>
