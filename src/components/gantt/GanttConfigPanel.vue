@@ -117,12 +117,45 @@
                     :class="{ active: linkConfig.pathType === pathType.value }"
                     @click="selectPathType(pathType.value)"
                   >
-                    <svg width="50" height="30" viewBox="0 0 60 40">
+                    <svg width="60" height="35" viewBox="0 0 60 40">
+                      <!-- 起点圆点 -->
+                      <circle cx="10" cy="20" r="2.5" fill="currentColor" v-if="pathType.value === 'straight'" />
+                      <circle cx="10" cy="25" r="2.5" fill="currentColor" v-if="pathType.value === 'bezier'" />
+                      <circle cx="10" cy="15" r="2.5" fill="currentColor" v-if="pathType.value === 'right-angle'" />
+                      
+                      <!-- 路径 -->
                       <path 
                         :d="pathType.preview" 
                         stroke="currentColor" 
-                        stroke-width="2" 
+                        stroke-width="2.5" 
                         fill="none"
+                        stroke-linecap="round"
+                      />
+                      
+                      <!-- 终点箭头 -->
+                      <path 
+                        v-if="pathType.value === 'straight'"
+                        d="M 50 20 L 46 17 M 50 20 L 46 23" 
+                        stroke="currentColor" 
+                        stroke-width="2.5" 
+                        fill="none"
+                        stroke-linecap="round"
+                      />
+                      <path 
+                        v-if="pathType.value === 'bezier'"
+                        d="M 50 25 L 46 22 M 50 25 L 46 28" 
+                        stroke="currentColor" 
+                        stroke-width="2.5" 
+                        fill="none"
+                        stroke-linecap="round"
+                      />
+                      <path 
+                        v-if="pathType.value === 'right-angle'"
+                        d="M 50 25 L 46 22 M 50 25 L 46 28" 
+                        stroke="currentColor" 
+                        stroke-width="2.5" 
+                        fill="none"
+                        stroke-linecap="round"
                       />
                     </svg>
                     <span class="path-name">{{ pathType.name }}</span>
@@ -533,8 +566,8 @@ export default defineComponent({
     // 路径类型 - 使用 computed 以响应语言变化
     const pathTypes = computed(() => [
       { value: LinkPathType.STRAIGHT, name: t('configPanel.linkConfig.straight'), preview: 'M 10 20 L 50 20' },
-      { value: LinkPathType.BEZIER, name: t('configPanel.linkConfig.bezier'), preview: 'M 10 20 C 25 20 35 20 50 20' },
-      { value: LinkPathType.RIGHT_ANGLE, name: t('configPanel.linkConfig.rightAngle'), preview: 'M 10 20 L 30 20 L 30 30 L 50 30' }
+      { value: LinkPathType.BEZIER, name: t('configPanel.linkConfig.bezier'), preview: 'M 10 25 Q 30 5 50 25' },
+      { value: LinkPathType.RIGHT_ANGLE, name: t('configPanel.linkConfig.rightAngle'), preview: 'M 10 15 L 25 15 L 25 25 L 50 25' }
     ]);
 
     const togglePanel = () => {
@@ -734,15 +767,22 @@ export default defineComponent({
   flex: 1;
   overflow-y: auto;
   padding: 24px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  
+  /* 使用多列布局实现瀑布流效果 */
+  column-count: 2;
+  column-gap: 24px;
 }
 
 .config-section {
+  /* 防止分割到两列 */
+  break-inside: avoid;
+  page-break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  
   display: flex;
   flex-direction: column;
   gap: 16px;
+  margin-bottom: 24px;
 
   .section-title {
     margin: 0;
@@ -915,39 +955,113 @@ export default defineComponent({
 
     .range-input {
       width: 100%;
-      height: 6px;
+      height: 4px;
       -webkit-appearance: none;
       appearance: none;
-      background: var(--bg-secondary, #e8e8e8);
+      background: transparent;
       outline: none;
-      border-radius: 3px;
+      position: relative;
+      cursor: pointer;
 
+      /* 轨道背景 */
+      &::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 4px;
+        background: var(--bg-secondary, #e8e8e8);
+        border-radius: 2px;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      &::-moz-range-track {
+        width: 100%;
+        height: 4px;
+        background: var(--bg-secondary, #e8e8e8);
+        border-radius: 2px;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      /* 滑块 - Webkit */
       &::-webkit-slider-thumb {
         -webkit-appearance: none;
         appearance: none;
-        width: 16px;
-        height: 16px;
-        background: var(--primary, #0078d4);
+        width: 18px;
+        height: 18px;
+        background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
         cursor: pointer;
         border-radius: 50%;
-        transition: all var(--transition-fast, 0.15s ease);
-
-        &:hover {
-          transform: scale(1.2);
-        }
+        border: 2px solid var(--primary, #0078d4);
+        box-shadow: 
+          0 2px 6px rgba(0, 120, 212, 0.3),
+          0 1px 3px rgba(0, 0, 0, 0.12),
+          inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        margin-top: -7px;
       }
 
+      &::-webkit-slider-thumb:hover {
+        transform: scale(1.15);
+        box-shadow: 
+          0 3px 12px rgba(0, 120, 212, 0.4),
+          0 2px 6px rgba(0, 0, 0, 0.15),
+          inset 0 1px 0 rgba(255, 255, 255, 1);
+        border-width: 3px;
+      }
+
+      &::-webkit-slider-thumb:active {
+        transform: scale(1.05);
+        box-shadow: 
+          0 1px 4px rgba(0, 120, 212, 0.5),
+          inset 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      /* 滑块 - Firefox */
       &::-moz-range-thumb {
-        width: 16px;
-        height: 16px;
-        background: var(--primary, #0078d4);
+        width: 18px;
+        height: 18px;
+        background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
         cursor: pointer;
         border-radius: 50%;
-        border: none;
-        transition: all var(--transition-fast, 0.15s ease);
+        border: 2px solid var(--primary, #0078d4);
+        box-shadow: 
+          0 2px 6px rgba(0, 120, 212, 0.3),
+          0 1px 3px rgba(0, 0, 0, 0.12),
+          inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
 
-        &:hover {
-          transform: scale(1.2);
+      &::-moz-range-thumb:hover {
+        transform: scale(1.15);
+        box-shadow: 
+          0 3px 12px rgba(0, 120, 212, 0.4),
+          0 2px 6px rgba(0, 0, 0, 0.15),
+          inset 0 1px 0 rgba(255, 255, 255, 1);
+        border-width: 3px;
+      }
+
+      &::-moz-range-thumb:active {
+        transform: scale(1.05);
+        box-shadow: 
+          0 1px 4px rgba(0, 120, 212, 0.5),
+          inset 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Focus 状态 */
+      &:focus {
+        &::-webkit-slider-thumb {
+          box-shadow: 
+            0 0 0 4px rgba(0, 120, 212, 0.15),
+            0 2px 6px rgba(0, 120, 212, 0.3),
+            0 1px 3px rgba(0, 0, 0, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        &::-moz-range-thumb {
+          box-shadow: 
+            0 0 0 4px rgba(0, 120, 212, 0.15),
+            0 2px 6px rgba(0, 120, 212, 0.3),
+            0 1px 3px rgba(0, 0, 0, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
         }
       }
     }
@@ -1208,12 +1322,6 @@ export default defineComponent({
 
 /* 配置面板内容 - 非 LiquidGlass 主题 */
 .config-panel:not([data-gantt-theme="liquidGlass"]) .panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
   background: var(--bg-content, #ffffff); /* 使用CSS变量支持主题切换 */
 }
 </style>
