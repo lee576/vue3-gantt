@@ -655,10 +655,13 @@ export default defineComponent({
                 // 开始日期大于结束日期时，自动调整结束日期
                 selectedEndDate.value = value.date
                 endDate.value = value.date
+                mutations.setEndGanttDate(dayjs(value.date).toDate());
             }
             showStartDatePicker.value = false
             selectedStartDate.value = value.date
             startDate.value = value.date
+            // 更新 Store 中的 startGanttDate
+            mutations.setStartGanttDate(dayjs(value.date).toDate());
             // 结束日期不能早于开始日期
             minEndDate.value = value.date
         };
@@ -669,10 +672,13 @@ export default defineComponent({
                 // 结束日期小于开始日期时，自动调整开始日期
                 selectedStartDate.value = dayjs(value.date).format('YYYY-MM-DD');
                 startDate.value = dayjs(value.date).format('YYYY-MM-DD');
+                mutations.setStartGanttDate(dayjs(value.date).toDate());
             }
             showEndDatePicker.value = false
             selectedEndDate.value = value.date
             endDate.value = value.date
+            // 更新 Store 中的 endGanttDate
+            mutations.setEndGanttDate(dayjs(value.date).toDate());
         };
 
         // 监听 mode 和日期的变化
