@@ -304,7 +304,7 @@
         <h4>预设主题</h4>
         <div class="theme-selector">
           <button 
-            v-for="(theme, name) in themes" 
+            v-for="(_theme, name) in themes" 
             :key="name"
             @click="applyTheme(name)"
             class="theme-btn"
@@ -344,7 +344,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, ref } from 'vue';
 import { LinkPathType, LinkThemes, useLinkConfig } from './LinkConfig';
 
 export default defineComponent({

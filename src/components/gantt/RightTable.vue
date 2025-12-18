@@ -49,14 +49,9 @@ export default defineComponent({
     const mode = computed(() => store.mode);
     const scale = computed(() => store.scale);
     
-    // 容器尺寸
-    const containerWidth = computed(() => {
-      return store.timelineCellCount * scale.value + 100; // 添加额外空间
-    });
-    
-    const containerHeight = computed(() => {
-      return store.tasks.length * props.rowHeight + 100; // 使用实际行高
-    });
+    // 容器尺寸（预留用于未来扩展）
+    void (store.timelineCellCount * scale.value + 100); // containerWidth
+    void (store.tasks.length * props.rowHeight + 100); // containerHeight
 
     // 滚动到今天的方法
     const scrollToToday = () => {

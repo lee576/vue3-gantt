@@ -87,16 +87,16 @@ const eventConfig = ref<EventConfig>({
   addRootTask: () => {
     // 添加根任务
   },
-  addSubTask: (row: { id: string }) => {
+  addSubTask: (_row: { id: string }) => {
     // 添加子任务
   },
-  removeTask: (row: { id: string }) => {
+  removeTask: (_row: { id: string }) => {
     // 删除任务
   },
-  editTask: (row: { id: string }) => {
+  editTask: (_row: { id: string }) => {
     // 编辑任务
   },
-  updateProgress: (detail) => {
+  updateProgress: (_detail) => {
     // 这里可以调用服务端API更新进度
     // 例如: await api.updateTaskProgress(detail.taskId, detail.newProgress);
   },
@@ -601,10 +601,10 @@ const eventConfig = ref<EventConfig>({
     dataConfig.value.dataSource = mockResponse.tasks;
     dataConfig.value.dependencies = mockResponse.dependencies;
   },
-  barDate: (id: string, startDate: string, endDate: string) => {
+  barDate: (_id: string, _startDate: string, _endDate: string) => {
     // 任务日期变更
   },
-  allowChangeTaskDate: (allow: boolean) => {
+  allowChangeTaskDate: (_allow: boolean) => {
     // 允许改变任务日期
   }
 });

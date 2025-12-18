@@ -317,24 +317,32 @@ export default defineComponent({
         const paneLengthPercent = ref(35);
         const buttonClass = ref(['button is-active', 'button', 'button', 'button']);
         const mode = ref('月');
-        const startDate = ref(dayjs().locale(getDayjsLocale()).format('YYYY-MM-DD'));
+        // 使用 dataConfig 中的开始/结束日期，如果没有则使用当月第一天/最后一天
+        const startDate = ref(
+            props.dataConfig.queryStartDate || 
+            dayjs().locale(getDayjsLocale()).startOf('month').format('YYYY-MM-DD')
+        );
         const minStartDate = ref(dayjs().locale(getDayjsLocale()).add(-5, 'y').format('YYYY-MM-DD'));
         const maxStartDate = ref(dayjs().locale(getDayjsLocale()).add(5, 'y').format('YYYY-MM-DD'));
         const showStartDatePicker = ref(false);
-        const selectedStartDate = ref('点击选择日期');
-        const endDate = ref(dayjs().locale(getDayjsLocale()).format('YYYY-MM-DD'));
+        const selectedStartDate = ref(startDate.value);  // 初始化为开始日期
+        const endDate = ref(
+            props.dataConfig.queryEndDate || 
+            dayjs().locale(getDayjsLocale()).endOf('month').format('YYYY-MM-DD')
+        );
         const minEndDate = ref(dayjs().locale(getDayjsLocale()).add(-5, 'y').format('YYYY-MM-DD'));  // 初始可选5年前，选择开始日期后更新
         const maxEndDate = ref(dayjs(startDate.value).locale(getDayjsLocale()).add(5, 'y').format('YYYY-MM-DD'));
         const showEndDatePicker = ref(false);
-        const selectedEndDate = ref('点击选择日期');
+        const selectedEndDate = ref(endDate.value);  // 初始化为结束日期
         const monthHeaders = ref<MonthHeaders[]>([]);
         const dayHeaders = ref<DayHeaders[]>([]);
         const weekHeaders = ref<WeekHeaders[]>([]);
         const hourHeaders = ref<HourHeaders[]>([]);
         const scale = ref(0);
         const timelineCellCount = ref(0);
-        const startGanttDate = ref<string | null>(null);
-        const endGanttDate = ref<string | null>(null);
+        // 初始化 startGanttDate 和 endGanttDate，确保 bar 位置计算正确
+        const startGanttDate = ref<string | null>(startDate.value + ' 00:00:00');
+        const endGanttDate = ref<string | null>(endDate.value + ' 23:59:59');
         const result = ref('');
         
         // 甘特图容器引用
@@ -451,7 +459,7 @@ export default defineComponent({
                         monthCurrent = monthCurrent.add(1, 'month');
                     }
                     
-                    months.forEach((month, index) => {
+                    months.forEach((month, _index) => {
                         const monthStart = dayjs(month);
                         const monthEnd = monthStart.endOf('month');
                         
@@ -759,6 +767,10 @@ export default defineComponent({
         });
 
         onBeforeMount(() => {
+            // 初始化时设置 startGanttDate 和 endGanttDate 到 Store
+            mutations.setStartGanttDate(dayjs(startDate.value).toDate());
+            mutations.setEndGanttDate(dayjs(endDate.value).toDate());
+            
             mutations.setMonthHeaders(monthHeaders.value)
             mutations.setWeekHeaders(weekHeaders.value)
             mutations.setDayHeaders(dayHeaders.value)
@@ -791,7 +803,9 @@ export default defineComponent({
             mutations.setTasks(initData.value);
             nextTick(() => {
                 mode.value = '月';
-                mutations.setMode(mode.value)
+                mutations.setMode(mode.value);
+                // 初始化时生成时间轴表头
+                setTimeLineHeaders(mode.value);
             });
             
             // 监听进度更新事件
@@ -854,7 +868,7 @@ export default defineComponent({
         }, { immediate: true });
 
         // 连线配置变化处理
-        const onLinkConfigChange = (config: any) => {
+        const onLinkConfigChange = (_config: any) => {
             // 这里可以添加额外的处理逻辑，比如通知其他组件更新
         };
 

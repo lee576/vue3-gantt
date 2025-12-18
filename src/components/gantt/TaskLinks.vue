@@ -355,7 +355,6 @@ export default defineComponent({
       _childIndex: number
     ): string => {
       const deltaX = endX - startX;
-      const deltaY = endY - startY;
       const { bezierCurvature } = props.linkConfig;
       
       // 如果子任务在父任务的右侧（正常情况）
@@ -386,8 +385,8 @@ export default defineComponent({
       const deltaX = endX - startX;
       const { rightAngleOffset, smoothCorners, cornerRadius } = props.linkConfig;
       
-      // 计算该子任务应该对齐的行中心位置
-      const targetRowCenter = getChildRowCenter(startY, childIndex);
+      // 计算该子任务应该对齐的行中心位置（预留用于未来扩展）
+      void getChildRowCenter(startY, childIndex);
       
       // 如果子任务在父任务的右侧（正常情况）
       if (deltaX > 0) {

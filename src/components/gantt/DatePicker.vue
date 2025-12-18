@@ -107,7 +107,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, reactive, computed, onBeforeMount, onMounted, onUnmounted, watch } from 'vue';
+import { defineComponent, ref, computed, onBeforeMount, onMounted, onUnmounted, watch } from 'vue';
 import { useI18n } from './i18n';
 import { ganttThemeManager } from './themes/GanttThemes';
 import dayjs from 'dayjs';
@@ -250,7 +250,7 @@ export default defineComponent({
 
     // 生成日历行
     const rows = computed(() => {
-      const _ = updateKey.value; // 依赖 updateKey 强制刷新
+      void updateKey.value; // 依赖 updateKey 强制刷新
       const year = displayYear.value;
       const month = displayMonth.value;
       const daysInMonth = new Date(year, month, 0).getDate();

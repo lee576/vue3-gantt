@@ -148,7 +148,7 @@ export default defineComponent({
         const subTask = computed(() => store.subTask);
         const collapsedTasks = computed(() => store.collapsedTasks);
 
-        const barHover = inject('barHover') as ((rowId: any, hover: boolean) => void) | undefined;
+        void inject('barHover'); // barHover 预留
         const addRootTask = inject('addRootTask') as ((row: any) => void) | undefined;
 
         // 判断当前任务是否有子任务
