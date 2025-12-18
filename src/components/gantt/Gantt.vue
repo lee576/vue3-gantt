@@ -323,7 +323,7 @@ export default defineComponent({
         const showStartDatePicker = ref(false);
         const selectedStartDate = ref('点击选择日期');
         const endDate = ref(dayjs().locale(getDayjsLocale()).format('YYYY-MM-DD'));
-        const minEndDate = ref(startDate.value);
+        const minEndDate = ref(dayjs().locale(getDayjsLocale()).add(-5, 'y').format('YYYY-MM-DD'));  // 初始可选5年前，选择开始日期后更新
         const maxEndDate = ref(dayjs(startDate.value).locale(getDayjsLocale()).add(5, 'y').format('YYYY-MM-DD'));
         const showEndDatePicker = ref(false);
         const selectedEndDate = ref('点击选择日期');
@@ -644,25 +644,27 @@ export default defineComponent({
         const confirmStart = (value: ConfirmDateData) => {
             let days = dayjs(endDate.value).diff(dayjs(value.date), 'days')
             if (days < 0) {
+                // 开始日期大于结束日期时，自动调整结束日期
                 selectedEndDate.value = value.date
                 endDate.value = value.date
             }
             showStartDatePicker.value = false
             selectedStartDate.value = value.date
             startDate.value = value.date
+            // 结束日期不能早于开始日期
             minEndDate.value = value.date
         };
 
         const confirmEnd = (value: ConfirmDateData) => {
             let days = dayjs(value.date).diff(dayjs(startDate.value), 'days')
             if (days < 0) {
+                // 结束日期小于开始日期时，自动调整开始日期
                 selectedStartDate.value = dayjs(value.date).format('YYYY-MM-DD');
                 startDate.value = dayjs(value.date).format('YYYY-MM-DD');
             }
             showEndDatePicker.value = false
             selectedEndDate.value = value.date
             endDate.value = value.date
-            maxStartDate.value = value.date
         };
 
         // 监听 mode 和日期的变化
