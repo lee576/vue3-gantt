@@ -1,7 +1,13 @@
 <template>
-    <div ref="barContent" @scroll="scroll()" @mouseover="mouseover()"
+    <div ref="barContent" @scroll="scroll()" @mousemove="handleMouseMove" @mouseleave="handleMouseLeave"
       v-if="tasks" class="content">
       <div class="content-inner" :style="{ minHeight: containerHeight + 'px', position: 'relative' }">
+        <!-- 竖线基准线 -->
+        <div 
+          v-if="showGuideLine" 
+          class="column-guide-line"
+          :style="{ left: guideLineX + 'px', height: containerHeight + 'px' }"
+        ></div>
         <BarRecursionRow :key="`${mode}-${scale}-${timelineCellCount}`" :rowHeight="rowHeight" :tasks="tasks"></BarRecursionRow>
         <!-- 任务连线层 -->
         <TaskLinks 
@@ -94,6 +100,29 @@
         // 鼠标悬停时不改变滚动标志，让滚动事件处理
       };
 
+      // 竖线基准线相关
+      const showGuideLine = ref(false);
+      const guideLineX = ref(0);
+
+      const handleMouseMove = (e: MouseEvent) => {
+        if (!barContent.value) return;
+        
+        const rect = barContent.value.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left + barContent.value.scrollLeft;
+        
+        // 计算当前鼠标所在的列中心位置
+        const cellWidth = scale.value;
+        const columnIndex = Math.floor(mouseX / cellWidth);
+        const columnCenterX = columnIndex * cellWidth + cellWidth / 2;
+        
+        guideLineX.value = columnCenterX;
+        showGuideLine.value = true;
+      };
+
+      const handleMouseLeave = () => {
+        showGuideLine.value = false;
+      };
+
       return {
         barContent,
         scrollFlag,
@@ -110,7 +139,11 @@
         setScrollFlag,
         containerWidth,
         containerHeight,
-        linkConfig
+        linkConfig,
+        showGuideLine,
+        guideLineX,
+        handleMouseMove,
+        handleMouseLeave
       };
     }
   });
@@ -127,6 +160,7 @@
     font-size: 20px;
     overflow-y: auto;
     overflow-x: hidden;
+    position: relative;
     
     .content-inner {
       width: 100%;
@@ -134,6 +168,60 @@
       flex-flow: column nowrap;
       align-items: center;
       justify-content: flex-start;
+    }
+  }
+
+  /* 竖线基准线 */
+  .column-guide-line {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      var(--primary, #0078d4) 1%,
+      var(--primary, #0078d4) 99%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.6;
+    box-shadow: 
+      0 0 8px rgba(0, 120, 212, 0.4),
+      0 0 4px rgba(0, 120, 212, 0.6);
+    animation: guide-line-fade-in 0.2s ease-out;
+    
+    /* 添加上下的圆点装饰 */
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      width: 6px;
+      height: 6px;
+      background: var(--primary, #0078d4);
+      border-radius: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 6px rgba(0, 120, 212, 0.8);
+    }
+    
+    &::before {
+      top: 0;
+    }
+    
+    &::after {
+      bottom: 0;
+    }
+  }
+
+  @keyframes guide-line-fade-in {
+    from {
+      opacity: 0;
+      transform: scaleY(0.8);
+    }
+    to {
+      opacity: 0.6;
+      transform: scaleY(1);
     }
   }
   </style>

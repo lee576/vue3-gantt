@@ -98,6 +98,8 @@
     font-size: 12px;
     font-weight: 600;
     font-family: var(--font-family, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+    /* 添加顶部边框 */
+    border-top: 1px solid var(--border, #cecece);
   }
 
   .header {
@@ -106,6 +108,7 @@
     display: flex;
     flex-flow: row nowrap;
     justify-content: flex-start;
+    /* 每个 header 行添加底部边框，但不与下一行重叠 */
     border-bottom: 1px solid var(--border, #cecece);
   }
 
@@ -130,7 +133,7 @@
         right: 0;
         bottom: 0;
         left: 0;
-        border-top: 1px solid var(--border, #cecece);
+        /* 只保留 border-right，border-top 由每个 header 行统一处理 */
         border-right: 1px solid var(--border, #cecece);
         pointer-events: none;
     }

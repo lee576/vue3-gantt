@@ -1,10 +1,8 @@
 <template>
   <div ref="tableBar" class="table">
-    <div class="header" :style="{ height: `${headersHeight}px` }">
-      <div class="header-border-top"></div>
+    <div class="header" :style="{ height: `${headersHeight}px`, width: 'fit-content' }">
       <TimelineHeader :weekHeaders="weekHeaders" :hourHeaders="hourHeaders" :dayHeaders="dayHeaders"
         :monthHeaders="monthHeaders"></TimelineHeader>
-      <div class="header-border-bottom"></div>
     </div>
     <div class="content" :style="{ height: `calc(100% - ${headersHeight}px)`, width: 'fit-content', position: 'relative' }">
       <TableContent :rowHeight='rowHeight'></TableContent>
@@ -115,17 +113,12 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   overflow-y: hidden;
+  /* 只添加右边框，顶部边框由 Gantt.vue toolbar border-bottom 提供 */
+  border-right: 1px solid var(--border, #d0d0d0);
 
   .header {
-    width: 100%;
+    /* width 由内联样式设置为 fit-content，确保与内容宽度一致 */
     border: 0px;
-  }
-
-  .header-border-top,
-  .header-border-bottom {
-    width: 100%;
-    border-top: 1px solid var(--border);
-    margin: 0px 0px -1px -1px;
   }
 
   .content {

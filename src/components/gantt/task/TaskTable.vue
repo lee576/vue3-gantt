@@ -97,7 +97,9 @@ export default defineComponent({
     overflow-y: hidden;
     overflow-x: hidden;
     background: var(--bg-content, #ffffff);
-    border: 1px solid var(--border, #d0d0d0);
+    /* 只保留左边框，顶部边框由 Gantt.vue toolbar border-bottom 提供 */
+    /* 右边框由 SplitPane 处理，底部无需边框 */
+    border-left: 1px solid var(--border, #d0d0d0);
 
     .header {
         height: 100%;

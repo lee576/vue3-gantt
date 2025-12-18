@@ -196,8 +196,8 @@
       right: 0;
       bottom: 0;
       left: 0;
+      /* 只保留顶部边框，底部边框由 TaskTable 的 .header 提供，避免重叠 */
       border-top: 1px solid var(--border, #cecece);
-      border-bottom: 1px solid var(--border, #cecece);
       pointer-events: none;
     }
     
