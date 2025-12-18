@@ -919,6 +919,7 @@ $toolbarHeight: 70px;
 
 .page {
     height: 100%;
+    min-height: 0; /* 允许 flex 子元素收缩 */
     width: 100%;
     overflow: hidden;
     display: flex;
@@ -1304,7 +1305,8 @@ $toolbarHeight: 70px;
     }
 
     .gantt {
-        height: calc(100% - #{$toolbarHeight});
+        flex: 1; /* 使用 flex 自动填充剩余空间 */
+        min-height: 0; /* 允许内容收缩 */
         width: 100%;
     }
     

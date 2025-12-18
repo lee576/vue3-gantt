@@ -100,8 +100,95 @@ import Gantt, {
 // Import styles
 import '@lee576/vue3-gantt/style.css';
 import { LinkType } from '@lee576/vue3-gantt';
+```
 
-### 2. Configure Component
+### 2. Configure Container Height (Important!)
+
+**The component requires an explicit container height to display properly**. Here are several recommended configuration methods:
+
+#### Method 1: Using Viewport Height (Simplest)
+
+```vue
+<template>
+  <div class="gantt-container">
+    <gantt 
+      :styleConfig="styleConfig" 
+      :dataConfig="dataConfig" 
+      :eventConfig="eventConfig"
+    />
+  </div>
+</template>
+
+<style scoped>
+.gantt-container {
+  height: 100vh; /* Use viewport height directly */
+}
+</style>
+```
+
+#### Method 2: Using Percentage Height (Requires html/body Configuration)
+
+```vue
+<template>
+  <div id="app">
+    <gantt 
+      :styleConfig="styleConfig" 
+      :dataConfig="dataConfig" 
+      :eventConfig="eventConfig"
+    />
+  </div>
+</template>
+
+<style>
+/* Global styles: Ensure html and body have height */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  height: 100%; /* Now 100% works properly */
+}
+</style>
+```
+
+#### Method 3: Using Fixed Pixel Value
+
+```vue
+<style scoped>
+.gantt-container {
+  height: 800px; /* Fixed height */
+}
+</style>
+```
+
+#### Method 4: Using Flex Layout
+
+```vue
+<template>
+  <div class="page-wrapper">
+    <div class="header">Header</div>
+    <div class="gantt-container">
+      <gantt ... />
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.gantt-container {
+  flex: 1; /* Auto-fill remaining space */
+}
+</style>
+```
+
+### 3. Configure Component
 
 ```vue
 <template>

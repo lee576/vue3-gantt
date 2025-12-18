@@ -109,8 +109,95 @@ import Gantt, {
 // 引入样式文件
 import '@lee576/vue3-gantt/style.css';
 import { LinkType } from '@lee576/vue3-gantt';
+```
 
-### 2. 配置组件
+### 2. 配置容器高度（重要！）
+
+**组件必须有明确的容器高度才能正常显示**。以下是几种推荐的配置方式：
+
+#### 方式 1：使用视口高度（最简单）
+
+```vue
+<template>
+  <div class="gantt-container">
+    <gantt 
+      :styleConfig="styleConfig" 
+      :dataConfig="dataConfig" 
+      :eventConfig="eventConfig"
+    />
+  </div>
+</template>
+
+<style scoped>
+.gantt-container {
+  height: 100vh; /* 直接使用视口高度 */
+}
+</style>
+```
+
+#### 方式 2：使用百分比高度（需要配置 html/body）
+
+```vue
+<template>
+  <div id="app">
+    <gantt 
+      :styleConfig="styleConfig" 
+      :dataConfig="dataConfig" 
+      :eventConfig="eventConfig"
+    />
+  </div>
+</template>
+
+<style>
+/* 全局样式：确保 html 和 body 有高度 */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  height: 100%; /* 现在 100% 就能正常工作了 */
+}
+</style>
+```
+
+#### 方式 3：使用固定像素值
+
+```vue
+<style scoped>
+.gantt-container {
+  height: 800px; /* 固定高度 */
+}
+</style>
+```
+
+#### 方式 4：使用 Flex 布局
+
+```vue
+<template>
+  <div class="page-wrapper">
+    <div class="header">Header</div>
+    <div class="gantt-container">
+      <gantt ... />
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.gantt-container {
+  flex: 1; /* 自动填充剩余空间 */
+}
+</style>
+```
+
+### 3. 配置组件
 
 ```vue
 <template>

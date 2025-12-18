@@ -25,16 +25,38 @@
       box-sizing: border-box;
     }
 
+    /* 
+     * 重要：使用 height: 100% 时，必须确保 html 和 body 也设置了 height: 100%
+     * 否则组件会高度塔陷
+     */
+    html, body {
+      height: 100%;
+    }
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
+    /* 
+     * 方式 1（当前使用）：html/body 设置 100% + #app 设置 100vh
+     * 优点：简单直接，不依赖父元素
+     */
     #app {
       width: 100vw;
       height: 100vh;
       display: flex;
       flex-direction: column;
     }
+
+    /* 
+     * 方式 2（也可使用）：html/body/app 全部设置 100%
+     * #app {
+     *   width: 100%;
+     *   height: 100%; 
+     *   display: flex;
+     *   flex-direction: column;
+     * }
+     */
 
     .demo-header {
       background: linear-gradient(145deg, #f5f5f5, #e8e8e8);

@@ -336,6 +336,7 @@ $background-size: 10px 10px;
 .split-pane {
   background: transparent;
   height: 100%;
+  min-height: 0; /* 允许 flex 布局正常工作 */
   display: flex;
 
   .pane-one {

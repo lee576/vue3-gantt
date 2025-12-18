@@ -1,6 +1,26 @@
 /* Vue3 Gantt 组件独立样式包 */
 /* 包含所有必要的基础样式、主题样式和滚动条样式 */
 
+/* ==================== 重要使用说明 ==================== */
+/**
+ * 组件需要明确的容器高度才能正常显示
+ * 
+ * 推荐方式 1 - 使用视口高度（最简单）：
+ * .container { height: 100vh; }
+ * 
+ * 推荐方式 2 - 使用百分比高度（需要配置 html/body）：
+ * html, body { height: 100%; margin: 0; padding: 0; }
+ * #app { height: 100%; }
+ * .container { height: 100%; }
+ * 
+ * 推荐方式 3 - 使用固定像素值：
+ * .container { height: 800px; }
+ * 
+ * 推荐方式 4 - 使用 flex 布局：
+ * .parent { display: flex; flex-direction: column; height: 100vh; }
+ * .container { flex: 1; }
+ */
+
 /* ==================== 基础样式重置 ==================== */
 /* 确保组件内所有元素使用 border-box */
 .gantt-container,
