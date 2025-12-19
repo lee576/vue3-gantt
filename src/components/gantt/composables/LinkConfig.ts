@@ -233,17 +233,36 @@ export const LinkTypeConfig = {
   }
 } as const;
 
+// 深拷贝工具函数
+function deepClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
+}
+
 // 全局连线配置管理器
 export class LinkConfigManager {
-  private config = reactive<LinkConfig>({ ...LinkThemes.default });
+  private config: LinkConfig;
   private readonly STORAGE_KEY = 'gantt-link-config';
   
   constructor() {
+    // 使用深拷贝确保嵌套对象正确初始化
+    this.config = reactive<LinkConfig>(deepClone(LinkThemes.default));
     this.loadFromStorage();
   }
   
   // 深层更新嵌套对象，保持响应式
   private deepMergeConfig(source: Partial<LinkConfig>): void {
+    // 确保嵌套对象存在
+    if (!this.config.linkTypeVisibility) {
+      this.config.linkTypeVisibility = deepClone(LinkThemes.default.linkTypeVisibility);
+    }
+    if (!this.config.linkTypeColors) {
+      this.config.linkTypeColors = deepClone(LinkThemes.default.linkTypeColors);
+    }
+    if (!this.config.parentChildStyle) {
+      this.config.parentChildStyle = deepClone(LinkThemes.default.parentChildStyle);
+    }
+    
+    // 处理嵌套对象，不修改原始 source
     if (source.linkTypeVisibility && this.config.linkTypeVisibility) {
       const v = source.linkTypeVisibility;
       if (v.finishToStart !== undefined) this.config.linkTypeVisibility.finishToStart = v.finishToStart;
@@ -251,7 +270,6 @@ export class LinkConfigManager {
       if (v.finishToFinish !== undefined) this.config.linkTypeVisibility.finishToFinish = v.finishToFinish;
       if (v.startToFinish !== undefined) this.config.linkTypeVisibility.startToFinish = v.startToFinish;
       if (v.parentChild !== undefined) this.config.linkTypeVisibility.parentChild = v.parentChild;
-      delete source.linkTypeVisibility;
     }
     if (source.linkTypeColors && this.config.linkTypeColors) {
       const c = source.linkTypeColors;
@@ -259,17 +277,17 @@ export class LinkConfigManager {
       if (c.startToStart !== undefined) this.config.linkTypeColors.startToStart = c.startToStart;
       if (c.finishToFinish !== undefined) this.config.linkTypeColors.finishToFinish = c.finishToFinish;
       if (c.startToFinish !== undefined) this.config.linkTypeColors.startToFinish = c.startToFinish;
-      delete source.linkTypeColors;
     }
     if (source.parentChildStyle && this.config.parentChildStyle) {
       const p = source.parentChildStyle;
       if (p.color !== undefined) this.config.parentChildStyle.color = p.color;
       if (p.width !== undefined) this.config.parentChildStyle.width = p.width;
       if (p.dashArray !== undefined) this.config.parentChildStyle.dashArray = p.dashArray;
-      delete source.parentChildStyle;
     }
-    // 更新其他顶层属性
-    Object.assign(this.config, source);
+    
+    // 更新其他顶层属性（排除嵌套对象）
+    const { linkTypeVisibility, linkTypeColors, parentChildStyle, ...rest } = source;
+    Object.assign(this.config, rest);
   }
   
   // 从 localStorage 加载配置

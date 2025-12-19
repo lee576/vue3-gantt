@@ -18,8 +18,10 @@
 
     <!-- 使用 Teleport 传送到 body 避免被父容器 overflow:hidden 裁剪 -->
     <Teleport to="body">
-      <transition name="panel-fade">
-      <div v-if="isOpen" class="config-panel" @click.stop ref="configPanelRef" :data-gantt-theme="currentTheme">
+      <!-- 遮罩层不响应点击，只能通过关闭按钮关闭对话框 -->
+      <div v-if="isOpen" class="panel-overlay" :data-gantt-theme="currentTheme"></div>
+      
+      <div v-if="isOpen" class="config-panel" ref="configPanelRef" :data-gantt-theme="currentTheme">
         <div class="panel-header">
           <h3>{{ t('configPanel.title') }}</h3>
           <button class="close-btn" @click="closePanel" :title="t('common.close')">
@@ -176,15 +178,18 @@
 
               <div class="config-group">
                 <label class="config-label">{{ t('configPanel.linkConfig.width') }}: {{ linkConfig.width }}px</label>
-                <input 
-                  type="range" 
-                  v-model.number="linkConfig.width" 
-                  @input="updateLinkConfig"
-                  min="1" 
-                  max="5" 
-                  step="0.5"
-                  class="range-input"
-                />
+                <div class="slider-wrapper" @mousedown.stop @pointerdown.stop @touchstart.stop @click.stop>
+                  <input 
+                    type="range" 
+                    :value="linkConfig.width" 
+                    @input="(e: Event) => { linkConfig.width = parseFloat((e.target as HTMLInputElement).value) }"
+                    @change="updateLinkConfig"
+                    min="1" 
+                    max="5" 
+                    step="0.5"
+                    class="range-input"
+                  />
+                </div>
               </div>
 
               <div class="config-group">
@@ -204,7 +209,10 @@
                 <input 
                   type="range" 
                   v-model.number="linkConfig.bezierCurvature" 
-                  @input="updateLinkConfig"
+                  @change="updateLinkConfig"
+                  @mousedown.stop
+                  @pointerdown.stop
+                  data-no-interact="true"
                   min="0.1" 
                   max="1" 
                   step="0.1"
@@ -219,7 +227,10 @@
                   <input 
                     type="range" 
                     v-model.number="linkConfig.rightAngleOffset" 
-                    @input="updateLinkConfig"
+                    @change="updateLinkConfig"
+                    @mousedown.stop
+                    @pointerdown.stop
+                    data-no-interact="true"
                     min="10" 
                     max="80" 
                     step="5"
@@ -243,7 +254,10 @@
                   <input 
                     type="range" 
                     v-model.number="linkConfig.cornerRadius" 
-                    @input="updateLinkConfig"
+                    @change="updateLinkConfig"
+                    @mousedown.stop
+                    @pointerdown.stop
+                    data-no-interact="true"
                     min="0" 
                     max="15" 
                     step="1"
@@ -270,7 +284,10 @@
                   <input 
                     type="range" 
                     v-model.number="linkConfig.arrowSize" 
-                    @input="updateLinkConfig"
+                    @change="updateLinkConfig"
+                    @mousedown.stop
+                    @pointerdown.stop
+                    data-no-interact="true"
                     min="4" 
                     max="16" 
                     step="1"
@@ -315,7 +332,10 @@
                 <input 
                   type="range" 
                   v-model.number="linkConfig.dashAnimationSpeed" 
-                  @input="updateLinkConfig"
+                  @change="updateLinkConfig"
+                  @mousedown.stop
+                  @pointerdown.stop
+                  data-no-interact="true"
                   min="0.2" 
                   max="3" 
                   step="0.2"
@@ -351,7 +371,10 @@
                   <input 
                     type="range" 
                     v-model.number="linkConfig.labelFontSize" 
-                    @input="updateLinkConfig"
+                    @change="updateLinkConfig"
+                    @mousedown.stop
+                    @pointerdown.stop
+                    data-no-interact="true"
                     min="8" 
                     max="16" 
                     step="1"
@@ -467,7 +490,10 @@
                   <input 
                     type="range" 
                     v-model.number="linkConfig.parentChildStyle.width" 
-                    @input="updateLinkConfig"
+                    @change="updateLinkConfig"
+                    @mousedown.stop
+                    @pointerdown.stop
+                    data-no-interact="true"
                     min="1" 
                     max="3" 
                     step="0.5"
@@ -489,9 +515,6 @@
           </div>
         </div>
       </div>
-      </transition>
-
-      <div v-if="isOpen" class="panel-overlay" @click="closePanel" :data-gantt-theme="currentTheme"></div>
     </Teleport>
   </div>
 </template>
@@ -628,10 +651,7 @@ export default defineComponent({
       currentTheme.value = ganttThemeManager.getCurrentTheme();
     });
 
-    // 监听linkConfig的深层变化
-    watch(linkConfig, (newConfig) => {
-      updateLinkConfigManager(newConfig);
-    }, { deep: true });
+    // 注意：移除了 linkConfig 的 deep watch，改用显式调用 updateLinkConfig
 
     return {
       t,
