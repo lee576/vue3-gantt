@@ -242,13 +242,43 @@ export class LinkConfigManager {
     this.loadFromStorage();
   }
   
+  // 深层更新嵌套对象，保持响应式
+  private deepMergeConfig(source: Partial<LinkConfig>): void {
+    if (source.linkTypeVisibility && this.config.linkTypeVisibility) {
+      const v = source.linkTypeVisibility;
+      if (v.finishToStart !== undefined) this.config.linkTypeVisibility.finishToStart = v.finishToStart;
+      if (v.startToStart !== undefined) this.config.linkTypeVisibility.startToStart = v.startToStart;
+      if (v.finishToFinish !== undefined) this.config.linkTypeVisibility.finishToFinish = v.finishToFinish;
+      if (v.startToFinish !== undefined) this.config.linkTypeVisibility.startToFinish = v.startToFinish;
+      if (v.parentChild !== undefined) this.config.linkTypeVisibility.parentChild = v.parentChild;
+      delete source.linkTypeVisibility;
+    }
+    if (source.linkTypeColors && this.config.linkTypeColors) {
+      const c = source.linkTypeColors;
+      if (c.finishToStart !== undefined) this.config.linkTypeColors.finishToStart = c.finishToStart;
+      if (c.startToStart !== undefined) this.config.linkTypeColors.startToStart = c.startToStart;
+      if (c.finishToFinish !== undefined) this.config.linkTypeColors.finishToFinish = c.finishToFinish;
+      if (c.startToFinish !== undefined) this.config.linkTypeColors.startToFinish = c.startToFinish;
+      delete source.linkTypeColors;
+    }
+    if (source.parentChildStyle && this.config.parentChildStyle) {
+      const p = source.parentChildStyle;
+      if (p.color !== undefined) this.config.parentChildStyle.color = p.color;
+      if (p.width !== undefined) this.config.parentChildStyle.width = p.width;
+      if (p.dashArray !== undefined) this.config.parentChildStyle.dashArray = p.dashArray;
+      delete source.parentChildStyle;
+    }
+    // 更新其他顶层属性
+    Object.assign(this.config, source);
+  }
+  
   // 从 localStorage 加载配置
   private loadFromStorage(): void {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         const parsedConfig = JSON.parse(stored);
-        Object.assign(this.config, parsedConfig);
+        this.deepMergeConfig(parsedConfig);
       }
     } catch (error) {
       console.warn('加载连线配置失败，使用默认配置:', error);
@@ -271,19 +301,19 @@ export class LinkConfigManager {
   
   // 设置主题
   setTheme(themeName: keyof typeof LinkThemes): void {
-    Object.assign(this.config, LinkThemes[themeName]);
+    this.deepMergeConfig({ ...LinkThemes[themeName] });
     this.saveToStorage();
   }
   
   // 更新配置
   updateConfig(newConfig: Partial<LinkConfig>): void {
-    Object.assign(this.config, newConfig);
+    this.deepMergeConfig(newConfig);
     this.saveToStorage();
   }
   
   // 重置为默认配置
   reset(): void {
-    Object.assign(this.config, LinkThemes.default);
+    this.deepMergeConfig({ ...LinkThemes.default });
     this.saveToStorage();
   }
   

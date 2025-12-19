@@ -59,7 +59,7 @@
                 </div>
                 <div class="legend-items">
                     <label class="legend-item" :class="{ disabled: !linkTypeVisibility.parentChild }" title="父子关系：显示任务的层级结构">
-                        <input type="checkbox" v-model="linkTypeVisibility.parentChild" @change="updateLinkVisibility" />
+                        <input type="checkbox" :checked="linkTypeVisibility.parentChild" @change="(e: Event) => updateLinkVisibility('parentChild', (e.target as HTMLInputElement).checked)" />
                         <svg width="24" height="12" viewBox="0 0 24 12">
                             <line x1="0" y1="6" x2="18" y2="6" stroke="#95a5a6" stroke-width="1.5" stroke-dasharray="3,3"/>
                             <polygon points="24,6 18,3 18,9" fill="#95a5a6"/>
@@ -68,7 +68,7 @@
                         <span class="legend-desc">{{ t('link.parentChild') }}</span>
                     </label>
                     <label class="legend-item" :class="{ disabled: !linkTypeVisibility.finishToStart }" title="完成-开始：前置任务完成后，后续任务才能开始">
-                        <input type="checkbox" v-model="linkTypeVisibility.finishToStart" @change="updateLinkVisibility" />
+                        <input type="checkbox" :checked="linkTypeVisibility.finishToStart" @change="(e: Event) => updateLinkVisibility('finishToStart', (e.target as HTMLInputElement).checked)" />
                         <svg width="24" height="12" viewBox="0 0 24 12">
                             <line x1="0" y1="6" x2="18" y2="6" :stroke="linkTypeColors.finishToStart" stroke-width="2"/>
                             <polygon points="24,6 18,3 18,9" :fill="linkTypeColors.finishToStart"/>
@@ -77,7 +77,7 @@
                         <span class="legend-desc">{{ t('link.finishToStart') }}</span>
                     </label>
                     <label class="legend-item" :class="{ disabled: !linkTypeVisibility.startToStart }" title="开始-开始：两个任务同时开始">
-                        <input type="checkbox" v-model="linkTypeVisibility.startToStart" @change="updateLinkVisibility" />
+                        <input type="checkbox" :checked="linkTypeVisibility.startToStart" @change="(e: Event) => updateLinkVisibility('startToStart', (e.target as HTMLInputElement).checked)" />
                         <svg width="24" height="12" viewBox="0 0 24 12">
                             <line x1="0" y1="6" x2="18" y2="6" :stroke="linkTypeColors.startToStart" stroke-width="2"/>
                             <polygon points="24,6 18,3 18,9" :fill="linkTypeColors.startToStart"/>
@@ -86,7 +86,7 @@
                         <span class="legend-desc">{{ t('link.startToStart') }}</span>
                     </label>
                     <label class="legend-item" :class="{ disabled: !linkTypeVisibility.finishToFinish }" title="完成-完成：两个任务同时完成">
-                        <input type="checkbox" v-model="linkTypeVisibility.finishToFinish" @change="updateLinkVisibility" />
+                        <input type="checkbox" :checked="linkTypeVisibility.finishToFinish" @change="(e: Event) => updateLinkVisibility('finishToFinish', (e.target as HTMLInputElement).checked)" />
                         <svg width="24" height="12" viewBox="0 0 24 12">
                             <line x1="0" y1="6" x2="18" y2="6" :stroke="linkTypeColors.finishToFinish" stroke-width="2"/>
                             <polygon points="24,6 18,3 18,9" :fill="linkTypeColors.finishToFinish"/>
@@ -95,7 +95,7 @@
                         <span class="legend-desc">{{ t('link.finishToFinish') }}</span>
                     </label>
                     <label class="legend-item" :class="{ disabled: !linkTypeVisibility.startToFinish }" title="开始-完成：前置任务开始后，后续任务才能完成">
-                        <input type="checkbox" v-model="linkTypeVisibility.startToFinish" @change="updateLinkVisibility" />
+                        <input type="checkbox" :checked="linkTypeVisibility.startToFinish" @change="(e: Event) => updateLinkVisibility('startToFinish', (e.target as HTMLInputElement).checked)" />
                         <svg width="24" height="12" viewBox="0 0 24 12">
                             <line x1="0" y1="6" x2="18" y2="6" :stroke="linkTypeColors.startToFinish" stroke-width="2"/>
                             <polygon points="24,6 18,3 18,9" :fill="linkTypeColors.startToFinish"/>
@@ -296,19 +296,19 @@ export default defineComponent({
         // 连线配置
         const { config: linkConfig, updateConfig: updateLinkConfig } = useLinkConfig();
 
-        // 连线类型显示控制
-        const linkTypeVisibility = ref({
-            finishToStart: linkConfig.linkTypeVisibility?.finishToStart ?? true,
-            startToStart: linkConfig.linkTypeVisibility?.startToStart ?? true,
-            finishToFinish: linkConfig.linkTypeVisibility?.finishToFinish ?? true,
-            startToFinish: linkConfig.linkTypeVisibility?.startToFinish ?? true,
-            parentChild: linkConfig.linkTypeVisibility?.parentChild ?? true
+        // 直接使用全局配置的连线类型显示控制，保持响应式同步
+        const linkTypeVisibility = computed(() => linkConfig.linkTypeVisibility || {
+            finishToStart: true,
+            startToStart: true,
+            finishToFinish: true,
+            startToFinish: true,
+            parentChild: true
         });
 
         // 更新连线类型显示配置
-        const updateLinkVisibility = () => {
+        const updateLinkVisibility = (type: keyof typeof linkTypeVisibility.value, value: boolean) => {
             updateLinkConfig({
-                linkTypeVisibility: { ...linkTypeVisibility.value }
+                linkTypeVisibility: { [type]: value } as any
             });
         };
 

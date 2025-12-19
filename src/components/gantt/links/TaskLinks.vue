@@ -916,8 +916,19 @@ export default defineComponent({
       // 生成任务依赖连线
       const dependencies = linkDataManager.getDependencies();
       
-      // 根据连线类型检查是否显示
-      const shouldShowLinkType = (linkType: LinkType): boolean => {
+      // 根据连线类型检查是否显示（支持字符串枚举和数字类型）
+      const shouldShowLinkType = (linkType: LinkType | number): boolean => {
+        // 处理数字类型（兼容旧版本数据格式）
+        if (typeof linkType === 'number') {
+          switch (linkType) {
+            case 0: return visibility.finishToStart;  // FINISH_TO_START
+            case 1: return visibility.startToStart;   // START_TO_START
+            case 2: return visibility.finishToFinish; // FINISH_TO_FINISH
+            case 3: return visibility.startToFinish;  // START_TO_FINISH
+            default: return true;
+          }
+        }
+        // 处理字符串枚举类型
         switch (linkType) {
           case LinkType.FINISH_TO_START:
             return visibility.finishToStart;

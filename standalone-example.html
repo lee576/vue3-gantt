@@ -120,8 +120,6 @@
         const startOfMonth = today.startOf('month').format('YYYY-MM-DD');
         const endOfMonth = today.endOf('month').format('YYYY-MM-DD');
               
-        console.log('📅 初始化时间范围:', startOfMonth, '到', endOfMonth);
-              
         return {
           styleConfig: {
             headersHeight: 100,
@@ -238,48 +236,42 @@
           },
           eventConfig: {
             addRootTask: (row) => {
-              console.log('添加根任务', row);
+              // 添加根任务事件
             },
             addSubTask: (task) => {
-              console.log('添加子任务', task);
+              // 添加子任务事件
             },
             removeTask: (task) => {
-              console.log('删除任务', task);
+              // 删除任务事件
             },
             editTask: (task) => {
-              console.log('编辑任务', task);
+              // 编辑任务事件
             },
             queryTask: (startDate, endDate, mode) => {
-              console.log('查询任务', { startDate, endDate, mode });
-              // 注意：这里不需要重新设置 dataSource，因为已经在 data 中初始化了
+              // 查询任务事件
             },
             barDate: (id, startDate, endDate) => {
-              console.log('任务日期变更', { id, startDate, endDate });
+              // 任务日期变更事件
             },
             allowChangeTaskDate: (allow) => {
-              console.log('是否允许改变任务日期', allow);
+              // 是否允许改变任务日期
             },
             updateProgress: (detail) => {
-              console.log('进度更新', detail);
+              // 进度更新事件
             }
           }
         };
       },
       mounted() {
-        console.log('✅ Vue3 Gantt 组件加载成功！');
-        console.log('📦 数据源:', this.dataConfig.dataSource.length, '条任务');
-
         // 重要：需要等待一个 tick 让组件完全初始化
         setTimeout(() => {
           const startDate = this.dataConfig.queryStartDate;
           const endDate = this.dataConfig.queryEndDate;
 
-          console.log('🔄 触发 queryTask:', startDate, '到', endDate);
-
           if (this.eventConfig.queryTask) {
             this.eventConfig.queryTask(startDate, endDate, '月');
           }
-        }, 100); // 延迟 100ms 确保组件完全挂载
+        }, 100);
       }
     });
 
