@@ -489,6 +489,16 @@ export default defineComponent({
     watch(() => props.date, () => init());
     watch(() => props.minDate, () => init());
     watch(() => props.maxDate, () => init());
+    
+    // 监听语言切换，更新日期显示格式
+    watch(() => locale.value, () => {
+      // 重新格式化已选择的日期文本
+      if (selectedDateText.value) {
+        updateSelectedDateText();
+      }
+      // 强制刷新日历，更新星期名称和月份名称
+      updateKey.value++;
+    });
 
     onMounted(() => {
       document.addEventListener('click', handleClickOutside);
