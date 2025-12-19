@@ -108,8 +108,8 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onBeforeMount, onMounted, onUnmounted, watch } from 'vue';
-import { useI18n } from './i18n';
-import { ganttThemeManager } from './themes/GanttThemes';
+import { useI18n } from '../i18n';
+import { ganttThemeManager } from '../themes/GanttThemes';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import 'dayjs/locale/en';

@@ -34,8 +34,8 @@
 import { ref, onMounted } from 'vue';
 
 import dayjs from 'dayjs';
-import Gantt, { type DataConfig, type StyleConfig, type EventConfig } from './components/gantt/Gantt.vue';
-import { LinkType } from './components/gantt/Types';
+import Gantt, { type DataConfig, type StyleConfig, type EventConfig } from './components/gantt/core/Gantt.vue';
+import { LinkType } from './components/gantt/types/Types';
 
 // 定义样式配置
 const styleConfig = ref<StyleConfig>({

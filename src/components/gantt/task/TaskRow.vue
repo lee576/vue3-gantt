@@ -120,8 +120,8 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, computed, inject, watch } from 'vue';
-import { store, mutations } from '../Store';
-import sharedState from '../ShareState';
+import { store, mutations } from '../state/Store';
+import sharedState from '../state/ShareState';
 
 export default defineComponent({
     props: {

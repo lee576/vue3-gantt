@@ -498,9 +498,9 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, watch, inject, computed, type Ref } from 'vue';
-import { ganttThemes, ganttThemeManager, type GanttTheme } from './themes/GanttThemes';
-import { useLinkConfig, LinkPathType } from './LinkConfig';
-import { useI18n, type Locale } from './i18n';
+import { ganttThemes, ganttThemeManager, type GanttTheme } from '../themes/GanttThemes';
+import { useLinkConfig, LinkPathType } from '../composables/LinkConfig';
+import { useI18n, type Locale } from '../i18n';
 
 export default defineComponent({
   name: 'GanttConfigPanel',

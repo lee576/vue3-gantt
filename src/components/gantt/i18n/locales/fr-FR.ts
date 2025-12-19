@@ -171,11 +171,21 @@ export default {
     clearDate: 'Effacer la date'
   },
   
+  // Column Settings
+  columnSettings: {
+    title: 'Paramètres de colonne',
+    desc: 'Sélectionner les colonnes à afficher',
+    showAll: 'Tout afficher',
+    hideAll: 'Tout masquer',
+    reset: 'Réinitialiser par défaut'
+  },
+  
   // Tooltip
   tooltip: {
     addSubTask: 'Ajouter une sous-tâche',
     removeTask: 'Supprimer la tâche actuelle',
     syncArrowColor: 'Synchroniser avec la couleur de la ligne',
-    close: 'Fermer'
+    close: 'Fermer',
+    columnSettings: 'Paramètres de colonne'
   }
 };

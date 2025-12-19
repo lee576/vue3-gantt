@@ -31,13 +31,65 @@ const messages: Record<Locale, Messages> = {
   'ru-RU': ruRU
 };
 
+/**
+ * 检测浏览器语言并映射到支持的语言
+ * @returns 匹配的语言代码，找不到则返回英文
+ */
+export function detectBrowserLocale(): Locale {
+  // 获取浏览器语言设置
+  const browserLang = navigator.language || (navigator as any).userLanguage;
+  
+  // 浏览器语言到系统支持语言的映射
+  const localeMap: Record<string, Locale> = {
+    'zh': 'zh-CN',
+    'zh-CN': 'zh-CN',
+    'zh-Hans': 'zh-CN',
+    'zh-Hans-CN': 'zh-CN',
+    'zh-TW': 'zh-CN',
+    'zh-HK': 'zh-CN',
+    'en': 'en-US',
+    'en-US': 'en-US',
+    'en-GB': 'en-US',
+    'ja': 'ja-JP',
+    'ja-JP': 'ja-JP',
+    'ko': 'ko-KR',
+    'ko-KR': 'ko-KR',
+    'fr': 'fr-FR',
+    'fr-FR': 'fr-FR',
+    'de': 'de-DE',
+    'de-DE': 'de-DE',
+    'es': 'es-ES',
+    'es-ES': 'es-ES',
+    'ru': 'ru-RU',
+    'ru-RU': 'ru-RU'
+  };
+  
+  // 精确匹配
+  if (localeMap[browserLang]) {
+    return localeMap[browserLang];
+  }
+  
+  // 尝试匹配语言前缀（例如 en-AU -> en）
+  const langPrefix = browserLang.split('-')[0];
+  if (localeMap[langPrefix]) {
+    return localeMap[langPrefix];
+  }
+  
+  // 默认返回英文
+  return 'en-US';
+}
+
 // 当前语言
 const currentLocale = ref<Locale>('zh-CN');
 
-// 从localStorage读取保存的语言设置
+// 初始化语言设置：优先使用localStorage，其次使用浏览器语言，最后默认英文
 const savedLocale = localStorage.getItem('gantt-locale') as Locale;
 if (savedLocale && messages[savedLocale]) {
+  // 使用已保存的语言设置
   currentLocale.value = savedLocale;
+} else {
+  // 根据浏览器语言自动设置
+  currentLocale.value = detectBrowserLocale();
 }
 
 /**
@@ -105,7 +157,8 @@ export function useI18n() {
     t,
     setLocale,
     getLocale,
-    getLocales
+    getLocales,
+    detectBrowserLocale
   };
 }
 
@@ -114,5 +167,6 @@ export default {
   setLocale,
   getLocale,
   getLocales,
-  useI18n
+  useI18n,
+  detectBrowserLocale
 };

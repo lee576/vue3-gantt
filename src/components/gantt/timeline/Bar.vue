@@ -18,9 +18,9 @@ import interact from 'interactjs';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 dayjs.extend(isoWeek);
-import { store, mutations } from './Store';
-import sharedState from '../gantt/ShareState';
-import { Symbols } from './Symbols';
+import { store, mutations } from '../state/Store';
+import sharedState from '../state/ShareState';
+import { Symbols } from '../state/Symbols';
 
 export default defineComponent({
     name: 'Bar',

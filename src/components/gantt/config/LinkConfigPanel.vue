@@ -345,7 +345,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import { LinkPathType, LinkThemes, useLinkConfig } from './LinkConfig';
+import { LinkPathType, LinkThemes, useLinkConfig } from '../composables/LinkConfig';
 
 export default defineComponent({
   name: 'LinkConfigPanel',

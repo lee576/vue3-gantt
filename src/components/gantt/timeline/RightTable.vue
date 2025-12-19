@@ -14,9 +14,9 @@
 import { defineComponent, ref, onMounted, computed, watch } from 'vue';
 import type { Ref } from 'vue';
 import TimelineHeader from './TimelineHeader.vue';
-import { store } from './Store';
+import { store } from '../state/Store';
 import dayjs from 'dayjs';
-import sharedState from './ShareState';
+import sharedState from '../state/ShareState';
 import TableContent from './TableContent.vue';
 
 export default defineComponent({

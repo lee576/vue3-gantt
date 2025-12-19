@@ -86,15 +86,15 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, onUnmounted, inject, watchEffect, nextTick } from 'vue';
-import { ganttThemes, ganttThemeManager, type GanttTheme } from './themes/GanttThemes';
-import { useI18n } from './i18n';
+import { ganttThemes, ganttThemeManager, type GanttTheme } from '../themes/GanttThemes';
+import { useI18n } from '../i18n';
 
 export default defineComponent({
   name: 'GanttThemeSelector',
   setup() {
     const { t } = useI18n();
     const isOpen = ref(false);
-    const currentTheme = ref('metro');
+    const currentTheme = inject<any>('currentTheme', ref('metro'));
     const previewTheme = ref('');
     const fileInput = ref<HTMLInputElement>();
     const availableThemes = ref<GanttTheme[]>(ganttThemes);

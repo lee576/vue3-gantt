@@ -22,11 +22,11 @@
   
   <script lang="ts">
   import { defineComponent, ref, computed, watch, inject } from 'vue';
-  import { store, mutations } from '../gantt/Store';
-  import Bar from '../gantt/Bar.vue';
-  import Milestone from '../gantt/Milestone.vue';
-  import { TaskType } from './Types';
-  import { Symbols } from './Symbols';
+  import { store, mutations } from '../state/Store';
+  import Bar from './Bar.vue';
+  import Milestone from './Milestone.vue';
+  import { TaskType } from '../types/Types';
+  import { Symbols } from '../state/Symbols';
   
   export default defineComponent({
     name: 'BarRecursionRow',

@@ -170,11 +170,21 @@ export default {
     clearDate: '清除日期'
   },
   
+  // 列设置
+  columnSettings: {
+    title: '列显示设置',
+    desc: '勾选要显示的列',
+    showAll: '全部显示',
+    hideAll: '全部隐藏',
+    reset: '恢复默认'
+  },
+  
   // 提示信息
   tooltip: {
     addSubTask: '添加子任务',
     removeTask: '删除当前任务',
     syncArrowColor: '与线条颜色同步',
-    close: '关闭'
+    close: '关闭',
+    columnSettings: '列显示设置'
   }
 };

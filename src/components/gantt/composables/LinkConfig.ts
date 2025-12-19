@@ -1,8 +1,8 @@
 import { reactive } from 'vue';
-import { LinkType, LinkPathType, type LinkConfig, type TaskDependency } from './Types';
+import { LinkType, LinkPathType, type LinkConfig, type TaskDependency } from '../types/Types';
 
 // 重新导出类型，方便其他组件使用
-export { LinkType, LinkPathType } from './Types';
+export { LinkType, LinkPathType } from '../types/Types';
 
 // 预定义的连线样式主题
 export const LinkThemes = {

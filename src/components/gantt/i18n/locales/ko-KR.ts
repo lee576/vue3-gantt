@@ -171,11 +171,21 @@ export default {
     clearDate: '날짜 지우기'
   },
   
+  // Column Settings
+  columnSettings: {
+    title: '열 표시 설정',
+    desc: '표시할 열 선택',
+    showAll: '모두 표시',
+    hideAll: '모두 숨기기',
+    reset: '기본값 복원'
+  },
+  
   // Tooltip
   tooltip: {
     addSubTask: '하위 작업 추가',
     removeTask: '현재 작업 삭제',
     syncArrowColor: '선 색상과 동기화',
-    close: '닫기'
+    close: '닫기',
+    columnSettings: '열 표시 설정'
   }
 };

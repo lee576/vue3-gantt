@@ -171,11 +171,21 @@ export default {
     clearDate: '日付をクリア'
   },
   
+  // Column Settings
+  columnSettings: {
+    title: '列表示設定',
+    desc: '表示する列を選択',
+    showAll: 'すべて表示',
+    hideAll: 'すべて非表示',
+    reset: 'デフォルトに戻す'
+  },
+  
   // Tooltip
   tooltip: {
     addSubTask: 'サブタスクを追加',
     removeTask: '現在のタスクを削除',
     syncArrowColor: '線の色と同期',
-    close: '閉じる'
+    close: '閉じる',
+    columnSettings: '列表示設定'
   }
 };

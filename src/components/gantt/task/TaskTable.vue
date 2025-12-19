@@ -16,9 +16,17 @@
                 <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" fill="currentColor"/>
                 <!-- 今天的圆点标记 -->
                 <circle cx="12" cy="15" r="2" fill="currentColor"/>
-                <!-- 向右下的箭头，表示"跳转到" -->
+                <!-- 向右下的箭头，表示“跳转到” -->
                 <path d="M16.5 11.5l2 2-2 2" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M18.5 13.5h-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <svg ref="columnSettingsSvg" @click="showColumnConfig" class="columnSettings" :title="t('tooltip.columnSettings')"
+                viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+                <!-- 表格图标 -->
+                <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M5 6h4M5 8h4M15 6h4M15 8h4M5 16h4M5 18h4M15 16h4M15 18h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <!-- 设置齿轮标记 -->
+                <circle cx="20" cy="4" r="3" fill="var(--primary, #0078d4)" stroke="var(--bg-content, #ffffff)" stroke-width="1.5"/>
             </svg>
             <TaskHeader :headers='taskHeaders' />
         </div>
@@ -26,18 +34,28 @@
             <TaskContent v-if='Array.isArray(tasks) && tasks.length > 0' :headers='taskHeaders' :rowHeight='rowHeight'>
             </TaskContent>
         </div>
+        
+        <!-- 列配置面板 -->
+        <ColumnConfigPanel 
+            :visible="columnConfigVisible" 
+            :headers="taskHeaders"
+            @close="columnConfigVisible = false"
+            @update:headers="updateHeaders"
+        />
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue';
+import { defineComponent, computed, ref } from 'vue';
 import TaskHeader from './TaskHeader.vue';
 import TaskContent from './TaskContent.vue';
-import { store, mutations } from '../Store';
+import ColumnConfigPanel from '../config/ColumnConfigPanel.vue';
+import { store, mutations } from '../state/Store';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 dayjs.extend(isBetween);
-import sharedState from '../ShareState';
+import sharedState from '../state/ShareState';
+import { useI18n } from '../i18n';
 
 export default defineComponent({
     props: {
@@ -52,9 +70,11 @@ export default defineComponent({
     },
     components: {
         TaskHeader,
-        TaskContent
+        TaskContent,
+        ColumnConfigPanel
     },
     setup() {
+        const { t } = useI18n();
         const tasks = computed(() => store.tasks);
         const taskHeaders = computed(() => store.taskHeaders);
         const rootTask = computed({
@@ -65,6 +85,9 @@ export default defineComponent({
         });
         const startGanttDate = computed(() => store.startGanttDate);
         const endGanttDate = computed(() => store.endGanttDate);
+        
+        // 列配置相关
+        const columnConfigVisible = ref(false);
 
         const setRootTask = mutations.setRootTask;
         const scrollToToday = () => {
@@ -74,8 +97,17 @@ export default defineComponent({
                 sharedState.triggerScrollToToday();
             }
         };
+        
+        const showColumnConfig = () => {
+            columnConfigVisible.value = true;
+        };
+        
+        const updateHeaders = (newHeaders: any[]) => {
+            mutations.setTaskHeaders(newHeaders);
+        };
 
         return {
+            t,
             tasks,
             taskHeaders,
             rootTask,
@@ -83,6 +115,9 @@ export default defineComponent({
             endGanttDate,
             setRootTask,
             scrollToToday,
+            columnConfigVisible,
+            showColumnConfig,
+            updateHeaders
         };
     }
 });
@@ -139,6 +174,32 @@ export default defineComponent({
             z-index: 10;
             top: 4px;
             right: 4px;
+            height: 28px;
+            width: 28px;
+            cursor: pointer;
+            color: var(--text-secondary, #666666);
+            transition: all var(--transition-fast, 0.15s ease);
+            background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
+            border: 1px solid var(--border, #d0d0d0);
+            padding: 3px;
+            border-radius: 4px;
+
+            &:hover {
+                color: var(--primary, #0078d4);
+                background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
+                transform: scale(1.1);
+            }
+
+            &:active {
+                background: var(--bg-metal-pressed, linear-gradient(145deg, #e0e0e0, #f8f8f8));
+            }
+        }
+        
+        .columnSettings {
+            position: absolute;
+            z-index: 10;
+            top: 4px;
+            right: 36px;
             height: 28px;
             width: 28px;
             cursor: pointer;

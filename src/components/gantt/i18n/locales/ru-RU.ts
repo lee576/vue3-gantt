@@ -171,11 +171,21 @@ export default {
     clearDate: 'Очистить дату'
   },
   
+  // Column Settings
+  columnSettings: {
+    title: 'Настройки столбцов',
+    desc: 'Выберите столбцы для отображения',
+    showAll: 'Показать все',
+    hideAll: 'Скрыть все',
+    reset: 'Восстановить по умолчанию'
+  },
+  
   // Tooltip
   tooltip: {
     addSubTask: 'Добавить подзадачу',
     removeTask: 'Удалить текущую задачу',
     syncArrowColor: 'Синхронизировать с цветом линии',
-    close: 'Закрыть'
+    close: 'Закрыть',
+    columnSettings: 'Настройки столбцов'
   }
 };

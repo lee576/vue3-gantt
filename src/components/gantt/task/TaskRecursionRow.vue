@@ -14,7 +14,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, watch } from 'vue';
-import { store, mutations } from '../Store';
+import { store, mutations } from '../state/Store';
 import TaskRow from './TaskRow.vue';
 
 export default defineComponent({

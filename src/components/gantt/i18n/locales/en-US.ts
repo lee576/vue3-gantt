@@ -170,11 +170,21 @@ export default {
     clearDate: 'Clear Date'
   },
   
+  // Column Settings
+  columnSettings: {
+    title: 'Column Display Settings',
+    desc: 'Check columns to display',
+    showAll: 'Show All',
+    hideAll: 'Hide All',
+    reset: 'Reset Default'
+  },
+  
   // Tooltip
   tooltip: {
     addSubTask: 'Add Sub Task',
     removeTask: 'Delete Current Task',
     syncArrowColor: 'Sync with line color',
-    close: 'Close'
+    close: 'Close',
+    columnSettings: 'Column Display Settings'
   }
 };

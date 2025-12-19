@@ -36,7 +36,7 @@
   <script lang="ts">
   import { defineComponent, toRefs } from 'vue';
   import dayjs from 'dayjs';
-  import { useI18n } from './i18n';
+  import { useI18n } from '../i18n';
 
   export default defineComponent({
     props: {

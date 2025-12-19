@@ -26,7 +26,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, nextTick, onUnmounted } from 'vue';
-import { ganttThemeManager } from './themes/GanttThemes';
+import { ganttThemeManager } from '../themes/GanttThemes';
 
 export default defineComponent({
   props: {

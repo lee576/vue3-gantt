@@ -20,11 +20,11 @@
   </template>
   <script lang="ts">
   import { defineComponent, ref, watch, computed, onMounted } from 'vue';
-  import { store } from '../gantt/Store';
-  import { useScrollState } from './ShareState';
-  import { useLinkConfig } from './LinkConfig';
-  import BarRecursionRow from '../gantt/BarRecursionRow.vue';
-  import TaskLinks from './TaskLinks.vue';
+  import { store } from '../state/Store';
+  import { useScrollState } from '../state/ShareState';
+  import { useLinkConfig } from '../composables/LinkConfig';
+  import BarRecursionRow from './BarRecursionRow.vue';
+  import TaskLinks from '../links/TaskLinks.vue';
 
   export default defineComponent({
     props: {

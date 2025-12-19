@@ -10,8 +10,9 @@
         >
           <span>{{ getHeaderTitle(item) }}</span>
           <!-- 列宽调整拖动手柄 -->
+          <!-- 序号列（property='no'）始终显示拖动手柄，其他列只有在显示时才显示 -->
           <div 
-            v-if="index < headers.length - 1 && item.show"
+            v-if="(item.property === 'no' || item.show) && index < headers.length - 1"
             class="resize-handle"
             @mousedown="startResize($event, index)"
           ></div>

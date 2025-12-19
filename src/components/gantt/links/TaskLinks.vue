@@ -55,9 +55,9 @@
 
 <script lang="ts">
 import { defineComponent, watch, ref, onMounted, onUnmounted } from 'vue';
-import { store } from './Store';
-import { LinkType, LinkPathType, type LinkConfig, type TaskLink } from './Types';
-import { linkDataManager } from './LinkConfig';
+import { store } from '../state/Store';
+import { LinkType, LinkPathType, type LinkConfig, type TaskLink } from '../types/Types';
+import { linkDataManager } from '../composables/LinkConfig';
 
 
 

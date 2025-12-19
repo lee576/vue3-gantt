@@ -46,7 +46,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue';
-import { useI18n, type Locale } from './i18n';
+import { useI18n, type Locale } from '../i18n';
 
 export default defineComponent({
   name: 'LanguageSelector',

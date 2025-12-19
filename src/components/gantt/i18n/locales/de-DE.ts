@@ -171,11 +171,21 @@ export default {
     clearDate: 'Datum löschen'
   },
   
+  // Column Settings
+  columnSettings: {
+    title: 'Spalteneinstellungen',
+    desc: 'Anzuzeigende Spalten auswählen',
+    showAll: 'Alle anzeigen',
+    hideAll: 'Alle ausblenden',
+    reset: 'Standard wiederherstellen'
+  },
+  
   // Tooltip
   tooltip: {
     addSubTask: 'Unteraufgabe hinzufügen',
     removeTask: 'Aktuelle Aufgabe löschen',
     syncArrowColor: 'Mit Linienfarbe synchronisieren',
-    close: 'Schließen'
+    close: 'Schließen',
+    columnSettings: 'Spalteneinstellungen'
   }
 };

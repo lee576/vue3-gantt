@@ -8,8 +8,8 @@
 
 <script lang="ts">
 import { defineComponent, ref, watch, computed, onMounted, onUnmounted } from 'vue';
-import { store } from '../Store';
-import { useScrollState } from '../ShareState';
+import { store } from '../state/Store';
+import { useScrollState } from '../state/ShareState';
 import TaskRecursionRow from './TaskRecursionRow.vue';
 
 export default defineComponent({

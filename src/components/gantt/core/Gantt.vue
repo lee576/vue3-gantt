@@ -139,20 +139,20 @@ import 'dayjs/locale/es';
 import 'dayjs/locale/ru';
 dayjs.extend(customParseFormat);
 
-import { Symbols } from './Symbols';
-import { linkDataManager, useLinkConfig } from './LinkConfig';
-import { useI18n } from './i18n';
+import { Symbols } from '../state/Symbols';
+import { linkDataManager, useLinkConfig } from '../composables/LinkConfig';
+import { useI18n } from '../i18n';
 // 导入日期选择器组件
-import DatePicker from './DatePicker.vue';
+import DatePicker from '../config/DatePicker.vue';
 // 导入分割面板组件
 import SplitPane from './SplitPane.vue';
-import TaskTable from '../gantt/task/TaskTable.vue';
-import RightTable from './RightTable.vue';
-import GanttConfigPanel from './GanttConfigPanel.vue';
-import { store, mutations } from './Store';
-export type { DataConfig, StyleConfig, EventConfig, TaskHeader } from './Types';
+import TaskTable from '../task/TaskTable.vue';
+import RightTable from '../timeline/RightTable.vue';
+import GanttConfigPanel from '../config/GanttConfigPanel.vue';
+import { store, mutations } from '../state/Store';
+export type { DataConfig, StyleConfig, EventConfig, TaskHeader } from '../types/Types';
 // 移除未使用的类型导入
-import { type ConfirmDateData } from './ZodSchema';
+import { type ConfirmDateData } from '../types/ZodSchema';
 
 // 定义月份表头类型
 type MonthHeaders = {
@@ -195,7 +195,7 @@ export default defineComponent({
                 headersHeight: number;
                 rowHeight: number;
                 setBarColor: (row: Record<string, any>) => string;
-                setTaskType?: (row: Record<string, any>) => import('./Types').TaskType;
+                setTaskType?: (row: Record<string, any>) => import('../types/Types').TaskType;
             },
             required: true,
             default: () => ({
@@ -222,7 +222,7 @@ export default defineComponent({
                 mapFields: Record<string, any>;
                 queryStartDate: string;
                 queryEndDate: string;
-                dependencies?: Omit<import('./Types').TaskDependency, 'id'>[];
+                dependencies?: Omit<import('../types/Types').TaskDependency, 'id'>[];
             },
             required: true,
             default: () => ({
@@ -860,6 +860,19 @@ export default defineComponent({
         
         // 提供甘特图容器引用给主题选择器
         provide('ganttContainer', ganttContainer);
+        
+        // 提供当前主题状态
+        const currentTheme = ref('metro');
+        // 从 localStorage 加载保存的主题
+        try {
+            const savedTheme = localStorage.getItem('gantt-theme');
+            if (savedTheme) {
+                currentTheme.value = savedTheme;
+            }
+        } catch (error) {
+            console.warn('Failed to load theme from localStorage:', error);
+        }
+        provide('currentTheme', currentTheme);
 
         // 监听依赖关系变化
         watch(() => props.dataConfig.dependencies, (newDependencies) => {
