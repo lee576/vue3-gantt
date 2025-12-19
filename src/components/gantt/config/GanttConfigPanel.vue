@@ -33,72 +33,17 @@
 
         <div class="panel-content">
           <!-- 语言配置区域 -->
-          <div class="config-section">
-            <h4 class="section-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
-              </svg>
-              {{ t('configPanel.languageSettings') }}
-            </h4>
-            <div class="language-selector-inline">
-              <div
-                v-for="locale in locales"
-                :key="locale.value"
-                class="language-option"
-                :class="{ active: currentLocale === locale.value }"
-                @click="selectLocale(locale.value)"
-              >
-                <span class="lang-label">{{ locale.label }}</span>
-                <div v-if="currentLocale === locale.value" class="lang-check">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ConfigSection :title="t('configPanel.languageSettings')" icon="language">
+            <LanguageSelector v-model="currentLocale" :locales="locales" @update:modelValue="selectLocale" />
+          </ConfigSection>
 
           <!-- 主题配置区域 -->
-          <div class="config-section">
-            <h4 class="section-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-              </svg>
-              {{ t('configPanel.themeSettings') }}
-            </h4>
-            <div class="theme-grid">
-              <div
-                v-for="theme in themes"
-                :key="theme.id"
-                class="theme-card"
-                :class="{ active: currentTheme === theme.id }"
-                @click="selectTheme(theme.id)"
-              >
-                <div class="theme-preview" :style="{ background: theme.preview }"></div>
-                <div class="theme-info">
-                  <div class="theme-name">{{ t(theme.nameKey) }}</div>
-                  <div class="theme-desc">{{ t(theme.descKey) }}</div>
-                </div>
-                <div v-if="currentTheme === theme.id" class="theme-check">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ConfigSection :title="t('configPanel.themeSettings')" icon="theme">
+            <ThemeSelector v-model="currentTheme" :themes="themes" @update:modelValue="selectTheme" />
+          </ConfigSection>
 
           <!-- 连线配置区域 -->
-          <div class="config-section">
-            <h4 class="section-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6 9l6 6 6-6"/>
-                <circle cx="4" cy="9" r="2"/>
-                <circle cx="20" cy="9" r="2"/>
-                <path d="M10 9h4"/>
-              </svg>
-              {{ t('configPanel.linkSettings') }}
-            </h4>
+          <ConfigSection :title="t('configPanel.linkSettings')" icon="link">
             <div class="link-config-content">
               <!-- 说明文字 -->
               <div class="config-info-box">
@@ -111,85 +56,25 @@
               <!-- 路径类型选择 -->
               <div class="config-group">
                 <label class="config-label">{{ t('configPanel.linkConfig.pathType') }}</label>
-                <div class="path-type-grid">
-                  <div 
-                    v-for="pathType in pathTypes" 
-                    :key="pathType.value"
-                    class="path-type-card"
-                    :class="{ active: linkConfig.pathType === pathType.value }"
-                    @click="selectPathType(pathType.value)"
-                  >
-                    <svg width="60" height="35" viewBox="0 0 60 40">
-                      <!-- 起点圆点 -->
-                      <circle cx="10" cy="20" r="2.5" fill="currentColor" v-if="pathType.value === 'straight'" />
-                      <circle cx="10" cy="25" r="2.5" fill="currentColor" v-if="pathType.value === 'bezier'" />
-                      <circle cx="10" cy="15" r="2.5" fill="currentColor" v-if="pathType.value === 'right-angle'" />
-                      
-                      <!-- 路径 -->
-                      <path 
-                        :d="pathType.preview" 
-                        stroke="currentColor" 
-                        stroke-width="2.5" 
-                        fill="none"
-                        stroke-linecap="round"
-                      />
-                      
-                      <!-- 终点箭头 -->
-                      <path 
-                        v-if="pathType.value === 'straight'"
-                        d="M 50 20 L 46 17 M 50 20 L 46 23" 
-                        stroke="currentColor" 
-                        stroke-width="2.5" 
-                        fill="none"
-                        stroke-linecap="round"
-                      />
-                      <path 
-                        v-if="pathType.value === 'bezier'"
-                        d="M 50 25 L 46 22 M 50 25 L 46 28" 
-                        stroke="currentColor" 
-                        stroke-width="2.5" 
-                        fill="none"
-                        stroke-linecap="round"
-                      />
-                      <path 
-                        v-if="pathType.value === 'right-angle'"
-                        d="M 50 25 L 46 22 M 50 25 L 46 28" 
-                        stroke="currentColor" 
-                        stroke-width="2.5" 
-                        fill="none"
-                        stroke-linecap="round"
-                      />
-                    </svg>
-                    <span class="path-name">{{ pathType.name }}</span>
-                  </div>
-                </div>
+                <PathTypeSelector v-model="linkConfig.pathType" @update:modelValue="updateLinkConfig" />
               </div>
 
               <!-- 基础样式配置 -->
               <div class="config-group">
                 <label class="config-label">{{ t('configPanel.linkConfig.color') }}</label>
-                <input 
-                  type="color" 
-                  v-model="linkConfig.color" 
-                  @change="updateLinkConfig"
-                  class="color-input"
-                />
+                <ColorInput v-model="linkConfig.color" @change="updateLinkConfig" />
               </div>
 
               <div class="config-group">
                 <label class="config-label">{{ t('configPanel.linkConfig.width') }}: {{ linkConfig.width }}px</label>
-                <div class="slider-wrapper" @mousedown.stop @pointerdown.stop @touchstart.stop @click.stop>
-                  <input 
-                    type="range" 
-                    :value="linkConfig.width" 
-                    @input="(e: Event) => { linkConfig.width = parseFloat((e.target as HTMLInputElement).value) }"
-                    @change="updateLinkConfig"
-                    min="1" 
-                    max="5" 
-                    step="0.5"
-                    class="range-input"
-                  />
-                </div>
+                <SliderInput
+                  v-model="linkConfig.width"
+                  :min="1"
+                  :max="5"
+                  :step="0.5"
+                  :label-step="1"
+                  @change="updateLinkConfig"
+                />
               </div>
 
               <div class="config-group">
@@ -206,17 +91,13 @@
               <!-- 贝塞尔曲线配置 -->
               <div v-if="linkConfig.pathType === 'bezier'" class="config-group">
                 <label class="config-label">{{ t('configPanel.linkConfig.curvature') }}: {{ linkConfig.bezierCurvature }}</label>
-                <input 
-                  type="range" 
-                  v-model.number="linkConfig.bezierCurvature" 
+                <SliderInput
+                  v-model="linkConfig.bezierCurvature"
+                  :min="0.1"
+                  :max="1"
+                  :step="0.1"
+                  :label-step="0.3"
                   @change="updateLinkConfig"
-                  @mousedown.stop
-                  @pointerdown.stop
-                  data-no-interact="true"
-                  min="0.1" 
-                  max="1" 
-                  step="0.1"
-                  class="range-input"
                 />
               </div>
 
@@ -224,161 +105,109 @@
               <template v-if="linkConfig.pathType === 'right-angle'">
                 <div class="config-group">
                   <label class="config-label">{{ t('configPanel.linkConfig.offset') }}: {{ linkConfig.rightAngleOffset }}px</label>
-                  <input 
-                    type="range" 
-                    v-model.number="linkConfig.rightAngleOffset" 
+                  <SliderInput
+                    v-model="linkConfig.rightAngleOffset"
+                    :min="10"
+                    :max="80"
+                    :step="5"
+                    :label-step="20"
                     @change="updateLinkConfig"
-                    @mousedown.stop
-                    @pointerdown.stop
-                    data-no-interact="true"
-                    min="10" 
-                    max="80" 
-                    step="5"
-                    class="range-input"
                   />
                 </div>
 
-                <div class="config-group">
-                  <label class="config-label">
-                    <input 
-                      type="checkbox" 
-                      v-model="linkConfig.smoothCorners" 
-                      @change="updateLinkConfig"
-                    />
-                    {{ t('configPanel.linkConfig.smoothCorners') }}
-                  </label>
-                </div>
+                <CheckboxConfig
+                  v-model="linkConfig.smoothCorners"
+                  :label="t('configPanel.linkConfig.smoothCorners')"
+                  @change="updateLinkConfig"
+                />
 
                 <div v-if="linkConfig.smoothCorners" class="config-group">
                   <label class="config-label">{{ t('configPanel.linkConfig.cornerRadius') }}: {{ linkConfig.cornerRadius }}px</label>
-                  <input 
-                    type="range" 
-                    v-model.number="linkConfig.cornerRadius" 
+                  <SliderInput
+                    v-model="linkConfig.cornerRadius"
+                    :min="0"
+                    :max="15"
+                    :step="1"
+                    :label-step="5"
                     @change="updateLinkConfig"
-                    @mousedown.stop
-                    @pointerdown.stop
-                    data-no-interact="true"
-                    min="0" 
-                    max="15" 
-                    step="1"
-                    class="range-input"
                   />
                 </div>
               </template>
 
               <!-- 箭头配置 -->
-              <div class="config-group">
-                <label class="config-label">
-                  <input 
-                    type="checkbox" 
-                    v-model="linkConfig.showArrow" 
-                    @change="updateLinkConfig"
-                  />
-                  {{ t('configPanel.linkConfig.showArrow') }}
-                </label>
-              </div>
+              <CheckboxConfig
+                v-model="linkConfig.showArrow"
+                :label="t('configPanel.linkConfig.showArrow')"
+                @change="updateLinkConfig"
+              />
 
               <template v-if="linkConfig.showArrow">
                 <div class="config-group">
                   <label class="config-label">{{ t('configPanel.linkConfig.arrowSize') }}: {{ linkConfig.arrowSize }}px</label>
-                  <input 
-                    type="range" 
-                    v-model.number="linkConfig.arrowSize" 
+                  <SliderInput
+                    v-model="linkConfig.arrowSize"
+                    :min="4"
+                    :max="16"
+                    :step="1"
+                    :label-step="4"
                     @change="updateLinkConfig"
-                    @mousedown.stop
-                    @pointerdown.stop
-                    data-no-interact="true"
-                    min="4" 
-                    max="16" 
-                    step="1"
-                    class="range-input"
                   />
                 </div>
 
                 <div class="config-group">
                   <label class="config-label">{{ t('configPanel.linkConfig.arrowColor') }}</label>
-                  <div class="color-group">
-                    <input 
-                      type="color" 
-                      v-model="linkConfig.arrowColor" 
-                      @change="updateLinkConfig"
-                      class="color-input"
-                    />
-                    <button 
-                      @click="linkConfig.arrowColor = linkConfig.color; updateLinkConfig()" 
-                      class="sync-btn"
-                      :title="t('tooltip.syncArrowColor')"
-                    >
-                      {{ t('configPanel.linkConfig.syncColor') }}
-                    </button>
-                  </div>
+                  <ColorInput
+                    v-model="linkConfig.arrowColor"
+                    :show-sync="true"
+                    :sync-label="t('configPanel.linkConfig.syncColor')"
+                    :sync-title="t('tooltip.syncArrowColor')"
+                    @change="updateLinkConfig"
+                    @sync="linkConfig.arrowColor = linkConfig.color; updateLinkConfig()"
+                  />
                 </div>
               </template>
 
               <!-- 虚线动画 -->
-              <div class="config-group">
-                <label class="config-label">
-                  <input 
-                    type="checkbox" 
-                    v-model="linkConfig.enableDashAnimation" 
-                    @change="updateLinkConfig"
-                  />
-                  {{ t('configPanel.linkConfig.dashAnimation') }}
-                </label>
-              </div>
+              <CheckboxConfig
+                v-model="linkConfig.enableDashAnimation"
+                :label="t('configPanel.linkConfig.dashAnimation')"
+                @change="updateLinkConfig"
+              />
 
               <div v-if="linkConfig.enableDashAnimation" class="config-group">
                 <label class="config-label">{{ t('configPanel.linkConfig.animationSpeed') }}: {{ linkConfig.dashAnimationSpeed }}s</label>
-                <input 
-                  type="range" 
-                  v-model.number="linkConfig.dashAnimationSpeed" 
+                <SliderInput
+                  v-model="linkConfig.dashAnimationSpeed"
+                  :min="0.2"
+                  :max="3"
+                  :step="0.2"
+                  :label-step="1"
                   @change="updateLinkConfig"
-                  @mousedown.stop
-                  @pointerdown.stop
-                  data-no-interact="true"
-                  min="0.2" 
-                  max="3" 
-                  step="0.2"
-                  class="range-input"
                 />
               </div>
 
               <!-- 标签配置 -->
-              <div class="config-group">
-                <label class="config-label">
-                  <input 
-                    type="checkbox" 
-                    v-model="linkConfig.showLabels" 
-                    @change="updateLinkConfig"
-                  />
-                  {{ t('configPanel.linkConfig.showLabels') }}
-                </label>
-              </div>
+              <CheckboxConfig
+                v-model="linkConfig.showLabels"
+                :label="t('configPanel.linkConfig.showLabels')"
+                @change="updateLinkConfig"
+              />
 
               <template v-if="linkConfig.showLabels">
                 <div class="config-group">
                   <label class="config-label">{{ t('configPanel.linkConfig.labelColor') }}</label>
-                  <input 
-                    type="color" 
-                    v-model="linkConfig.labelColor" 
-                    @change="updateLinkConfig"
-                    class="color-input"
-                  />
+                  <ColorInput v-model="linkConfig.labelColor" @change="updateLinkConfig" />
                 </div>
 
                 <div class="config-group">
                   <label class="config-label">{{ t('configPanel.linkConfig.fontSize') }}: {{ linkConfig.labelFontSize }}px</label>
-                  <input 
-                    type="range" 
-                    v-model.number="linkConfig.labelFontSize" 
+                  <SliderInput
+                    v-model="linkConfig.labelFontSize"
+                    :min="8"
+                    :max="16"
+                    :step="1"
+                    :label-step="2"
                     @change="updateLinkConfig"
-                    @mousedown.stop
-                    @pointerdown.stop
-                    data-no-interact="true"
-                    min="8" 
-                    max="16" 
-                    step="1"
-                    class="range-input"
                   />
                 </div>
               </template>
@@ -392,75 +221,11 @@
                   {{ t('configPanel.linkConfig.typeColors') }}
                 </h5>
                 
-                <div class="link-type-colors">
-                  <div class="color-item">
-                    <div class="color-preview">
-                      <svg width="20" height="10" viewBox="0 0 20 10">
-                        <line x1="0" y1="5" x2="14" y2="5" :stroke="linkConfig.linkTypeColors.finishToStart" stroke-width="2"/>
-                        <polygon :points="'20,5 14,2 14,8'" :fill="linkConfig.linkTypeColors.finishToStart"/>
-                      </svg>
-                    </div>
-                    <span class="color-label">{{ t('link.fs') }}</span>
-                    <span class="color-desc">{{ t('link.finishToStart') }}</span>
-                    <input 
-                      type="color" 
-                      v-model="linkConfig.linkTypeColors.finishToStart" 
-                      @change="updateLinkConfig"
-                      class="color-input-small"
-                    />
-                  </div>
-                  
-                  <div class="color-item">
-                    <div class="color-preview">
-                      <svg width="20" height="10" viewBox="0 0 20 10">
-                        <line x1="0" y1="5" x2="14" y2="5" :stroke="linkConfig.linkTypeColors.startToStart" stroke-width="2"/>
-                        <polygon :points="'20,5 14,2 14,8'" :fill="linkConfig.linkTypeColors.startToStart"/>
-                      </svg>
-                    </div>
-                    <span class="color-label">{{ t('link.ss') }}</span>
-                    <span class="color-desc">{{ t('link.startToStart') }}</span>
-                    <input 
-                      type="color" 
-                      v-model="linkConfig.linkTypeColors.startToStart" 
-                      @change="updateLinkConfig"
-                      class="color-input-small"
-                    />
-                  </div>
-                  
-                  <div class="color-item">
-                    <div class="color-preview">
-                      <svg width="20" height="10" viewBox="0 0 20 10">
-                        <line x1="0" y1="5" x2="14" y2="5" :stroke="linkConfig.linkTypeColors.finishToFinish" stroke-width="2"/>
-                        <polygon :points="'20,5 14,2 14,8'" :fill="linkConfig.linkTypeColors.finishToFinish"/>
-                      </svg>
-                    </div>
-                    <span class="color-label">{{ t('link.ff') }}</span>
-                    <span class="color-desc">{{ t('link.finishToFinish') }}</span>
-                    <input 
-                      type="color" 
-                      v-model="linkConfig.linkTypeColors.finishToFinish" 
-                      @change="updateLinkConfig"
-                      class="color-input-small"
-                    />
-                  </div>
-                  
-                  <div class="color-item">
-                    <div class="color-preview">
-                      <svg width="20" height="10" viewBox="0 0 20 10">
-                        <line x1="0" y1="5" x2="14" y2="5" :stroke="linkConfig.linkTypeColors.startToFinish" stroke-width="2"/>
-                        <polygon :points="'20,5 14,2 14,8'" :fill="linkConfig.linkTypeColors.startToFinish"/>
-                      </svg>
-                    </div>
-                    <span class="color-label">{{ t('link.sf') }}</span>
-                    <span class="color-desc">{{ t('link.startToFinish') }}</span>
-                    <input 
-                      type="color" 
-                      v-model="linkConfig.linkTypeColors.startToFinish" 
-                      @change="updateLinkConfig"
-                      class="color-input-small"
-                    />
-                  </div>
-                </div>
+                <LinkTypeColorConfig
+                  :colors="linkConfig.linkTypeColors"
+                  @update:colors="linkConfig.linkTypeColors = $event"
+                  @change="updateLinkConfig"
+                />
               </div>
 
               <!-- 父子关系样式 -->
@@ -477,27 +242,18 @@
                 
                 <div class="config-group">
                   <label class="config-label">{{ t('configPanel.linkConfig.color') }}</label>
-                  <input 
-                    type="color" 
-                    v-model="linkConfig.parentChildStyle.color" 
-                    @change="updateLinkConfig"
-                    class="color-input"
-                  />
+                  <ColorInput v-model="linkConfig.parentChildStyle.color" @change="updateLinkConfig" />
                 </div>
 
                 <div class="config-group">
                   <label class="config-label">{{ t('configPanel.linkConfig.width') }}: {{ linkConfig.parentChildStyle.width }}px</label>
-                  <input 
-                    type="range" 
-                    v-model.number="linkConfig.parentChildStyle.width" 
+                  <SliderInput
+                    v-model="linkConfig.parentChildStyle.width"
+                    :min="1"
+                    :max="3"
+                    :step="0.5"
+                    :label-step="1"
                     @change="updateLinkConfig"
-                    @mousedown.stop
-                    @pointerdown.stop
-                    data-no-interact="true"
-                    min="1" 
-                    max="3" 
-                    step="0.5"
-                    class="range-input"
                   />
                 </div>
 
@@ -512,7 +268,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </ConfigSection>
         </div>
       </div>
     </Teleport>
@@ -520,13 +276,31 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, watch, inject, computed, type Ref } from 'vue';
+import { defineComponent, ref, onMounted, inject, computed, type Ref } from 'vue';
 import { ganttThemes, ganttThemeManager, type GanttTheme } from '../themes/GanttThemes';
 import { useLinkConfig, LinkPathType } from '../composables/LinkConfig';
 import { useI18n, type Locale } from '../i18n';
+import SliderInput from './SliderInput.vue';
+import ConfigSection from './ConfigSection.vue';
+import PathTypeSelector from './PathTypeSelector.vue';
+import LinkTypeColorConfig from './LinkTypeColorConfig.vue';
+import ThemeSelector from './ThemeSelector.vue';
+import LanguageSelector from './LanguageSelector.vue';
+import ColorInput from './ColorInput.vue';
+import CheckboxConfig from './CheckboxConfig.vue';
 
 export default defineComponent({
   name: 'GanttConfigPanel',
+  components: {
+    SliderInput,
+    ConfigSection,
+    PathTypeSelector,
+    LinkTypeColorConfig,
+    ThemeSelector,
+    LanguageSelector,
+    ColorInput,
+    CheckboxConfig
+  },
   setup() {
     const { t, locale, setLocale, getLocales } = useI18n();
     const isOpen = ref(false);
@@ -586,13 +360,6 @@ export default defineComponent({
       }
     });
 
-    // 路径类型 - 使用 computed 以响应语言变化
-    const pathTypes = computed(() => [
-      { value: LinkPathType.STRAIGHT, name: t('configPanel.linkConfig.straight'), preview: 'M 10 20 L 50 20' },
-      { value: LinkPathType.BEZIER, name: t('configPanel.linkConfig.bezier'), preview: 'M 10 25 Q 30 5 50 25' },
-      { value: LinkPathType.RIGHT_ANGLE, name: t('configPanel.linkConfig.rightAngle'), preview: 'M 10 15 L 25 15 L 25 25 L 50 25' }
-    ]);
-
     const togglePanel = () => {
       isOpen.value = !isOpen.value;
       // 打开面板时设置主题属性和CSS变量
@@ -630,11 +397,6 @@ export default defineComponent({
       applyThemeToPanel(themeId);
     };
 
-    const selectPathType = (pathType: string) => {
-      linkConfig.value.pathType = pathType as LinkPathType;
-      updateLinkConfig();
-    };
-
     const updateLinkConfig = () => {
       // 更新到连线配置管理器
       updateLinkConfigManager(linkConfig.value);
@@ -659,13 +421,11 @@ export default defineComponent({
       themes,
       currentTheme,
       linkConfig,
-      pathTypes,
       currentLocale,
       locales,
       togglePanel,
       closePanel,
       selectTheme,
-      selectPathType,
       selectLocale,
       updateLinkConfig,
       configPanelRef
@@ -793,155 +553,6 @@ export default defineComponent({
   column-gap: 24px;
 }
 
-.config-section {
-  /* 防止分割到两列 */
-  break-inside: avoid;
-  page-break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-  
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 24px;
-
-  .section-title {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary, #333333);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid var(--border, #d0d0d0);
-
-    svg {
-      color: var(--primary, #0078d4);
-    }
-  }
-}
-
-.theme-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-.theme-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
-  border: 2px solid var(--border, #d0d0d0);
-  cursor: pointer;
-  transition: all var(--transition-fast, 0.15s ease);
-  position: relative;
-
-  &:hover {
-    border-color: var(--primary, #0078d4);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  &.active {
-    border-color: var(--primary, #0078d4);
-    background: var(--bg-content, #ffffff);
-    box-shadow: 0 0 0 2px var(--primary, #0078d4), 0 2px 8px rgba(0, 120, 212, 0.15);
-    
-    .theme-info {
-      .theme-name {
-        color: var(--primary, #0078d4);
-      }
-      
-      .theme-desc {
-        color: var(--text-primary, #333333);
-      }
-    }
-  }
-
-  .theme-preview {
-    width: 40px;
-    height: 40px;
-    border-radius: 4px;
-    flex-shrink: 0;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
-  }
-
-  .theme-info {
-    flex: 1;
-    min-width: 0;
-
-    .theme-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-primary, #333333);
-      margin-bottom: 4px;
-    }
-
-    .theme-desc {
-      font-size: 11px;
-      color: var(--text-secondary, #666666);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-  }
-
-  .theme-check {
-    color: var(--primary, #0078d4);
-    flex-shrink: 0;
-  }
-}
-
-.language-selector-inline {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 8px;
-  
-  .language-option {
-    padding: 10px 12px;
-    border: 1px solid var(--border, #d0d0d0);
-    background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    transition: all var(--transition-fast, 0.15s ease);
-    box-shadow: var(--shadow-inset, inset 0 1px 0 rgba(255, 255, 255, 0.8));
-
-    &:hover {
-      border-color: var(--primary, #0078d4);
-      background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
-      transform: translateY(-1px);
-    }
-
-    &.active {
-      border-color: var(--primary, #0078d4);
-      background: var(--bg-content, #ffffff);
-      box-shadow: 0 0 0 2px var(--primary, #0078d4), 0 2px 8px rgba(0, 120, 212, 0.15);
-      
-      .lang-label {
-        color: var(--primary, #0078d4);
-        font-weight: 600;
-      }
-    }
-
-    .lang-label {
-      font-size: 12px;
-      flex: 1;
-      color: var(--text-primary, #333333);
-    }
-
-    .lang-check {
-      color: var(--primary, #0078d4);
-      display: flex;
-      align-items: center;
-      margin-left: 8px;
-    }
-  }
-}
-
 .link-config-content {
   display: flex;
   flex-direction: column;
@@ -959,170 +570,6 @@ export default defineComponent({
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    .color-input {
-      width: 60px;
-      height: 36px;
-      border: 1px solid var(--border, #d0d0d0);
-      cursor: pointer;
-      transition: all var(--transition-fast, 0.15s ease);
-
-      &:hover {
-        border-color: var(--primary, #0078d4);
-      }
-    }
-
-    .range-input {
-      width: 100%;
-      height: 4px;
-      -webkit-appearance: none;
-      appearance: none;
-      background: transparent;
-      outline: none;
-      position: relative;
-      cursor: pointer;
-
-      /* 轨道背景 */
-      &::-webkit-slider-runnable-track {
-        width: 100%;
-        height: 4px;
-        background: var(--bg-secondary, #e8e8e8);
-        border-radius: 2px;
-        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-      }
-
-      &::-moz-range-track {
-        width: 100%;
-        height: 4px;
-        background: var(--bg-secondary, #e8e8e8);
-        border-radius: 2px;
-        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-      }
-
-      /* 滑块 - Webkit */
-      &::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
-        cursor: pointer;
-        border-radius: 50%;
-        border: 2px solid var(--primary, #0078d4);
-        box-shadow: 
-          0 2px 6px rgba(0, 120, 212, 0.3),
-          0 1px 3px rgba(0, 0, 0, 0.12),
-          inset 0 1px 0 rgba(255, 255, 255, 0.8);
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        margin-top: -7px;
-      }
-
-      &::-webkit-slider-thumb:hover {
-        transform: scale(1.15);
-        box-shadow: 
-          0 3px 12px rgba(0, 120, 212, 0.4),
-          0 2px 6px rgba(0, 0, 0, 0.15),
-          inset 0 1px 0 rgba(255, 255, 255, 1);
-        border-width: 3px;
-      }
-
-      &::-webkit-slider-thumb:active {
-        transform: scale(1.05);
-        box-shadow: 
-          0 1px 4px rgba(0, 120, 212, 0.5),
-          inset 0 1px 2px rgba(0, 0, 0, 0.1);
-      }
-
-      /* 滑块 - Firefox */
-      &::-moz-range-thumb {
-        width: 18px;
-        height: 18px;
-        background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
-        cursor: pointer;
-        border-radius: 50%;
-        border: 2px solid var(--primary, #0078d4);
-        box-shadow: 
-          0 2px 6px rgba(0, 120, 212, 0.3),
-          0 1px 3px rgba(0, 0, 0, 0.12),
-          inset 0 1px 0 rgba(255, 255, 255, 0.8);
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      &::-moz-range-thumb:hover {
-        transform: scale(1.15);
-        box-shadow: 
-          0 3px 12px rgba(0, 120, 212, 0.4),
-          0 2px 6px rgba(0, 0, 0, 0.15),
-          inset 0 1px 0 rgba(255, 255, 255, 1);
-        border-width: 3px;
-      }
-
-      &::-moz-range-thumb:active {
-        transform: scale(1.05);
-        box-shadow: 
-          0 1px 4px rgba(0, 120, 212, 0.5),
-          inset 0 1px 2px rgba(0, 0, 0, 0.1);
-      }
-
-      /* Focus 状态 */
-      &:focus {
-        &::-webkit-slider-thumb {
-          box-shadow: 
-            0 0 0 4px rgba(0, 120, 212, 0.15),
-            0 2px 6px rgba(0, 120, 212, 0.3),
-            0 1px 3px rgba(0, 0, 0, 0.12),
-            inset 0 1px 0 rgba(255, 255, 255, 0.8);
-        }
-
-        &::-moz-range-thumb {
-          box-shadow: 
-            0 0 0 4px rgba(0, 120, 212, 0.15),
-            0 2px 6px rgba(0, 120, 212, 0.3),
-            0 1px 3px rgba(0, 0, 0, 0.12),
-            inset 0 1px 0 rgba(255, 255, 255, 0.8);
-        }
-      }
-    }
-  }
-
-  .path-type-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-  }
-
-  .path-type-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    padding: 12px 8px;
-    background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
-    border: 2px solid var(--border, #d0d0d0);
-    cursor: pointer;
-    transition: all var(--transition-fast, 0.15s ease);
-    color: var(--text-secondary, #666666);
-
-    &:hover {
-      border-color: var(--primary, #0078d4);
-      color: var(--primary, #0078d4);
-    }
-
-    &.active {
-      border-color: var(--primary, #0078d4);
-      background: var(--bg-content, #ffffff);
-      box-shadow: 0 0 0 2px var(--primary, #0078d4), 0 2px 8px rgba(0, 120, 212, 0.15);
-      
-      .path-name {
-        color: var(--primary, #0078d4);
-      }
-    }
-
-    .path-name {
-      font-size: 11px;
-      font-weight: 600;
     }
   }
 
@@ -1144,32 +591,6 @@ export default defineComponent({
       outline: none;
       border-color: var(--primary, #0078d4);
       box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.1);
-    }
-  }
-
-  .color-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .sync-btn {
-    padding: 6px 12px;
-    font-size: 11px;
-    background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
-    border: 1px solid var(--border, #d0d0d0);
-    color: var(--text-primary, #333333);
-    cursor: pointer;
-    transition: all var(--transition-fast, 0.15s ease);
-    white-space: nowrap;
-
-    &:hover {
-      background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
-      border-color: var(--primary, #0078d4);
-    }
-
-    &:active {
-      transform: scale(0.95);
     }
   }
 
@@ -1203,59 +624,6 @@ export default defineComponent({
     svg {
       margin-top: 1px;
       color: var(--primary, #0078d4);
-    }
-  }
-
-  .link-type-colors {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-
-    .color-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 10px;
-      background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
-      border: 1px solid var(--border, #d0d0d0);
-      border-radius: 4px;
-
-      .color-preview {
-        display: flex;
-        align-items: center;
-        width: 24px;
-      }
-
-      .color-label {
-        font-size: 11px;
-        font-weight: 700;
-        color: var(--text-primary, #333333);
-        min-width: 20px;
-      }
-
-      .color-desc {
-        font-size: 11px;
-        color: var(--text-secondary, #666666);
-        flex: 1;
-      }
-
-      .color-input-small {
-        width: 28px;
-        height: 24px;
-        border: 1px solid var(--border, #d0d0d0);
-        border-radius: 3px;
-        cursor: pointer;
-        padding: 0;
-
-        &::-webkit-color-swatch-wrapper {
-          padding: 2px;
-        }
-
-        &::-webkit-color-swatch {
-          border: none;
-          border-radius: 2px;
-        }
-      }
     }
   }
 }

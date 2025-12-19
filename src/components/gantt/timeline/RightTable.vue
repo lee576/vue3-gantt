@@ -119,6 +119,7 @@ export default defineComponent({
   .content {
     overflow-y: auto;
     overflow-x: hidden;
+    background-color: var(--bg-content, #ffffff);
   }
 }
 </style>
