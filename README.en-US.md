@@ -12,6 +12,14 @@ A feature-rich, highly customizable Vue 3 Gantt chart component that supports ta
 
 ## Interface Preview
 
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/34562bf8-0709-44aa-a05d-6e970ea8b57f" alt="Vue3 Gantt Chart - Light Theme" />
+  <p><em>Light Theme - Complete Task Management Interface</em></p>
+  
+  <img src="https://github.com/user-attachments/assets/d6a60ba1-9f5b-479a-b402-68014ec7c935" alt="Vue3 Gantt Chart - Dark Theme" />
+  <p><em>Dark Theme - Eye-friendly Mode</em></p>
+</div>
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                        Vue3 Gantt Professional Component                    │
@@ -27,27 +35,63 @@ A feature-rich, highly customizable Vue 3 Gantt chart component that supports ta
 └─────────────────┴───────────────────────────────────────────────────────────┘
 ```
 
-**Key Features:**
-- 🎯 Left task list + Right Gantt chart timeline
-- 📊 Visual progress bars showing task completion
-- 🔗 Task dependency relationship lines
-- 🎨 Multi-theme support (Light/Dark/Colorful, etc.)
-- 🖱️ Drag to adjust task time and progress
-- 🌍 Multi-language support (Chinese/English/Japanese/Korean/French/German/Spanish/Russian)
+**Key Highlights:**
+- 🎯 **Dual-Column Layout** - Left task list + Right Gantt timeline, clear information at a glance
+- 📊 **Visual Progress** - Real-time progress bars with drag-to-adjust completion
+- 🔗 **Smart Dependencies** - Four dependency types (FS/SS/FF/SF) with auto-drawn links
+- 🎨 **Multi-Theme** - 5 built-in themes, dark mode and custom theme support
+- 🖱️ **Rich Interactions** - Drag move, resize, parent-child task linkage
+- 🌍 **Internationalization** - Built-in 8 languages, easily extensible
+- ⚡ **High Performance** - Virtual scrolling, handles massive task data effortlessly
+- 💎 **Milestones** - Diamond markers for key nodes with dependency support
 
-## Features
+## ✨ Core Features
 
-- **Multiple View Modes** - Month, Day, Week, and Hour time granularity views
-- **Task Dependencies** - Support for FS, SS, FF, SF dependency types
-- **Milestone Support** - Diamond markers for key project milestones with dependency support
-- **Theme System** - 5 built-in themes with custom theme support
-- **Internationalization** - Built-in 8 languages, easily extensible
-- **Progress Management** - Visual progress bars with drag-to-adjust
-- **Interactive Operations** - Task dragging, resizing, parent-child linkage
-- **Responsive Design** - Adjustable split panel ratio
-- **High Performance** - Virtual scrolling optimization for large datasets
+### 📅 Multiple View Modes
+Four time granularities for different scenarios:
+- **Month View** - Long-term project planning, displayed by day
+- **Week View** - Medium-term project tracking, displayed by week
+- **Day View** - Short-term task management, precise to day
+- **Hour View** - Fine task scheduling, displayed by hour
 
-## Installation
+### 🔗 Task Dependency Management
+- **Finish-to-Start (FS)** - Successor task starts after predecessor finishes
+- **Start-to-Start (SS)** - Both tasks start simultaneously
+- **Finish-to-Finish (FF)** - Both tasks finish simultaneously
+- **Start-to-Finish (SF)** - Predecessor finishes after successor starts
+
+### 💎 Milestone Features
+- Diamond icon markers for project key nodes
+- Support as dependency source and target
+- Auto-detect (start time = end time) or manual marking
+
+### 🎨 Theme System
+- 5 beautiful built-in themes (Metro/Dark/Modern/Classic/Colorful)
+- Dark mode support, eye-friendly
+- Complete CSS variable support, easy customization
+- Theme settings auto-saved to browser
+
+### 🌍 Internationalization
+- Built-in 8 languages (CN/EN/JP/KR/FR/DE/ES/RU)
+- Instant switching, no page refresh needed
+- All UI elements fully translated
+- Timeline headers auto-localized
+- Easy to extend new languages
+
+### 🖱️ Interactive Operations
+- **Drag Move** - Modify task start and end dates
+- **Resize** - Drag edges to adjust task duration
+- **Progress Adjust** - Drag triangle slider to adjust completion
+- **Parent-Child Linkage** - Child tasks follow when parent moves
+- **Split Panel** - Adjustable left-right area ratio
+
+### ⚡ Performance Optimization
+- Virtual scroll rendering, supports massive task data
+- Throttled updates, avoids frequent redraws
+- Cached computations, improves response speed
+- On-demand link rendering, optimized drawing performance
+
+## 🚀 Installation
 
 ### Option 1: Install via npm (Recommended)
 
@@ -67,6 +111,7 @@ pnpm add @lee576/vue3-gantt
 ```bash
 # Clone repository
 git clone https://github.com/lee576/vue3-gantt.git
+cd vue3-gantt
 
 # Install dependencies
 npm install
@@ -75,151 +120,118 @@ npm install
 npm run dev
 ```
 
-## Dependencies
+## 📚 Quick Start
 
-- @vueuse/core ^13.0.0
-- dayjs ^1.11.13
-- interactjs ^1.10.27
-- svg.js ^2.7.1
-- vue ^3.5.13
-- zod ^3.24.2
-
-## Basic Usage
-
-### 1. Import Component and Styles
+### 1️⃣ Import Component
 
 ```typescript
-import { ref, onMounted } from 'vue';
-import dayjs from 'dayjs';
-// Import Gantt component and types
+import { createApp } from 'vue';
+import Gantt from '@lee576/vue3-gantt';
+import '@lee576/vue3-gantt/style.css';
+
+const app = createApp(App);
+app.use(Gantt); // Global registration
+```
+
+Or import in component:
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
 import Gantt, { 
   type DataConfig, 
   type StyleConfig, 
-  type EventConfig 
+  type EventConfig,
+  LinkType 
 } from '@lee576/vue3-gantt';
-// Import styles
 import '@lee576/vue3-gantt/style.css';
-import { LinkType } from '@lee576/vue3-gantt';
+</script>
 ```
 
-### 2. Configure Container Height (Important!)
+### 2️⃣ Configure Container Height (Important!)
 
-**The component requires an explicit container height to display properly**. Here are several recommended configuration methods:
+> ⚠️ **Important**: The component **must have an explicit container height** to display properly.
 
-#### Method 1: Using Viewport Height (Simplest)
+**Recommended methods (choose one):**
 
 ```vue
+<!-- Method 1: Use viewport height (Easiest) -->
 <template>
-  <div class="gantt-container">
-    <gantt 
-      :styleConfig="styleConfig" 
-      :dataConfig="dataConfig" 
-      :eventConfig="eventConfig"
-    />
+  <div style="height: 100vh;">
+    <gantt :dataConfig="dataConfig" :styleConfig="styleConfig" />
   </div>
 </template>
 
-<style scoped>
-.gantt-container {
-  height: 100vh; /* Use viewport height directly */
-}
-</style>
-```
-
-#### Method 2: Using Percentage Height (Requires html/body Configuration)
-
-```vue
+<!-- Method 2: Use fixed height -->
 <template>
-  <div id="app">
-    <gantt 
-      :styleConfig="styleConfig" 
-      :dataConfig="dataConfig" 
-      :eventConfig="eventConfig"
-    />
+  <div style="height: 800px;">
+    <gantt :dataConfig="dataConfig" :styleConfig="styleConfig" />
   </div>
 </template>
 
-<style>
-/* Global styles: Ensure html and body have height */
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-#app {
-  height: 100%; /* Now 100% works properly */
-}
-</style>
-```
-
-#### Method 3: Using Fixed Pixel Value
-
-```vue
-<style scoped>
-.gantt-container {
-  height: 800px; /* Fixed height */
-}
-</style>
-```
-
-#### Method 4: Using Flex Layout
-
-```vue
+<!-- Method 3: Flex layout -->
 <template>
-  <div class="page-wrapper">
-    <div class="header">Header</div>
-    <div class="gantt-container">
-      <gantt ... />
+  <div style="display: flex; flex-direction: column; height: 100vh;">
+    <div>Header</div>
+    <div style="flex: 1;"> <!-- Auto-fill remaining space -->
+      <gantt :dataConfig="dataConfig" :styleConfig="styleConfig" />
     </div>
   </div>
 </template>
-
-<style scoped>
-.page-wrapper {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
-.gantt-container {
-  flex: 1; /* Auto-fill remaining space */
-}
-</style>
 ```
 
-### 3. Configure Component
+<details>
+<summary>💡 Why set height?</summary>
+
+The component uses `height: 100%` internally. According to CSS specifications, percentage height requires the parent element to have an explicit height to calculate. Without a height on the parent container, the component will collapse.
+
+**Solutions:**
+- Use `100vh` (viewport height)
+- Use fixed pixel value (e.g., `800px`)
+- Use Flex layout's `flex: 1`
+- Configure `html, body { height: 100%; }` then use `100%`
+
+</details>
+
+### 3️⃣ Basic Configuration
 
 ```vue
 <template>
-  <gantt 
-    :styleConfig="styleConfig" 
-    :dataConfig="dataConfig" 
-    :eventConfig="eventConfig"
-  />
+  <div style="height: 100vh;">
+    <gantt 
+      :dataConfig="dataConfig" 
+      :styleConfig="styleConfig" 
+      :eventConfig="eventConfig"
+    />
+  </div>
 </template>
-```
 
-```typescript
-// Style configuration
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import dayjs from 'dayjs';
+import Gantt, { 
+  type DataConfig, 
+  type StyleConfig, 
+  type EventConfig,
+  LinkType 
+} from '@lee576/vue3-gantt';
+import '@lee576/vue3-gantt/style.css';
+
+// 🎨 Style Configuration
 const styleConfig = ref<StyleConfig>({
   headersHeight: 100,  // Header height
   rowHeight: 60,       // Row height
   setBarColor: (row) => {
-    // Custom task bar color
-    const colorMap = {
-      'urgent': 'red',
-      'important': 'blue',
-      'normal': 'gray'
-    };
-    return colorMap[row.level] ?? 'black';
+    // Custom task bar colors
+    const colorMap = { 'urgent': '#ef4444', 'important': '#3b82f6', 'normal': '#6b7280' };
+    return colorMap[row.level] ?? '#000';
   }
 });
 
-// Data configuration
+// 📊 Data Configuration
 const dataConfig = ref<DataConfig>({
-  queryStartDate: '',
-  queryEndDate: '',
+  queryStartDate: dayjs().startOf('month').format('YYYY-MM-DD'),
+  queryEndDate: dayjs().endOf('month').format('YYYY-MM-DD'),
   dataSource: [],
   dependencies: [],
   mapFields: {
@@ -234,41 +246,38 @@ const dataConfig = ref<DataConfig>({
   },
   taskHeaders: [
     { title: 'No.', width: 80, property: 'no', show: true },
-    { title: 'Task Name', width: 190, property: 'task', show: true },
+    { title: 'Task Name', width: 200, property: 'task', show: true },
     { title: 'Priority', width: 90, property: 'priority', show: true },
     { title: 'Start Date', width: 150, property: 'startdate', show: true },
     { title: 'End Date', width: 150, property: 'enddate', show: true },
-    { title: 'Duration', width: 90, property: 'takestime', show: true }
   ]
 });
 
-// Event configuration
+// ⚡ Event Configuration
 const eventConfig = ref<EventConfig>({
-  addRootTask: (row) => console.log('Add root task', row),
-  addSubTask: (task) => console.log('Add subtask', task),
-  removeTask: (task) => console.log('Remove task', task),
-  editTask: (task) => console.log('Edit task', task),
   queryTask: async (startDate, endDate, mode) => {
     // Query task data
-    dataConfig.value.dataSource = await fetchTasks(startDate, endDate);
+    const tasks = await fetchTasks(startDate, endDate);
+    dataConfig.value.dataSource = tasks;
   },
   barDate: (id, startDate, endDate) => {
-    console.log('Task date changed', id, startDate, endDate);
-  },
-  allowChangeTaskDate: (allow) => {
-    console.log('Allow date change', allow);
+    console.log('Task date changed', { id, startDate, endDate });
   },
   updateProgress: (detail) => {
     console.log('Progress updated', detail);
   }
 });
 
+// Initialize and load data
 onMounted(() => {
-  const startDate = dayjs().startOf('month').format('YYYY-MM-DD');
-  const endDate = dayjs().endOf('month').format('YYYY-MM-DD');
-  eventConfig.value.queryTask(startDate, endDate, 'Month');
+  const start = dayjs().startOf('month').format('YYYY-MM-DD');
+  const end = dayjs().endOf('month').format('YYYY-MM-DD');
+  eventConfig.value.queryTask?.(start, end, 'month');
 });
+</script>
 ```
+
+## 📖 Configuration Guide
 
 ## Configuration Details
 

@@ -21,37 +21,78 @@
 
 ## 界面预览
 
-<img width="1913" height="923" alt="image" src="https://github.com/user-attachments/assets/34562bf8-0709-44aa-a05d-6e970ea8b57f" />
-<img width="1915" height="916" alt="image" src="https://github.com/user-attachments/assets/d6a60ba1-9f5b-479a-b402-68014ec7c935" />
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/34562bf8-0709-44aa-a05d-6e970ea8b57f" alt="Vue3 Gantt Chart - Light Theme" />
+  <p><em>浅色主题 - 完整的任务管理界面</em></p>
+  
+  <img src="https://github.com/user-attachments/assets/d6a60ba1-9f5b-479a-b402-68014ec7c935" alt="Vue3 Gantt Chart - Dark Theme" />
+  <p><em>深色主题 - 护眼模式</em></p>
+</div>
 
 ```
 
-**主要特点：**
-- 🎯 左侧任务列表 + 右侧甘特图时间轴
-- 📊 可视化进度条显示任务完成度
-- 🔗 任务间依赖关系连线
-- 🎨 多主题支持（浅色/深色/彩色等）
-- 🖱️ 拖拽调整任务时间和进度
-- 🌍 多语言支持（中文/English/日本語/한국어/Français/Deutsch/Español/Русский）
+**核心亮点：**
+- 🎯 **双栏布局** - 左侧任务列表 + 右侧甘特图时间轴，信息一目了然
+- 📊 **可视化进度** - 实时进度条显示，支持拖拽调整完成度
+- 🔗 **智能依赖** - 四种依赖类型（FS/SS/FF/SF），自动绘制连线
+- 🎨 **多主题切换** - 5种内置主题，支持深色模式和自定义主题
+- 🖱️ **交互丰富** - 拖拽移动、调整大小、父子任务联动
+- 🌍 **国际化** - 内置8种语言，轻松扩展更多语言
+- ⚡ **高性能** - 虚拟滚动优化，轻松处理大量任务数据
+- 💎 **里程碑** - 菱形标记关键节点，支持依赖关系
 
-## 特性
+## ✨ 核心特性
 
-- **多视图模式** - 支持月、日、周、时四种时间粒度视图
-- **任务依赖关系** - 支持 FS、SS、FF、SF 四种依赖类型
-- **里程碑功能** - 菱形图标标记项目关键节点，支持作为依赖源和目标
-- **主题系统** - 内置 5 种主题，支持自定义主题
-- **国际化支持** - 内置 8 种语言，可扩展更多语言
-- **进度管理** - 可视化进度条，支持拖拽调整进度
-- **交互操作** - 支持任务拖拽、调整大小、父子任务联动
-- **响应式设计** - 可调整分割面板比例
-- **高性能** - 虚拟滚动优化，支持大量任务数据
+### 📅 多视图模式
+支持四种时间粒度，满足不同场景需求：
+- **月视图** - 长期项目规划，按天显示
+- **周视图** - 中期项目跟踪，按周显示  
+- **日视图** - 短期任务管理，精确到天
+- **时视图** - 精细任务调度，按小时显示
 
-## 安装
+### 🔗 任务依赖管理
+- **完成-开始 (FS)** - 前置任务完成后，后续任务才能开始
+- **开始-开始 (SS)** - 两个任务同时开始
+- **完成-完成 (FF)** - 两个任务同时完成
+- **开始-完成 (SF)** - 后续任务开始后，前置任务才能完成
+
+### 💎 里程碑功能
+- 菱形图标标记项目关键节点
+- 支持作为依赖关系的源和目标
+- 自动识别（开始时间=结束时间）或手动标记
+
+### 🎨 主题系统
+- 内置 5 种精美主题（Metro/Dark/Modern/Classic/Colorful）
+- 支持深色模式，护眼舒适
+- 完整的 CSS 变量支持，轻松自定义主题
+- 主题设置自动保存到浏览器
+
+### 🌍 国际化支持
+- 内置 8 种语言（中/英/日/韩/法/德/西/俄）
+- 即时切换，无需刷新页面
+- 所有界面元素完整翻译
+- 时间轴表头自动本地化
+- 易于扩展新语言
+
+### 🖱️ 交互操作
+- **拖拽移动** - 修改任务开始和结束日期
+- **调整大小** - 拖拽边缘调整任务时长
+- **进度调整** - 拖拽三角滑块调整完成度
+- **父子联动** - 父任务移动时子任务自动跟随
+- **分割面板** - 可调整左右区域比例
+
+### ⚡ 性能优化
+- 虚拟滚动渲染，支持海量任务数据
+- 节流更新机制，避免频繁重绘
+- 计算结果缓存，提升响应速度
+- 按需渲染连线，优化绘制性能
+
+## 🚀 安装使用
 
 ### 方式一：通过 npm 安装（推荐）
 
 ```bash
-# 使用 npm 安装
+# 使用 npm
 npm install @lee576/vue3-gantt
 
 # 或使用 yarn
@@ -64,8 +105,9 @@ pnpm add @lee576/vue3-gantt
 ### 方式二：从源码构建
 
 ```bash
-# 克隆项目
+# 克隆仓库
 git clone https://github.com/lee576/vue3-gantt.git
+cd vue3-gantt
 
 # 安装依赖
 npm install
@@ -74,151 +116,118 @@ npm install
 npm run dev
 ```
 
-## 依赖项
+## 📚 快速开始
 
-- @vueuse/core ^13.0.0
-- dayjs ^1.11.13
-- interactjs ^1.10.27
-- svg.js ^2.7.1
-- vue ^3.5.13
-- zod ^3.24.2
-
-## 基本使用
-
-### 1. 引入组件和样式
+### 1️⃣ 引入组件
 
 ```typescript
-import { ref, onMounted } from 'vue';
-import dayjs from 'dayjs';
-// 引入甘特图组件和类型
+import { createApp } from 'vue';
+import Gantt from '@lee576/vue3-gantt';
+import '@lee576/vue3-gantt/style.css';
+
+const app = createApp(App);
+app.use(Gantt); // 全局注册
+```
+
+或在组件中单独引入：
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
 import Gantt, { 
   type DataConfig, 
   type StyleConfig, 
-  type EventConfig 
+  type EventConfig,
+  LinkType 
 } from '@lee576/vue3-gantt';
-// 引入样式文件
 import '@lee576/vue3-gantt/style.css';
-import { LinkType } from '@lee576/vue3-gantt';
+</script>
 ```
 
-### 2. 配置容器高度（重要！）
+### 2️⃣ 配置容器高度（重要！）
 
-**组件必须有明确的容器高度才能正常显示**。以下是几种推荐的配置方式：
+> ⚠️ **注意**：组件**必须有明确的容器高度**才能正常显示。
 
-#### 方式 1：使用视口高度（最简单）
+**推荐方法（任选其一）：**
 
 ```vue
+<!-- 方法1：使用视口高度（最简单） -->
 <template>
-  <div class="gantt-container">
-    <gantt 
-      :styleConfig="styleConfig" 
-      :dataConfig="dataConfig" 
-      :eventConfig="eventConfig"
-    />
+  <div style="height: 100vh;">
+    <gantt :dataConfig="dataConfig" :styleConfig="styleConfig" />
   </div>
 </template>
 
-<style scoped>
-.gantt-container {
-  height: 100vh; /* 直接使用视口高度 */
-}
-</style>
-```
-
-#### 方式 2：使用百分比高度（需要配置 html/body）
-
-```vue
+<!-- 方法2：使用固定高度 -->
 <template>
-  <div id="app">
-    <gantt 
-      :styleConfig="styleConfig" 
-      :dataConfig="dataConfig" 
-      :eventConfig="eventConfig"
-    />
+  <div style="height: 800px;">
+    <gantt :dataConfig="dataConfig" :styleConfig="styleConfig" />
   </div>
 </template>
 
-<style>
-/* 全局样式：确保 html 和 body 有高度 */
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-#app {
-  height: 100%; /* 现在 100% 就能正常工作了 */
-}
-</style>
-```
-
-#### 方式 3：使用固定像素值
-
-```vue
-<style scoped>
-.gantt-container {
-  height: 800px; /* 固定高度 */
-}
-</style>
-```
-
-#### 方式 4：使用 Flex 布局
-
-```vue
+<!-- 方法3：Flex 布局 -->
 <template>
-  <div class="page-wrapper">
-    <div class="header">Header</div>
-    <div class="gantt-container">
-      <gantt ... />
+  <div style="display: flex; flex-direction: column; height: 100vh;">
+    <div>Header</div>
+    <div style="flex: 1;"> <!-- 自动填充剩余空间 -->
+      <gantt :dataConfig="dataConfig" :styleConfig="styleConfig" />
     </div>
   </div>
 </template>
-
-<style scoped>
-.page-wrapper {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
-.gantt-container {
-  flex: 1; /* 自动填充剩余空间 */
-}
-</style>
 ```
 
-### 3. 配置组件
+<details>
+<summary>💡 为什么需要设置高度？</summary>
+
+组件内部使用了 `height: 100%`，根据 CSS 规范，百分比高度需要父元素有明确的高度才能计算。如果父容器没有设置高度，组件会高度坑塌。
+
+**解决方案**：
+- 使用 `100vh`（视口高度）
+- 使用固定像素值（如 `800px`）
+- 使用 Flex 布局的 `flex: 1`
+- 配置 `html, body { height: 100%; }` 后使用 `100%`
+
+</details>
+
+### 3️⃣ 基本配置
 
 ```vue
 <template>
-  <gantt 
-    :styleConfig="styleConfig" 
-    :dataConfig="dataConfig" 
-    :eventConfig="eventConfig"
-  />
+  <div style="height: 100vh;">
+    <gantt 
+      :dataConfig="dataConfig" 
+      :styleConfig="styleConfig" 
+      :eventConfig="eventConfig"
+    />
+  </div>
 </template>
-```
 
-```typescript
-// 样式配置
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import dayjs from 'dayjs';
+import Gantt, { 
+  type DataConfig, 
+  type StyleConfig, 
+  type EventConfig,
+  LinkType 
+} from '@lee576/vue3-gantt';
+import '@lee576/vue3-gantt/style.css';
+
+// 🎨 样式配置
 const styleConfig = ref<StyleConfig>({
   headersHeight: 100,  // 表头高度
   rowHeight: 60,       // 行高
   setBarColor: (row) => {
     // 自定义任务条颜色
-    const colorMap = {
-      '紧急': 'red',
-      '重要': 'blue',
-      '一般': 'gray'
-    };
-    return colorMap[row.level] ?? 'black';
+    const colorMap = { '紧急': '#ef4444', '重要': '#3b82f6', '一般': '#6b7280' };
+    return colorMap[row.level] ?? '#000';
   }
 });
 
-// 数据配置
+// 📊 数据配置
 const dataConfig = ref<DataConfig>({
-  queryStartDate: '',
-  queryEndDate: '',
+  queryStartDate: dayjs().startOf('month').format('YYYY-MM-DD'),
+  queryEndDate: dayjs().endOf('month').format('YYYY-MM-DD'),
   dataSource: [],
   dependencies: [],
   mapFields: {
@@ -233,40 +242,35 @@ const dataConfig = ref<DataConfig>({
   },
   taskHeaders: [
     { title: '序号', width: 80, property: 'no', show: true },
-    { title: '任务名称', width: 190, property: 'task', show: true },
+    { title: '任务名称', width: 200, property: 'task', show: true },
     { title: '优先级', width: 90, property: 'priority', show: true },
     { title: '开始时间', width: 150, property: 'startdate', show: true },
     { title: '结束时间', width: 150, property: 'enddate', show: true },
-    { title: '耗时', width: 90, property: 'takestime', show: true }
   ]
 });
 
-// 事件配置
+// ⚡ 事件配置
 const eventConfig = ref<EventConfig>({
-  addRootTask: (row) => console.log('添加根任务', row),
-  addSubTask: (task) => console.log('添加子任务', task),
-  removeTask: (task) => console.log('删除任务', task),
-  editTask: (task) => console.log('编辑任务', task),
   queryTask: async (startDate, endDate, mode) => {
     // 查询任务数据
-    dataConfig.value.dataSource = await fetchTasks(startDate, endDate);
+    const tasks = await fetchTasks(startDate, endDate);
+    dataConfig.value.dataSource = tasks;
   },
   barDate: (id, startDate, endDate) => {
-    console.log('任务日期变更', id, startDate, endDate);
-  },
-  allowChangeTaskDate: (allow) => {
-    console.log('允许修改日期', allow);
+    console.log('任务日期变更', { id, startDate, endDate });
   },
   updateProgress: (detail) => {
     console.log('进度更新', detail);
   }
 });
 
+// 初始化加载数据
 onMounted(() => {
-  const startDate = dayjs().startOf('month').format('YYYY-MM-DD');
-  const endDate = dayjs().endOf('month').format('YYYY-MM-DD');
-  eventConfig.value.queryTask(startDate, endDate, '月');
+  const start = dayjs().startOf('month').format('YYYY-MM-DD');
+  const end = dayjs().endOf('month').format('YYYY-MM-DD');
+  eventConfig.value.queryTask?.(start, end, '月');
 });
+</script>
 ```
 
 ## 配置详解
