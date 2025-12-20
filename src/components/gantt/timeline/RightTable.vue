@@ -66,6 +66,13 @@ export default defineComponent({
             tableBar.value.scrollLeft = monthsDiff * Number(scale.value);
             break;
           case '月':
+            // 月模式：滚动到当前月
+            const ganttStartMonth2 = dayjs(startGanttDate.value).startOf('month');
+            const currentMonth2 = dayjs().startOf('month');
+            const monthsDiff2 = (currentMonth2.year() - ganttStartMonth2.year()) * 12 + 
+                               (currentMonth2.month() - ganttStartMonth2.month());
+            tableBar.value.scrollLeft = monthsDiff2 * Number(scale.value);
+            break;
           case '日':
             tableBar.value.scrollLeft = Number(dayjs().diff(dayjs(startGanttDate.value), 'day')) * Number(scale.value);
             break;

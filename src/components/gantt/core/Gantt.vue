@@ -329,8 +329,8 @@ export default defineComponent({
         // 定义响应式数据
         const initData = ref<any[]>([]);
         const paneLengthPercent = ref(35);
-        const buttonClass = ref(['button', 'button is-active', 'button', 'button', 'button']);
-        const mode = ref('月');
+        const buttonClass = ref(['button', 'button', 'button', 'button is-active', 'button']);
+        const mode = ref('日');
         // 使用 dataConfig 中的开始/结束日期，如果没有则使用当月第一天/最后一天
         const startDate = ref(
             props.dataConfig.queryStartDate || 
@@ -446,71 +446,61 @@ export default defineComponent({
                     break;
                 }
                 case '月': {
-                    scale.value = 80;
-                    const months: string[] = [];
-                    let current = start.startOf('month');
-                    while (current.isBefore(end) || current.isSame(end, 'month')) {
-                        months.push(current.format('YYYY-MM-DD'));
-                        current = current.add(1, 'month');
+                    scale.value = 120; // 与周模式保持一致
+                    let currentDate = start.startOf('month'); // 从月初开始
+                    const endMonth = end.endOf('month'); // 到月末结束
+                    
+                    // 生成年份表头
+                    const years: number[] = [];
+                    let yearCurrent = currentDate.startOf('year');
+                    while (yearCurrent.isBefore(endMonth) || yearCurrent.isSame(endMonth, 'year')) {
+                        years.push(yearCurrent.year());
+                        yearCurrent = yearCurrent.add(1, 'year');
                     }
-                    if (!months.some((item) => dayjs(item).format('YYYY-MM') === end.format('YYYY-MM'))) {
-                        months.push(end.format('YYYY-MM-DD'));
-                    }
-                    // 时间跨度只有一个月
-                    if (months.length === 1) {
-                        const days = end.diff(start, 'day') + 1;
-                        monthHeaders.value.push({
-                            title: start.locale(getDayjsLocale()).format('MMMM'),
-                            width: days * scale.value
-                        });
-                    } else {
-                        months.forEach((month, index) => {
-                            if (index === 0) {
-                                const endOfMonth = start.endOf('month').format('YYYY-MM-DD');
-                                const days = dayjs(endOfMonth).diff(start, 'day') + 1;
-                                monthHeaders.value.push({
-                                    title: dayjs(month).locale(getDayjsLocale()).format('MMMM'),
-                                    width: days * scale.value
-                                });
-                            } else if (index === months.length - 1) {
-                                const startOfMonth = end.startOf('month').format('YYYY-MM-DD');
-                                const days = end.diff(dayjs(startOfMonth), 'day') + 1;
-                                monthHeaders.value.push({
-                                    title: dayjs(month).locale(getDayjsLocale()).format('MMMM'),
-                                    width: days * scale.value
-                                });
-                            } else {
-                                const days = dayjs(month, 'YYYY-MM').daysInMonth();
-                                monthHeaders.value.push({
-                                    title: dayjs(month).locale(getDayjsLocale()).format('MMMM'),
-                                    width: days * scale.value
-                                });
+                    
+                    years.forEach((year) => {
+                        const yearStart = dayjs().year(year).startOf('year');
+                        const yearEnd = yearStart.endOf('year');
+                        
+                        // 计算该年包含的月数
+                        let monthCount = 0;
+                        let monthCurrent = currentDate.clone();
+                        while (monthCurrent.isBefore(endMonth) || monthCurrent.isSame(endMonth, 'month')) {
+                            // 检查这个月是否属于当前年份
+                            if (monthCurrent.year() === year) {
+                                monthCount++;
                             }
-                        });
-                    }
-
-                    let currentDate = start;
-                    while (currentDate.isBefore(end) || currentDate.isSame(end, 'day')) {
-                        // 中日韩语言需要添加“日”后缀
-                        const needsDaySuffix = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
-                        const caption = needsDaySuffix
-                            ? currentDate.format('DD') + '日'
-                            : currentDate.format('DD');
-                        const fullDate = currentDate.format('YYYY-MM-DD');
-                        const week = currentDate.locale(getDayjsLocale()).format('dddd');
+                            monthCurrent = monthCurrent.add(1, 'month');
+                        }
+                        
+                        if (monthCount > 0) {
+                            // 根据语言选择年份格式
+                            const isAsian = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
+                            const yearTitle = isAsian
+                                ? year + '年'
+                                : year.toString();
+                            monthHeaders.value.push({
+                                title: yearTitle,
+                                width: monthCount * scale.value
+                            });
+                        }
+                    });
+                    
+                    // 生成月份表头（显示月份名称）
+                    currentDate = start.startOf('month'); // 重置
+                    while (currentDate.isBefore(endMonth) || currentDate.isSame(endMonth, 'month')) {
+                        // 月份表头
+                        const monthTitle = currentDate.locale(getDayjsLocale()).format('MMM');
                         weekHeaders.value.push({
-                            title: week,
+                            title: monthTitle,
                             width: scale.value,
-                            fulldate: fullDate
+                            fulldate: currentDate.format('YYYY-MM-DD')
                         });
-                        dayHeaders.value.push({
-                            title: caption,
-                            width: scale.value,
-                            fulldate: fullDate
-                        });
-                        currentDate = currentDate.add(1, 'day');
+                        
+                        currentDate = currentDate.add(1, 'month');
                     }
-                    timelineCellCount.value = dayHeaders.value.length;
+                    
+                    timelineCellCount.value = weekHeaders.value.length;
                     break;
                 }
                 case '周': {
@@ -583,26 +573,55 @@ export default defineComponent({
                 case '日': {
                     scale.value = 80;
                     let currentDate = start;
+                                    
+                    // 收集所有日期
+                    const dates: dayjs.Dayjs[] = [];
                     while (currentDate.isBefore(end) || currentDate.isSame(end, 'day')) {
-                        // 中日韩语言需要添加“日”后缀
+                        dates.push(currentDate);
+                        currentDate = currentDate.add(1, 'day');
+                    }
+                                    
+                    // 生成年份表头
+                    const years = [...new Set(dates.map(d => d.year()))];
+                    years.forEach(year => {
+                        const yearDates = dates.filter(d => d.year() === year);
+                        const isAsian = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
+                        monthHeaders.value.push({
+                            title: year + (isAsian ? '年' : ''),
+                            width: yearDates.length * scale.value
+                        });
+                    });
+                                    
+                    // 生成月份表头
+                    const months = new Map<string, dayjs.Dayjs[]>();
+                    dates.forEach(d => {
+                        const key = `${d.year()}-${d.month()}`;
+                        if (!months.has(key)) months.set(key, []);
+                        months.get(key)!.push(d);
+                    });
+                    months.forEach((monthDates, _key) => {
+                        const monthTitle = monthDates[0].locale(getDayjsLocale()).format('MMM');
+                        weekHeaders.value.push({
+                            title: monthTitle,
+                            width: monthDates.length * scale.value,
+                            fulldate: monthDates[0].format('YYYY-MM-DD')
+                        });
+                    });
+                                    
+                    // 生成日期表头
+                    dates.forEach(d => {
                         const needsDaySuffix = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
                         const caption = needsDaySuffix
-                            ? currentDate.locale(getDayjsLocale()).format('MMMM DD') + '日'
-                            : currentDate.locale(getDayjsLocale()).format('MMMM DD');
-                        const fullDate = currentDate.format('YYYY-MM-DD');
-                        const week = currentDate.locale(getDayjsLocale()).format('dddd');
-                        weekHeaders.value.push({
-                            title: week,
-                            width: scale.value,
-                            fulldate: fullDate
-                        });
+                            ? d.format('DD') + '日'
+                            : d.format('DD');
+                        const fullDate = d.format('YYYY-MM-DD');
                         dayHeaders.value.push({
                             title: caption,
                             width: scale.value,
                             fulldate: fullDate
                         });
-                        currentDate = currentDate.add(1, 'day');
-                    }
+                    });
+                                    
                     timelineCellCount.value = dayHeaders.value.length;
                     break;
                 }
@@ -879,7 +898,7 @@ export default defineComponent({
             RecursionData('0', dataSource.value, level);
             mutations.setTasks(initData.value);
             nextTick(() => {
-                mode.value = '月';
+                // mode.value 已在初始化时设置为 '日'，不再在这里覆盖
                 mutations.setMode(mode.value);
                 // 初始化时生成时间轴表头
                 setTimeLineHeaders(mode.value);
