@@ -57,6 +57,14 @@ export default defineComponent({
     const scrollToToday = () => {
       if (tableBar.value) {
         switch (mode.value) {
+          case '季度':
+            // 季度模式：滚动到当前月
+            const ganttStartMonth = dayjs(startGanttDate.value).startOf('month');
+            const currentMonth = dayjs().startOf('month');
+            const monthsDiff = (currentMonth.year() - ganttStartMonth.year()) * 12 + 
+                               (currentMonth.month() - ganttStartMonth.month());
+            tableBar.value.scrollLeft = monthsDiff * Number(scale.value);
+            break;
           case '月':
           case '日':
             tableBar.value.scrollLeft = Number(dayjs().diff(dayjs(startGanttDate.value), 'day')) * Number(scale.value);
@@ -110,10 +118,14 @@ export default defineComponent({
   overflow-y: hidden;
   /* 只添加右边框，顶部边框由 Gantt.vue toolbar border-bottom 提供 */
   border-right: 1px solid var(--border, #d0d0d0);
+  /* 添加背景色填充右侧空白区域 */
+  background-color: var(--bg-content, #ffffff);
 
   .header {
     /* width 由内联样式设置为 fit-content，确保与内容宽度一致 */
     border: 0px;
+    /* 表头也需要背景色 */
+    background-color: var(--bg-secondary, #f5f5f5);
   }
 
   .content {

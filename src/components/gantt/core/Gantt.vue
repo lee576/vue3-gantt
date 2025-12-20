@@ -8,7 +8,17 @@
                 <DatePicker :date="endDate" :min-date="minEndDate" :max-date="maxEndDate" @confirm="confirmEnd" />
             </div>
             <div class="buttonGroup">
-                <div :class="buttonClass[0]" class="metro-btn" @click="timeMode('月')">
+                <div :class="buttonClass[0]" class="metro-btn" @click="timeMode('季度')">
+                    <div class="metro-content">
+                        <div class="metro-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/>
+                            </svg>
+                        </div>
+                        <div class="metro-text">{{ t('viewMode.quarter') }}</div>
+                    </div>
+                </div>
+                <div :class="buttonClass[1]" class="metro-btn" @click="timeMode('月')">
                     <div class="metro-content">
                         <div class="metro-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -18,7 +28,7 @@
                         <div class="metro-text">{{ t('viewMode.month') }}</div>
                     </div>
                 </div>
-                <div :class="buttonClass[1]" class="metro-btn" @click="timeMode('周')">
+                <div :class="buttonClass[2]" class="metro-btn" @click="timeMode('周')">
                     <div class="metro-content">
                         <div class="metro-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -28,7 +38,7 @@
                         <div class="metro-text">{{ t('viewMode.week') }}</div>
                     </div>
                 </div>
-                <div :class="buttonClass[2]" class="metro-btn" @click="timeMode('日')">
+                <div :class="buttonClass[3]" class="metro-btn" @click="timeMode('日')">
                     <div class="metro-content">
                         <div class="metro-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -38,7 +48,7 @@
                         <div class="metro-text">{{ t('viewMode.day') }}</div>
                     </div>
                 </div>
-                <div :class="buttonClass[3]" class="metro-btn" @click="timeMode('时')">
+                <div :class="buttonClass[4]" class="metro-btn" @click="timeMode('时')">
                     <div class="metro-content">
                         <div class="metro-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -129,7 +139,9 @@
 import { ref, defineComponent, computed, provide, onBeforeMount, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import quarterOfYear from 'dayjs/plugin/quarterOfYear';
 import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/zh-tw';
 import 'dayjs/locale/en';
 import 'dayjs/locale/ja';
 import 'dayjs/locale/ko';
@@ -138,6 +150,7 @@ import 'dayjs/locale/de';
 import 'dayjs/locale/es';
 import 'dayjs/locale/ru';
 dayjs.extend(customParseFormat);
+dayjs.extend(quarterOfYear);
 
 import { Symbols } from '../state/Symbols';
 import { linkDataManager, useLinkConfig } from '../composables/LinkConfig';
@@ -277,6 +290,7 @@ export default defineComponent({
         const getDayjsLocale = () => {
             const localeMap: Record<string, string> = {
                 'zh-CN': 'zh-cn',
+                'zh-TW': 'zh-tw',
                 'en-US': 'en',
                 'ja-JP': 'ja',
                 'ko-KR': 'ko',
@@ -315,7 +329,7 @@ export default defineComponent({
         // 定义响应式数据
         const initData = ref<any[]>([]);
         const paneLengthPercent = ref(35);
-        const buttonClass = ref(['button is-active', 'button', 'button', 'button']);
+        const buttonClass = ref(['button', 'button is-active', 'button', 'button', 'button']);
         const mode = ref('月');
         // 使用 dataConfig 中的开始/结束日期，如果没有则使用当月第一天/最后一天
         const startDate = ref(
@@ -378,6 +392,59 @@ export default defineComponent({
             monthHeaders.value = [];
             hourHeaders.value = [];
             switch (newVal) {
+                case '季度': {
+                    scale.value = 120; // 每月120像素
+                    
+                    // 收集所有月份
+                    const months: dayjs.Dayjs[] = [];
+                    let monthCurrent = start.startOf('month');
+                    while (monthCurrent.isBefore(end) || monthCurrent.isSame(end, 'month')) {
+                        months.push(monthCurrent);
+                        monthCurrent = monthCurrent.add(1, 'month');
+                    }
+                    
+                    // 生成年份表头（使用 monthHeaders 显示年份）
+                    const years = [...new Set(months.map(m => m.year()))];
+                    years.forEach(year => {
+                        const yearMonths = months.filter(m => m.year() === year);
+                        const isAsian = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
+                        monthHeaders.value.push({
+                            title: year + (isAsian ? '年' : ''),
+                            width: yearMonths.length * scale.value
+                        });
+                    });
+                    
+                    // 生成季度表头（使用 weekHeaders 显示季度）
+                    const quarters = new Map<string, dayjs.Dayjs[]>();
+                    months.forEach(m => {
+                        const key = `${m.year()}-Q${m.quarter()}`;
+                        if (!quarters.has(key)) quarters.set(key, []);
+                        quarters.get(key)!.push(m);
+                    });
+                    quarters.forEach((qMonths, key) => {
+                        const q = parseInt(key.split('-Q')[1]);
+                        const isAsian = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
+                        const quarterTitle = isAsian ? `第${q}季度` : `Q${q}`;
+                        weekHeaders.value.push({
+                            title: quarterTitle,
+                            width: qMonths.length * scale.value,
+                            fulldate: qMonths[0].format('YYYY-MM-DD')
+                        });
+                    });
+                    
+                    // 生成月份表头（使用 dayHeaders 显示月份，每月一个单元格）
+                    months.forEach(m => {
+                        dayHeaders.value.push({
+                            title: m.locale(getDayjsLocale()).format('MMM'),
+                            width: scale.value,
+                            fulldate: m.format('YYYY-MM-DD')
+                        });
+                    });
+                    
+                    // 单元格数量 = 月份数
+                    timelineCellCount.value = months.length;
+                    break;
+                }
                 case '月': {
                     scale.value = 80;
                     const months: string[] = [];
@@ -425,7 +492,7 @@ export default defineComponent({
                     let currentDate = start;
                     while (currentDate.isBefore(end) || currentDate.isSame(end, 'day')) {
                         // 中日韩语言需要添加“日”后缀
-                        const needsDaySuffix = ['zh-CN', 'ja-JP', 'ko-KR'].includes(locale.value);
+                        const needsDaySuffix = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
                         const caption = needsDaySuffix
                             ? currentDate.format('DD') + '日'
                             : currentDate.format('DD');
@@ -480,7 +547,7 @@ export default defineComponent({
                         
                         if (weekCount > 0) {
                             // 根据语言选择月份格式
-                            const isAsian = ['zh-CN', 'ja-JP', 'ko-KR'].includes(locale.value);
+                            const isAsian = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
                             const monthTitle = isAsian
                                 ? monthStart.format('YYYY年MM月')
                                 : monthStart.locale(getDayjsLocale()).format('MMMM YYYY');
@@ -497,7 +564,7 @@ export default defineComponent({
                         const weekEnd = currentDate.endOf('isoWeek');
                         
                         // 周表头 - 显示周数和日期范围
-                        const isAsian = ['zh-CN', 'ja-JP', 'ko-KR'].includes(locale.value);
+                        const isAsian = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
                         const weekTitle = isAsian
                             ? `第${currentDate.isoWeek()}周 (${weekStart.format('MM/DD')}-${weekEnd.format('MM/DD')})`
                             : `Week ${currentDate.isoWeek()} (${weekStart.format('MM/DD')}-${weekEnd.format('MM/DD')})`;
@@ -518,7 +585,7 @@ export default defineComponent({
                     let currentDate = start;
                     while (currentDate.isBefore(end) || currentDate.isSame(end, 'day')) {
                         // 中日韩语言需要添加“日”后缀
-                        const needsDaySuffix = ['zh-CN', 'ja-JP', 'ko-KR'].includes(locale.value);
+                        const needsDaySuffix = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
                         const caption = needsDaySuffix
                             ? currentDate.locale(getDayjsLocale()).format('MMMM DD') + '日'
                             : currentDate.locale(getDayjsLocale()).format('MMMM DD');
@@ -546,7 +613,7 @@ export default defineComponent({
                     const endOfEndDay = end.endOf('day');
                     while (currentDate.isBefore(endOfEndDay)) {
                         // 中日韩语言需要添加“日”后缀
-                        const needsDaySuffix = ['zh-CN', 'ja-JP', 'ko-KR'].includes(locale.value);
+                        const needsDaySuffix = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
                         const caption = needsDaySuffix
                             ? currentDate.locale(getDayjsLocale()).format('MMMM DD') + '日'
                             : currentDate.locale(getDayjsLocale()).format('MMMM DD');
@@ -564,7 +631,7 @@ export default defineComponent({
                         });
                         for (let i = 0; i <= 23; i++) {
                             // 中日韩语言使用“点”，其他语言使用 :00 格式
-                            const needsHourSuffix = ['zh-CN', 'ja-JP', 'ko-KR'].includes(locale.value);
+                            const needsHourSuffix = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
                             hourHeaders.value.push({
                                 title: needsHourSuffix ? i + '点' : `${i}:00`,
                                 width: scale.value
@@ -619,20 +686,24 @@ export default defineComponent({
             }
 
             switch (_mode) {
-                case '月': {
+                case '季度': {
                     buttonClass.value[0] = 'button is-active';
                     break;
                 }
-                case '周': {
+                case '月': {
                     buttonClass.value[1] = 'button is-active';
                     break;
                 }
-                case '日': {
+                case '周': {
                     buttonClass.value[2] = 'button is-active';
                     break;
                 }
-                case '时': {
+                case '日': {
                     buttonClass.value[3] = 'button is-active';
+                    break;
+                }
+                case '时': {
+                    buttonClass.value[4] = 'button is-active';
                     break;
                 }
             }

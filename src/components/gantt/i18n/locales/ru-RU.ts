@@ -60,6 +60,7 @@ export default {
   
   // View Mode
   viewMode: {
+    quarter: 'Квартал',
     month: 'Месяц',
     week: 'Неделя',
     day: 'День',

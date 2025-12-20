@@ -60,6 +60,7 @@ export default {
   
   // View Mode
   viewMode: {
+    quarter: '四半期',
     month: '月',
     week: '週',
     day: '日',

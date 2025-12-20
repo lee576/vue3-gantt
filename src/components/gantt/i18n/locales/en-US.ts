@@ -59,6 +59,7 @@ export default {
   
   // View Mode
   viewMode: {
+    quarter: 'Quarter',
     month: 'Month',
     week: 'Week',
     day: 'Day',

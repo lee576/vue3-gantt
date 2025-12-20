@@ -5,6 +5,7 @@
 
 import { ref, computed } from 'vue';
 import zhCN from './locales/zh-CN';
+import zhTW from './locales/zh-TW';
 import enUS from './locales/en-US';
 import jaJP from './locales/ja-JP';
 import koKR from './locales/ko-KR';
@@ -14,7 +15,7 @@ import esES from './locales/es-ES';
 import ruRU from './locales/ru-RU';
 
 // 支持的语言类型
-export type Locale = 'zh-CN' | 'en-US' | 'ja-JP' | 'ko-KR' | 'fr-FR' | 'de-DE' | 'es-ES' | 'ru-RU';
+export type Locale = 'zh-CN' | 'zh-TW' | 'en-US' | 'ja-JP' | 'ko-KR' | 'fr-FR' | 'de-DE' | 'es-ES' | 'ru-RU';
 
 // 语言包类型
 export type Messages = typeof zhCN;
@@ -22,6 +23,7 @@ export type Messages = typeof zhCN;
 // 所有语言包
 const messages: Record<Locale, Messages> = {
   'zh-CN': zhCN,
+  'zh-TW': zhTW,
   'en-US': enUS,
   'ja-JP': jaJP,
   'ko-KR': koKR,
@@ -45,8 +47,10 @@ export function detectBrowserLocale(): Locale {
     'zh-CN': 'zh-CN',
     'zh-Hans': 'zh-CN',
     'zh-Hans-CN': 'zh-CN',
-    'zh-TW': 'zh-CN',
-    'zh-HK': 'zh-CN',
+    'zh-TW': 'zh-TW',
+    'zh-Hant': 'zh-TW',
+    'zh-Hant-TW': 'zh-TW',
+    'zh-HK': 'zh-TW',
     'en': 'en-US',
     'en-US': 'en-US',
     'en-GB': 'en-US',
@@ -136,6 +140,7 @@ export function getLocale(): Locale {
 export function getLocales(): { value: Locale; label: string }[] {
   return [
     { value: 'zh-CN', label: '🇨🇳 简体中文' },
+    { value: 'zh-TW', label: '🇹🇼 繁體中文' },
     { value: 'en-US', label: '🇺🇸 English' },
     { value: 'ja-JP', label: '🇯🇵 日本語' },
     { value: 'ko-KR', label: '🇰🇷 한국어' },

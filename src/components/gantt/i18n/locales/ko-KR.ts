@@ -60,6 +60,7 @@ export default {
   
   // View Mode
   viewMode: {
+    quarter: '분기',
     month: '월',
     week: '주',
     day: '일',

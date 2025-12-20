@@ -91,6 +91,10 @@ export default defineComponent({
                 }
             }
             switch (mode.value) {
+                case '季度': {
+                    // 季度模式按月计算，不显示周末背景色
+                    return bgContent;
+                }
                 case '月': case '日': {
                     let currentDate = dayjs(props.startGanttDate).add(count, 'days');
                     return (currentDate.isoWeekday() === 7 || currentDate.isoWeekday() === 1) ? bgSecondary : bgContent;
@@ -105,6 +109,24 @@ export default defineComponent({
         const drowBar = (barElement: SVGSVGElement) => {
             let dataX = 0;
             switch (mode.value) {
+                case '季度': {
+                    // 季度模式：按月计算位置和宽度
+                    const ganttStartMonth = dayjs(props.startGanttDate).startOf('month');
+                    const taskStartMonth = dayjs(props.row[mapFields.value.startdate]).startOf('month');
+                    const taskEndMonth = dayjs(props.row[mapFields.value.enddate]).startOf('month');
+                    
+                    // 计算从甘特图开始月到任务开始月的月数
+                    let fromStartMonths = (taskStartMonth.year() - ganttStartMonth.year()) * 12 + 
+                                          (taskStartMonth.month() - ganttStartMonth.month());
+                    dataX = scale.value * fromStartMonths;
+                    
+                    // 计算任务跨越的月数
+                    let spendMonths = (taskEndMonth.year() - taskStartMonth.year()) * 12 + 
+                                      (taskEndMonth.month() - taskStartMonth.month()) + 1;
+                    oldBarWidth.value = spendMonths * scale.value;
+                    props.row[mapFields.value.takestime] = spendMonths + '月';
+                    break;
+                }
                 case '月': case '日': {
                     let fromPlanStartDays = dayjs(props.row[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days');
                     dataX = scale.value * fromPlanStartDays;
@@ -367,7 +389,14 @@ export default defineComponent({
                             const parentTask = store.tasks.find(t => String(t[mapFields.value.id]) === String(currentParentId));
                             if (parentTask) {
                                 let parentStartX = 0;
-                                if (mode.value === '月' || mode.value === '日') {
+                                if (mode.value === '季度') {
+                                    // 季度模式按月计算
+                                    const ganttStartMonth = dayjs(props.startGanttDate).startOf('month');
+                                    const parentStartMonth = dayjs(parentTask[mapFields.value.startdate]).startOf('month');
+                                    const monthsDiff = (parentStartMonth.year() - ganttStartMonth.year()) * 12 + 
+                                                       (parentStartMonth.month() - ganttStartMonth.month());
+                                    parentStartX = monthsDiff * scale.value;
+                                } else if (mode.value === '月' || mode.value === '日') {
                                     parentStartX = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days') * scale.value;
                                 } else if (mode.value === '周') {
                                     const ganttStartWeek = dayjs(props.startGanttDate).startOf('isoWeek');
@@ -384,12 +413,21 @@ export default defineComponent({
                         target.setAttribute('data-x', alignedX.toString());
                         
                         const cellsMoved = Math.round((alignedX - oldBarDataX.value) / scale.value);
-                        let daysOffset = 0, hoursOffset = 0;
-                        if (mode.value === '月' || mode.value === '日') daysOffset = cellsMoved;
+                        let daysOffset = 0, hoursOffset = 0, monthsOffset = 0;
+                        if (mode.value === '季度') monthsOffset = cellsMoved;
+                        else if (mode.value === '月' || mode.value === '日') daysOffset = cellsMoved;
                         else if (mode.value === '周') daysOffset = cellsMoved * 7;
                         else if (mode.value === '时') hoursOffset = cellsMoved;
                         
-                        if (mode.value === '时') {
+                        if (mode.value === '季度') {
+                            props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(monthsOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
+                            props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate]).add(monthsOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
+                            const taskStartMonth = dayjs(props.row[mapFields.value.startdate]).startOf('month');
+                            const taskEndMonth = dayjs(props.row[mapFields.value.enddate]).startOf('month');
+                            const spendMonths = (taskEndMonth.year() - taskStartMonth.year()) * 12 + 
+                                               (taskEndMonth.month() - taskStartMonth.month()) + 1;
+                            props.row[mapFields.value.takestime] = spendMonths + '月';
+                        } else if (mode.value === '时') {
                             props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(hoursOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
                             props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate]).add(hoursOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
                             props.row[mapFields.value.takestime] = (dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'hours') + 1) + '小时';
@@ -419,11 +457,14 @@ export default defineComponent({
                             return children;
                         };
                         const childTasks = getAllChildren(currentTaskId, store.tasks);
-                        const actualOffset = mode.value === '时' ? hoursOffset : daysOffset;
+                        const actualOffset = mode.value === '季度' ? monthsOffset : (mode.value === '时' ? hoursOffset : daysOffset);
                         if (actualOffset > 0) {
                             for (const child of childTasks) {
                                 if (dayjs(child[mapFields.value.startdate]).isBefore(newParentStartDate)) {
-                                    if (mode.value === '时') {
+                                    if (mode.value === '季度') {
+                                        child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(monthsOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
+                                        child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(monthsOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
+                                    } else if (mode.value === '时') {
                                         child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(hoursOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
                                         child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(hoursOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
                                     } else {
@@ -467,7 +508,13 @@ export default defineComponent({
                                 const parentTask = store.tasks.find(t => String(t[mapFields.value.id]) === String(currentParentId));
                                 if (parentTask) {
                                     let parentStartX = 0;
-                                    if (mode.value === '月' || mode.value === '日') {
+                                    if (mode.value === '季度') {
+                                        const ganttStartMonth = dayjs(props.startGanttDate).startOf('month');
+                                        const parentStartMonth = dayjs(parentTask[mapFields.value.startdate]).startOf('month');
+                                        const monthsDiff = (parentStartMonth.year() - ganttStartMonth.year()) * 12 + 
+                                                           (parentStartMonth.month() - ganttStartMonth.month());
+                                        parentStartX = monthsDiff * scale.value;
+                                    } else if (mode.value === '月' || mode.value === '日') {
                                         parentStartX = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days') * scale.value;
                                     } else if (mode.value === '周') {
                                         const ganttStartWeek = dayjs(props.startGanttDate).startOf('isoWeek');
@@ -496,7 +543,13 @@ export default defineComponent({
                         const endCellIndex = startCellIndex + widthCells - 1;
                         let newStartDate: string, newEndDate: string;
                         
-                        if (mode.value === '月' || mode.value === '日') {
+                        if (mode.value === '季度') {
+                            // 季度模式：按月计算
+                            const ganttStartMonth = dayjs(props.startGanttDate).startOf('month');
+                            newStartDate = ganttStartMonth.add(startCellIndex, 'months').format('YYYY-MM-DD HH:mm:ss');
+                            newEndDate = ganttStartMonth.add(endCellIndex, 'months').endOf('month').format('YYYY-MM-DD HH:mm:ss');
+                            props.row[mapFields.value.takestime] = widthCells + '月';
+                        } else if (mode.value === '月' || mode.value === '日') {
                             newStartDate = dayjs(props.startGanttDate).add(startCellIndex, 'days').format('YYYY-MM-DD HH:mm:ss');
                             newEndDate = dayjs(props.startGanttDate).add(endCellIndex, 'days').format('YYYY-MM-DD HH:mm:ss');
                             props.row[mapFields.value.takestime] = widthCells + '天';
@@ -541,11 +594,20 @@ export default defineComponent({
                             const childTasks = getAllChildren(currentTaskId, store.tasks);
                             for (const child of childTasks) {
                                 if (dayjs(child[mapFields.value.startdate]).isBefore(newParentStartDate)) {
-                                    const childOffset = newParentStartDate.diff(dayjs(child[mapFields.value.startdate]), mode.value === '时' ? 'hours' : 'days');
-                                    if (mode.value === '时') {
+                                    if (mode.value === '季度') {
+                                        // 季度模式按月计算偏移
+                                        const childStartMonth = dayjs(child[mapFields.value.startdate]).startOf('month');
+                                        const parentStartMonth = newParentStartDate.startOf('month');
+                                        const childOffset = (parentStartMonth.year() - childStartMonth.year()) * 12 + 
+                                                           (parentStartMonth.month() - childStartMonth.month());
+                                        child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(childOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
+                                        child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(childOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
+                                    } else if (mode.value === '时') {
+                                        const childOffset = newParentStartDate.diff(dayjs(child[mapFields.value.startdate]), 'hours');
                                         child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(childOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
                                         child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(childOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
                                     } else {
+                                        const childOffset = newParentStartDate.diff(dayjs(child[mapFields.value.startdate]), 'days');
                                         child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(childOffset, 'days').format('YYYY-MM-DD HH:mm:ss');
                                         child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(childOffset, 'days').format('YYYY-MM-DD HH:mm:ss');
                                     }

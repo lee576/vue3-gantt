@@ -59,6 +59,7 @@ export default {
   
   // 视图模式
   viewMode: {
+    quarter: '季度',
     month: '月',
     week: '周',
     day: '日',

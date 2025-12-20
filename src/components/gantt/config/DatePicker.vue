@@ -112,6 +112,7 @@ import { useI18n } from '../i18n';
 import { ganttThemeManager } from '../themes/GanttThemes';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/zh-tw';
 import 'dayjs/locale/en';
 import 'dayjs/locale/ja';
 import 'dayjs/locale/ko';
@@ -139,7 +140,7 @@ export default defineComponent({
     // dayjs locale 映射
     const getDayjsLocale = () => {
       const map: Record<string, string> = {
-        'zh-CN': 'zh-cn', 'en-US': 'en', 'ja-JP': 'ja', 'ko-KR': 'ko',
+        'zh-CN': 'zh-cn', 'zh-TW': 'zh-tw', 'en-US': 'en', 'ja-JP': 'ja', 'ko-KR': 'ko',
         'fr-FR': 'fr', 'de-DE': 'de', 'es-ES': 'es', 'ru-RU': 'ru'
       };
       return map[locale.value] || 'en';
