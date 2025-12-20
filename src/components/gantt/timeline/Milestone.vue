@@ -84,7 +84,10 @@ export default defineComponent({
                     return bgContent;
                 }
                 case '日': {
-                    let currentDate = dayjs(props.startGanttDate).add(count, 'days');
+                    const isHalfDay = store.daySubMode === 'half';
+                    // 半天模式下，每2个单元格为1天
+                    const dayIndex = isHalfDay ? Math.floor(count / 2) : count;
+                    let currentDate = dayjs(props.startGanttDate).add(dayIndex, 'days');
                     return (currentDate.isoWeekday() === 7 || currentDate.isoWeekday() === 1) ? bgSecondary : bgContent;
                 }
                 case '周': case '时': return bgContent;
@@ -121,8 +124,21 @@ export default defineComponent({
                     break;
                 }
                 case '日': {
+                    const isHalfDay = store.daySubMode === 'half';
+                    
                     let fromPlanStartDays = dayjs(props.row[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days');
-                    dataX = scale.value * fromPlanStartDays + scale.value / 2; // 居中显示
+                    
+                    if (isHalfDay) {
+                        // 半天模式：根据小时判断是上午还是下午
+                        const startHour = dayjs(props.row[mapFields.value.startdate]).hour();
+                        const startIsAM = startHour < 12;
+                        const startCellOffset = startIsAM ? 0 : 1;
+                        
+                        dataX = scale.value * (fromPlanStartDays * 2 + startCellOffset) + scale.value / 2; // 居中显示
+                    } else {
+                        dataX = scale.value * fromPlanStartDays + scale.value / 2; // 居中显示
+                    }
+                    
                     props.row[mapFields.value.takestime] = '0天';
                     // 确保里程碑的结束日期等于开始日期
                     props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate];
@@ -288,7 +304,9 @@ export default defineComponent({
                                                        (parentStartMonth.month() - ganttStartMonth.month());
                                     parentStartX = monthsDiff * scale.value + scale.value / 2;
                                 } else if (mode.value === '日') {
-                                    parentStartX = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days') * scale.value + scale.value / 2;
+                                    const isHalfDay = store.daySubMode === 'half';
+                                    const cellsPerDay = isHalfDay ? 2 : 1;
+                                    parentStartX = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days') * scale.value * cellsPerDay + scale.value / 2;
                                 } else if (mode.value === '周') {
                                     const ganttStartWeek = dayjs(props.startGanttDate).startOf('isoWeek');
                                     const parentStartWeek = dayjs(parentTask[mapFields.value.startdate]).startOf('isoWeek');
@@ -306,9 +324,28 @@ export default defineComponent({
                         const cellsMoved = Math.round((alignedX - oldMilestoneX.value) / scale.value);
                         let daysOffset = 0, hoursOffset = 0, monthsOffset = 0;
                         if (mode.value === '季度' || mode.value === '月') monthsOffset = cellsMoved;
-                        else if (mode.value === '日') daysOffset = cellsMoved;
+                        else if (mode.value === '日') {
+                            const isHalfDay = store.daySubMode === 'half';
+                            if (isHalfDay) {
+                                // 半天模式：根据最终位置的单元格索引直接计算时间
+                                // 里程碑位于单元格中心，所以要减去半个单元格的偏移
+                                const newCellIndex = Math.round((alignedX - scale.value / 2) / scale.value);
+                                const newDays = Math.floor(newCellIndex / 2);
+                                const isAM = (newCellIndex % 2) === 0;
+                                const newHour = isAM ? 0 : 12;
+                                
+                                const newDate = dayjs(props.startGanttDate).add(newDays, 'days').hour(newHour).minute(0).second(0);
+                                props.row[mapFields.value.startdate] = newDate.format('YYYY-MM-DD HH:mm:ss');
+                                props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate];
+                            } else {
+                                daysOffset = cellsMoved;
+                            }
+                        }
                         else if (mode.value === '周') daysOffset = cellsMoved * 7;
                         else if (mode.value === '时') hoursOffset = cellsMoved;
+                        
+                        // 半天模式已在上面处理
+                        const isHalfDayMode = mode.value === '日' && store.daySubMode === 'half';
 
                         if (mode.value === '季度' || mode.value === '月') {
                             props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(monthsOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
@@ -316,7 +353,7 @@ export default defineComponent({
                         } else if (mode.value === '时') {
                             props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(hoursOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
                             props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate];
-                        } else {
+                        } else if (!isHalfDayMode) {
                             props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(daysOffset, 'days').format('YYYY-MM-DD HH:mm:ss');
                             props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate];
                         }

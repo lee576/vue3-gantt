@@ -64,7 +64,10 @@ export default {
     month: 'Месяц',
     week: 'Неделя',
     day: 'День',
-    hour: 'Час'
+    hour: 'Час',
+    daySubMode: 'Подрежим дня',
+    fullDay: 'Полный день',
+    halfDay: 'Полдня'
   },
   
   // Task

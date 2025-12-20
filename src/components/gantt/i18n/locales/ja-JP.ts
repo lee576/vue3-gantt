@@ -64,7 +64,10 @@ export default {
     month: '月',
     week: '週',
     day: '日',
-    hour: '時'
+    hour: '時',
+    daySubMode: '日モードサブ',
+    fullDay: '終日',
+    halfDay: '半日'
   },
   
   // Task

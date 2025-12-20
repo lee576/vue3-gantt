@@ -26,9 +26,9 @@
           </div>
         </template>
       </div>
-      <div v-if="hourHeaders && hourHeaders.length > 0" class="header">
+     <div v-if="hourHeaders && hourHeaders.length > 0" class="header">
         <template v-for='item in hourHeaders' :key="item.title">
-          <div class="headerCaption" :style="{ width: item.width + 'px',marginTop: '-2px' }"><span :style="{ width: item.width + 'px' }">{{item.title}}</span></div>
+          <div class="headerCaption" :style="{ width: item.width + 'px' }"><span :style="{ width: item.width + 'px' }">{{item.title}}</span></div>
         </template>
       </div>
     </div>

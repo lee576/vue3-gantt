@@ -38,14 +38,19 @@
                         <div class="metro-text">{{ t('viewMode.week') }}</div>
                     </div>
                 </div>
-                <div :class="buttonClass[3]" class="metro-btn" @click="timeMode('日')">
+                <div :class="buttonClass[3]" class="metro-btn" @click="timeMode('日')" 
+                     @mouseenter="showDaySubMenu = true" 
+                     @mouseleave="handleDayButtonMouseLeave"
+                     ref="dayButtonRef">
                     <div class="metro-content">
                         <div class="metro-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h8c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H6V4h8v16z"/>
                             </svg>
                         </div>
-                        <div class="metro-text">{{ t('viewMode.day') }}</div>
+                        <div class="metro-text">
+                            {{ daySubMode === 'half' ? t('viewMode.halfDay') : t('viewMode.day') }}
+                        </div>
                     </div>
                 </div>
                 <div :class="buttonClass[4]" class="metro-btn" @click="timeMode('时')">
@@ -119,6 +124,27 @@
                 <GanttConfigPanel />
             </div>
         </div>
+        
+        <!-- 日模式子模式选择菜单 - 使用 Teleport 传送到 body 避免被裁剪 -->
+        <Teleport to="body">
+            <div v-if="showDaySubMenu && mode === '日'" 
+                 class="day-submenu-popup" 
+                 ref="daySubMenuRef"
+                 :style="daySubMenuPosition"
+                 @mouseenter="showDaySubMenu = true"
+                 @mouseleave="showDaySubMenu = false">
+                <div class="submenu-item" 
+                     :class="{ active: daySubMode === 'full' }"
+                     @click="selectDaySubMode('full')">
+                    {{ t('viewMode.fullDay') }}
+                </div>
+                <div class="submenu-item" 
+                     :class="{ active: daySubMode === 'half' }"
+                     @click="selectDaySubMode('half')">
+                    {{ t('viewMode.halfDay') }}
+                </div>
+            </div>
+        </Teleport>
         <div class="gantt">
             <SplitPane direction="row" :min="0" :max="100" :triggerLength="10"
                 v-model:paneLengthPercent="paneLengthPercent">
@@ -331,6 +357,14 @@ export default defineComponent({
         const paneLengthPercent = ref(35);
         const buttonClass = ref(['button', 'button', 'button', 'button is-active', 'button']);
         const mode = ref('日');
+        // 日模式的子模式：全天或半天
+        const daySubMode = ref<'full' | 'half'>(store.daySubMode);
+        // 日模式子菜单状态
+        const showDaySubMenu = ref(false);
+        const dayButtonRef = ref<HTMLElement | null>(null);
+        const daySubMenuRef = ref<HTMLElement | null>(null);
+        const daySubMenuTop = ref(0);
+        const daySubMenuLeft = ref(0);
         // 使用 dataConfig 中的开始/结束日期，如果没有则使用当月第一天/最后一天
         const startDate = ref(
             props.dataConfig.queryStartDate || 
@@ -571,7 +605,9 @@ export default defineComponent({
                     break;
                 }
                 case '日': {
-                    scale.value = 80;
+                    // 根据子模式调整scale和单元格大小
+                    const isHalfDay = daySubMode.value === 'half';
+                    scale.value = isHalfDay ? 40 : 80; // 半天模式使scale减半
                     let currentDate = start;
                                     
                     // 收集所有日期
@@ -586,9 +622,10 @@ export default defineComponent({
                     years.forEach(year => {
                         const yearDates = dates.filter(d => d.year() === year);
                         const isAsian = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
+                        const cellWidth = isHalfDay ? yearDates.length * 2 * scale.value : yearDates.length * scale.value;
                         monthHeaders.value.push({
                             title: year + (isAsian ? '年' : ''),
-                            width: yearDates.length * scale.value
+                            width: cellWidth
                         });
                     });
                                     
@@ -601,28 +638,61 @@ export default defineComponent({
                     });
                     months.forEach((monthDates, _key) => {
                         const monthTitle = monthDates[0].locale(getDayjsLocale()).format('MMM');
+                        const cellWidth = isHalfDay ? monthDates.length * 2 * scale.value : monthDates.length * scale.value;
                         weekHeaders.value.push({
                             title: monthTitle,
-                            width: monthDates.length * scale.value,
+                            width: cellWidth,
                             fulldate: monthDates[0].format('YYYY-MM-DD')
                         });
                     });
                                     
                     // 生成日期表头
-                    dates.forEach(d => {
-                        const needsDaySuffix = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
-                        const caption = needsDaySuffix
-                            ? d.format('DD') + '日'
-                            : d.format('DD');
-                        const fullDate = d.format('YYYY-MM-DD');
-                        dayHeaders.value.push({
-                            title: caption,
-                            width: scale.value,
-                            fulldate: fullDate
+                    if (isHalfDay) {
+                        // 半天模式：每天分为上午和下午两个单元格
+                        dates.forEach(d => {
+                            const needsDaySuffix = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
+                            const dayStr = needsDaySuffix ? d.format('DD') + '日' : d.format('DD');
+                            const fullDate = d.format('YYYY-MM-DD');
+                            
+                            // 上午
+                            const amLabel = locale.value === 'zh-CN' || locale.value === 'zh-TW' ? '上午' :
+                                          locale.value === 'ja-JP' ? '午前' :
+                                          locale.value === 'ko-KR' ? '오전' : 'AM';
+                            dayHeaders.value.push({
+                                title: `${dayStr} ${amLabel}`,
+                                width: scale.value,
+                                fulldate: fullDate + '-AM'
+                            });
+                            
+                            // 下午
+                            const pmLabel = locale.value === 'zh-CN' || locale.value === 'zh-TW' ? '下午' :
+                                          locale.value === 'ja-JP' ? '午後' :
+                                          locale.value === 'ko-KR' ? '오후' : 'PM';
+                            dayHeaders.value.push({
+                                title: `${dayStr} ${pmLabel}`,
+                                width: scale.value,
+                                fulldate: fullDate + '-PM'
+                            });
                         });
-                    });
-                                    
-                    timelineCellCount.value = dayHeaders.value.length;
+                        
+                        timelineCellCount.value = dates.length * 2; // 半天模式下单元格数量是天数的2倍
+                    } else {
+                        // 全天模式：每天一个单元格
+                        dates.forEach(d => {
+                            const needsDaySuffix = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
+                            const caption = needsDaySuffix
+                                ? d.format('DD') + '日'
+                                : d.format('DD');
+                            const fullDate = d.format('YYYY-MM-DD');
+                            dayHeaders.value.push({
+                                title: caption,
+                                width: scale.value,
+                                fulldate: fullDate
+                            });
+                        });
+                        
+                        timelineCellCount.value = dayHeaders.value.length;
+                    }
                     break;
                 }
                 case '时': {
@@ -738,6 +808,50 @@ export default defineComponent({
                 }
             });
         };
+
+        // 日模式子模式切换处理
+        const onDaySubModeChange = () => {
+            // 更新 store 中的状态
+            mutations.setDaySubMode(daySubMode.value);
+            // 重新生成时间轴
+            setTimeLineHeaders('日');
+        };
+
+        // 计算弹出菜单位置
+        const daySubMenuPosition = computed(() => ({
+            position: 'fixed' as const,
+            top: `${daySubMenuTop.value}px`,
+            left: `${daySubMenuLeft.value}px`,
+            zIndex: 100002
+        }));
+
+        // 鼠标离开"日"按钮时的处理，延迟关闭菜单
+        const handleDayButtonMouseLeave = () => {
+            setTimeout(() => {
+                if (!daySubMenuRef.value || !document.querySelector('.day-submenu-popup:hover')) {
+                    showDaySubMenu.value = false;
+                }
+            }, 100);
+        };
+
+        // 选择日模式子模式
+        const selectDaySubMode = (subMode: 'full' | 'half') => {
+            daySubMode.value = subMode;
+            mutations.setDaySubMode(subMode);
+            // 重新生成时间轴
+            setTimeLineHeaders('日');
+            // 关闭菜单
+            showDaySubMenu.value = false;
+        };
+
+        // 监听 showDaySubMenu 变化，计算弹出菜单位置
+        watch(showDaySubMenu, (newVal) => {
+            if (newVal && dayButtonRef.value) {
+                const rect = dayButtonRef.value.getBoundingClientRect();
+                daySubMenuTop.value = rect.bottom + 5;
+                daySubMenuLeft.value = rect.left;
+            }
+        });
 
         const confirmStart = (value: ConfirmDateData) => {
             let days = dayjs(endDate.value).diff(dayjs(value.date), 'days')
@@ -1007,6 +1121,15 @@ export default defineComponent({
             confirmEnd,
             buttonClass,
             timeMode,
+            mode,
+            daySubMode,
+            showDaySubMenu,
+            dayButtonRef,
+            daySubMenuRef,
+            daySubMenuPosition,
+            handleDayButtonMouseLeave,
+            selectDaySubMode,
+            onDaySubModeChange,
             onLinkConfigChange,
             ganttContainer,
             linkTypeColors,
@@ -1430,6 +1553,90 @@ $toolbarHeight: 70px;
         position: relative;
         max-height: 90vh;
         overflow: hidden;
+    }
+}
+</style>
+
+<!-- 非 scoped 样式 - 用于 Teleport 到 body 的弹出菜单 -->
+<style lang="scss">
+/* 日模式子模式弹出菜单样式 */
+.day-submenu-popup {
+    position: fixed;
+    background: var(--bg-content, #ffffff);
+    border: 1px solid var(--border, #d0d0d0);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15), 
+                0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    min-width: 140px;
+    font-family: var(--font-family, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+    z-index: 100002;
+    animation: menuFadeIn 0.15s ease-out;
+
+    .submenu-item {
+        padding: 12px 20px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-primary, #333333);
+        background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
+        transition: all var(--transition-fast, 0.15s ease);
+        border-bottom: 1px solid var(--border, #e0e0e0);
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        &::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: transparent;
+            transition: all 0.15s ease;
+        }
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        &:hover {
+            background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
+            color: var(--primary, #0078d4);
+            padding-left: 24px;
+
+            &::before {
+                background: var(--primary, #0078d4);
+            }
+        }
+
+        &.active {
+            background: var(--bg-active, linear-gradient(145deg, #0078d4, #106ebe));
+            color: var(--text-white, #ffffff);
+            font-weight: 600;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+
+            &::before {
+                background: var(--text-white, #ffffff);
+            }
+
+            &:hover {
+                background: var(--bg-active, linear-gradient(145deg, #0078d4, #106ebe));
+                color: var(--text-white, #ffffff);
+                padding-left: 20px;
+            }
+        }
+    }
+}
+
+@keyframes menuFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 </style>

@@ -15,6 +15,7 @@ interface StoreType {
   endGanttDate: Date | null;
   scrollFlag: boolean;
   mode: string | null;
+  daySubMode: 'full' | 'half'; // 日模式的子模式：全天或半天
   expandRow: {
     pid: number;
     expand: boolean;
@@ -47,6 +48,7 @@ const initialStore: StoreType = {
   endGanttDate: null,
   scrollFlag: true,
   mode: null,
+  daySubMode: 'full', // 默认为全天模式
   expandRow: {
     pid: 0,
     expand: true
@@ -83,6 +85,7 @@ interface MutationsType {
   setEndGanttDate: (endGanttDate: Date | null) => void;
   setScrollFlag: (scrollFlag: boolean) => void;
   setMode: (mode: string | null) => void;
+  setDaySubMode: (daySubMode: 'full' | 'half') => void; // 设置日模式的子模式
   setExpandRow: (expandRow: { pid: number; expand: boolean }) => void;
   toggleTaskCollapse: (taskId: any) => void; // 切换任务折叠状态
   setRootTask: (rootTask: any) => void;
@@ -133,6 +136,9 @@ export let mutations: MutationsType = {
   },
   setMode(mode: string | null): void {
     store.mode = mode;
+  },
+  setDaySubMode(daySubMode: 'full' | 'half'): void {
+    store.daySubMode = daySubMode;
   },
   setExpandRow(expandRow: { pid: number; expand: boolean }): void {
     store.expandRow = expandRow;

@@ -64,7 +64,10 @@ export default {
     month: '월',
     week: '주',
     day: '일',
-    hour: '시'
+    hour: '시',
+    daySubMode: '일 하위 모드',
+    fullDay: '하루 종일',
+    halfDay: '반나절'
   },
   
   // Task

@@ -1,8 +1,8 @@
 <template>
     <div v-if='showRow' class="barRow" :style="{ height: rowHeight + 'px' }" @mouseover="hoverActive()"
         @mouseleave="hoverInactive()" :class="{ active: hover }" :data-task-id="row[mapFields.id]">
-        <svg key="row.no" v-if='showRow' ref='bar' class="bar" :height="barHeight + 'px'"
-            :class="{ active: hover }" style="overflow: visible;"></svg>
+        <svg key="row.no" v-if='showRow' ref='bar' class="bar" :height="barHeight + 'px'" :class="{ active: hover }"
+            style="overflow: visible;"></svg>
         <template v-for='(count) in timelineCellCount'
             :key="count + row.id + timelineCellCount + showRow + '_template'">
             <div class="cell"
@@ -95,12 +95,15 @@ export default defineComponent({
                     // 季度模式按月计算，不显示周末背景色
                     return bgContent;
                 }
-                                case '月': {
+                case '月': {
                     let currentDate = dayjs(props.startGanttDate).startOf('month').add(count, 'months');
                     return bgContent;
                 }
                 case '日': {
-                    let currentDate = dayjs(props.startGanttDate).add(count, 'days');
+                    const isHalfDay = store.daySubMode === 'half';
+                    // 半天模式下，每2个单元格为1天
+                    const dayIndex = isHalfDay ? Math.floor(count / 2) : count;
+                    let currentDate = dayjs(props.startGanttDate).add(dayIndex, 'days');
                     return (currentDate.isoWeekday() === 7 || currentDate.isoWeekday() === 1) ? bgSecondary : bgContent;
                 }
                 case '周': case '时': return bgContent;
@@ -118,15 +121,15 @@ export default defineComponent({
                     const ganttStartMonth = dayjs(props.startGanttDate).startOf('month');
                     const taskStartMonth = dayjs(props.row[mapFields.value.startdate]).startOf('month');
                     const taskEndMonth = dayjs(props.row[mapFields.value.enddate]).startOf('month');
-                    
+
                     // 计算从甘特图开始月到任务开始月的月数
-                    let fromStartMonths = (taskStartMonth.year() - ganttStartMonth.year()) * 12 + 
-                                          (taskStartMonth.month() - ganttStartMonth.month());
+                    let fromStartMonths = (taskStartMonth.year() - ganttStartMonth.year()) * 12 +
+                        (taskStartMonth.month() - ganttStartMonth.month());
                     dataX = scale.value * fromStartMonths;
-                    
+
                     // 计算任务跨越的月数
-                    let spendMonths = (taskEndMonth.year() - taskStartMonth.year()) * 12 + 
-                                      (taskEndMonth.month() - taskStartMonth.month()) + 1;
+                    let spendMonths = (taskEndMonth.year() - taskStartMonth.year()) * 12 +
+                        (taskEndMonth.month() - taskStartMonth.month()) + 1;
                     oldBarWidth.value = spendMonths * scale.value;
                     props.row[mapFields.value.takestime] = spendMonths + '月';
                     break;
@@ -136,22 +139,50 @@ export default defineComponent({
                     const ganttStartMonth = dayjs(props.startGanttDate).startOf('month');
                     const taskStartMonth = dayjs(props.row[mapFields.value.startdate]).startOf('month');
                     const taskEndMonth = dayjs(props.row[mapFields.value.enddate]).startOf('month');
-                    
-                    let fromStartMonths = (taskStartMonth.year() - ganttStartMonth.year()) * 12 + 
-                                          (taskStartMonth.month() - ganttStartMonth.month());
+
+                    let fromStartMonths = (taskStartMonth.year() - ganttStartMonth.year()) * 12 +
+                        (taskStartMonth.month() - ganttStartMonth.month());
                     dataX = scale.value * fromStartMonths;
-                    
-                    let spendMonths = (taskEndMonth.year() - taskStartMonth.year()) * 12 + 
-                                      (taskEndMonth.month() - taskStartMonth.month()) + 1;
+
+                    let spendMonths = (taskEndMonth.year() - taskStartMonth.year()) * 12 +
+                        (taskEndMonth.month() - taskStartMonth.month()) + 1;
                     oldBarWidth.value = spendMonths * scale.value;
                     props.row[mapFields.value.takestime] = spendMonths + '月';
                     break;
                 }
                 case '日': {
+                    // 判断是否为半天模式
+                    const isHalfDay = store.daySubMode === 'half';
+                    const cellsPerDay = isHalfDay ? 2 : 1; // 半天模式下每天有2个单元格
+
                     let fromPlanStartDays = dayjs(props.row[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days');
-                    dataX = scale.value * fromPlanStartDays;
+
+                    if (isHalfDay) {
+                        // 半天模式：根据小时判断是上午还是下午
+                        const startHour = dayjs(props.row[mapFields.value.startdate]).hour();
+                        const endHour = dayjs(props.row[mapFields.value.enddate]).hour();
+                        const startIsAM = startHour < 12;
+                        const endIsAM = endHour < 12;
+
+                        // 计算起始单元格索引：天数*2 + (上午0, 下午1)
+                        const startCellOffset = startIsAM ? 0 : 1;
+                        const endCellOffset = endIsAM ? 0 : 1;
+
+                        dataX = scale.value * (fromPlanStartDays * 2 + startCellOffset);
+
+                        const endDays = dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.startGanttDate), 'days');
+                        const endCellIndex = endDays * 2 + endCellOffset;
+                        const startCellIndex = fromPlanStartDays * 2 + startCellOffset;
+
+                        oldBarWidth.value = (endCellIndex - startCellIndex + 1) * scale.value;
+                    } else {
+                        dataX = scale.value * fromPlanStartDays * cellsPerDay;
+                    }
+
                     let spendDays = dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'days') + 1;
-                    oldBarWidth.value = spendDays * scale.value;
+                    if (!isHalfDay) {
+                        oldBarWidth.value = spendDays * scale.value * cellsPerDay;
+                    }
                     props.row[mapFields.value.takestime] = spendDays + '天';
                     break;
                 }
@@ -198,10 +229,10 @@ export default defineComponent({
             }
             if (!g) g = svg.group();
 
-            let innerRectWidth = props.row[mapFields.value.progress] 
-                ? Number(oldBarWidth.value) * Number(props.row[mapFields.value.progress]) 
+            let innerRectWidth = props.row[mapFields.value.progress]
+                ? Number(oldBarWidth.value) * Number(props.row[mapFields.value.progress])
                 : Number(oldBarWidth.value);
-            
+
             if (!innerRect) {
                 innerRect = svg.rect(innerRectWidth, barHeight.value).radius(10);
                 innerRect.addClass('innerRect');
@@ -236,7 +267,7 @@ export default defineComponent({
             // 三角形位置：Bar底部边缘穿过三角形中心
             const handleY = barHeight.value - handleHeight / 2;
             const lineX = innerRectWidth;
-            
+
             // 获取主题颜色的辅助函数
             const getThemeColors = () => {
                 let primary = '#f59e0b', primaryDark = '#d97706', primaryLight = '#fbbf24';
@@ -252,11 +283,11 @@ export default defineComponent({
                 }
                 return { primary, primaryDark, primaryLight };
             };
-            
+
             // 查找或创建对齐虚线
             let guideLineEl = barElement.querySelector('.progressGuideLine') as SVGLineElement | null;
             const themeColors = getThemeColors();
-            
+
             if (!guideLineEl) {
                 // 创建对齐虚线
                 const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -278,23 +309,23 @@ export default defineComponent({
             guideLineEl.setAttribute('y2', String(handleY));
             guideLineEl.setAttribute('stroke', themeColors.primaryDark);
             guideLineEl.setAttribute('opacity', '0.8');
-            
+
             if (!progressHandle) {
                 // 创建三角形手柄
-                const trianglePoints = `${handleWidth/2},0 0,${handleHeight} ${handleWidth},${handleHeight}`;
+                const trianglePoints = `${handleWidth / 2},0 0,${handleHeight} ${handleWidth},${handleHeight}`;
                 progressHandle = svg.polygon(trianglePoints)
                     .fill(themeColors.primary)
                     .stroke({ color: themeColors.primaryDark, width: 1 })
                     .addClass('progressHandle');
-                
+
                 const handleElement = progressHandle.node as unknown as SVGPolygonElement;
                 handleElement.style.cursor = 'ew-resize';
                 handleElement.style.pointerEvents = 'auto';
                 progressHandle.move(handleX, handleY);
-                
+
                 // 用于记录当前X位置
                 let currentHandleX = handleX;
-                
+
                 // 悬停效果 - 高亮显示
                 handleElement.addEventListener('mouseenter', () => {
                     if (!isProgressDragging.value) {
@@ -318,12 +349,12 @@ export default defineComponent({
                         guideLineEl!.setAttribute('opacity', '0.8');
                     }
                 });
-                
+
                 // 拖拽交互
                 interact(handleElement).draggable({
                     inertia: false,
                     listeners: {
-                        start: () => { 
+                        start: () => {
                             isProgressDragging.value = true;
                             const colors = getThemeColors();
                             handleElement.setAttribute('fill', colors.primaryDark);
@@ -336,14 +367,14 @@ export default defineComponent({
                         move: (event) => {
                             currentHandleX += event.dx;
                             currentHandleX = Math.max(-handleWidth / 2, Math.min(currentHandleX, oldBarWidth.value - handleWidth / 2));
-                            
+
                             progressHandle.move(currentHandleX, handleY);
-                            
+
                             // 更新虚线位置
                             const newLineX = currentHandleX + handleWidth / 2;
                             guideLineEl!.setAttribute('x1', String(newLineX));
                             guideLineEl!.setAttribute('x2', String(newLineX));
-                            
+
                             // 更新进度
                             const newProgress = Math.min(1, Math.max(0, (currentHandleX + handleWidth / 2) / oldBarWidth.value));
                             innerRect.width(newProgress * oldBarWidth.value);
@@ -359,7 +390,7 @@ export default defineComponent({
                             guideLineEl!.setAttribute('stroke', colors.primaryDark);
                             guideLineEl!.setAttribute('stroke-width', '2');
                             guideLineEl!.setAttribute('opacity', '0.8');
-                            
+
                             const newProgress = Math.min(1, Math.max(0, (currentHandleX + handleWidth / 2) / oldBarWidth.value));
                             props.row[mapFields.value.progress] = newProgress;
                             emitProgressUpdate(newProgress);
@@ -402,7 +433,7 @@ export default defineComponent({
                         let alignedX = multiple * scale.value;
                         if (alignedX < 0) alignedX = 0;
                         if (alignedX > timelineCellCount.value * scale.value) alignedX = timelineCellCount.value * scale.value;
-                        
+
                         const parentIdField = mapFields.value.parentId || 'pid';
                         const currentParentId = props.row[parentIdField];
                         if (currentParentId && currentParentId !== '0') {
@@ -413,8 +444,8 @@ export default defineComponent({
                                     // 季度/月模式按月计算
                                     const ganttStartMonth = dayjs(props.startGanttDate).startOf('month');
                                     const parentStartMonth = dayjs(parentTask[mapFields.value.startdate]).startOf('month');
-                                    const monthsDiff = (parentStartMonth.year() - ganttStartMonth.year()) * 12 + 
-                                                       (parentStartMonth.month() - ganttStartMonth.month());
+                                    const monthsDiff = (parentStartMonth.year() - ganttStartMonth.year()) * 12 +
+                                        (parentStartMonth.month() - ganttStartMonth.month());
                                     parentStartX = monthsDiff * scale.value;
                                 } else if (mode.value === '日') {
                                     parentStartX = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days') * scale.value;
@@ -428,30 +459,57 @@ export default defineComponent({
                                 if (alignedX < parentStartX) alignedX = parentStartX;
                             }
                         }
-                        
+
                         target.style.transform = `translate(${alignedX}px, 0px)`;
                         target.setAttribute('data-x', alignedX.toString());
-                        
+
                         const cellsMoved = Math.round((alignedX - oldBarDataX.value) / scale.value);
                         let daysOffset = 0, hoursOffset = 0, monthsOffset = 0;
                         if (mode.value === '季度' || mode.value === '月') monthsOffset = cellsMoved;
-                        else if (mode.value === '日') daysOffset = cellsMoved;
+                        else if (mode.value === '日') {
+                            const isHalfDay = store.daySubMode === 'half';
+                            if (isHalfDay) {
+                                // 半天模式：根据最终位置的单元格索引直接计算时间
+                                const newStartCellIndex = Math.round(alignedX / scale.value);
+                                const barWidthCells = Math.round(oldBarWidth.value / scale.value);
+                                const newEndCellIndex = newStartCellIndex + barWidthCells - 1;
+
+                                // 计算新的开始日期时间
+                                const startDays = Math.floor(newStartCellIndex / 2);
+                                const startIsAM = (newStartCellIndex % 2) === 0;
+                                const newStartDate = dayjs(props.startGanttDate).add(startDays, 'days').hour(startIsAM ? 0 : 12).minute(0).second(0);
+
+                                // 计算新的结束日期时间
+                                const endDays = Math.floor(newEndCellIndex / 2);
+                                const endIsAM = (newEndCellIndex % 2) === 0;
+                                const newEndDate = dayjs(props.startGanttDate).add(endDays, 'days').hour(endIsAM ? 11 : 23).minute(59).second(59);
+
+                                props.row[mapFields.value.startdate] = newStartDate.format('YYYY-MM-DD HH:mm:ss');
+                                props.row[mapFields.value.enddate] = newEndDate.format('YYYY-MM-DD HH:mm:ss');
+                                props.row[mapFields.value.takestime] = (endDays - startDays + 1) + '天';
+                            } else {
+                                daysOffset = cellsMoved;
+                            }
+                        }
                         else if (mode.value === '周') daysOffset = cellsMoved * 7;
                         else if (mode.value === '时') hoursOffset = cellsMoved;
-                        
+
+                        // 半天模式已在上面处理，这里跳过
+                        const isHalfDayMode = mode.value === '日' && store.daySubMode === 'half';
+
                         if (mode.value === '季度' || mode.value === '月') {
                             props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(monthsOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
                             props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate]).add(monthsOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
                             const taskStartMonth = dayjs(props.row[mapFields.value.startdate]).startOf('month');
                             const taskEndMonth = dayjs(props.row[mapFields.value.enddate]).startOf('month');
-                            const spendMonths = (taskEndMonth.year() - taskStartMonth.year()) * 12 + 
-                                               (taskEndMonth.month() - taskStartMonth.month()) + 1;
+                            const spendMonths = (taskEndMonth.year() - taskStartMonth.year()) * 12 +
+                                (taskEndMonth.month() - taskStartMonth.month()) + 1;
                             props.row[mapFields.value.takestime] = spendMonths + '月';
                         } else if (mode.value === '时') {
                             props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(hoursOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
                             props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate]).add(hoursOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
                             props.row[mapFields.value.takestime] = (dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'hours') + 1) + '小时';
-                        } else {
+                        } else if (!isHalfDayMode) {
                             props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(daysOffset, 'days').format('YYYY-MM-DD HH:mm:ss');
                             props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate]).add(daysOffset, 'days').format('YYYY-MM-DD HH:mm:ss');
                             if (mode.value === '日') {
@@ -462,7 +520,7 @@ export default defineComponent({
                                 props.row[mapFields.value.takestime] = (endWeek.diff(startWeek, 'week') + 1) + '周';
                             }
                         }
-                        
+
                         // 联动子任务
                         const newParentStartDate = dayjs(props.row[mapFields.value.startdate]);
                         const currentTaskId = props.row[mapFields.value.id];
@@ -477,16 +535,25 @@ export default defineComponent({
                             return children;
                         };
                         const childTasks = getAllChildren(currentTaskId, store.tasks);
+                        
+                        // 半天模式下使用小时来计算偏移
                         const actualOffset = mode.value === '季度' ? monthsOffset : (mode.value === '时' ? hoursOffset : daysOffset);
-                        if (actualOffset > 0) {
+                        const shouldCheckChildren = isHalfDayMode || actualOffset > 0;
+                        
+                        if (shouldCheckChildren) {
                             for (const child of childTasks) {
                                 if (dayjs(child[mapFields.value.startdate]).isBefore(newParentStartDate)) {
-                                                                    if (mode.value === '季度' || mode.value === '月') {
+                                    if (mode.value === '季度' || mode.value === '月') {
                                         child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(monthsOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
                                         child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(monthsOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
                                     } else if (mode.value === '时') {
                                         child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(hoursOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
                                         child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(hoursOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
+                                    } else if (isHalfDayMode) {
+                                        // 半天模式：计算子任务需要移动的小时数
+                                        const childOffset = newParentStartDate.diff(dayjs(child[mapFields.value.startdate]), 'hours');
+                                        child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(childOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
+                                        child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(childOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
                                     } else {
                                         child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(daysOffset, 'days').format('YYYY-MM-DD HH:mm:ss');
                                         child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(daysOffset, 'days').format('YYYY-MM-DD HH:mm:ss');
@@ -516,12 +583,12 @@ export default defineComponent({
                         if (widthCells < 1) widthCells = 1;
                         newWidth = widthCells * scale.value;
                         let currentX = oldBarDataX.value;
-                        
+
                         if (event.edges && event.edges.left) {
                             currentX = oldBarDataX.value + (oldBarWidth.value - newWidth);
                             currentX = Math.round(currentX / scale.value) * scale.value;
                             if (currentX < 0) currentX = 0;
-                            
+
                             const parentIdField = mapFields.value.parentId || 'pid';
                             const currentParentId = props.row[parentIdField];
                             if (currentParentId && currentParentId !== '0') {
@@ -531,11 +598,13 @@ export default defineComponent({
                                     if (mode.value === '季度' || mode.value === '月') {
                                         const ganttStartMonth = dayjs(props.startGanttDate).startOf('month');
                                         const parentStartMonth = dayjs(parentTask[mapFields.value.startdate]).startOf('month');
-                                        const monthsDiff = (parentStartMonth.year() - ganttStartMonth.year()) * 12 + 
-                                                           (parentStartMonth.month() - ganttStartMonth.month());
+                                        const monthsDiff = (parentStartMonth.year() - ganttStartMonth.year()) * 12 +
+                                            (parentStartMonth.month() - ganttStartMonth.month());
                                         parentStartX = monthsDiff * scale.value;
                                     } else if (mode.value === '日') {
-                                        parentStartX = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days') * scale.value;
+                                        const isHalfDay = store.daySubMode === 'half';
+                                        const cellsPerDay = isHalfDay ? 2 : 1;
+                                        parentStartX = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days') * scale.value * cellsPerDay;
                                     } else if (mode.value === '周') {
                                         const ganttStartWeek = dayjs(props.startGanttDate).startOf('isoWeek');
                                         const parentStartWeek = dayjs(parentTask[mapFields.value.startdate]).startOf('isoWeek');
@@ -553,16 +622,16 @@ export default defineComponent({
                                 }
                             }
                         }
-                        
+
                         target.setAttribute('width', newWidth.toString());
                         target.style.width = newWidth + 'px';
                         target.style.transform = `translate(${currentX}px, 0px)`;
                         target.setAttribute('data-x', currentX.toString());
-                        
+
                         const startCellIndex = Math.round(currentX / scale.value);
                         const endCellIndex = startCellIndex + widthCells - 1;
                         let newStartDate: string, newEndDate: string;
-                        
+
                         if (mode.value === '季度' || mode.value === '月') {
                             // 季度/月模式：按月计算
                             const ganttStartMonth = dayjs(props.startGanttDate).startOf('month');
@@ -570,9 +639,30 @@ export default defineComponent({
                             newEndDate = ganttStartMonth.add(endCellIndex, 'months').endOf('month').format('YYYY-MM-DD HH:mm:ss');
                             props.row[mapFields.value.takestime] = widthCells + '月';
                         } else if (mode.value === '日') {
-                            newStartDate = dayjs(props.startGanttDate).add(startCellIndex, 'days').format('YYYY-MM-DD HH:mm:ss');
-                            newEndDate = dayjs(props.startGanttDate).add(endCellIndex, 'days').format('YYYY-MM-DD HH:mm:ss');
-                            props.row[mapFields.value.takestime] = widthCells + '天';
+                            // 半天模式下，每2个单元格为1天
+                            const isHalfDay = store.daySubMode === 'half';
+                            const cellsPerDay = isHalfDay ? 2 : 1;
+                            const startDays = isHalfDay ? Math.floor(startCellIndex / cellsPerDay) : startCellIndex;
+                            const endDays = isHalfDay ? Math.floor(endCellIndex / cellsPerDay) : endCellIndex;
+
+                            if (isHalfDay) {
+                                // 半天模式：判断是上午(0)还是下午(1)
+                                const startIsAM = (startCellIndex % 2) === 0;
+                                const endIsAM = (endCellIndex % 2) === 0;
+
+                                // 上午00:00:00，下午12:00:00
+                                const startHour = startIsAM ? 0 : 12;
+                                const endHour = endIsAM ? 11 : 23; // 上午结束11:59:59，下午结束23:59:59
+
+                                newStartDate = dayjs(props.startGanttDate).add(startDays, 'days').hour(startHour).minute(0).second(0).format('YYYY-MM-DD HH:mm:ss');
+                                newEndDate = dayjs(props.startGanttDate).add(endDays, 'days').hour(endHour).minute(59).second(59).format('YYYY-MM-DD HH:mm:ss');
+                            } else {
+                                newStartDate = dayjs(props.startGanttDate).add(startDays, 'days').format('YYYY-MM-DD HH:mm:ss');
+                                newEndDate = dayjs(props.startGanttDate).add(endDays, 'days').format('YYYY-MM-DD HH:mm:ss');
+                            }
+
+                            const actualDays = endDays - startDays + 1;
+                            props.row[mapFields.value.takestime] = actualDays + '天';
                         } else if (mode.value === '周') {
                             const ganttStartWeek = dayjs(props.startGanttDate).startOf('isoWeek');
                             newStartDate = ganttStartWeek.add(startCellIndex, 'weeks').format('YYYY-MM-DD HH:mm:ss');
@@ -583,10 +673,10 @@ export default defineComponent({
                             newEndDate = dayjs(props.startGanttDate).add(endCellIndex, 'hours').format('YYYY-MM-DD HH:mm:ss');
                             props.row[mapFields.value.takestime] = widthCells + '小时';
                         }
-                        
+
                         props.row[mapFields.value.startdate] = newStartDate;
                         props.row[mapFields.value.enddate] = newEndDate;
-                        
+
                         let svg = SVG(barElement as unknown as HTMLElement);
                         let innerRect = svg.select('.innerRect').first();
                         let outerRect = svg.select('rect:not(.innerRect):not(.progressHandle)').first();
@@ -595,7 +685,7 @@ export default defineComponent({
                             innerRect.width(innerRectWidth);
                         }
                         if (outerRect) outerRect.width(newWidth);
-                        
+
                         // 联动子任务
                         if (event.edges && event.edges.left) {
                             const newParentStartDate = dayjs(newStartDate);
@@ -614,15 +704,20 @@ export default defineComponent({
                             const childTasks = getAllChildren(currentTaskId, store.tasks);
                             for (const child of childTasks) {
                                 if (dayjs(child[mapFields.value.startdate]).isBefore(newParentStartDate)) {
-                                                                    if (mode.value === '季度' || mode.value === '月') {
+                                    if (mode.value === '季度' || mode.value === '月') {
                                         // 季度/月模式按月计算偏移
                                         const childStartMonth = dayjs(child[mapFields.value.startdate]).startOf('month');
                                         const parentStartMonth = newParentStartDate.startOf('month');
-                                        const childOffset = (parentStartMonth.year() - childStartMonth.year()) * 12 + 
-                                                           (parentStartMonth.month() - childStartMonth.month());
+                                        const childOffset = (parentStartMonth.year() - childStartMonth.year()) * 12 +
+                                            (parentStartMonth.month() - childStartMonth.month());
                                         child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(childOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
                                         child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(childOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
                                     } else if (mode.value === '时') {
+                                        const childOffset = newParentStartDate.diff(dayjs(child[mapFields.value.startdate]), 'hours');
+                                        child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(childOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
+                                        child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(childOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
+                                    } else if (mode.value === '日' && store.daySubMode === 'half') {
+                                        // 半天模式：使用小时计算偏移
                                         const childOffset = newParentStartDate.diff(dayjs(child[mapFields.value.startdate]), 'hours');
                                         child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(childOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
                                         child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(childOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
@@ -674,12 +769,12 @@ export default defineComponent({
         });
 
         onDeactivated(() => {
-            if (bar.value) { try { interact(bar.value).unset(); } catch (e) {} }
+            if (bar.value) { try { interact(bar.value).unset(); } catch (e) { } }
             showRow.value = false;
         });
 
         onBeforeUnmount(() => {
-            if (bar.value) { try { interact(bar.value).unset(); } catch (e) {} }
+            if (bar.value) { try { interact(bar.value).unset(); } catch (e) { } }
             showRow.value = false;
         });
 
@@ -691,29 +786,84 @@ export default defineComponent({
 })
 </script>
 <style lang="scss" scoped>
-.barRow.active { background: var(--row-hover, #FFF3A1) !important; .cell { background: var(--row-hover, #FFF3A1) !important; } }
-.barRow {
-    display: flex; flex-flow: row nowrap; align-items: center; justify-content: flex-start;
-    width: fit-content; position: relative; overflow: visible;
-    .bar { position: absolute; z-index: 100; background-color: #faf7ec; border-radius: 10px; overflow: visible; }
-    &:first-child .cell {
-        border-top: none; display: flex; align-items: center; justify-content: center; font-size: 10px;
-        position: relative; margin: 0; box-sizing: border-box;
-        &:first-child { border-left: 1px solid var(--border, #cecece); }
-        &:not(:last-child) { border-right: 1px solid var(--border, #cecece); }
-        &:last-child { border-right: 1px solid var(--border, #cecece); }
+.barRow.active {
+    background: var(--row-hover, #FFF3A1) !important;
+
+    .cell {
+        background: var(--row-hover, #FFF3A1) !important;
     }
-    &:not(:first-child) .cell {
-        border-top: 1px solid var(--border, #cecece); display: flex; align-items: center; justify-content: center;
-        font-size: 10px; position: relative; margin: 0; box-sizing: border-box;
-        &:first-child { border-left: 1px solid var(--border, #cecece); }
-        &:not(:last-child) { border-right: 1px solid var(--border, #cecece); }
-        &:last-child { border-right: 1px solid var(--border, #cecece); }
-    }
-    &:last-child .cell { border-bottom: 1px solid var(--border, #cecece); }
 }
-.progressHandle { 
-    pointer-events: auto !important; 
+
+.barRow {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    width: fit-content;
+    position: relative;
+    overflow: visible;
+
+    .bar {
+        position: absolute;
+        z-index: 100;
+        background-color: #faf7ec;
+        border-radius: 10px;
+        overflow: visible;
+    }
+
+    &:first-child .cell {
+        border-top: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        position: relative;
+        margin: 0;
+        box-sizing: border-box;
+
+        &:first-child {
+            border-left: 1px solid var(--border, #cecece);
+        }
+
+        &:not(:last-child) {
+            border-right: 1px solid var(--border, #cecece);
+        }
+
+        &:last-child {
+            border-right: 1px solid var(--border, #cecece);
+        }
+    }
+
+    &:not(:first-child) .cell {
+        border-top: 1px solid var(--border, #cecece);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        position: relative;
+        margin: 0;
+        box-sizing: border-box;
+
+        &:first-child {
+            border-left: 1px solid var(--border, #cecece);
+        }
+
+        &:not(:last-child) {
+            border-right: 1px solid var(--border, #cecece);
+        }
+
+        &:last-child {
+            border-right: 1px solid var(--border, #cecece);
+        }
+    }
+
+    &:last-child .cell {
+        border-bottom: 1px solid var(--border, #cecece);
+    }
+}
+
+.progressHandle {
+    pointer-events: auto !important;
     cursor: ew-resize !important;
 }
 </style>

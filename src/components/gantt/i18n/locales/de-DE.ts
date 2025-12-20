@@ -64,7 +64,10 @@ export default {
     month: 'Monat',
     week: 'Woche',
     day: 'Tag',
-    hour: 'Stunde'
+    hour: 'Stunde',
+    daySubMode: 'Tag-Untermodus',
+    fullDay: 'Ganzer Tag',
+    halfDay: 'Halber Tag'
   },
   
   // Task

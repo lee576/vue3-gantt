@@ -63,7 +63,10 @@ export default {
     month: '月',
     week: '周',
     day: '日',
-    hour: '时'
+    hour: '时',
+    daySubMode: '日模式细分',
+    fullDay: '全天',
+    halfDay: '半天'
   },
   
   // 任务
