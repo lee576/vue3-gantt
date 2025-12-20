@@ -102,13 +102,13 @@ export default defineComponent({
             // 计算里程碑位置（使用开始日期）
             switch (mode.value) {
                 case '季度': {
-                    // 季度模式：按月计算位置
-                    const ganttStartMonth = dayjs(props.startGanttDate).startOf('month');
-                    const taskStartMonth = dayjs(props.row[mapFields.value.startdate]).startOf('month');
-                    let fromStartMonths = (taskStartMonth.year() - ganttStartMonth.year()) * 12 + 
-                                          (taskStartMonth.month() - ganttStartMonth.month());
-                    dataX = scale.value * fromStartMonths + scale.value / 2;
-                    props.row[mapFields.value.takestime] = '0月';
+                    // 季度模式：按季度计算位置
+                    const ganttStartQuarter = dayjs(props.startGanttDate).startOf('quarter');
+                    const taskStartQuarter = dayjs(props.row[mapFields.value.startdate]).startOf('quarter');
+                    let fromStartQuarters = (taskStartQuarter.year() - ganttStartQuarter.year()) * 4 + 
+                                          (taskStartQuarter.quarter() - ganttStartQuarter.quarter());
+                    dataX = scale.value * fromStartQuarters + scale.value / 2;
+                    props.row[mapFields.value.takestime] = '0季度';
                     props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate];
                     break;
                 }
@@ -297,7 +297,13 @@ export default defineComponent({
                             const parentTask = store.tasks.find(t => String(t[mapFields.value.id]) === String(currentParentId));
                             if (parentTask) {
                                 let parentStartX = 0;
-                                if (mode.value === '季度' || mode.value === '月') {
+                                if (mode.value === '季度') {
+                                    const ganttStartQuarter = dayjs(props.startGanttDate).startOf('quarter');
+                                    const parentStartQuarter = dayjs(parentTask[mapFields.value.startdate]).startOf('quarter');
+                                    const quartersDiff = (parentStartQuarter.year() - ganttStartQuarter.year()) * 4 + 
+                                                       (parentStartQuarter.quarter() - ganttStartQuarter.quarter());
+                                    parentStartX = quartersDiff * scale.value + scale.value / 2;
+                                } else if (mode.value === '月') {
                                     const ganttStartMonth = dayjs(props.startGanttDate).startOf('month');
                                     const parentStartMonth = dayjs(parentTask[mapFields.value.startdate]).startOf('month');
                                     const monthsDiff = (parentStartMonth.year() - ganttStartMonth.year()) * 12 + 
@@ -322,8 +328,9 @@ export default defineComponent({
                         target.setAttribute('data-x', alignedX.toString());
 
                         const cellsMoved = Math.round((alignedX - oldMilestoneX.value) / scale.value);
-                        let daysOffset = 0, hoursOffset = 0, monthsOffset = 0;
-                        if (mode.value === '季度' || mode.value === '月') monthsOffset = cellsMoved;
+                        let daysOffset = 0, hoursOffset = 0, monthsOffset = 0, quartersOffset = 0;
+                        if (mode.value === '季度') quartersOffset = cellsMoved;
+                        else if (mode.value === '月') monthsOffset = cellsMoved;
                         else if (mode.value === '日') {
                             const isHalfDay = store.daySubMode === 'half';
                             if (isHalfDay) {
@@ -347,7 +354,10 @@ export default defineComponent({
                         // 半天模式已在上面处理
                         const isHalfDayMode = mode.value === '日' && store.daySubMode === 'half';
 
-                        if (mode.value === '季度' || mode.value === '月') {
+                        if (mode.value === '季度') {
+                            props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(quartersOffset, 'quarters').format('YYYY-MM-DD HH:mm:ss');
+                            props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate];
+                        } else if (mode.value === '月') {
                             props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(monthsOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
                             props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate];
                         } else if (mode.value === '时') {

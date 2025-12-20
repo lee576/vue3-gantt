@@ -428,56 +428,42 @@ export default defineComponent({
             hourHeaders.value = [];
             switch (newVal) {
                 case '季度': {
-                    scale.value = 120; // 每月120像素
+                    scale.value = 200; // 每季度200像素
                     
-                    // 收集所有月份
-                    const months: dayjs.Dayjs[] = [];
-                    let monthCurrent = start.startOf('month');
-                    while (monthCurrent.isBefore(end) || monthCurrent.isSame(end, 'month')) {
-                        months.push(monthCurrent);
-                        monthCurrent = monthCurrent.add(1, 'month');
+                    // 收集所有季度
+                    const quarters: dayjs.Dayjs[] = [];
+                    let quarterCurrent = start.startOf('quarter');
+                    const endQuarter = end.endOf('quarter');
+                    while (quarterCurrent.isBefore(endQuarter) || quarterCurrent.isSame(endQuarter, 'quarter')) {
+                        quarters.push(quarterCurrent);
+                        quarterCurrent = quarterCurrent.add(1, 'quarter');
                     }
                     
-                    // 生成年份表头（使用 monthHeaders 显示年份）
-                    const years = [...new Set(months.map(m => m.year()))];
+                    // 生成年份表头（第一层）
+                    const years = [...new Set(quarters.map(q => q.year()))];
                     years.forEach(year => {
-                        const yearMonths = months.filter(m => m.year() === year);
+                        const yearQuarters = quarters.filter(q => q.year() === year);
                         const isAsian = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
                         monthHeaders.value.push({
                             title: year + (isAsian ? '年' : ''),
-                            width: yearMonths.length * scale.value
+                            width: yearQuarters.length * scale.value
                         });
                     });
                     
-                    // 生成季度表头（使用 weekHeaders 显示季度）
-                    const quarters = new Map<string, dayjs.Dayjs[]>();
-                    months.forEach(m => {
-                        const key = `${m.year()}-Q${m.quarter()}`;
-                        if (!quarters.has(key)) quarters.set(key, []);
-                        quarters.get(key)!.push(m);
-                    });
-                    quarters.forEach((qMonths, key) => {
-                        const q = parseInt(key.split('-Q')[1]);
+                    // 生成季度表头（第二层，最小单位）
+                    quarters.forEach(q => {
+                        const quarterNum = q.quarter();
                         const isAsian = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
-                        const quarterTitle = isAsian ? `第${q}季度` : `Q${q}`;
-                        weekHeaders.value.push({
-                            title: quarterTitle,
-                            width: qMonths.length * scale.value,
-                            fulldate: qMonths[0].format('YYYY-MM-DD')
-                        });
-                    });
-                    
-                    // 生成月份表头（使用 dayHeaders 显示月份，每月一个单元格）
-                    months.forEach(m => {
+                        const quarterTitle = isAsian ? `第${quarterNum}季度` : `Q${quarterNum}`;
                         dayHeaders.value.push({
-                            title: m.locale(getDayjsLocale()).format('MMM'),
+                            title: quarterTitle,
                             width: scale.value,
-                            fulldate: m.format('YYYY-MM-DD')
+                            fulldate: q.format('YYYY-MM-DD')
                         });
                     });
                     
-                    // 单元格数量 = 月份数
-                    timelineCellCount.value = months.length;
+                    // 单元格数量 = 季度数
+                    timelineCellCount.value = quarters.length;
                     break;
                 }
                 case '月': {
