@@ -213,6 +213,7 @@ type WeekHeaders = MonthHeaders & {
 type HourHeaders = {
     title: string;
     width: number;
+    fulldate?: string;
 }
 
 /**
@@ -648,28 +649,34 @@ export default defineComponent({
                                     
                     // 生成日期表头
                     if (isHalfDay) {
-                        // 半天模式：每天分为上午和下午两个单元格
+                        // 半天模式：四层表头 - 年/月/日(合并)/上午下午
                         dates.forEach(d => {
                             const needsDaySuffix = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
                             const dayStr = needsDaySuffix ? d.format('DD') + '日' : d.format('DD');
                             const fullDate = d.format('YYYY-MM-DD');
                             
-                            // 上午
+                            // 第三层：日期（合并，宽度为2*scale）
+                            dayHeaders.value.push({
+                                title: dayStr,
+                                width: scale.value * 2,
+                                fulldate: fullDate
+                            });
+                            
+                            // 第四层：上午/下午
                             const amLabel = locale.value === 'zh-CN' || locale.value === 'zh-TW' ? '上午' :
                                           locale.value === 'ja-JP' ? '午前' :
                                           locale.value === 'ko-KR' ? '오전' : 'AM';
-                            dayHeaders.value.push({
-                                title: `${dayStr} ${amLabel}`,
-                                width: scale.value,
-                                fulldate: fullDate + '-AM'
-                            });
-                            
-                            // 下午
                             const pmLabel = locale.value === 'zh-CN' || locale.value === 'zh-TW' ? '下午' :
                                           locale.value === 'ja-JP' ? '午後' :
                                           locale.value === 'ko-KR' ? '오후' : 'PM';
-                            dayHeaders.value.push({
-                                title: `${dayStr} ${pmLabel}`,
+                            
+                            hourHeaders.value.push({
+                                title: amLabel,
+                                width: scale.value,
+                                fulldate: fullDate + '-AM'
+                            });
+                            hourHeaders.value.push({
+                                title: pmLabel,
                                 width: scale.value,
                                 fulldate: fullDate + '-PM'
                             });
