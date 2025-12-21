@@ -213,11 +213,11 @@ export default defineComponent({
 .slider-ticks {
   display: flex;
   justify-content: space-between;
-  padding: 8px 9px 0;
+  padding-top: 8px;
   position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
+  left: 9px;
+  right: 9px;
   box-sizing: border-box;
   pointer-events: none;
   
@@ -225,6 +225,8 @@ export default defineComponent({
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 0;
+    overflow: visible;
     
     .tick-mark {
       width: 1px;
