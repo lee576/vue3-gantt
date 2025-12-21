@@ -1064,6 +1064,13 @@ export default defineComponent({
             if (bar.value && isBarInteracted.value) drowBar(bar.value);
         }, { deep: false });
 
+        // 监听模式和缩放变化，重新绘制 bar
+        watch([mode, scale], () => {
+            if (bar.value && isBarInteracted.value) {
+                drowBar(bar.value);
+            }
+        });
+
         onMounted(() => {
             if (bar.value && !isBarInteracted.value) {
                 drowBar(bar.value);

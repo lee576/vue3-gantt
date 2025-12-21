@@ -791,8 +791,6 @@ export default defineComponent({
                     break;
                 }
             }
-            // 选定日期后重新查询
-            props.eventConfig.queryTask(selectedStartDate.value, selectedEndDate.value, mode.value);
         };
 
         const FindAllParent = (targetData: any[], pid: any) => {
@@ -984,6 +982,10 @@ export default defineComponent({
         watch([mode, selectedStartDate, selectedEndDate], ([newMode, newStartDate, newEndDate], [oldMode, oldStartDate, oldEndDate]) => {
             if (newMode !== oldMode || newStartDate !== oldStartDate || newEndDate !== oldEndDate) {
                 setTimeLineHeaders(newMode);
+                // 只在日期范围变化时调用 queryTask，模式变化不触发
+                if (newStartDate !== oldStartDate || newEndDate !== oldEndDate) {
+                    props.eventConfig.queryTask(selectedStartDate.value, selectedEndDate.value, mode.value);
+                }
             }
         });
         

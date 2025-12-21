@@ -482,6 +482,13 @@ export default defineComponent({
             if (milestone.value) drawMilestone(milestone.value);
         }, { deep: false });
 
+        // 监听模式和缩放变化，重新绘制里程碑
+        watch([mode, scale], () => {
+            if (milestone.value) {
+                drawMilestone(milestone.value);
+            }
+        });
+
         onMounted(() => {
             if (milestone.value) {
                 drawMilestone(milestone.value);
