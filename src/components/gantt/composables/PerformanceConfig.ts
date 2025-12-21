@@ -9,11 +9,11 @@ export const PerformanceConfig = {
   // 防抖延迟时间（毫秒）
   DEBOUNCE_DELAY: 300,
   
-  // 虚拟滚动：每次渲染的行数
-  VIRTUAL_SCROLL_BUFFER: 20,
+  // 虚拟滚动：上下缓冲区的行数
+  VIRTUAL_SCROLL_BUFFER: 5,
   
   // 是否启用虚拟滚动
-  ENABLE_VIRTUAL_SCROLL: false,
+  ENABLE_VIRTUAL_SCROLL: true,
   
   // SVG缓存大小
   SVG_CACHE_SIZE: 100,
@@ -23,6 +23,12 @@ export const PerformanceConfig = {
   
   // 批量更新延迟
   BATCH_UPDATE_DELAY: 16, // 约60fps
+  
+  // 启用虚拟滚动的任务数量阈值
+  VIRTUAL_SCROLL_THRESHOLD: 50,
+  
+  // 是否使用CSS网格背景替代cell div
+  USE_CSS_GRID_BACKGROUND: true,
 };
 
 /**

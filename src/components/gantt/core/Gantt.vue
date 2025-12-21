@@ -53,14 +53,19 @@
                         </div>
                     </div>
                 </div>
-                <div :class="buttonClass[4]" class="metro-btn" @click="timeMode('时')">
+                <div :class="buttonClass[4]" class="metro-btn" @click="timeMode('时')"
+                     @mouseenter="showHourSubMenu = true" 
+                     @mouseleave="handleHourButtonMouseLeave"
+                     ref="hourButtonRef">
                     <div class="metro-content">
                         <div class="metro-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
                             </svg>
                         </div>
-                        <div class="metro-text">{{ t('viewMode.hour') }}</div>
+                        <div class="metro-text">
+                            {{ hourSubMode === '15' ? t('viewMode.15min') : hourSubMode === '30' ? t('viewMode.30min') : t('viewMode.hour') }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -142,6 +147,32 @@
                      :class="{ active: daySubMode === 'half' }"
                      @click="selectDaySubMode('half')">
                     {{ t('viewMode.halfDay') }}
+                </div>
+            </div>
+        </Teleport>
+        
+        <!-- 时模式子模式选择菜单 -->
+        <Teleport to="body">
+            <div v-if="showHourSubMenu && mode === '时'" 
+                 class="hour-submenu-popup" 
+                 ref="hourSubMenuRef"
+                 :style="hourSubMenuPosition"
+                 @mouseenter="showHourSubMenu = true"
+                 @mouseleave="showHourSubMenu = false">
+                <div class="submenu-item" 
+                     :class="{ active: hourSubMode === '60' }"
+                     @click="selectHourSubMode('60')">
+                    {{ t('viewMode.hour') }}
+                </div>
+                <div class="submenu-item" 
+                     :class="{ active: hourSubMode === '30' }"
+                     @click="selectHourSubMode('30')">
+                    {{ t('viewMode.30min') }}
+                </div>
+                <div class="submenu-item" 
+                     :class="{ active: hourSubMode === '15' }"
+                     @click="selectHourSubMode('15')">
+                    {{ t('viewMode.15min') }}
                 </div>
             </div>
         </Teleport>
@@ -360,12 +391,20 @@ export default defineComponent({
         const mode = ref('日');
         // 日模式的子模式：全天或半天
         const daySubMode = ref<'full' | 'half'>(store.daySubMode);
+        // 时模式的子模式：60分钟、30分钟或15分钟
+        const hourSubMode = ref<'60' | '30' | '15'>('60');
         // 日模式子菜单状态
         const showDaySubMenu = ref(false);
+        // 时模式子菜单状态
+        const showHourSubMenu = ref(false);
         const dayButtonRef = ref<HTMLElement | null>(null);
         const daySubMenuRef = ref<HTMLElement | null>(null);
+        const hourButtonRef = ref<HTMLElement | null>(null);
+        const hourSubMenuRef = ref<HTMLElement | null>(null);
         const daySubMenuTop = ref(0);
         const daySubMenuLeft = ref(0);
+        const hourSubMenuTop = ref(0);
+        const hourSubMenuLeft = ref(0);
         // 使用 dataConfig 中的开始/结束日期，如果没有则使用当月第一天/最后一天
         const startDate = ref(
             props.dataConfig.queryStartDate || 
@@ -689,7 +728,12 @@ export default defineComponent({
                     break;
                 }
                 case '时': {
-                    scale.value = 30;
+                    // 根据子模式调整scale和分钟间隔
+                    const minuteInterval = parseInt(hourSubMode.value); // 60, 30, 或 15
+                    const intervalsPerHour = 60 / minuteInterval;
+                    // 保持每个单元格有足够的宽度显示时间
+                    // 60分钟: 30px, 30分钟: 40px, 15分钟: 50px
+                    scale.value = minuteInterval === 60 ? 30 : minuteInterval === 30 ? 40 : 50;
                     let currentDate = start;
                     // 预先计算结束日期
                     const endOfEndDay = end.endOf('day');
@@ -701,23 +745,44 @@ export default defineComponent({
                             : currentDate.locale(getDayjsLocale()).format('MMMM DD');
                         const fullDate = currentDate.format('YYYY-MM-DD');
                         const week = currentDate.locale(getDayjsLocale()).format('dddd');
+                        // 每天的总宽度 = 间隔数 * scale
+                        const dayWidth = intervalsPerHour * 24 * scale.value;
+                        
                         weekHeaders.value.push({
                             title: week,
-                            width: 24 * scale.value,
+                            width: dayWidth,
                             fulldate: fullDate
                         });
                         dayHeaders.value.push({
                             title: caption,
-                            width: 24 * scale.value,
+                            width: dayWidth,
                             fulldate: fullDate
                         });
-                        for (let i = 0; i <= 23; i++) {
+                        // 生成时间间隔表头
+                        for (let hour = 0; hour <= 23; hour++) {
+                            for (let intervalIndex = 0; intervalIndex < intervalsPerHour; intervalIndex++) {
+                                const minutes = intervalIndex * minuteInterval;
+                                
+                                // 根据子模式和语言生成标题
+                                let title: string;
                             // 中日韩语言使用“点”，其他语言使用 :00 格式
                             const needsHourSuffix = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value);
+                                
+                                if (minuteInterval === 60) {
+                                    // 60分钟模式：显示小时
+                                    title = needsHourSuffix ? hour + '点' : `${hour}:00`;
+                                } else {
+                                    // 30分钟或15分钟模式：显示小时:分钟
+                                    const minuteStr = minutes.toString().padStart(2, '0');
+                                    title = `${hour}:${minuteStr}`;
+                                }
+                                
                             hourHeaders.value.push({
-                                title: needsHourSuffix ? i + '点' : `${i}:00`,
-                                width: scale.value
+                                    title: title,
+                                    width: scale.value,
+                                    fulldate: `${fullDate} ${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`
                             });
+                            }
                         }
                         // 优化代码：更新 currentDate
                         currentDate = currentDate.add(1, 'day');
@@ -818,11 +883,28 @@ export default defineComponent({
             zIndex: 100002
         }));
 
+        // 计算时模式弹出菜单位置
+        const hourSubMenuPosition = computed(() => ({
+            position: 'fixed' as const,
+            top: `${hourSubMenuTop.value}px`,
+            left: `${hourSubMenuLeft.value}px`,
+            zIndex: 100002
+        }));
+
         // 鼠标离开"日"按钮时的处理，延迟关闭菜单
         const handleDayButtonMouseLeave = () => {
             setTimeout(() => {
                 if (!daySubMenuRef.value || !document.querySelector('.day-submenu-popup:hover')) {
                     showDaySubMenu.value = false;
+                }
+            }, 100);
+        };
+
+        // 鼠标离开"时"按钮时的处理，延迟关闭菜单
+        const handleHourButtonMouseLeave = () => {
+            setTimeout(() => {
+                if (!hourSubMenuRef.value || !document.querySelector('.hour-submenu-popup:hover')) {
+                    showHourSubMenu.value = false;
                 }
             }, 100);
         };
@@ -837,12 +919,32 @@ export default defineComponent({
             showDaySubMenu.value = false;
         };
 
+        // 选择时模式子模式
+        const selectHourSubMode = (subMode: '60' | '30' | '15') => {
+            hourSubMode.value = subMode;
+            // 更新 store 中的状态
+            mutations.setHourSubMode(subMode);
+            // 重新生成时间轴
+            setTimeLineHeaders('时');
+            // 关闭菜单
+            showHourSubMenu.value = false;
+        };
+
         // 监听 showDaySubMenu 变化，计算弹出菜单位置
         watch(showDaySubMenu, (newVal) => {
             if (newVal && dayButtonRef.value) {
                 const rect = dayButtonRef.value.getBoundingClientRect();
                 daySubMenuTop.value = rect.bottom + 5;
                 daySubMenuLeft.value = rect.left;
+            }
+        });
+
+        // 监听 showHourSubMenu 变化，计算弹出菜单位置
+        watch(showHourSubMenu, (newVal) => {
+            if (newVal && hourButtonRef.value) {
+                const rect = hourButtonRef.value.getBoundingClientRect();
+                hourSubMenuTop.value = rect.bottom + 5;
+                hourSubMenuLeft.value = rect.left;
             }
         });
 
@@ -1116,12 +1218,19 @@ export default defineComponent({
             timeMode,
             mode,
             daySubMode,
+            hourSubMode,
             showDaySubMenu,
+            showHourSubMenu,
             dayButtonRef,
             daySubMenuRef,
+            hourButtonRef,
+            hourSubMenuRef,
             daySubMenuPosition,
+            hourSubMenuPosition,
             handleDayButtonMouseLeave,
+            handleHourButtonMouseLeave,
             selectDaySubMode,
+            selectHourSubMode,
             onDaySubModeChange,
             onLinkConfigChange,
             ganttContainer,
@@ -1554,6 +1663,76 @@ $toolbarHeight: 70px;
 <style lang="scss">
 /* 日模式子模式弹出菜单样式 */
 .day-submenu-popup {
+    position: fixed;
+    background: var(--bg-content, #ffffff);
+    border: 1px solid var(--border, #d0d0d0);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15), 
+                0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    min-width: 140px;
+    font-family: var(--font-family, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+    z-index: 100002;
+    animation: menuFadeIn 0.15s ease-out;
+
+    .submenu-item {
+        padding: 12px 20px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-primary, #333333);
+        background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
+        transition: all var(--transition-fast, 0.15s ease);
+        border-bottom: 1px solid var(--border, #e0e0e0);
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        &::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: transparent;
+            transition: all 0.15s ease;
+        }
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        &:hover {
+            background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
+            color: var(--primary, #0078d4);
+            padding-left: 24px;
+
+            &::before {
+                background: var(--primary, #0078d4);
+            }
+        }
+
+        &.active {
+            background: var(--bg-active, linear-gradient(145deg, #0078d4, #106ebe));
+            color: var(--text-white, #ffffff);
+            font-weight: 600;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+
+            &::before {
+                background: var(--text-white, #ffffff);
+            }
+
+            &:hover {
+                background: var(--bg-active, linear-gradient(145deg, #0078d4, #106ebe));
+                color: var(--text-white, #ffffff);
+                padding-left: 20px;
+            }
+        }
+    }
+}
+
+/* 时模式子模式弹出菜单样式 - 复用日模式样式 */
+.hour-submenu-popup {
     position: fixed;
     background: var(--bg-content, #ffffff);
     border: 1px solid var(--border, #d0d0d0);

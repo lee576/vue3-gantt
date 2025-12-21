@@ -140,8 +140,8 @@ export default defineComponent({
         height: 100%;
         background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
         position: relative;
-        border-bottom: 1px solid var(--border, #d0d0d0);
-        box-shadow: var(--shadow-inset, inset 0 1px 0 rgba(255, 255, 255, 0.8));
+        /* 添加一个细的底部边框作为分隔线，与右边第一行的顶部边框粗细一致 */
+        border-bottom: 1px solid var(--border, #cecece);
 
         .addRootTask {
             position: absolute;

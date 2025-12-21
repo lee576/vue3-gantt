@@ -67,7 +67,20 @@ export default {
     hour: 'Heure',
     daySubMode: 'Sous-mode jour',
     fullDay: 'Journée complète',
-    halfDay: 'Demi-journée'
+    halfDay: 'Demi-journée',
+    '15min': '15 minutes',
+    '30min': '30 minutes'
+  },
+  
+  // Duration Unit
+  durationUnit: {
+    quarters: 'trimestres',
+    months: 'mois',
+    weeks: 'semaines',
+    days: 'jours',
+    hours: 'heures',
+    minutes: 'minutes',
+    hoursAndMinutes: '{hours}h {minutes}min'
   },
   
   // Task

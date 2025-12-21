@@ -317,26 +317,10 @@ export default defineComponent({
     align-items: center;
     justify-content: flex-start;
     border-top: none;
-    border-bottom: none;
+    border-bottom: 1px solid var(--border, #d0d0d0);
     width: fit-content;
     background: var(--bg-content, #ffffff);
     color: var(--text-primary, #333333);
-
-    &:first-child {
-        border-top: 1px solid var(--border, #cecece);
-        border-bottom: none;
-    }
-
-    &:not(:first-child:last-child) {
-        border-right: 1px solid var(--border, #cecece);
-        border-top: 1px solid var(--border, #cecece);
-        border-bottom: 1px solid var(--border, #cecece);
-    }
-
-    &:last-child {
-        border-top: none;
-        border-bottom: 1px solid var(--border, #cecece);
-    }
 
     .cellNo {
         display: flex;
@@ -351,15 +335,15 @@ export default defineComponent({
         padding: 0 8px;
 
         &:first-child {
-            border-left: 1px solid var(--border, #cecece);
+            border-left: 1px solid var(--border, #d0d0d0);
         }
 
         &:not(:last-child) {
-            border-right: 1px solid var(--border, #cecece);
+            border-right: 1px solid var(--border, #d0d0d0);
         }
 
         &:last-child {
-            border-right: 1px solid var(--border, #cecece);
+            border-right: 1px solid var(--border, #d0d0d0);
         }
 
         .no-cell-content {
@@ -579,11 +563,11 @@ export default defineComponent({
             top: 0;
             bottom: 0;
             width: 1px;
-            background: var(--border, #cecece);
+            background: var(--border, #d0d0d0);
         }
 
         &:first-child {
-            border-left: 1px solid var(--border, #cecece);
+            border-left: 1px solid var(--border, #d0d0d0);
 
             &::before {
                 display: none;
@@ -591,11 +575,11 @@ export default defineComponent({
         }
 
         &:not(:last-child) {
-            border-right: 1px solid var(--border, #cecece);
+            border-right: 1px solid var(--border, #d0d0d0);
         }
 
         &:last-child {
-            border-right: 1px solid var(--border, #cecece);
+            border-right: 1px solid var(--border, #d0d0d0);
         }
     }
 }

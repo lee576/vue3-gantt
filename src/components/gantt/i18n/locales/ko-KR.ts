@@ -67,7 +67,20 @@ export default {
     hour: '시',
     daySubMode: '일 하위 모드',
     fullDay: '하루 종일',
-    halfDay: '반나절'
+    halfDay: '반나절',
+    '15min': '15분',
+    '30min': '30분'
+  },
+  
+  // Duration Unit
+  durationUnit: {
+    quarters: '분기',
+    months: '개월',
+    weeks: '주',
+    days: '일',
+    hours: '시간',
+    minutes: '분',
+    hoursAndMinutes: '{hours}시간 {minutes}분'
   },
   
   // Task

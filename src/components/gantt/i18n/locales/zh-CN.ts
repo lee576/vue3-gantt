@@ -66,7 +66,20 @@ export default {
     hour: '时',
     daySubMode: '日模式细分',
     fullDay: '全天',
-    halfDay: '半天'
+    halfDay: '半天',
+    '15min': '15分钟',
+    '30min': '30分钟'
+  },
+  
+  // 耗时单位
+  durationUnit: {
+    quarters: '季度',
+    months: '月',
+    weeks: '周',
+    days: '天',
+    hours: '小时',
+    minutes: '分钟',
+    hoursAndMinutes: '{hours}小时{minutes}分钟'
   },
   
   // 任务

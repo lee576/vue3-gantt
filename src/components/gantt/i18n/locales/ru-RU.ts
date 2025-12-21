@@ -67,7 +67,20 @@ export default {
     hour: 'Час',
     daySubMode: 'Подрежим дня',
     fullDay: 'Полный день',
-    halfDay: 'Полдня'
+    halfDay: 'Полдня',
+    '15min': '15 минут',
+    '30min': '30 минут'
+  },
+  
+  // Duration Unit
+  durationUnit: {
+    quarters: 'кварталов',
+    months: 'месяцев',
+    weeks: 'недель',
+    days: 'дней',
+    hours: 'часов',
+    minutes: 'минут',
+    hoursAndMinutes: '{hours}ч {minutes}мин'
   },
   
   // Task

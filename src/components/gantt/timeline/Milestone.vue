@@ -1,20 +1,12 @@
 <template>
-    <div v-if='showRow' class="milestoneRow" :style="{ height: rowHeight + 'px' }" 
+    <div v-if='showRow' class="milestoneRow" :style="milestoneRowStyle" 
         @mouseover="hoverActive()" @mouseleave="hoverInactive()" 
         :class="{ active: hover }" :data-task-id="row[mapFields.id]">
         <svg key="milestone" v-if='showRow' ref='milestone' class="milestone" 
             :height="rowHeight + 'px'" :width="(rowHeight * 0.6 + 200) + 'px'" 
             :class="{ active: hover }" 
             style="overflow: visible;"></svg>
-        <template v-for='(count) in timelineCellCount' :key="count + row.id + '_milestone_template'">
-            <div class="cell" :style="{ 
-                width: scale + 'px', 
-                minWidth: scale + 'px', 
-                maxWidth: scale + 'px', 
-                height: rowHeight + 'px', 
-                background: WeekEndColor(count) 
-            }"></div>
-        </template>
+        <!-- 使用CSS背景绘制网格，不再渲染大量cell div -->
     </div>
 </template>
 
@@ -28,6 +20,7 @@ dayjs.extend(isoWeek);
 import { store, mutations } from '../state/Store';
 import sharedState from '../state/ShareState';
 import { Symbols } from '../state/Symbols';
+import { t } from '../i18n';
 
 export default defineComponent({
     name: 'Milestone',
@@ -52,6 +45,83 @@ export default defineComponent({
         const mapFields = computed(() => store.mapFields);
 
         const setBarColor = inject(Symbols.SetBarColorSymbol) as ((row: any) => string) | undefined;
+
+        // 获取主题颜色
+        const getThemeColors = () => {
+            let bgContent = '#ffffff', bgSecondary = '#f8f8f8', borderColor = '#cecece';
+            if (milestone.value) {
+                let element = milestone.value.parentElement;
+                while (element) {
+                    if (element.hasAttribute('data-gantt-theme')) {
+                        bgContent = getComputedStyle(element).getPropertyValue('--bg-content').trim() || '#ffffff';
+                        bgSecondary = getComputedStyle(element).getPropertyValue('--bg-secondary').trim() || '#f8f8f8';
+                        borderColor = getComputedStyle(element).getPropertyValue('--border').trim() || '#cecece';
+                        break;
+                    }
+                    element = element.parentElement;
+                }
+            }
+            return { bgContent, bgSecondary, borderColor };
+        };
+
+        // 计算周末列的索引（用于CSS背景）
+        const getWeekendIndices = computed(() => {
+            if (mode.value !== '日') return [];
+            const indices: number[] = [];
+            const isHalfDay = store.daySubMode === 'half';
+            const cellsPerDay = isHalfDay ? 2 : 1;
+            
+            for (let i = 0; i < timelineCellCount.value; i++) {
+                const dayIndex = isHalfDay ? Math.floor(i / cellsPerDay) : i;
+                const currentDate = dayjs(props.startGanttDate).add(dayIndex, 'days');
+                const weekday = currentDate.isoWeekday();
+                if (weekday === 6 || weekday === 7) {
+                    indices.push(i);
+                }
+            }
+            return indices;
+        });
+
+        // 使用CSS背景绘制网格的样式
+        const milestoneRowStyle = computed(() => {
+            const cellWidth = scale.value;
+            const totalWidth = timelineCellCount.value * cellWidth;
+            const { bgContent, bgSecondary, borderColor } = getThemeColors();
+            
+            // 基础网格线背景 - 在每个单元格的右边界绘制竖线（与表头对齐）
+            let backgroundImage = `
+                repeating-linear-gradient(
+                    to right,
+                    transparent 0px,
+                    transparent ${cellWidth - 1}px,
+                    ${borderColor} ${cellWidth - 1}px,
+                    ${borderColor} ${cellWidth}px
+                )
+            `;
+            
+            // 日模式下添加周末背景色
+            if (mode.value === '日') {
+                const weekendIndices = getWeekendIndices.value;
+                if (weekendIndices.length > 0) {
+                    const weekendGradients = weekendIndices.map(idx => {
+                        const start = idx * cellWidth;
+                        const end = start + cellWidth;
+                        return `linear-gradient(to right, transparent ${start}px, ${bgSecondary} ${start}px, ${bgSecondary} ${end}px, transparent ${end}px)`;
+                    });
+                    backgroundImage = weekendGradients.join(', ') + ', ' + backgroundImage;
+                }
+            }
+            
+            return {
+                height: props.rowHeight + 'px',
+                width: totalWidth + 'px',
+                minWidth: totalWidth + 'px',
+                background: bgContent,
+                backgroundImage: backgroundImage,
+                backgroundSize: `${totalWidth}px 100%`,
+                borderBottom: `1px solid ${borderColor}`
+            };
+        });
 
         watch(() => sharedState.highlightedId, (newId) => {
             hover.value = props.row[mapFields.value['id']] === newId;
@@ -139,7 +209,7 @@ export default defineComponent({
                         dataX = scale.value * fromPlanStartDays + scale.value / 2; // 居中显示
                     }
                     
-                    props.row[mapFields.value.takestime] = '0天';
+                    props.row[mapFields.value.takestime] = '0' + t('durationUnit.days');
                     // 确保里程碑的结束日期等于开始日期
                     props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate];
                     break;
@@ -349,10 +419,38 @@ export default defineComponent({
                             }
                         }
                         else if (mode.value === '周') daysOffset = cellsMoved * 7;
-                        else if (mode.value === '时') hoursOffset = cellsMoved;
+                        else if (mode.value === '时') {
+                            // 根据时模式的子模式计算时间
+                            const hourSubMode = store.hourSubMode || '60';
+                            const minuteInterval = parseInt(hourSubMode);
+                            
+                            if (minuteInterval < 60) {
+                                // 15分钟或30分钟模式：根据最终位置的单元格索引直接计算时间
+                                const newCellIndex = Math.round(alignedX / scale.value);
+                                
+                                // 每小时的单元格数
+                                const cellsPerHour = 60 / minuteInterval;
+                                // 每天的单元格数
+                                const cellsPerDay = 24 * cellsPerHour;
+                                
+                                // 计算新的日期时间
+                                const days = Math.floor(newCellIndex / cellsPerDay);
+                                const cellInDay = newCellIndex % cellsPerDay;
+                                const hour = Math.floor(cellInDay / cellsPerHour);
+                                const minute = (cellInDay % cellsPerHour) * minuteInterval;
+                                const newDate = dayjs(props.startGanttDate).add(days, 'days').hour(hour).minute(minute).second(0);
+                                
+                                props.row[mapFields.value.startdate] = newDate.format('YYYY-MM-DD HH:mm:ss');
+                                props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate];
+                            } else {
+                                // 60分钟模式：使用偏移量
+                                hoursOffset = cellsMoved;
+                            }
+                        }
                         
-                        // 半天模式已在上面处理
+                        // 半天模式和时模式子模式已在上面处理
                         const isHalfDayMode = mode.value === '日' && store.daySubMode === 'half';
+                        const isHourSubMode = mode.value === '时' && (store.hourSubMode === '15' || store.hourSubMode === '30');
 
                         if (mode.value === '季度') {
                             props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(quartersOffset, 'quarters').format('YYYY-MM-DD HH:mm:ss');
@@ -361,7 +459,9 @@ export default defineComponent({
                             props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(monthsOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
                             props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate];
                         } else if (mode.value === '时') {
-                            props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(hoursOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
+                            // 使用分钟级别的精度
+                            const minutesOffset = Math.round(hoursOffset * 60);
+                            props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(minutesOffset, 'minutes').format('YYYY-MM-DD HH:mm:ss');
                             props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate];
                         } else if (!isHalfDayMode) {
                             props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(daysOffset, 'days').format('YYYY-MM-DD HH:mm:ss');
@@ -415,7 +515,7 @@ export default defineComponent({
         return {
             milestone, showRow, hover, milestoneColor,
             timelineCellCount, scale, mode, mapFields, 
-            hoverActive, hoverInactive, WeekEndColor
+            hoverActive, hoverInactive, WeekEndColor, milestoneRowStyle
         };
     },
 })

@@ -99,9 +99,10 @@ if (savedLocale && messages[savedLocale]) {
 /**
  * 获取翻译文本
  * @param key 翻译键，支持点号路径如 'common.confirm'
+ * @param params 模板参数对象
  * @returns 翻译后的文本
  */
-export function t(key: string): string {
+export function t(key: string, params?: Record<string, any>): string {
   const keys = key.split('.');
   let value: any = messages[currentLocale.value];
   
@@ -113,7 +114,17 @@ export function t(key: string): string {
     }
   }
   
-  return typeof value === 'string' ? value : key;
+  let result = typeof value === 'string' ? value : key;
+  
+  // 如果有参数，进行模板替换
+  if (params && typeof result === 'string') {
+    Object.keys(params).forEach(paramKey => {
+      const placeholder = `{${paramKey}}`;
+      result = result.replace(new RegExp(placeholder, 'g'), String(params[paramKey]));
+    });
+  }
+  
+  return result;
 }
 
 /**

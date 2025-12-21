@@ -197,8 +197,8 @@
       right: 0;
       bottom: 0;
       left: 0;
-      /* 只保留顶部边框，底部边框由 TaskTable 的 .header 提供，避免重叠 */
-      border-top: 1px solid var(--border, #cecece);
+      /* 移除顶部边框，因为 Gantt.vue toolbar 已经提供了 border-bottom */
+      /* 底部边框由 TaskTable 的 .header 提供，避免重叠 */
       pointer-events: none;
     }
     
@@ -208,16 +208,16 @@
       right: -1px;
       top: 0;
       bottom: 0;
-      background: var(--border, #cecece);
-      border-left: 1px solid var(--border, #cecece);
+      background: var(--border, #d0d0d0);
+      border-left: 1px solid var(--border, #d0d0d0);
     }
     
     &:first-child::before {
-      border-left: 1px solid var(--border, #cecece);
+      border-left: 1px solid var(--border, #d0d0d0);
     }
 
     &:last-child::before {
-      border-right: 1px solid var(--border, #cecece);
+      border-right: 1px solid var(--border, #d0d0d0);
     }
 
     &:hover {

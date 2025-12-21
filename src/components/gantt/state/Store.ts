@@ -16,6 +16,7 @@ interface StoreType {
   scrollFlag: boolean;
   mode: string | null;
   daySubMode: 'full' | 'half'; // 日模式的子模式：全天或半天
+  hourSubMode: '60' | '30' | '15'; // 时模式的子模式：60分钟、30分钟或15分钟
   expandRow: {
     pid: number;
     expand: boolean;
@@ -49,6 +50,7 @@ const initialStore: StoreType = {
   scrollFlag: true,
   mode: null,
   daySubMode: 'full', // 默认为全天模式
+  hourSubMode: '60', // 默认为60分钟模式
   expandRow: {
     pid: 0,
     expand: true
@@ -86,6 +88,7 @@ interface MutationsType {
   setScrollFlag: (scrollFlag: boolean) => void;
   setMode: (mode: string | null) => void;
   setDaySubMode: (daySubMode: 'full' | 'half') => void; // 设置日模式的子模式
+  setHourSubMode: (hourSubMode: '60' | '30' | '15') => void; // 设置时模式的子模式
   setExpandRow: (expandRow: { pid: number; expand: boolean }) => void;
   toggleTaskCollapse: (taskId: any) => void; // 切换任务折叠状态
   setRootTask: (rootTask: any) => void;
@@ -139,6 +142,9 @@ export let mutations: MutationsType = {
   },
   setDaySubMode(daySubMode: 'full' | 'half'): void {
     store.daySubMode = daySubMode;
+  },
+  setHourSubMode(hourSubMode: '60' | '30' | '15'): void {
+    store.hourSubMode = hourSubMode;
   },
   setExpandRow(expandRow: { pid: number; expand: boolean }): void {
     store.expandRow = expandRow;

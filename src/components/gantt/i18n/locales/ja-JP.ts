@@ -67,7 +67,20 @@ export default {
     hour: '時',
     daySubMode: '日モードサブ',
     fullDay: '終日',
-    halfDay: '半日'
+    halfDay: '半日',
+    '15min': '15分',
+    '30min': '30分'
+  },
+  
+  // Duration Unit
+  durationUnit: {
+    quarters: '四半期',
+    months: 'ヶ月',
+    weeks: '週間',
+    days: '日',
+    hours: '時間',
+    minutes: '分',
+    hoursAndMinutes: '{hours}時間{minutes}分'
   },
   
   // Task

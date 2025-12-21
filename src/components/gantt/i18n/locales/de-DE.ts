@@ -67,7 +67,20 @@ export default {
     hour: 'Stunde',
     daySubMode: 'Tag-Untermodus',
     fullDay: 'Ganzer Tag',
-    halfDay: 'Halber Tag'
+    halfDay: 'Halber Tag',
+    '15min': '15 Minuten',
+    '30min': '30 Minuten'
+  },
+  
+  // Duration Unit
+  durationUnit: {
+    quarters: 'Quartale',
+    months: 'Monate',
+    weeks: 'Wochen',
+    days: 'Tage',
+    hours: 'Stunden',
+    minutes: 'Minuten',
+    hoursAndMinutes: '{hours}Std {minutes}Min'
   },
   
   // Task
