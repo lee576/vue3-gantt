@@ -90,6 +90,8 @@ export default defineComponent({
 
         // 使用CSS背景绘制网格的样式
         const barRowStyle = computed(() => {
+            // 依赖 themeVersion 以响应主题变化
+            themeVersion.value;
             const cellWidth = scale.value;
             const totalWidth = timelineCellCount.value * cellWidth;
             const { bgContent, bgSecondary, borderColor } = getThemeColors();
