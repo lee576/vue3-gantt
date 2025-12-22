@@ -25,7 +25,7 @@ export const PerformanceConfig = {
   BATCH_UPDATE_DELAY: 16, // 约60fps
   
   // 启用虚拟滚动的任务数量阈值
-  VIRTUAL_SCROLL_THRESHOLD: 50,
+  VIRTUAL_SCROLL_THRESHOLD: 20,
   
   // 是否使用CSS网格背景替代cell div
   USE_CSS_GRID_BACKGROUND: true,
