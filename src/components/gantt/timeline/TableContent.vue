@@ -25,6 +25,7 @@
   import { useLinkConfig } from '../composables/LinkConfig';
   import BarRecursionRow from './BarRecursionRow.vue';
   import TaskLinks from '../links/TaskLinks.vue';
+  import { debounce } from '../composables/PerformanceConfig';
 
   export default defineComponent({
     props: {
@@ -104,7 +105,7 @@
       const showGuideLine = ref(false);
       const guideLineX = ref(0);
 
-      const handleMouseMove = (e: MouseEvent) => {
+      const handleMouseMove = debounce((e: MouseEvent) => {
         if (!barContent.value) return;
         
         const rect = barContent.value.getBoundingClientRect();
@@ -117,7 +118,7 @@
         
         guideLineX.value = columnCenterX;
         showGuideLine.value = true;
-      };
+      }, 50); // 使用较短的延迟以保持响应性
 
       const handleMouseLeave = () => {
         showGuideLine.value = false;

@@ -18,6 +18,7 @@ import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 dayjs.extend(isoWeek);
 import { store, mutations } from '../state/Store';
+import { svgCache } from '../composables/PerformanceConfig';
 import sharedState from '../state/ShareState';
 import { Symbols } from '../state/Symbols';
 import { t } from '../i18n';
@@ -75,6 +76,7 @@ export default defineComponent({
                 const dayIndex = isHalfDay ? Math.floor(i / cellsPerDay) : i;
                 const currentDate = dayjs(props.startGanttDate).add(dayIndex, 'days');
                 const weekday = currentDate.isoWeekday();
+                // 修正：使用与 Bar 组件一致的周末判断逻辑（周六=6，周日=7）
                 if (weekday === 6 || weekday === 7) {
                     indices.push(i);
                 }
@@ -160,7 +162,8 @@ export default defineComponent({
                     // 半天模式下，每2个单元格为1天
                     const dayIndex = isHalfDay ? Math.floor(count / 2) : count;
                     let currentDate = dayjs(props.startGanttDate).add(dayIndex, 'days');
-                    return (currentDate.isoWeekday() === 7 || currentDate.isoWeekday() === 1) ? bgSecondary : bgContent;
+                    // 修正：使用正确的周末判断逻辑（周六=6，周日=7）
+                    return (currentDate.isoWeekday() === 6 || currentDate.isoWeekday() === 7) ? bgSecondary : bgContent;
                 }
                 case '周': case '时': return bgContent;
             }

@@ -11,6 +11,7 @@ import { defineComponent, ref, watch, computed, onMounted, onUnmounted } from 'v
 import { store } from '../state/Store';
 import { useScrollState } from '../state/ShareState';
 import TaskRecursionRow from './TaskRecursionRow.vue';
+import { throttle } from '../composables/PerformanceConfig';
 
 export default defineComponent({
     props: {
@@ -92,10 +93,10 @@ export default defineComponent({
             setTimeout(syncScrollHeight, 50);
         });
         
-        // 监听窗口大小变化，重新同步高度
-        const handleResize = () => {
+        // 监听窗口大小变化，重新同步高度（使用 throttle 优化）
+        const handleResize = throttle(() => {
             setTimeout(syncScrollHeight, 50);
-        };
+        });
         
         onMounted(() => {
             if (taskContent.value) {

@@ -132,12 +132,26 @@
       
       // 滚动处理
       let rafId: number | null = null;
+      let batchUpdateTimer: number | null = null;
+      
       const onScroll = () => {
-        if (rafId) return;
-        rafId = requestAnimationFrame(() => {
-          updateVisibleRange();
-          rafId = null;
-        });
+        if (PerformanceConfig.USE_RAF) {
+          // 使用 requestAnimationFrame 优化
+          if (rafId) return;
+          rafId = requestAnimationFrame(() => {
+            updateVisibleRange();
+            rafId = null;
+          });
+        } else {
+          // 使用批量更新延迟
+          if (batchUpdateTimer) {
+            clearTimeout(batchUpdateTimer);
+          }
+          batchUpdateTimer = setTimeout(() => {
+            updateVisibleRange();
+            batchUpdateTimer = null;
+          }, PerformanceConfig.BATCH_UPDATE_DELAY);
+        }
       };
       
       // 判断任务类型
@@ -262,6 +276,9 @@
         }
         if (rafId) {
           cancelAnimationFrame(rafId);
+        }
+        if (batchUpdateTimer) {
+          clearTimeout(batchUpdateTimer);
         }
       });
   

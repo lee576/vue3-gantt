@@ -17,6 +17,7 @@ import { store, mutations } from '../state/Store';
 import sharedState from '../state/ShareState';
 import { Symbols } from '../state/Symbols';
 import { t } from '../i18n';
+import { svgCache, getWeekendIndices, getWeekendColor, getThemeColors } from '../composables/PerformanceConfig';
 
 export default defineComponent({
     name: 'Bar',
@@ -52,40 +53,19 @@ export default defineComponent({
 
         const setBarColor = inject(Symbols.SetBarColorSymbol) as ((row: any) => string) | undefined;
 
-        // 获取主题颜色
-        const getThemeColors = () => {
-            let bgContent = '#ffffff', bgSecondary = '#f8f8f8', borderColor = '#cecece';
-            if (bar.value) {
-                let element = bar.value.parentElement;
-                while (element) {
-                    if (element.hasAttribute('data-gantt-theme')) {
-                        bgContent = getComputedStyle(element).getPropertyValue('--bg-content').trim() || '#ffffff';
-                        bgSecondary = getComputedStyle(element).getPropertyValue('--bg-secondary').trim() || '#f8f8f8';
-                        borderColor = getComputedStyle(element).getPropertyValue('--border').trim() || '#cecece';
-                        break;
-                    }
-                    element = element.parentElement;
-                }
-            }
-            return { bgContent, bgSecondary, borderColor };
+        // 获取主题颜色（使用公共函数）
+        const getThemeColorsLocal = () => {
+            return getThemeColors(bar.value?.parentElement || null, themeVersion.value);
         };
 
-        // 计算周末列的索引（用于CSS背景）
-        const getWeekendIndices = computed(() => {
-            if (mode.value !== '日') return [];
-            const indices: number[] = [];
-            const isHalfDay = store.daySubMode === 'half';
-            const cellsPerDay = isHalfDay ? 2 : 1;
-            
-            for (let i = 0; i < timelineCellCount.value; i++) {
-                const dayIndex = isHalfDay ? Math.floor(i / cellsPerDay) : i;
-                const currentDate = dayjs(props.startGanttDate).add(dayIndex, 'days');
-                const weekday = currentDate.isoWeekday();
-                if (weekday === 6 || weekday === 7) {
-                    indices.push(i);
-                }
-            }
-            return indices;
+        // 计算周末列的索引（使用公共函数）
+        const getWeekendIndicesLocal = computed(() => {
+            return getWeekendIndices(
+                props.startGanttDate || '',
+                timelineCellCount.value,
+                mode.value,
+                store.daySubMode
+            );
         });
 
         // 使用CSS背景绘制网格的样式
@@ -94,7 +74,7 @@ export default defineComponent({
             themeVersion.value;
             const cellWidth = scale.value;
             const totalWidth = timelineCellCount.value * cellWidth;
-            const { bgContent, bgSecondary, borderColor } = getThemeColors();
+            const { bgContent, bgSecondary, borderColor } = getThemeColorsLocal();
             
             // 基础网格线背景 - 在每个单元格的右边界绘制竖线（与表头对齐）
             let backgroundImage = `
@@ -109,7 +89,7 @@ export default defineComponent({
             
             // 日模式下添加周末背景色
             if (mode.value === '日') {
-                const weekendIndices = getWeekendIndices.value;
+                const weekendIndices = getWeekendIndicesLocal.value;
                 if (weekendIndices.length > 0) {
                     // 为周末列创建背景色层
                     const weekendGradients = weekendIndices.map(idx => {
@@ -176,11 +156,23 @@ export default defineComponent({
                     return bgContent;
                 }
                 case '日': {
+                    // 使用 SVG 缓存优化日期计算
+                    const cacheKey = `weekend-${props.startGanttDate}-${count}-${store.daySubMode}`;
+                    if (svgCache.has(cacheKey)) {
+                        const isWeekend = svgCache.get(cacheKey);
+                        return isWeekend ? bgSecondary : bgContent;
+                    }
+                    
                     const isHalfDay = store.daySubMode === 'half';
                     // 半天模式下，每2个单元格为1天
                     const dayIndex = isHalfDay ? Math.floor(count / 2) : count;
                     let currentDate = dayjs(props.startGanttDate).add(dayIndex, 'days');
-                    return (currentDate.isoWeekday() === 7 || currentDate.isoWeekday() === 1) ? bgSecondary : bgContent;
+                    // 修正：使用正确的周末判断逻辑（周六=6，周日=7）
+                    const isWeekend = (currentDate.isoWeekday() === 6 || currentDate.isoWeekday() === 7);
+                    
+                    // 缓存计算结果
+                    svgCache.set(cacheKey, isWeekend);
+                    return isWeekend ? bgSecondary : bgContent;
                 }
                 case '周': case '时': return bgContent;
             }
@@ -326,6 +318,7 @@ export default defineComponent({
             let progressHandle = svg.select('.progressHandle').first();
 
             if (!p) {
+                // SVG pattern 不能跨实例共享，所以直接创建
                 p = svg.pattern(10, 10, (add) => {
                     (add as any).path('M10 -5 -10,15M15,0,0,15M0 -5 -20,15').fill('none').stroke({ color: 'gray', opacity: 0.4, width: 5 });
                 });
