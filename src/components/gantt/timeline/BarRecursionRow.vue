@@ -2,25 +2,23 @@
     <div ref="containerRef" class="bar-recursion-container">
       <!-- 虚拟滚动模式 -->
       <template v-if="useVirtualScroll">
-        <div class="virtual-scroll-spacer" :style="{ height: totalHeight + 'px' }">
-          <div class="virtual-scroll-content" :style="{ transform: `translateY(${offsetY}px)` }">
-            <template v-for="item in visibleTasks" :key="item.task[mapFields.id]">
-              <Milestone 
-                v-if="getTaskType(item.task) === TaskType.MILESTONE"
-                :startGanttDate="startGanttDate" 
-                :endGanttDate="endGanttDate" 
-                :row="item.task" 
-                :rowHeight="rowHeight" 
-              />
-              <Bar 
-                v-else
-                :startGanttDate="startGanttDate" 
-                :endGanttDate="endGanttDate" 
-                :row="item.task" 
-                :rowHeight="rowHeight" 
-              />
-            </template>
-          </div>
+        <div class="virtual-scroll-spacer" :style="{ height: totalHeight + 'px', paddingTop: offsetY + 'px', boxSizing: 'border-box' }">
+          <template v-for="item in visibleTasks" :key="item.task[mapFields.id]">
+            <Milestone 
+              v-if="getTaskType(item.task) === TaskType.MILESTONE"
+              :startGanttDate="startGanttDate" 
+              :endGanttDate="endGanttDate" 
+              :row="item.task" 
+              :rowHeight="rowHeight" 
+            />
+            <Bar 
+              v-else
+              :startGanttDate="startGanttDate" 
+              :endGanttDate="endGanttDate" 
+              :row="item.task" 
+              :rowHeight="rowHeight" 
+            />
+          </template>
         </div>
       </template>
       <!-- 普通模式 -->
@@ -103,30 +101,33 @@
         for (let i = startIndex.value; i <= endIndex.value && i < tasks.length; i++) {
           result.push({ task: tasks[i], index: i });
         }
+        // 调试日志
+        // console.log(`[右侧虚拟滚动] 总任务: ${tasks.length}, 渲染: ${result.length}, 范围: ${startIndex.value}-${endIndex.value}`);
         return result;
       });
       
       // 更新可见范围
       const updateVisibleRange = () => {
-        if (!containerRef.value || !useVirtualScroll.value) return;
+        if (!containerRef.value) return;
         
         // 获取父滚动容器
         const scrollContainer = containerRef.value.closest('.content') as HTMLElement;
         if (!scrollContainer) return;
         
         const scrollY = scrollContainer.scrollTop;
-        const viewHeight = scrollContainer.clientHeight;
+        const viewHeight = scrollContainer.clientHeight || 500; // 默认高度
         const buffer = PerformanceConfig.VIRTUAL_SCROLL_BUFFER;
         
         scrollTop.value = scrollY;
         containerHeight.value = viewHeight;
         
-        const start = Math.max(0, Math.floor(scrollY / props.rowHeight) - buffer);
-        const visibleCount = Math.ceil(viewHeight / props.rowHeight);
+        const rowH = props.rowHeight || 40; // 默认行高
+        const start = Math.max(0, Math.floor(scrollY / rowH) - buffer);
+        const visibleCount = Math.ceil(viewHeight / rowH);
         const end = Math.min(filterTask.value.length - 1, start + visibleCount + buffer * 2);
         
         startIndex.value = start;
-        endIndex.value = end;
+        endIndex.value = Math.max(end, start); // 确保 end >= start
       };
       
       // 滚动处理
@@ -215,6 +216,15 @@
       watch(() => filterTask.value.length, () => {
         updateVisibleRange();
       });
+      
+      // 监听虚拟滚动模式变化
+      watch(useVirtualScroll, (newVal) => {
+        if (newVal) {
+          setTimeout(() => {
+            updateVisibleRange();
+          }, 0);
+        }
+      }, { immediate: true });
   
       const recursionRow = (id: any) => {
         let findRows = allTask.value.filter(obj => obj[mapFields.value['parentId']] === id);
@@ -235,9 +245,12 @@
           const scrollContainer = containerRef.value.closest('.content') as HTMLElement;
           if (scrollContainer) {
             scrollContainer.addEventListener('scroll', onScroll, { passive: true });
-            updateVisibleRange();
           }
         }
+        // 延迟初始化，确保 DOM 已渲染
+        setTimeout(() => {
+          updateVisibleRange();
+        }, 0);
       });
       
       onUnmounted(() => {
@@ -296,14 +309,6 @@
   }
   
   .virtual-scroll-spacer {
-    position: relative;
-    width: 100%;
-  }
-  
-  .virtual-scroll-content {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
   }
   </style>

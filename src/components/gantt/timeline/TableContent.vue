@@ -164,10 +164,7 @@
     
     .content-inner {
       width: 100%;
-      display: flex;
-      flex-flow: column nowrap;
-      align-items: center;
-      justify-content: flex-start;
+      position: relative;
     }
   }
 
