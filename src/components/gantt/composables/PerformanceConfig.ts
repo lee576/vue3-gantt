@@ -23,7 +23,9 @@ class SVGCache {
     if (this.cache.size >= this.maxSize) {
       // 删除最旧的缓存项
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey) {
+        this.cache.delete(firstKey);
+      }
     }
     this.cache.set(key, value);
   }
@@ -180,7 +182,7 @@ export function getThemeColors(element: HTMLElement | null, themeVersion?: numbe
   
   let bgContent = '#ffffff', bgSecondary = '#f8f8f8', borderColor = '#cecece';
   if (element) {
-    let currentElement = element;
+    let currentElement: HTMLElement | null = element;
     while (currentElement) {
       if (currentElement.hasAttribute('data-gantt-theme')) {
         bgContent = getComputedStyle(currentElement).getPropertyValue('--bg-content').trim() || '#ffffff';

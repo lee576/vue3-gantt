@@ -17,7 +17,7 @@ import { store, mutations } from '../state/Store';
 import sharedState from '../state/ShareState';
 import { Symbols } from '../state/Symbols';
 import { t } from '../i18n';
-import { svgCache, getWeekendIndices, getWeekendColor, getThemeColors } from '../composables/PerformanceConfig';
+import { svgCache, isWeekend as isWeekendDay } from '../composables/PerformanceConfig';
 
 export default defineComponent({
     name: 'Bar',
@@ -53,19 +53,39 @@ export default defineComponent({
 
         const setBarColor = inject(Symbols.SetBarColorSymbol) as ((row: any) => string) | undefined;
 
-        // 获取主题颜色（使用公共函数）
+        // 获取主题颜色
         const getThemeColorsLocal = () => {
-            return getThemeColors(bar.value?.parentElement || null, themeVersion.value);
+            let bgContent = '#ffffff', bgSecondary = '#f8f8f8', borderColor = '#cecece';
+            if (bar.value) {
+                let element = bar.value.parentElement;
+                while (element) {
+                    if (element.hasAttribute('data-gantt-theme')) {
+                        bgContent = getComputedStyle(element).getPropertyValue('--bg-content').trim() || '#ffffff';
+                        bgSecondary = getComputedStyle(element).getPropertyValue('--bg-secondary').trim() || '#f8f8f8';
+                        borderColor = getComputedStyle(element).getPropertyValue('--border').trim() || '#cecece';
+                        break;
+                    }
+                    element = element.parentElement;
+                }
+            }
+            return { bgContent, bgSecondary, borderColor };
         };
 
-        // 计算周末列的索引（使用公共函数）
+        // 计算周末列的索引（用于CSS背景）
         const getWeekendIndicesLocal = computed(() => {
-            return getWeekendIndices(
-                props.startGanttDate || '',
-                timelineCellCount.value,
-                mode.value,
-                store.daySubMode
-            );
+            if (mode.value !== '日') return [];
+            const indices: number[] = [];
+            const isHalfDay = store.daySubMode === 'half';
+            const cellsPerDay = isHalfDay ? 2 : 1;
+            
+            for (let i = 0; i < timelineCellCount.value; i++) {
+                const dayIndex = isHalfDay ? Math.floor(i / cellsPerDay) : i;
+                const currentDate = dayjs(props.startGanttDate).add(dayIndex, 'days');
+                if (isWeekendDay(currentDate)) {
+                    indices.push(i);
+                }
+            }
+            return indices;
         });
 
         // 使用CSS背景绘制网格的样式
@@ -159,20 +179,20 @@ export default defineComponent({
                     // 使用 SVG 缓存优化日期计算
                     const cacheKey = `weekend-${props.startGanttDate}-${count}-${store.daySubMode}`;
                     if (svgCache.has(cacheKey)) {
-                        const isWeekend = svgCache.get(cacheKey);
-                        return isWeekend ? bgSecondary : bgContent;
+                        const isWeekendResult = svgCache.get(cacheKey);
+                        return isWeekendResult ? bgSecondary : bgContent;
                     }
                     
                     const isHalfDay = store.daySubMode === 'half';
                     // 半天模式下，每2个单元格为1天
                     const dayIndex = isHalfDay ? Math.floor(count / 2) : count;
                     let currentDate = dayjs(props.startGanttDate).add(dayIndex, 'days');
-                    // 修正：使用正确的周末判断逻辑（周六=6，周日=7）
-                    const isWeekend = (currentDate.isoWeekday() === 6 || currentDate.isoWeekday() === 7);
+                    // 使用公共函数判断周末
+                    const isWeekendResult = isWeekendDay(currentDate);
                     
                     // 缓存计算结果
-                    svgCache.set(cacheKey, isWeekend);
-                    return isWeekend ? bgSecondary : bgContent;
+                    svgCache.set(cacheKey, isWeekendResult);
+                    return isWeekendResult ? bgSecondary : bgContent;
                 }
                 case '周': case '时': return bgContent;
             }
