@@ -1813,4 +1813,607 @@ $toolbarHeight: 70px;
         transform: translateY(0);
     }
 }
+
+/* ============================================= */
+/* iOS 26 Liquid Glass - 真正的液态玻璃效果 */
+/* 核心特征：深度层次、边缘折射、动态光影、胶囊圆角 */
+/* ============================================= */
+
+/* CSS 变量定义 - iOS 26 风格 */
+[data-gantt-theme="liquidGlass"] {
+  /* 玻璃核心参数 */
+  --glass-blur: 40px;
+  --glass-saturation: 200%;
+  --glass-brightness: 108%;
+  --glass-opacity: 0.72;
+  
+  /* 深度阴影系统 */
+  --shadow-elevation-1: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-elevation-2: 0 8px 24px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-elevation-3: 0 16px 48px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.06);
+  --shadow-elevation-4: 0 24px 64px rgba(0, 0, 0, 0.16), 0 12px 24px rgba(0, 0, 0, 0.08);
+  
+  /* 边缘高光 - 模拟光线折射 */
+  --edge-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.8), inset 0 -1px 1px rgba(255, 255, 255, 0.2);
+  --edge-highlight-strong: inset 0 2px 2px rgba(255, 255, 255, 0.9), inset 0 -1px 2px rgba(255, 255, 255, 0.3);
+  
+  /* 彩虹色散边框 */
+  --prismatic-border: linear-gradient(135deg, 
+    rgba(255, 120, 120, 0.3) 0%, 
+    rgba(255, 200, 120, 0.3) 20%,
+    rgba(200, 255, 120, 0.3) 40%,
+    rgba(120, 255, 200, 0.3) 60%,
+    rgba(120, 200, 255, 0.3) 80%,
+    rgba(200, 120, 255, 0.3) 100%
+  );
+  
+  /* iOS 系统色 */
+  --ios-blue: #007AFF;
+  --ios-blue-dark: #0051D5;
+  --ios-gray-1: #8E8E93;
+  --ios-gray-2: #AEAEB2;
+  --ios-gray-3: #C7C7CC;
+  --ios-gray-4: #D1D1D6;
+  --ios-gray-5: #E5E5EA;
+  --ios-gray-6: #F2F2F7;
+  
+  /* 背景 - 柔和渐变 */
+  background: linear-gradient(180deg, 
+    #E8F0F8 0%, 
+    #F0F4F8 30%,
+    #F8FAFC 70%,
+    #FFFFFF 100%
+  );
+  background-attachment: fixed;
+}
+
+/* ============================================= */
+/* 通用玻璃效果基类 */
+/* ============================================= */
+
+/* 玻璃面板基础样式 */
+[data-gantt-theme="liquidGlass"] .glass-panel {
+  background: rgba(255, 255, 255, var(--glass-opacity));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation)) brightness(var(--glass-brightness));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation)) brightness(var(--glass-brightness));
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 24px;
+  box-shadow: var(--shadow-elevation-2), var(--edge-highlight);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 玻璃面板顶部高光层 */
+[data-gantt-theme="liquidGlass"] .glass-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.5) 0%, 
+    rgba(255, 255, 255, 0.1) 60%,
+    transparent 100%
+  );
+  pointer-events: none;
+  border-radius: 24px 24px 0 0;
+}
+
+/* 玻璃面板边缘色散效果 */
+[data-gantt-theme="liquidGlass"] .glass-panel::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--prismatic-border);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* ============================================= */
+/* 工具栏 - iOS 26 胶囊玻璃效果 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .toolbar {
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(50px) saturate(200%) brightness(105%) !important;
+  -webkit-backdrop-filter: blur(50px) saturate(200%) brightness(105%) !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.02) !important;
+  position: relative !important;
+}
+
+/* 工具栏顶部高光 */
+[data-gantt-theme="liquidGlass"] .toolbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.7) 0%, 
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================= */
+/* 视图模式按钮组 - iOS 26 分段控件风格 */
+/* 使用更高优先级选择器覆盖 scoped 样式 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup {
+  background: rgba(120, 120, 128, 0.16) !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 14px !important;
+  padding: 4px !important;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.05) !important;
+  overflow: visible !important;
+  position: relative !important;
+  gap: 2px !important;
+  height: auto !important;
+}
+
+/* 按钮组顶部高光 */
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 50% !important;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.3) 0%, 
+    transparent 100%
+  ) !important;
+  pointer-events: none !important;
+  border-radius: 14px 14px 0 0 !important;
+  z-index: 0 !important;
+}
+
+/* 单个按钮 - iOS 分段控件样式 */
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn {
+  background: transparent !important;
+  border: none !important;
+  border-right: none !important;
+  border-radius: 10px !important;
+  margin: 0 !important;
+  padding: 8px 16px !important;
+  position: relative !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  z-index: 1 !important;
+  box-shadow: none !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 36px !important;
+}
+
+/* 移除按钮的伪元素背景 */
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn::before,
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn::after {
+  display: none !important;
+}
+
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn .metro-content {
+  position: relative !important;
+  z-index: 3 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+}
+
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn .metro-text {
+  color: rgba(0, 0, 0, 0.5) !important;
+  font-weight: 500 !important;
+  font-size: 11px !important;
+  letter-spacing: -0.08px !important;
+  transition: all 0.25s ease !important;
+  text-transform: none !important;
+}
+
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn .metro-icon {
+  color: rgba(0, 0, 0, 0.4) !important;
+  transition: all 0.25s ease !important;
+}
+
+/* 按钮悬浮 - 轻微高亮 */
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn:hover:not(.is-active):not(.button.is-active) {
+  background: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: none !important;
+}
+
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn:hover:not(.is-active):not(.button.is-active) .metro-text {
+  color: rgba(0, 0, 0, 0.7) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn:hover:not(.is-active):not(.button.is-active) .metro-icon {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* 按钮激活状态 - iOS 白色玻璃胶囊 */
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn.is-active,
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn.button.is-active {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.02) !important;
+  z-index: 2 !important;
+  transform: scale(1.02) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn.is-active .metro-text,
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn.button.is-active .metro-text {
+  color: #1d1d1f !important;
+  font-weight: 600 !important;
+}
+
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn.is-active .metro-icon,
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn.button.is-active .metro-icon {
+  color: var(--ios-blue, #007AFF) !important;
+}
+
+/* 兼容性选择器 - 仅在 liquidGlass 主题下生效 */
+[data-gantt-theme="liquidGlass"] .buttonGroup {
+  background: rgba(120, 120, 128, 0.16) !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 14px !important;
+  padding: 4px !important;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.05) !important;
+  overflow: visible !important;
+  position: relative !important;
+  gap: 2px !important;
+}
+
+[data-gantt-theme="liquidGlass"] .buttonGroup::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 50% !important;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.3) 0%, 
+    transparent 100%
+  ) !important;
+  pointer-events: none !important;
+  border-radius: 14px 14px 0 0 !important;
+  z-index: 0 !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn {
+  background: transparent !important;
+  border: none !important;
+  border-right: none !important;
+  border-radius: 10px !important;
+  margin: 0 !important;
+  padding: 8px 16px !important;
+  position: relative !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  z-index: 1 !important;
+  box-shadow: none !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn::before,
+[data-gantt-theme="liquidGlass"] .metro-btn::after {
+  display: none !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn .metro-content {
+  position: relative !important;
+  z-index: 3 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn .metro-text {
+  color: rgba(0, 0, 0, 0.5) !important;
+  font-weight: 500 !important;
+  font-size: 11px !important;
+  letter-spacing: -0.08px !important;
+  transition: all 0.25s ease !important;
+  text-transform: none !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn .metro-icon {
+  color: rgba(0, 0, 0, 0.4) !important;
+  transition: all 0.25s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn:hover:not(.is-active):not(.button.is-active) {
+  background: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: none !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn:hover:not(.is-active):not(.button.is-active) .metro-text {
+  color: rgba(0, 0, 0, 0.7) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn:hover:not(.is-active):not(.button.is-active) .metro-icon {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn.is-active,
+[data-gantt-theme="liquidGlass"] .metro-btn.button.is-active {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.02) !important;
+  z-index: 2 !important;
+  transform: scale(1.02) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn.is-active .metro-text,
+[data-gantt-theme="liquidGlass"] .metro-btn.button.is-active .metro-text {
+  color: #1d1d1f !important;
+  font-weight: 600 !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn.is-active .metro-icon,
+[data-gantt-theme="liquidGlass"] .metro-btn.button.is-active .metro-icon {
+  color: var(--ios-blue, #007AFF) !important;
+}
+
+/* ============================================= */
+/* 表格区域 - 深度玻璃效果 */
+/* 只影响左侧任务表格，不影响右侧时间线表格 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .gantt .pane-one .table {
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(60px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(60px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 20px !important;
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* 右侧时间线表格保持原有的滚动功能 */
+[data-gantt-theme="liquidGlass"] .gantt .pane-two .table {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(40px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(160%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border-radius: 16px !important;
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  /* 不设置 overflow: hidden，保持滚动功能 */
+}
+
+/* 表格顶部高光 - 只应用于左侧表格 */
+[data-gantt-theme="liquidGlass"] .gantt .pane-one .table::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.6) 0%, 
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 20px 20px 0 0;
+}
+
+/* 右侧表格的轻微高光 */
+[data-gantt-theme="liquidGlass"] .gantt .pane-two .table::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.4) 0%, 
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 16px 16px 0 0;
+}
+
+/* 表头 - 毛玻璃效果 */
+[data-gantt-theme="liquidGlass"] .table .header {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(30px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+  position: relative;
+  z-index: 2;
+}
+
+/* 表头单元格 */
+[data-gantt-theme="liquidGlass"] .headerCaption {
+  background: transparent !important;
+  color: #1d1d1f !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  letter-spacing: -0.08px !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] .headerCaption:hover {
+  background: rgba(0, 122, 255, 0.06) !important;
+  color: var(--ios-blue) !important;
+}
+
+
 </style>
+
+/* ============================================= */
+/* 子菜单弹出层 - iOS 26 液态玻璃效果 */
+/* ============================================= */
+
+/* 日模式子菜单 */
+[data-gantt-theme="liquidGlass"] .day-submenu-popup {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 12px !important;
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+/* 日模式子菜单顶部高光 */
+[data-gantt-theme="liquidGlass"] .day-submenu-popup::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.6) 0%, 
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 12px 12px 0 0;
+}
+
+/* 时模式子菜单 */
+[data-gantt-theme="liquidGlass"] .hour-submenu-popup {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 12px !important;
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+/* 时模式子菜单顶部高光 */
+[data-gantt-theme="liquidGlass"] .hour-submenu-popup::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.6) 0%, 
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 12px 12px 0 0;
+}
+
+/* 子菜单项样式 */
+[data-gantt-theme="liquidGlass"] .day-submenu-popup .submenu-item,
+[data-gantt-theme="liquidGlass"] .hour-submenu-popup .submenu-item {
+  background: transparent !important;
+  color: #1d1d1f !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  padding: 12px 16px !important;
+  transition: all 0.2s ease !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* 移除原有的伪元素圆点 */
+[data-gantt-theme="liquidGlass"] .day-submenu-popup .submenu-item::before,
+[data-gantt-theme="liquidGlass"] .hour-submenu-popup .submenu-item::before {
+  display: none !important;
+}
+
+/* 子菜单项悬浮效果 */
+[data-gantt-theme="liquidGlass"] .day-submenu-popup .submenu-item:hover,
+[data-gantt-theme="liquidGlass"] .hour-submenu-popup .submenu-item:hover {
+  background: rgba(0, 122, 255, 0.1) !important;
+  color: var(--ios-blue, #007AFF) !important;
+  padding-left: 16px !important;
+}
+
+/* 子菜单项激活状态 */
+[data-gantt-theme="liquidGlass"] .day-submenu-popup .submenu-item.active,
+[data-gantt-theme="liquidGlass"] .hour-submenu-popup .submenu-item.active {
+  background: var(--ios-blue, #007AFF) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 122, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .day-submenu-popup .submenu-item.active:hover,
+[data-gantt-theme="liquidGlass"] .hour-submenu-popup .submenu-item.active:hover {
+  background: rgba(0, 140, 255, 0.95) !important;
+  color: #ffffff !important;
+  padding-left: 16px !important;
+}
+
+/* 日期输入框液态玻璃效果 */
+[data-gantt-theme="liquidGlass"] .dateInput {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-radius: 12px !important;
+  padding: 8px 16px !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  position: relative !important;
+  z-index: 1 !important;
+}

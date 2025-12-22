@@ -1,156 +1,74 @@
-/* iOS 26 Liquid Glass 液态玻璃效果 */
+/* ============================================= */
+/* iOS 26 Liquid Glass - 真正的液态玻璃效果 */
+/* 核心特征：深度层次、边缘折射、动态光影、胶囊圆角 */
+/* ============================================= */
 
-/* SVG 滤镜定义 - 实现边缘折射和液态效果 */
-.liquid-glass-filter-container {
-  position: absolute;
-  width: 0;
-  height: 0;
+/* CSS 变量定义 - iOS 26 风格 */
+[data-gantt-theme="liquidGlass"] {
+  /* 玻璃核心参数 */
+  --glass-blur: 40px;
+  --glass-saturation: 200%;
+  --glass-brightness: 108%;
+  --glass-opacity: 0.72;
+  
+  /* 深度阴影系统 */
+  --shadow-elevation-1: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-elevation-2: 0 8px 24px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-elevation-3: 0 16px 48px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.06);
+  --shadow-elevation-4: 0 24px 64px rgba(0, 0, 0, 0.16), 0 12px 24px rgba(0, 0, 0, 0.08);
+  
+  /* 边缘高光 - 模拟光线折射 */
+  --edge-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.8), inset 0 -1px 1px rgba(255, 255, 255, 0.2);
+  --edge-highlight-strong: inset 0 2px 2px rgba(255, 255, 255, 0.9), inset 0 -1px 2px rgba(255, 255, 255, 0.3);
+  
+  /* 彩虹色散边框 */
+  --prismatic-border: linear-gradient(135deg, 
+    rgba(255, 120, 120, 0.3) 0%, 
+    rgba(255, 200, 120, 0.3) 20%,
+    rgba(200, 255, 120, 0.3) 40%,
+    rgba(120, 255, 200, 0.3) 60%,
+    rgba(120, 200, 255, 0.3) 80%,
+    rgba(200, 120, 255, 0.3) 100%
+  );
+  
+  /* iOS 系统色 */
+  --ios-blue: #007AFF;
+  --ios-blue-dark: #0051D5;
+  --ios-gray-1: #8E8E93;
+  --ios-gray-2: #AEAEB2;
+  --ios-gray-3: #C7C7CC;
+  --ios-gray-4: #D1D1D6;
+  --ios-gray-5: #E5E5EA;
+  --ios-gray-6: #F2F2F7;
+  
+  /* 背景 - 柔和渐变 */
+  background: linear-gradient(180deg, 
+    #E8F0F8 0%, 
+    #F0F4F8 30%,
+    #F8FAFC 70%,
+    #FFFFFF 100%
+  );
+  background-attachment: fixed;
+}
+
+/* ============================================= */
+/* 通用玻璃效果基类 */
+/* ============================================= */
+
+/* 玻璃面板基础样式 */
+[data-gantt-theme="liquidGlass"] .glass-panel {
+  background: rgba(255, 255, 255, var(--glass-opacity));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation)) brightness(var(--glass-brightness));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation)) brightness(var(--glass-brightness));
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 24px;
+  box-shadow: var(--shadow-elevation-2), var(--edge-highlight);
+  position: relative;
   overflow: hidden;
 }
 
-/* Liquid Glass 主题通用样式 */
-[data-gantt-theme="liquidGlass"] {
-  /* 添加背景图案以增强玻璃效果 */
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8f0f8 50%, #f5f7fa 100%);
-}
-
-/* 确保所有元素使用 border-box */
-[data-gantt-theme="liquidGlass"] *,
-[data-gantt-theme="liquidGlass"] *::before,
-[data-gantt-theme="liquidGlass"] *::after {
-  box-sizing: border-box !important;
-}
-
-/* 为元素添加玻璃效果的通用类 */
-[data-gantt-theme="liquidGlass"] .glass-effect {
-  position: relative;
-  background: var(--bg-metal-light);
-  backdrop-filter: blur(var(--glass-blur, 12px)) saturate(var(--glass-saturation, 180%)) brightness(var(--glass-brightness, 105%));
-  -webkit-backdrop-filter: blur(var(--glass-blur, 12px)) saturate(var(--glass-saturation, 180%)) brightness(var(--glass-brightness, 105%));
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-outset);
-  transition: all var(--transition-normal);
-}
-
-/* 边缘高光效果 */
-[data-gantt-theme="liquidGlass"] .glass-effect::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: inherit;
-  background: var(--glass-reflection);
-  pointer-events: none;
-  opacity: 0.6;
-  transition: opacity var(--transition-fast);
-}
-
-/* 边缘折射效果（使用滤镜） */
-[data-gantt-theme="liquidGlass"] .glass-effect.with-distortion {
-  filter: url(#liquidGlassDistortion);
-}
-
-/* 甘特图任务条的玻璃效果 */
-[data-gantt-theme="liquidGlass"] .gantt-bar,
-[data-gantt-theme="liquidGlass"] .task-bar {
-  position: relative;
-  background: var(--bg-active);
-  backdrop-filter: blur(8px) saturate(180%) brightness(110%);
-  -webkit-backdrop-filter: blur(8px) saturate(180%) brightness(110%);
-  border: 1.5px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 
-    0 8px 32px rgba(0, 122, 255, 0.15),
-    0 2px 8px rgba(0, 0, 0, 0.1),
-    inset 0 1px 2px rgba(255, 255, 255, 0.9),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.05);
-  transition: all var(--transition-normal);
-}
-
-/* 任务条边缘光泽 */
-[data-gantt-theme="liquidGlass"] .gantt-bar::before,
-[data-gantt-theme="liquidGlass"] .task-bar::before {
-  content: '';
-  position: absolute;
-  top: 1px;
-  left: 1px;
-  right: 1px;
-  height: 40%;
-  border-radius: inherit;
-  background: linear-gradient(180deg, 
-    rgba(255, 255, 255, 0.5) 0%, 
-    rgba(255, 255, 255, 0.1) 50%,
-    transparent 100%
-  );
-  pointer-events: none;
-}
-
-/* 任务条悬浮效果 */
-[data-gantt-theme="liquidGlass"] .gantt-bar:hover,
-[data-gantt-theme="liquidGlass"] .task-bar:hover {
-  background: var(--bg-active-hover);
-  box-shadow: 
-    0 12px 48px rgba(0, 122, 255, 0.25),
-    0 4px 12px rgba(0, 0, 0, 0.12),
-    inset 0 2px 4px rgba(255, 255, 255, 0.95),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.08);
-  transform: translateY(-1px) scale(1.01);
-}
-
-/* 表格单元格玻璃效果 */
-[data-gantt-theme="liquidGlass"] .table-cell,
-[data-gantt-theme="liquidGlass"] .gantt-table-cell {
-  background: var(--bg-content);
-  backdrop-filter: blur(10px) saturate(170%);
-  -webkit-backdrop-filter: blur(10px) saturate(170%);
-  border: 1px solid var(--border);
-  transition: all var(--transition-fast);
-}
-
-/* TaskTable 整体玻璃效果 - 简化版 */
-[data-gantt-theme="liquidGlass"] .table {
-  background: rgba(255, 255, 255, 0.9) !important;
-  backdrop-filter: blur(8px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(150%) !important;
-  border: 1px solid rgba(0, 0, 0, 0.06) !important;
-  box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
-  position: relative !important;
-  /* 注意：不要设置 overflow，保持默认以支持滚动条 */
-}
-
-/* TaskTable 头部玻璃效果 - 简化版 */
-[data-gantt-theme="liquidGlass"] .table .header {
-  background: linear-gradient(180deg, 
-    rgba(255, 255, 255, 0.98) 0%,
-    rgba(248, 250, 252, 0.95) 100%
-  ) !important;
-  backdrop-filter: blur(8px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(150%) !important;
-  box-sizing: border-box !important; /* 确保高度计算一致 */
-}
-
-/* TaskTable 添加任务按钮 iOS 风格 + 反射 */
-[data-gantt-theme="liquidGlass"] .table .header .addRootTask {
-  background: rgba(255, 255, 255, 0.9) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
-  border-radius: 6px;
-  box-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 0 20px rgba(255, 255, 255, 0.4) !important;
-  color: #007aff !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  overflow: hidden !important;
-  /* 保持原有的 position: absolute 不变 */
-}
-
-/* 按钮顶部反射光泽 - 增强版 */
-[data-gantt-theme="liquidGlass"] .table .header .addRootTask::before {
+/* 玻璃面板顶部高光层 */
+[data-gantt-theme="liquidGlass"] .glass-panel::before {
   content: '';
   position: absolute;
   top: 0;
@@ -158,70 +76,386 @@
   right: 0;
   height: 50%;
   background: linear-gradient(180deg, 
-    rgba(255, 255, 255, 0.8) 0%,     /* 提高亮度 */
-    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0.5) 0%, 
+    rgba(255, 255, 255, 0.1) 60%,
     transparent 100%
   );
-  border-radius: 6px 6px 0 0;
-  pointer-events: none !important;
-  z-index: 1;
+  pointer-events: none;
+  border-radius: 24px 24px 0 0;
 }
 
-/* 按钮动态光线扫过效果 - 增强版 */
-[data-gantt-theme="liquidGlass"] .table .header .addRootTask::after {
+/* 玻璃面板边缘色散效果 */
+[data-gantt-theme="liquidGlass"] .glass-panel::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--prismatic-border);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* ============================================= */
+/* 工具栏 - iOS 26 胶囊玻璃效果 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .toolbar {
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(50px) saturate(200%) brightness(105%) !important;
+  -webkit-backdrop-filter: blur(50px) saturate(200%) brightness(105%) !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.02) !important;
+  position: relative !important;
+}
+
+/* 工具栏顶部高光 */
+[data-gantt-theme="liquidGlass"] .toolbar::before {
   content: '';
   position: absolute;
   top: 0;
-  left: -100%;
-  width: 100%;  /* 增加宽度 */
-  height: 100%;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.7) 50%,    /* 提高亮度 */
+  left: 0;
+  right: 0;
+  height: 60%;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.7) 0%, 
+    rgba(255, 255, 255, 0.2) 50%,
     transparent 100%
   );
-  transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);  /* 加快速度 */
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================= */
+/* 视图模式按钮组 - iOS 26 分段控件风格 */
+/* 使用更高优先级选择器覆盖 scoped 样式 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup {
+  background: rgba(120, 120, 128, 0.16) !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 14px !important;
+  padding: 4px !important;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.05) !important;
+  overflow: visible !important;
+  position: relative !important;
+  gap: 2px !important;
+  height: auto !important;
+}
+
+/* 按钮组顶部高光 */
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 50% !important;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.3) 0%, 
+    transparent 100%
+  ) !important;
   pointer-events: none !important;
+  border-radius: 14px 14px 0 0 !important;
+  z-index: 0 !important;
+}
+
+/* 单个按钮 - iOS 分段控件样式 */
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn {
+  background: transparent !important;
+  border: none !important;
+  border-right: none !important;
+  border-radius: 10px !important;
+  margin: 0 !important;
+  padding: 8px 16px !important;
+  position: relative !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  z-index: 1 !important;
+  box-shadow: none !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 36px !important;
+}
+
+/* 移除按钮的伪元素背景 */
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn::before,
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn::after {
+  display: none !important;
+}
+
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn .metro-content {
+  position: relative !important;
+  z-index: 3 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+}
+
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn .metro-text {
+  color: rgba(0, 0, 0, 0.5) !important;
+  font-weight: 500 !important;
+  font-size: 11px !important;
+  letter-spacing: -0.08px !important;
+  transition: all 0.25s ease !important;
+  text-transform: none !important;
+}
+
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn .metro-icon {
+  color: rgba(0, 0, 0, 0.4) !important;
+  transition: all 0.25s ease !important;
+}
+
+/* 按钮悬浮 - 轻微高亮 */
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn:hover:not(.is-active):not(.button.is-active) {
+  background: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: none !important;
+}
+
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn:hover:not(.is-active):not(.button.is-active) .metro-text {
+  color: rgba(0, 0, 0, 0.7) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn:hover:not(.is-active):not(.button.is-active) .metro-icon {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* 按钮激活状态 - iOS 白色玻璃胶囊 */
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn.is-active,
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn.button.is-active {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.02) !important;
+  z-index: 2 !important;
+  transform: scale(1.02) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn.is-active .metro-text,
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn.button.is-active .metro-text {
+  color: #1d1d1f !important;
+  font-weight: 600 !important;
+}
+
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn.is-active .metro-icon,
+[data-gantt-theme="liquidGlass"] .toolbar .buttonGroup .metro-btn.button.is-active .metro-icon {
+  color: var(--ios-blue, #007AFF) !important;
+}
+
+/* 兼容性选择器 - 仅在 liquidGlass 主题下生效 */
+[data-gantt-theme="liquidGlass"] .buttonGroup {
+  background: rgba(120, 120, 128, 0.16) !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 14px !important;
+  padding: 4px !important;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.05) !important;
+  overflow: visible !important;
+  position: relative !important;
+  gap: 2px !important;
+}
+
+[data-gantt-theme="liquidGlass"] .buttonGroup::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 50% !important;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.3) 0%, 
+    transparent 100%
+  ) !important;
+  pointer-events: none !important;
+  border-radius: 14px 14px 0 0 !important;
+  z-index: 0 !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn {
+  background: transparent !important;
+  border: none !important;
+  border-right: none !important;
+  border-radius: 10px !important;
+  margin: 0 !important;
+  padding: 8px 16px !important;
+  position: relative !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  z-index: 1 !important;
+  box-shadow: none !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn::before,
+[data-gantt-theme="liquidGlass"] .metro-btn::after {
+  display: none !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn .metro-content {
+  position: relative !important;
+  z-index: 3 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn .metro-text {
+  color: rgba(0, 0, 0, 0.5) !important;
+  font-weight: 500 !important;
+  font-size: 11px !important;
+  letter-spacing: -0.08px !important;
+  transition: all 0.25s ease !important;
+  text-transform: none !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn .metro-icon {
+  color: rgba(0, 0, 0, 0.4) !important;
+  transition: all 0.25s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn:hover:not(.is-active):not(.button.is-active) {
+  background: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: none !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn:hover:not(.is-active):not(.button.is-active) .metro-text {
+  color: rgba(0, 0, 0, 0.7) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn:hover:not(.is-active):not(.button.is-active) .metro-icon {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn.is-active,
+[data-gantt-theme="liquidGlass"] .metro-btn.button.is-active {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.02) !important;
+  z-index: 2 !important;
+  transform: scale(1.02) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn.is-active .metro-text,
+[data-gantt-theme="liquidGlass"] .metro-btn.button.is-active .metro-text {
+  color: #1d1d1f !important;
+  font-weight: 600 !important;
+}
+
+[data-gantt-theme="liquidGlass"] .metro-btn.is-active .metro-icon,
+[data-gantt-theme="liquidGlass"] .metro-btn.button.is-active .metro-icon {
+  color: var(--ios-blue, #007AFF) !important;
+}
+
+/* ============================================= */
+/* 表格区域 - 深度玻璃效果 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .table {
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(60px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(60px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 20px !important;
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* 表格顶部高光 */
+[data-gantt-theme="liquidGlass"] .table::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.6) 0%, 
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 20px 20px 0 0;
+}
+
+/* 表头 - 毛玻璃效果 */
+[data-gantt-theme="liquidGlass"] .table .header {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(30px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+  position: relative;
   z-index: 2;
 }
 
-[data-gantt-theme="liquidGlass"] .table .header .addRootTask:hover::after {
-  left: 100%;  /* 光线扫过 */
+/* 表头单元格 */
+[data-gantt-theme="liquidGlass"] .headerCaption {
+  background: transparent !important;
+  color: #1d1d1f !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  letter-spacing: -0.08px !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.2s ease !important;
 }
 
-[data-gantt-theme="liquidGlass"] .table .header .addRootTask:hover {
-  background: rgba(0, 122, 255, 0.08) !important;
-  border-color: rgba(0, 122, 255, 0.3) !important;
-  transform: scale(1.15) !important;
-  box-shadow: 
-    0 4px 12px rgba(0, 122, 255, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    inset 0 0 25px rgba(0, 122, 255, 0.2) !important;  /* 增强蓝色光晕 */
+[data-gantt-theme="liquidGlass"] .headerCaption:hover {
+  background: rgba(0, 122, 255, 0.06) !important;
+  color: var(--ios-blue) !important;
 }
 
-[data-gantt-theme="liquidGlass"] .table .header .addRootTask:active {
-  background: rgba(0, 122, 255, 0.15) !important;
-  transform: scale(1.05) !important;
-}
-
-/* TaskTable 跳转今日按钮 iOS 风格 + 反射 */
+/* 添加任务按钮 - iOS 胶囊按钮 */
+[data-gantt-theme="liquidGlass"] .table .header .addRootTask,
 [data-gantt-theme="liquidGlass"] .table .header .jumpToToday {
   background: rgba(255, 255, 255, 0.9) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
-  border-radius: 6px;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 8px !important;
   box-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 0 20px rgba(255, 255, 255, 0.4) !important;
-  color: #007aff !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  color: var(--ios-blue) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
   overflow: hidden !important;
-  /* 保持原有的 position: absolute 不变 */
+  position: relative !important;
 }
 
-/* 按钮顶部反射光泽 - 增强版 */
+/* 按钮顶部高光 */
+[data-gantt-theme="liquidGlass"] .table .header .addRootTask::before,
 [data-gantt-theme="liquidGlass"] .table .header .jumpToToday::before {
   content: '';
   position: absolute;
@@ -230,524 +464,110 @@
   right: 0;
   height: 50%;
   background: linear-gradient(180deg, 
-    rgba(255, 255, 255, 0.8) 0%,     /* 提高亮度 */
-    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0.8) 0%,
     transparent 100%
   );
-  border-radius: 6px 6px 0 0;
-  pointer-events: none !important;
-  z-index: 1;
+  pointer-events: none;
+  border-radius: 8px 8px 0 0;
 }
 
-/* 按钮动态光线扫过效果 - 增强版 */
-[data-gantt-theme="liquidGlass"] .table .header .jumpToToday::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;  /* 增加宽度 */
-  height: 100%;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.7) 50%,    /* 提高亮度 */
-    transparent 100%
-  );
-  transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);  /* 加快速度 */
-  pointer-events: none !important;
-  z-index: 2;
-}
-
-[data-gantt-theme="liquidGlass"] .table .header .jumpToToday:hover::after {
-  left: 100%;  /* 光线扫过 */
-}
-
+[data-gantt-theme="liquidGlass"] .table .header .addRootTask:hover,
 [data-gantt-theme="liquidGlass"] .table .header .jumpToToday:hover {
-  background: rgba(0, 122, 255, 0.08) !important;
-  border-color: rgba(0, 122, 255, 0.3) !important;
-  transform: scale(1.15) !important;
+  background: rgba(0, 122, 255, 0.1) !important;
+  border-color: rgba(0, 122, 255, 0.2) !important;
+  transform: scale(1.05) translateY(-1px) !important;
   box-shadow: 
-    0 4px 12px rgba(0, 122, 255, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    inset 0 0 25px rgba(0, 122, 255, 0.2) !important;  /* 增强蓝色光晕 */
+    0 6px 16px rgba(0, 122, 255, 0.15),
+    0 2px 6px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
 }
 
+[data-gantt-theme="liquidGlass"] .table .header .addRootTask:active,
 [data-gantt-theme="liquidGlass"] .table .header .jumpToToday:active {
-  background: rgba(0, 122, 255, 0.15) !important;
-  transform: scale(1.05) !important;
+  transform: scale(0.98) !important;
+  box-shadow: 
+    0 2px 6px rgba(0, 122, 255, 0.1),
+    inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* TaskTable 无数据状态 */
+/* ============================================= */
+/* 任务行 - 悬浮玻璃效果 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .table-row,
+[data-gantt-theme="liquidGlass"] .gantt-row,
+[data-gantt-theme="liquidGlass"] .row {
+  background: transparent !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+}
+
+[data-gantt-theme="liquidGlass"] .table-row:hover,
+[data-gantt-theme="liquidGlass"] .gantt-row:hover,
+[data-gantt-theme="liquidGlass"] .row:hover {
+  background: rgba(0, 122, 255, 0.06) !important;
+  box-shadow: 
+    inset 0 0 0 1px rgba(0, 122, 255, 0.1),
+    0 2px 8px rgba(0, 122, 255, 0.08) !important;
+}
+
+/* 任务行激活状态 */
+[data-gantt-theme="liquidGlass"] .active .row,
+[data-gantt-theme="liquidGlass"] .barRow.active,
+[data-gantt-theme="liquidGlass"] .milestoneRow.active {
+  background: rgba(0, 122, 255, 0.1) !important;
+  box-shadow: 
+    inset 0 0 0 1px rgba(0, 122, 255, 0.15),
+    0 4px 12px rgba(0, 122, 255, 0.12) !important;
+}
+
+/* 无数据状态 */
 [data-gantt-theme="liquidGlass"] .table .nodata {
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  color: var(--ios-gray-1) !important;
+  font-weight: 400 !important;
+  font-size: 15px !important;
+}
+
+/* ============================================= */
+/* 任务条 - iOS 26 液态玻璃胶囊 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .gantt-bar,
+[data-gantt-theme="liquidGlass"] .task-bar,
+[data-gantt-theme="liquidGlass"] .bar,
+[data-gantt-theme="liquidGlass"] .barRow .bar {
+  background: linear-gradient(135deg, 
+    rgba(0, 122, 255, 0.85) 0%, 
+    rgba(0, 100, 220, 0.9) 100%
+  ) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border-radius: 12px !important;
+  box-shadow: 
+    0 8px 24px rgba(0, 122, 255, 0.25),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 1px rgba(255, 255, 255, 0.5),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* 任务条行容器 */
+[data-gantt-theme="liquidGlass"] .barRow {
   background: rgba(255, 255, 255, 0.5) !important;
   backdrop-filter: blur(10px) !important;
   -webkit-backdrop-filter: blur(10px) !important;
-  color: #86868b !important;
-  font-weight: 400 !important;
 }
 
-/* ============================================= */
-/* TaskHeader.vue 表头单元格 - iOS 26 Liquid Glass */
-/* ============================================= */
-
-/* 表头容器 - 液态玻璃效果（简化版，确保文字清晰） */
-[data-gantt-theme="liquidGlass"] .headerCaption {
-  background: linear-gradient(180deg, 
-    rgba(255, 255, 255, 0.98) 0%,
-    rgba(248, 250, 252, 0.96) 50%,
-    rgba(245, 247, 250, 0.94) 100%
-  ) !important;
-  backdrop-filter: blur(8px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(150%) !important;
-  box-sizing: border-box !important; /* 确保高度计算一致 */
-  /* 文字样式 - 确保清晰 */
-  color: #1d1d1f !important;
-  font-weight: 600 !important;
-  font-size: 13px !important;
-  letter-spacing: -0.2px !important;
-}
-
-/* 表头单元格悬浮效果 */
-[data-gantt-theme="liquidGlass"] .headerCaption:hover {
-  background: linear-gradient(180deg, 
-    rgba(0, 122, 255, 0.08) 0%,
-    rgba(0, 122, 255, 0.04) 50%,
-    rgba(255, 255, 255, 0.98) 100%
-  ) !important;
-  color: #007aff !important;
-}
-
-/* 表头整体容器 */
-[data-gantt-theme="liquidGlass"] .table .header .header {
-  background: transparent !important;
-}
-
-/* 调整手柄 - iOS 风格 */
-[data-gantt-theme="liquidGlass"] .headerCaption .resize-handle:hover {
-  background: rgba(0, 122, 255, 0.12) !important;
-}
-
-[data-gantt-theme="liquidGlass"] .headerCaption .resize-handle:hover::before {
-  background: #007aff !important;
-}
-
-/* 表头玻璃效果 */
-[data-gantt-theme="liquidGlass"] .table-header,
-[data-gantt-theme="liquidGlass"] .gantt-header {
-  background: var(--bg-metal-normal);
-  backdrop-filter: blur(var(--glass-blur)) saturate(180%) brightness(105%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%) brightness(105%);
-  border-bottom: 2px solid var(--border-dark);
-  box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-/* 按钮玻璃效果 */
-[data-gantt-theme="liquidGlass"] button,
-[data-gantt-theme="liquidGlass"] .btn {
-  background: var(--bg-metal-light);
-  backdrop-filter: blur(10px) saturate(150%);
-  -webkit-backdrop-filter: blur(10px) saturate(150%);
-  border: 1.5px solid var(--border);
-  box-shadow: var(--shadow-outset);
-  transition: all var(--transition-normal);
-  position: relative;
-  overflow: hidden;
-}
-
-/* 按钮高光层 */
-[data-gantt-theme="liquidGlass"] button::after,
-[data-gantt-theme="liquidGlass"] .btn::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.3) 50%, 
-    transparent 100%
-  );
-  transition: left var(--transition-slow);
-}
-
-[data-gantt-theme="liquidGlass"] button:hover::after,
-[data-gantt-theme="liquidGlass"] .btn:hover::after {
-  left: 100%;
-}
-
-[data-gantt-theme="liquidGlass"] button:hover,
-[data-gantt-theme="liquidGlass"] .btn:hover {
-  background: var(--bg-metal-normal);
-  box-shadow: 
-    0 12px 40px rgba(0, 122, 255, 0.15),
-    0 4px 12px rgba(0, 0, 0, 0.1),
-    inset 0 1px 2px rgba(255, 255, 255, 0.95);
-  transform: translateY(-2px);
-}
-
-[data-gantt-theme="liquidGlass"] button:active,
-[data-gantt-theme="liquidGlass"] .btn:active {
-  background: var(--bg-metal-pressed);
-  box-shadow: var(--shadow-active);
-  transform: translateY(0);
-}
-
-/* 日期选择器玻璃效果 - iOS 26 风格（支持 Teleport 到 body） */
-/* 注意：日历被 Teleport 到 body，不再是 [data-gantt-theme] 的子元素 */
-body > .e-calendar[data-gantt-theme="liquidGlass"],
-[data-gantt-theme="liquidGlass"] .e-calendar {
-  background: rgba(255, 255, 255, 0.98) !important; /* 几乎完全不透明 */
-  backdrop-filter: blur(30px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.8) !important;
-  box-shadow: 
-    0 24px 64px rgba(0, 0, 0, 0.18),
-    0 8px 24px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.98) !important;
-  border-radius: 16px !important;
-  overflow: hidden !important;
-}
-
-/* 日期选择器头部 - iOS 蓝色渐变 */
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-date-select,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-date-select {
-  background: linear-gradient(135deg, #007aff 0%, #0051d5 100%) !important;
-  color: #ffffff !important;
-  padding: 16px 20px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-}
-
-/* iOS 风格年份显示 */
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-date-year-select,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-date-year-select {
-  font-size: 15px !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.3px;
-  opacity: 0.92;
-}
-
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-date-year-select.active,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-date-year-select.active {
-  opacity: 1;
-  font-weight: 700 !important;
-}
-
-/* iOS 风格日期显示 */
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-date-monthday-select,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-date-monthday-select {
-  font-size: 32px !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.8px;
-  opacity: 0.92;
-}
-
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-date-monthday-select.active,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-date-monthday-select.active {
-  opacity: 1;
-  font-weight: 700 !important;
-}
-
-/* 日历内容区域 - 毛玻璃效果 */
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-container,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-container {
-  background: rgba(255, 255, 255, 0.97) !important;
-  backdrop-filter: blur(15px) !important;
-  -webkit-backdrop-filter: blur(15px) !important;
-  padding: 12px;
-}
-
-/* 工具栏背景 - 毛玻璃 */
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-toolbar,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-toolbar {
-  background: rgba(248, 249, 250, 0.98) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  margin: 0 0 12px 0;
-  border-radius: 10px;
-  padding: 0 8px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-/* iOS 风格工具栏标题 */
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-toolbar-title-content,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-toolbar-title-content {
-  font-size: 15px !important;
-  font-weight: 600 !important;
-  color: #1d1d1f !important;
-  letter-spacing: -0.2px;
-  text-transform: none !important;
-}
-
-/* iOS 风格导航按钮 */
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-svg,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-svg {
-  background: rgba(0, 0, 0, 0.04) !important;
-  border: none !important;
-  border-radius: 8px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-svg:hover,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-svg:hover {
-  background: rgba(0, 0, 0, 0.08) !important;
-  transform: scale(1.05);
-}
-
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-svg:active,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-svg:active {
-  background: rgba(0, 0, 0, 0.12) !important;
-  transform: scale(0.95);
-}
-
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-svg-icon,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-svg-icon {
-  fill: #1d1d1f !important;
-}
-
-/* 星期标题 - iOS 风格毛玻璃 */
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-week,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-week {
-  background: rgba(245, 247, 250, 0.97) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  border: none;
-  padding: 10px 0;
-  margin: 0;
-  border-radius: 8px;
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  color: #86868b !important;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-/* 日期单元格 - iOS 风格毛玻璃 */
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day.pointer,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day.pointer {
-  background: rgba(255, 255, 255, 0.92) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  cursor: pointer !important;
-  pointer-events: auto !important;
-  border-radius: 8px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  margin: 2px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-}
-
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day-value,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day-value {
-  font-size: 15px !important;
-  font-weight: 500 !important;
-  color: #1d1d1f !important;
-  letter-spacing: -0.2px;
-}
-
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day.pointer:hover,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day.pointer:hover {
-  background: rgba(0, 122, 255, 0.15) !important;
-  border-color: rgba(0, 122, 255, 0.3);
-  transform: scale(1.05);
-}
-
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day.active,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day.active {
-  background: #007aff !important;
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-  border-color: transparent;
-}
-
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day.active .e-calendar-monthday-row-day-value,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day.active .e-calendar-monthday-row-day-value {
-  color: #ffffff !important;
-  font-weight: 600 !important;
-}
-
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day.disabled .e-calendar-monthday-row-day-value,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day.disabled .e-calendar-monthday-row-day-value {
-  color: #c7c7cc !important;
-  opacity: 0.4;
-}
-
-/* 年份/月份列表 - iOS 风格毛玻璃 */
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-year,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-year {
-  background: rgba(255, 255, 255, 0.97) !important;
-  backdrop-filter: blur(15px) !important;
-  -webkit-backdrop-filter: blur(15px) !important;
-  padding: 8px;
-}
-
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-year li,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-year li {
-  background: rgba(255, 255, 255, 0.92) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  cursor: pointer !important;
-  pointer-events: auto !important;
-  border-radius: 10px;
-  padding: 12px 16px !important;
-  margin: 4px 0;
-  font-size: 17px !important;
-  font-weight: 400 !important;
-  color: #1d1d1f !important;
-  letter-spacing: -0.4px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-year li:hover,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-year li:hover {
-  background: rgba(0, 122, 255, 0.12) !important;
-  border-color: rgba(0, 122, 255, 0.3);
-}
-
-body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-year li.active,
-[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-year li.active {
-  background: #007aff !important;
-  color: #ffffff !important;
-  font-weight: 600 !important;
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-  border-color: transparent;
-}
-
-/* 输入框 - iOS 风格 */
-[data-gantt-theme="liquidGlass"] .date-picker-input-wrapper {
-  position: relative !important;
-  z-index: 1000 !important;
-}
-
-[data-gantt-theme="liquidGlass"] .date-picker-input {
-  background: rgba(255, 255, 255, 0.9) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  color: #1d1d1f !important;
-  font-weight: 400 !important;
-  font-size: 15px !important;
-  border: 0.5px solid rgba(0, 0, 0, 0.1) !important;
-  border-radius: 10px;
-  padding: 10px 14px !important;
-  letter-spacing: -0.2px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-[data-gantt-theme="liquidGlass"] .date-picker-input:focus {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border-color: #007aff !important;
-  box-shadow: 
-    0 0 0 4px rgba(0, 122, 255, 0.12),
-    0 2px 8px rgba(0, 122, 255, 0.15);
-}
-
-[data-gantt-theme="liquidGlass"] .date-picker-input::placeholder {
-  color: #86868b !important;
-}
-
-/* 清除按钮 - iOS 风格 */
-[data-gantt-theme="liquidGlass"] .clear-date-button {
-  background: rgba(142, 142, 147, 0.12) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  cursor: pointer !important;
-  pointer-events: auto !important;
-  border: none !important;
-  border-radius: 6px;
-  width: 22px !important;
-  height: 22px !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-[data-gantt-theme="liquidGlass"] .clear-date-button:hover {
-  background: rgba(142, 142, 147, 0.2) !important;
-  transform: scale(1.1);
-}
-
-[data-gantt-theme="liquidGlass"] .clear-date-button:active {
-  transform: scale(0.95);
-}
-
-[data-gantt-theme="liquidGlass"] .clear-date-button svg {
-  fill: #86868b !important;
-}
-
-/* 日历按钮和交互元素 - 确保可点击 */
-[data-gantt-theme="liquidGlass"] .e-calendar-svg,
-[data-gantt-theme="liquidGlass"] .e-date-year-select,
-[data-gantt-theme="liquidGlass"] .e-date-monthday-select,
-[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day-value {
-  pointer-events: auto !important;
-  cursor: pointer !important;
-  position: relative !important;
-  z-index: 10 !important;
-}
-
-/* 日历内部元素层级 */
-[data-gantt-theme="liquidGlass"] .e-calendar-container,
-[data-gantt-theme="liquidGlass"] .e-calendar-year,
-[data-gantt-theme="liquidGlass"] .e-calendar-monthday {
-  position: relative !important;
-  z-index: 1 !important;
-}
-
-/* 移除可能影响点击的伪元素 */
-[data-gantt-theme="liquidGlass"] .glass-effect::before {
-  pointer-events: none !important;
-}
-
-/* 通用输入框/下拉框/文本域 - 确保文字清晰 */
-[data-gantt-theme="liquidGlass"] input:not(.date-picker-input),
-[data-gantt-theme="liquidGlass"] select,
-[data-gantt-theme="liquidGlass"] textarea {
-  background: #ffffff !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border: 1.5px solid var(--border);
-  color: var(--text-primary) !important;
-  font-weight: 500;
-  transition: all var(--transition-fast);
-}
-
-[data-gantt-theme="liquidGlass"] input:not(.date-picker-input):focus,
-[data-gantt-theme="liquidGlass"] select:focus,
-[data-gantt-theme="liquidGlass"] textarea:focus {
-  background: #ffffff !important;
-  border-color: var(--primary);
-  box-shadow: 
-    0 0 0 4px rgba(0, 122, 255, 0.15),
-    0 4px 12px rgba(0, 122, 255, 0.2),
-    inset 0 1px 2px rgba(255, 255, 255, 0.95);
-}
-
-/* 行悬浮玻璃效果 */
-[data-gantt-theme="liquidGlass"] .table-row:hover,
-[data-gantt-theme="liquidGlass"] .gantt-row:hover {
-  background: var(--row-hover);
-  backdrop-filter: blur(6px) saturate(160%);
-  -webkit-backdrop-filter: blur(6px) saturate(160%);
-  box-shadow: 
-    inset 0 0 20px rgba(0, 122, 255, 0.08),
-    0 2px 8px rgba(0, 122, 255, 0.1);
-}
-
-/* 工具栏/面板玻璃效果 */
-[data-gantt-theme="liquidGlass"] .toolbar {
-  background: rgba(255, 255, 255, 0.7) !important;
-  backdrop-filter: blur(25px) saturate(200%) brightness(105%) !important;
-  -webkit-backdrop-filter: blur(25px) saturate(200%) brightness(105%) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 2px 8px rgba(0, 122, 255, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.03) !important;
-  position: relative !important;
-}
-
-/* 工具栏顶部反射光泽 */
-[data-gantt-theme="liquidGlass"] .toolbar::before {
+/* 任务条顶部高光 - 模拟玻璃反射 */
+[data-gantt-theme="liquidGlass"] .gantt-bar::before,
+[data-gantt-theme="liquidGlass"] .task-bar::before,
+[data-gantt-theme="liquidGlass"] .bar::before {
   content: '';
   position: absolute;
   top: 0;
@@ -760,45 +580,510 @@ body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-year li.active,
     transparent 100%
   );
   pointer-events: none;
-  z-index: 0;
+  border-radius: 12px 12px 0 0;
 }
 
-[data-gantt-theme="liquidGlass"] .panel,
-[data-gantt-theme="liquidGlass"] .modal {
-  background: var(--bg-metal-normal);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation)) brightness(var(--glass-brightness));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation)) brightness(var(--glass-brightness));
-  border: 1.5px solid var(--border);
+/* 任务条边缘色散效果 */
+[data-gantt-theme="liquidGlass"] .gantt-bar::after,
+[data-gantt-theme="liquidGlass"] .task-bar::after,
+[data-gantt-theme="liquidGlass"] .bar::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.6) 0%, 
+    rgba(200, 230, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0.3) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* 任务条悬浮 - 浮起效果 */
+[data-gantt-theme="liquidGlass"] .gantt-bar:hover,
+[data-gantt-theme="liquidGlass"] .task-bar:hover,
+[data-gantt-theme="liquidGlass"] .bar:hover {
+  transform: translateY(-3px) scale(1.02) !important;
   box-shadow: 
-    0 16px 64px rgba(0, 0, 0, 0.12),
-    0 8px 24px rgba(0, 122, 255, 0.08),
-    inset 0 1px 2px rgba(255, 255, 255, 0.9),
-    0 0 1px rgba(255, 255, 255, 0.8);
-  border-radius: 16px;
+    0 16px 40px rgba(0, 122, 255, 0.35),
+    0 8px 16px rgba(0, 0, 0, 0.12),
+    inset 0 2px 2px rgba(255, 255, 255, 0.6),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.15) !important;
 }
 
 /* ============================================= */
-/* 视图模式按钮组 - iOS 26 Liquid Glass 效果 */
+/* 里程碑 - 钻石玻璃效果 */
 /* ============================================= */
 
-/* 按钮组容器 - 液态玻璃效果 */
-[data-gantt-theme="liquidGlass"] .buttonGroup {
-  background: rgba(255, 255, 255, 0.75) !important;
-  backdrop-filter: blur(20px) saturate(180%) brightness(105%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(105%) !important;
+[data-gantt-theme="liquidGlass"] .milestone,
+[data-gantt-theme="liquidGlass"] .gantt-milestone,
+[data-gantt-theme="liquidGlass"] .milestoneRow .milestone {
+  background: linear-gradient(135deg, 
+    rgba(88, 86, 214, 0.85) 0%, 
+    rgba(175, 82, 222, 0.9) 100%
+  ) !important;
+  backdrop-filter: blur(15px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 
+    0 8px 24px rgba(88, 86, 214, 0.3),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 2px 2px rgba(255, 255, 255, 0.5) !important;
+  filter: drop-shadow(0 4px 12px rgba(88, 86, 214, 0.25));
+}
+
+/* 里程碑行容器 */
+[data-gantt-theme="liquidGlass"] .milestoneRow {
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* ============================================= */
+/* 配置面板 - 深度玻璃弹窗 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .config-panel,
+.config-panel[data-gantt-theme="liquidGlass"] {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(80px) saturate(200%) brightness(105%) !important;
+  -webkit-backdrop-filter: blur(80px) saturate(200%) brightness(105%) !important;
   border: 1px solid rgba(255, 255, 255, 0.6) !important;
-  border-radius: 12px !important;
+  border-radius: 28px !important;
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    0 2px 8px rgba(0, 122, 255, 0.08),
-    inset 0 1px 2px rgba(255, 255, 255, 0.95),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.03) !important;
+    0 32px 80px rgba(0, 0, 0, 0.18),
+    0 16px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
   overflow: hidden !important;
-  position: relative !important;
+  z-index: 100001 !important;
 }
 
-/* 按钮组顶部反射光泽 */
-[data-gantt-theme="liquidGlass"] .buttonGroup::before {
+/* 配置面板顶部高光 */
+[data-gantt-theme="liquidGlass"] .config-panel::before,
+.config-panel[data-gantt-theme="liquidGlass"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.6) 0%, 
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 28px 28px 0 0;
+}
+
+/* 配置面板头部 */
+[data-gantt-theme="liquidGlass"] .config-panel .panel-header,
+.config-panel[data-gantt-theme="liquidGlass"] .panel-header {
+  background: linear-gradient(135deg, 
+    rgba(0, 122, 255, 0.95) 0%, 
+    rgba(0, 80, 200, 0.95) 100%
+  ) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  color: #ffffff !important;
+  border-radius: 28px 28px 0 0 !important;
+  position: relative;
+  z-index: 1;
+}
+
+/* 配置面板遮罩 */
+[data-gantt-theme="liquidGlass"] .config-panel-overlay,
+.panel-overlay[data-gantt-theme="liquidGlass"] {
+  background: rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  z-index: 100000 !important;
+}
+
+/* ============================================= */
+/* 日期选择器 - iOS 26 玻璃日历 */
+/* ============================================= */
+
+body > .e-calendar[data-gantt-theme="liquidGlass"],
+[data-gantt-theme="liquidGlass"] .e-calendar {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(60px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(60px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 20px !important;
+  box-shadow: 
+    0 24px 64px rgba(0, 0, 0, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  overflow: hidden !important;
+  z-index: 100002 !important;
+}
+
+/* 日历头部 - iOS 蓝色渐变 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-date-select,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-date-select {
+  background: linear-gradient(135deg, 
+    rgba(0, 122, 255, 0.95) 0%, 
+    rgba(0, 80, 200, 0.95) 100%
+  ) !important;
+  color: #ffffff !important;
+  padding: 18px 22px !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* 年份显示 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-date-year-select,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-date-year-select {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.2px;
+  opacity: 0.9;
+}
+
+/* 日期显示 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-date-monthday-select,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-date-monthday-select {
+  font-size: 28px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.5px;
+}
+
+/* 日历内容区 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-container,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-container {
+  background: rgba(255, 255, 255, 0.95) !important;
+  padding: 16px !important;
+}
+
+/* 工具栏 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-toolbar,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-toolbar {
+  background: rgba(120, 120, 128, 0.08) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  margin: 0 0 16px 0 !important;
+  padding: 4px 8px !important;
+}
+
+/* 工具栏标题 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-toolbar-title-content,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-toolbar-title-content {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #1d1d1f !important;
+  letter-spacing: -0.2px;
+}
+
+/* 导航按钮 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-svg,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-svg {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-svg:hover,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-svg:hover {
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* 星期标题 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-week,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-week {
+  background: transparent !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--ios-gray-1) !important;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  padding: 8px 0 !important;
+}
+
+/* 日期单元格 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day.pointer,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day.pointer {
+  background: transparent !important;
+  border-radius: 10px !important;
+  transition: all 0.2s ease !important;
+  margin: 2px !important;
+}
+
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day-value,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day-value {
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  color: #1d1d1f !important;
+}
+
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day.pointer:hover,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day.pointer:hover {
+  background: rgba(0, 122, 255, 0.1) !important;
+}
+
+/* 选中日期 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day.active,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day.active {
+  background: var(--ios-blue) !important;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3) !important;
+}
+
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day.active .e-calendar-monthday-row-day-value,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day.active .e-calendar-monthday-row-day-value {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* 禁用日期 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day.disabled .e-calendar-monthday-row-day-value,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day.disabled .e-calendar-monthday-row-day-value {
+  color: var(--ios-gray-3) !important;
+}
+
+/* ============================================= */
+/* 日期选择器 - iOS 26 风格日历 */
+/* ============================================= */
+
+body > .e-calendar[data-gantt-theme="liquidGlass"],
+[data-gantt-theme="liquidGlass"] .e-calendar {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(60px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(60px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 20px !important;
+  box-shadow: 
+    0 24px 64px rgba(0, 0, 0, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  overflow: hidden !important;
+  z-index: 100002 !important;
+}
+
+/* 日历头部 - iOS 蓝色渐变 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-date-select,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-date-select {
+  background: linear-gradient(135deg, 
+    rgba(0, 122, 255, 0.95) 0%, 
+    rgba(0, 80, 200, 0.95) 100%
+  ) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  color: #ffffff !important;
+  padding: 18px 20px !important;
+}
+
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-date-year-select,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-date-year-select {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  opacity: 0.9;
+}
+
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-date-monthday-select,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-date-monthday-select {
+  font-size: 28px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.5px;
+}
+
+/* 日历内容区 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-container,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-container {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  padding: 16px !important;
+}
+
+/* 工具栏 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-toolbar,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-toolbar {
+  background: rgba(120, 120, 128, 0.08) !important;
+  border: none !important;
+  border-radius: 10px !important;
+  margin: 0 0 12px 0 !important;
+  padding: 4px 8px !important;
+}
+
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-toolbar-title-content,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-toolbar-title-content {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #1d1d1f !important;
+}
+
+/* 导航按钮 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-svg,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-svg {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-svg:hover,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-svg:hover {
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* 星期标题 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-week,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-week {
+  background: transparent !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: var(--ios-gray-1) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  padding: 8px 0 !important;
+}
+
+/* 日期单元格 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day.pointer,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day.pointer {
+  background: transparent !important;
+  border-radius: 10px !important;
+  transition: all 0.2s ease !important;
+  margin: 2px !important;
+}
+
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day-value,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day-value {
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  color: #1d1d1f !important;
+}
+
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day.pointer:hover,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day.pointer:hover {
+  background: rgba(0, 122, 255, 0.1) !important;
+}
+
+/* 选中日期 - iOS 蓝色圆形 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day.active,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day.active {
+  background: var(--ios-blue) !important;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3) !important;
+}
+
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day.active .e-calendar-monthday-row-day-value,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day.active .e-calendar-monthday-row-day-value {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* 禁用日期 */
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day.disabled .e-calendar-monthday-row-day-value,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-monthday-row-day.disabled .e-calendar-monthday-row-day-value {
+  color: var(--ios-gray-3) !important;
+}
+
+/* ============================================= */
+/* 输入框和表单控件 - iOS 风格 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] input:not(.date-picker-input),
+[data-gantt-theme="liquidGlass"] select,
+[data-gantt-theme="liquidGlass"] textarea {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 12px !important;
+  color: #1d1d1f !important;
+  font-size: 15px !important;
+  font-weight: 400 !important;
+  padding: 10px 14px !important;
+  transition: all 0.25s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] input:not(.date-picker-input):focus,
+[data-gantt-theme="liquidGlass"] select:focus,
+[data-gantt-theme="liquidGlass"] textarea:focus {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: var(--ios-blue) !important;
+  box-shadow: 
+    0 0 0 4px rgba(0, 122, 255, 0.12),
+    0 2px 8px rgba(0, 122, 255, 0.1) !important;
+  outline: none !important;
+}
+
+[data-gantt-theme="liquidGlass"] input::placeholder,
+[data-gantt-theme="liquidGlass"] textarea::placeholder {
+  color: var(--ios-gray-2) !important;
+}
+
+/* 日期选择器输入框 */
+[data-gantt-theme="liquidGlass"] .date-picker-input {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 10px !important;
+  color: #1d1d1f !important;
+  font-size: 14px !important;
+  padding: 8px 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] .date-picker-input:focus {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: var(--ios-blue) !important;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1) !important;
+}
+
+/* 清除按钮 */
+[data-gantt-theme="liquidGlass"] .clear-date-button {
+  background: rgba(142, 142, 147, 0.12) !important;
+  border: none !important;
+  border-radius: 50% !important;
+  width: 20px !important;
+  height: 20px !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] .clear-date-button:hover {
+  background: rgba(142, 142, 147, 0.2) !important;
+  transform: scale(1.1) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .clear-date-button svg {
+  fill: var(--ios-gray-1) !important;
+}
+
+/* ============================================= */
+/* 按钮 - iOS 风格 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] button,
+[data-gantt-theme="liquidGlass"] .btn {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 12px !important;
+  color: var(--ios-blue) !important;
+  font-weight: 500 !important;
+  font-size: 15px !important;
+  padding: 10px 18px !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* 按钮顶部高光 */
+[data-gantt-theme="liquidGlass"] button::before,
+[data-gantt-theme="liquidGlass"] .btn::before {
   content: '';
   position: absolute;
   top: 0;
@@ -806,141 +1091,230 @@ body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-year li.active,
   right: 0;
   height: 50%;
   background: linear-gradient(180deg, 
-    rgba(255, 255, 255, 0.6) 0%, 
-    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.6) 0%,
     transparent 100%
   );
-  border-radius: 12px 12px 0 0;
   pointer-events: none;
-  z-index: 1;
+  border-radius: 12px 12px 0 0;
 }
 
-/* 单个按钮 - iOS 风格液态效果 */
-[data-gantt-theme="liquidGlass"] .metro-btn {
-  background: transparent !important;
-  border-right: 1px solid rgba(0, 0, 0, 0.06) !important;
-  position: relative !important;
+[data-gantt-theme="liquidGlass"] button:hover,
+[data-gantt-theme="liquidGlass"] .btn:hover {
+  background: rgba(0, 122, 255, 0.1) !important;
+  border-color: rgba(0, 122, 255, 0.2) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 
+    0 6px 20px rgba(0, 122, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+[data-gantt-theme="liquidGlass"] button:active,
+[data-gantt-theme="liquidGlass"] .btn:active {
+  transform: translateY(0) scale(0.98) !important;
+  box-shadow: 
+    0 2px 6px rgba(0, 0, 0, 0.08),
+    inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* 主要按钮 */
+[data-gantt-theme="liquidGlass"] button.primary,
+[data-gantt-theme="liquidGlass"] .btn.primary {
+  background: linear-gradient(135deg, 
+    rgba(0, 122, 255, 0.95) 0%, 
+    rgba(0, 80, 200, 0.95) 100%
+  ) !important;
+  border: none !important;
+  color: #ffffff !important;
+  box-shadow: 
+    0 4px 16px rgba(0, 122, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-gantt-theme="liquidGlass"] button.primary:hover,
+[data-gantt-theme="liquidGlass"] .btn.primary:hover {
+  box-shadow: 
+    0 8px 24px rgba(0, 122, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+/* ============================================= */
+/* 输入框和表单控件 - iOS 风格 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] input:not(.date-picker-input),
+[data-gantt-theme="liquidGlass"] select,
+[data-gantt-theme="liquidGlass"] textarea {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 12px !important;
+  color: #1d1d1f !important;
+  font-size: 15px !important;
+  font-weight: 400 !important;
+  padding: 10px 14px !important;
+  transition: all 0.25s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] input:focus,
+[data-gantt-theme="liquidGlass"] select:focus,
+[data-gantt-theme="liquidGlass"] textarea:focus {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: var(--ios-blue) !important;
+  box-shadow: 
+    0 0 0 4px rgba(0, 122, 255, 0.12),
+    0 2px 8px rgba(0, 122, 255, 0.1) !important;
+  outline: none !important;
+}
+
+[data-gantt-theme="liquidGlass"] input::placeholder,
+[data-gantt-theme="liquidGlass"] textarea::placeholder {
+  color: var(--ios-gray-2) !important;
+}
+
+/* 日期选择器输入框 */
+[data-gantt-theme="liquidGlass"] .date-picker-input {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 10px !important;
+  color: #1d1d1f !important;
+  font-size: 14px !important;
+  padding: 8px 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] .date-picker-input:focus {
+  border-color: var(--ios-blue) !important;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1) !important;
+}
+
+/* 清除按钮 */
+[data-gantt-theme="liquidGlass"] .clear-date-button {
+  background: rgba(142, 142, 147, 0.12) !important;
+  border: none !important;
+  border-radius: 50% !important;
+  width: 20px !important;
+  height: 20px !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] .clear-date-button:hover {
+  background: rgba(142, 142, 147, 0.2) !important;
+  transform: scale(1.1) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .clear-date-button svg {
+  fill: var(--ios-gray-1) !important;
+}
+
+/* ============================================= */
+/* 按钮 - iOS 胶囊按钮 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] button,
+[data-gantt-theme="liquidGlass"] .btn {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 12px !important;
+  color: var(--ios-blue) !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  padding: 10px 18px !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
   overflow: hidden !important;
 }
 
-[data-gantt-theme="liquidGlass"] .metro-btn:last-child {
-  border-right: none !important;
+/* 按钮顶部高光 */
+[data-gantt-theme="liquidGlass"] button::before,
+[data-gantt-theme="liquidGlass"] .btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.6) 0%,
+    transparent 100%
+  );
+  pointer-events: none;
+  border-radius: 12px 12px 0 0;
 }
 
-/* 按钮文字和图标 */
-[data-gantt-theme="liquidGlass"] .metro-btn .metro-text {
-  color: #1d1d1f !important;
-  font-weight: 500 !important;
-  font-size: 13px !important;
-  letter-spacing: -0.2px !important;
-  transition: all 0.2s ease !important;
-}
-
-[data-gantt-theme="liquidGlass"] .metro-btn .metro-icon {
-  color: #86868b !important;
-  transition: all 0.2s ease !important;
-}
-
-[data-gantt-theme="liquidGlass"] .metro-btn .metro-icon svg {
-  fill: currentColor !important;
-}
-
-/* 按钮悬浮效果 - 液态波动 */
-[data-gantt-theme="liquidGlass"] .metro-btn:hover {
-  background: rgba(0, 122, 255, 0.08) !important;
-}
-
-[data-gantt-theme="liquidGlass"] .metro-btn:hover .metro-text {
-  color: #007aff !important;
-}
-
-[data-gantt-theme="liquidGlass"] .metro-btn:hover .metro-icon {
-  color: #007aff !important;
-  transform: scale(1.1);
-}
-
-/* 按钮激活/选中状态 - iOS 深蓝色渐变 */
-[data-gantt-theme="liquidGlass"] .metro-btn.is-active,
-[data-gantt-theme="liquidGlass"] .metro-btn.button.is-active {
-  background: linear-gradient(135deg, #007aff 0%, #0051d5 100%) !important;
+[data-gantt-theme="liquidGlass"] button:hover,
+[data-gantt-theme="liquidGlass"] .btn:hover {
+  background: rgba(0, 122, 255, 0.1) !important;
+  border-color: rgba(0, 122, 255, 0.2) !important;
+  transform: translateY(-2px) !important;
   box-shadow: 
-    0 4px 16px rgba(0, 122, 255, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.1) !important;
-  border-right-color: transparent !important;
+    0 6px 20px rgba(0, 122, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
 }
 
-[data-gantt-theme="liquidGlass"] .metro-btn.is-active .metro-text,
-[data-gantt-theme="liquidGlass"] .metro-btn.button.is-active .metro-text {
-  color: #ffffff !important;
-  font-weight: 600 !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
-}
-
-[data-gantt-theme="liquidGlass"] .metro-btn.is-active .metro-icon,
-[data-gantt-theme="liquidGlass"] .metro-btn.button.is-active .metro-icon {
-  color: #ffffff !important;
-}
-
-/* 按钮按下效果 */
-[data-gantt-theme="liquidGlass"] .metro-btn:active {
-  background: rgba(0, 122, 255, 0.15) !important;
-  transform: scale(0.98);
-}
-
-/* 按钮内容容器 */
-[data-gantt-theme="liquidGlass"] .metro-btn .metro-content {
-  position: relative;
-  z-index: 2;
-}
-
-/* 连线图例 - 液态玻璃效果 */
-[data-gantt-theme="liquidGlass"] .link-legend {
-  background: rgba(255, 255, 255, 0.75) !important;
-  backdrop-filter: blur(16px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.6) !important;
-  border-radius: 10px !important;
+[data-gantt-theme="liquidGlass"] button:active,
+[data-gantt-theme="liquidGlass"] .btn:active {
+  transform: translateY(0) scale(0.98) !important;
   box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.08),
-    inset 0 1px 2px rgba(255, 255, 255, 0.9) !important;
+    0 2px 6px rgba(0, 0, 0, 0.08),
+    inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
 }
 
-[data-gantt-theme="liquidGlass"] .link-legend .legend-title {
-  color: #1d1d1f !important;
-  font-weight: 600 !important;
+/* 主要按钮 - 蓝色填充 */
+[data-gantt-theme="liquidGlass"] button.primary,
+[data-gantt-theme="liquidGlass"] .btn-primary {
+  background: linear-gradient(135deg, 
+    rgba(0, 122, 255, 0.95) 0%, 
+    rgba(0, 100, 220, 0.95) 100%
+  ) !important;
+  border: none !important;
+  color: #ffffff !important;
+  box-shadow: 
+    0 4px 16px rgba(0, 122, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
 
-[data-gantt-theme="liquidGlass"] .link-legend .legend-item {
-  transition: all 0.2s ease !important;
+[data-gantt-theme="liquidGlass"] button.primary:hover,
+[data-gantt-theme="liquidGlass"] .btn-primary:hover {
+  background: linear-gradient(135deg, 
+    rgba(0, 140, 255, 0.95) 0%, 
+    rgba(0, 110, 230, 0.95) 100%
+  ) !important;
+  box-shadow: 
+    0 8px 24px rgba(0, 122, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
 }
 
-[data-gantt-theme="liquidGlass"] .link-legend .legend-item:hover {
-  background: rgba(0, 122, 255, 0.08) !important;
-  border-radius: 6px !important;
-}
-
+/* ============================================= */
 /* 配置按钮 - iOS 风格 */
+/* ============================================= */
+
 [data-gantt-theme="liquidGlass"] .config-btn {
   background: rgba(255, 255, 255, 0.8) !important;
-  backdrop-filter: blur(16px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.6) !important;
-  border-radius: 10px !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-radius: 12px !important;
   box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.08),
-    inset 0 1px 2px rgba(255, 255, 255, 0.9) !important;
+    0 2px 10px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 [data-gantt-theme="liquidGlass"] .config-btn:hover {
-  background: rgba(0, 122, 255, 0.1) !important;
-  border-color: rgba(0, 122, 255, 0.3) !important;
-  transform: translateY(-2px) !important;
+  background: rgba(0, 122, 255, 0.08) !important;
+  border-color: rgba(0, 122, 255, 0.15) !important;
+  transform: translateY(-2px) scale(1.02) !important;
   box-shadow: 
-    0 8px 24px rgba(0, 122, 255, 0.15),
-    inset 0 1px 2px rgba(255, 255, 255, 0.95) !important;
+    0 8px 24px rgba(0, 122, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
 }
 
 [data-gantt-theme="liquidGlass"] .config-btn .btn-text {
@@ -949,329 +1323,925 @@ body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-year li.active,
 }
 
 [data-gantt-theme="liquidGlass"] .config-btn .btn-icon {
-  color: #007aff !important;
+  color: var(--ios-blue) !important;
 }
 
-[data-gantt-theme="liquidGlass"] .config-btn.active,
-[data-gantt-theme="liquidGlass"] .config-btn:active {
-  background: linear-gradient(135deg, #007aff 0%, #0051d5 100%) !important;
+[data-gantt-theme="liquidGlass"] .config-btn.active {
+  background: linear-gradient(135deg, 
+    rgba(0, 122, 255, 0.95) 0%, 
+    rgba(0, 100, 220, 0.95) 100%
+  ) !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3) !important;
 }
 
 [data-gantt-theme="liquidGlass"] .config-btn.active .btn-text,
-[data-gantt-theme="liquidGlass"] .config-btn:active .btn-text {
+[data-gantt-theme="liquidGlass"] .config-btn.active .btn-icon {
   color: #ffffff !important;
 }
 
-[data-gantt-theme="liquidGlass"] .config-btn.active .btn-icon,
-[data-gantt-theme="liquidGlass"] .config-btn:active .btn-icon {
-  color: #ffffff !important;
-}
+/* ============================================= */
+/* 连线图例 - 玻璃卡片 */
+/* ============================================= */
 
-/* 日期选择器容器 - iOS 风格 */
-[data-gantt-theme="liquidGlass"] .dateInput {
-  background: rgba(255, 255, 255, 0.6) !important;
-  backdrop-filter: blur(12px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
-  border-radius: 10px !important;
-  padding: 6px 12px !important;
-}
-
-/* 里程碑玻璃效果 */
-[data-gantt-theme="liquidGlass"] .milestone,
-[data-gantt-theme="liquidGlass"] .gantt-milestone {
-  background: var(--bg-active);
-  backdrop-filter: blur(6px) saturate(180%);
-  -webkit-backdrop-filter: blur(6px) saturate(180%);
-  border: 2px solid rgba(255, 255, 255, 0.6);
+[data-gantt-theme="liquidGlass"] .link-legend {
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 16px !important;
   box-shadow: 
-    0 6px 24px rgba(0, 122, 255, 0.2),
-    0 2px 8px rgba(0, 0, 0, 0.08),
-    inset 0 2px 4px rgba(255, 255, 255, 0.9);
-  filter: drop-shadow(0 4px 12px rgba(0, 122, 255, 0.25));
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  padding: 12px 16px !important;
 }
 
-/* 滚动条玻璃效果 */
+[data-gantt-theme="liquidGlass"] .link-legend .legend-title {
+  color: #1d1d1f !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+}
+
+[data-gantt-theme="liquidGlass"] .link-legend .legend-item {
+  border-radius: 8px !important;
+  padding: 6px 10px !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] .link-legend .legend-item:hover {
+  background: rgba(0, 122, 255, 0.08) !important;
+}
+
+/* ============================================= */
+/* 下拉菜单 - 玻璃弹出层 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .dropdown-menu {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(50px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(50px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 14px !important;
+  box-shadow: 
+    0 16px 48px rgba(0, 0, 0, 0.12),
+    0 8px 16px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  padding: 6px !important;
+  z-index: 100003 !important;
+}
+
+[data-gantt-theme="liquidGlass"] .dropdown-item {
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+  color: #1d1d1f !important;
+  font-size: 14px !important;
+  transition: all 0.15s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] .dropdown-item:hover {
+  background: rgba(0, 122, 255, 0.1) !important;
+  color: var(--ios-blue) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .dropdown-item.active {
+  background: var(--ios-blue) !important;
+  color: #ffffff !important;
+}
+
+/* ============================================= */
+/* 配置按钮 - iOS 风格 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .config-btn {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-radius: 12px !important;
+  box-shadow: 
+    0 2px 10px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .config-btn:hover {
+  background: rgba(0, 122, 255, 0.08) !important;
+  border-color: rgba(0, 122, 255, 0.15) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 
+    0 8px 24px rgba(0, 122, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .config-btn .btn-text {
+  color: #1d1d1f !important;
+  font-weight: 500 !important;
+}
+
+[data-gantt-theme="liquidGlass"] .config-btn .btn-icon {
+  color: var(--ios-blue) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .config-btn.active {
+  background: linear-gradient(135deg, 
+    rgba(0, 122, 255, 0.95) 0%, 
+    rgba(0, 100, 220, 0.95) 100%
+  ) !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .config-btn.active .btn-text,
+[data-gantt-theme="liquidGlass"] .config-btn.active .btn-icon {
+  color: #ffffff !important;
+}
+
+/* ============================================= */
+/* 连线图例 - 玻璃卡片 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .link-legend {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 16px !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  padding: 12px 16px !important;
+}
+
+[data-gantt-theme="liquidGlass"] .link-legend .legend-title {
+  color: #1d1d1f !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+}
+
+[data-gantt-theme="liquidGlass"] .link-legend .legend-item {
+  border-radius: 8px !important;
+  padding: 6px 10px !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] .link-legend .legend-item:hover {
+  background: rgba(0, 122, 255, 0.08) !important;
+}
+
+/* ============================================= */
+/* 下拉菜单 - 玻璃弹出层 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .dropdown-menu,
+[data-gantt-theme="liquidGlass"] .theme-dropdown,
+[data-gantt-theme="liquidGlass"] .language-dropdown {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(50px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(50px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 16px !important;
+  box-shadow: 
+    0 16px 48px rgba(0, 0, 0, 0.12),
+    0 8px 16px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  overflow: hidden !important;
+  z-index: 100003 !important;
+}
+
+[data-gantt-theme="liquidGlass"] .dropdown-item {
+  background: transparent !important;
+  color: #1d1d1f !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  padding: 10px 16px !important;
+  transition: all 0.15s ease !important;
+  border-radius: 0 !important;
+}
+
+[data-gantt-theme="liquidGlass"] .dropdown-item:hover {
+  background: rgba(0, 122, 255, 0.1) !important;
+  color: var(--ios-blue) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .dropdown-item.active,
+[data-gantt-theme="liquidGlass"] .dropdown-item:active {
+  background: var(--ios-blue) !important;
+  color: #ffffff !important;
+}
+
+/* ============================================= */
+/* 分割条 - 玻璃手柄 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .pane-trigger {
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(25px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 10px !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  transition: all 0.25s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] .pane-trigger:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  transform: scale(1.05) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .pane-trigger .icon {
+  opacity: 0.5 !important;
+  transition: opacity 0.2s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] .pane-trigger:hover .icon {
+  opacity: 0.8 !important;
+}
+
+/* ============================================= */
+/* 滚动条 - iOS 风格 */
+/* ============================================= */
+
 [data-gantt-theme="liquidGlass"] ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-[data-gantt-theme="liquidGlass"] ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 
-    inset 0 1px 2px rgba(255, 255, 255, 0.8),
-    0 2px 4px rgba(0, 0, 0, 0.1);
+[data-gantt-theme="liquidGlass"] ::-webkit-scrollbar-track {
+  background: transparent;
   border-radius: 4px;
+}
+
+[data-gantt-theme="liquidGlass"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background 0.2s ease;
 }
 
 [data-gantt-theme="liquidGlass"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 122, 255, 0.4);
-  box-shadow: 
-    inset 0 1px 2px rgba(255, 255, 255, 0.9),
-    0 4px 8px rgba(0, 122, 255, 0.2);
+  background: rgba(0, 0, 0, 0.25);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
-[data-gantt-theme="liquidGlass"] ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
+[data-gantt-theme="liquidGlass"] ::-webkit-scrollbar-thumb:active {
+  background: rgba(0, 122, 255, 0.4);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 [data-gantt-theme="liquidGlass"] ::-webkit-scrollbar-corner {
   background: transparent;
 }
 
-/* 动画效果 */
+/* ============================================= */
+/* 动画效果 - iOS 流畅动画 */
+/* ============================================= */
+
+/* 浮动动画 */
 @keyframes liquidFloat {
   0%, 100% {
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
   50% {
-    transform: translateY(-2px) scale(1.005);
+    transform: translateY(-4px);
+  }
+}
+
+/* 呼吸光晕 */
+@keyframes breatheGlow {
+  0%, 100% {
+    box-shadow: 
+      0 8px 32px rgba(0, 122, 255, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+  50% {
+    box-shadow: 
+      0 12px 40px rgba(0, 122, 255, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  }
+}
+
+/* 光线扫过 */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
   }
 }
 
 [data-gantt-theme="liquidGlass"] .float-animation {
-  animation: liquidFloat 3s ease-in-out infinite;
+  animation: liquidFloat 4s ease-in-out infinite;
 }
 
-/* 边缘流光效果 */
-@keyframes edgeGlow {
-  0%, 100% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 1;
-  }
+[data-gantt-theme="liquidGlass"] .breathe-animation {
+  animation: breatheGlow 3s ease-in-out infinite;
 }
 
-[data-gantt-theme="liquidGlass"] .edge-glow {
-  position: relative;
-}
-
-[data-gantt-theme="liquidGlass"] .edge-glow::after {
+/* 光线扫过效果 - 用于按钮悬浮 */
+[data-gantt-theme="liquidGlass"] .shimmer-effect::after {
   content: '';
   position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  border-radius: inherit;
-  background: linear-gradient(135deg, 
-    rgba(0, 122, 255, 0.3) 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    rgba(0, 122, 255, 0.3) 100%
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.4) 50%, 
+    transparent 100%
   );
-  filter: blur(4px);
-  opacity: 0.6;
+  transform: translateX(-100%);
   pointer-events: none;
-  animation: edgeGlow 2s ease-in-out infinite;
-  z-index: -1;
 }
 
-/* 响应式调整 */
-@media (max-width: 768px) {
-  [data-gantt-theme="liquidGlass"] {
-    --glass-blur: 8px;
-  }
+[data-gantt-theme="liquidGlass"] .shimmer-effect:hover::after {
+  animation: shimmer 0.8s ease-out;
 }
 
-/* 性能优化：减少低性能设备的效果 */
+/* ============================================= */
+/* 响应式和性能优化 */
+/* ============================================= */
+
+/* 减少低性能设备的效果 */
 @media (prefers-reduced-motion: reduce) {
   [data-gantt-theme="liquidGlass"] * {
     animation: none !important;
-    transition: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 移动端优化 - 降低模糊度 */
+@media (max-width: 768px) {
+  [data-gantt-theme="liquidGlass"] {
+    --glass-blur: 20px;
+  }
+  
+  [data-gantt-theme="liquidGlass"] .toolbar {
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  }
+  
+  [data-gantt-theme="liquidGlass"] .table {
+    backdrop-filter: blur(40px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(40px) saturate(160%) !important;
+    border-radius: 16px !important;
+  }
+  
+  [data-gantt-theme="liquidGlass"] .config-panel {
+    border-radius: 20px !important;
   }
 }
 
 /* ============================================= */
-/* 弹出层 z-index 统一管理 - 确保不被遮挡 */
+/* 年份/月份选择列表 - iOS 风格 */
 /* ============================================= */
 
-/* 配置面板遮罩层 */
-[data-gantt-theme="liquidGlass"] .config-panel-overlay,
-.panel-overlay[data-gantt-theme="liquidGlass"] {
-  z-index: 100000 !important;
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-year,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-year {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  padding: 8px !important;
 }
 
-/* 配置面板 - iOS 风格玻璃效果 */
-[data-gantt-theme="liquidGlass"] .config-panel,
-.config-panel[data-gantt-theme="liquidGlass"] {
-  z-index: 100001 !important;
-  background: rgba(255, 255, 255, 0.98) !important;
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-year li,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-year li {
+  background: transparent !important;
+  border-radius: 10px !important;
+  padding: 12px 16px !important;
+  margin: 2px 0 !important;
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  color: #1d1d1f !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-year li:hover,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-year li:hover {
+  background: rgba(0, 122, 255, 0.1) !important;
+}
+
+body > .e-calendar[data-gantt-theme="liquidGlass"] .e-calendar-year li.active,
+[data-gantt-theme="liquidGlass"] .e-calendar .e-calendar-year li.active {
+  background: var(--ios-blue) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25) !important;
+}
+
+/* ============================================= */
+/* 日期输入容器 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .dateInput {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(15px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(15px) saturate(150%) !important;
+  border-radius: 12px !important;
+  padding: 6px 12px !important;
+}
+
+[data-gantt-theme="liquidGlass"] .date-picker-input-wrapper {
+  position: relative !important;
+  z-index: 1000 !important;
+}
+
+/* ============================================= */
+/* 确保交互元素可点击 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .e-calendar-svg,
+[data-gantt-theme="liquidGlass"] .e-date-year-select,
+[data-gantt-theme="liquidGlass"] .e-date-monthday-select,
+[data-gantt-theme="liquidGlass"] .e-calendar-monthday-row-day-value,
+[data-gantt-theme="liquidGlass"] .clear-date-button {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+/* 移除伪元素对点击的影响 */
+[data-gantt-theme="liquidGlass"] .glass-panel::before,
+[data-gantt-theme="liquidGlass"] .glass-panel::after,
+[data-gantt-theme="liquidGlass"] button::before,
+[data-gantt-theme="liquidGlass"] .btn::before {
+  pointer-events: none !important;
+}
+
+/* ============================================= */
+/* 时间线区域 - 玻璃效果 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .timeline,
+[data-gantt-theme="liquidGlass"] .gantt-timeline {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(40px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(160%) !important;
+}
+
+/* 时间线头部 */
+[data-gantt-theme="liquidGlass"] .timeline-header,
+[data-gantt-theme="liquidGlass"] .gantt-header {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(30px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* 今日线 */
+[data-gantt-theme="liquidGlass"] .today-line {
+  background: linear-gradient(180deg, 
+    rgba(255, 59, 48, 0.9) 0%, 
+    rgba(255, 59, 48, 0.6) 100%
+  ) !important;
+  box-shadow: 
+    0 0 12px rgba(255, 59, 48, 0.4),
+    0 0 4px rgba(255, 59, 48, 0.6) !important;
+}
+
+/* ============================================= */
+/* 连接线 - 玻璃管道效果 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .link-line,
+[data-gantt-theme="liquidGlass"] .gantt-link {
+  stroke: rgba(0, 122, 255, 0.6) !important;
+  stroke-width: 2px !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 122, 255, 0.2)) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .link-line:hover,
+[data-gantt-theme="liquidGlass"] .gantt-link:hover {
+  stroke: rgba(0, 122, 255, 0.9) !important;
+  stroke-width: 3px !important;
+  filter: drop-shadow(0 4px 8px rgba(0, 122, 255, 0.3)) !important;
+}
+
+/* ============================================= */
+/* 工具提示 - 玻璃气泡 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .tooltip,
+[data-gantt-theme="liquidGlass"] [role="tooltip"] {
+  background: rgba(255, 255, 255, 0.95) !important;
   backdrop-filter: blur(30px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
-  box-shadow: 
-    0 32px 80px rgba(0, 0, 0, 0.2),
-    0 16px 40px rgba(0, 122, 255, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.98) !important;
-  border-radius: 20px !important;
-}
-
-/* 配置面板头部 */
-[data-gantt-theme="liquidGlass"] .config-panel .panel-header,
-.config-panel[data-gantt-theme="liquidGlass"] .panel-header {
-  background: linear-gradient(135deg, #007aff 0%, #0051d5 100%) !important;
-  color: #ffffff !important;
-  border-radius: 20px 20px 0 0 !important;
-}
-
-/* 日历组件 - 确保最高层级 */
-[data-gantt-theme="liquidGlass"] .e-calendar {
-  z-index: 100002 !important;
-}
-
-/* 主题选择器下拉菜单 */
-[data-gantt-theme="liquidGlass"] .theme-dropdown {
-  z-index: 100003 !important;
-}
-
-/* 语言选择器下拉菜单 */
-[data-gantt-theme="liquidGlass"] .language-dropdown {
-  z-index: 100003 !important;
-}
-
-/* 工具栏下拉菜单通用 */
-[data-gantt-theme="liquidGlass"] .dropdown-menu {
-  z-index: 100003 !important;
-  background: rgba(255, 255, 255, 0.95) !important;
-  backdrop-filter: blur(15px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
-  box-shadow: 
-    0 16px 48px rgba(0, 0, 0, 0.15),
-    0 8px 24px rgba(0, 122, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
   border-radius: 12px !important;
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  color: #1d1d1f !important;
+  font-size: 13px !important;
+  padding: 10px 14px !important;
 }
 
-/* SplitPane 分割条毛玻璃效果 */
-[data-gantt-theme="liquidGlass"] .pane-trigger {
-  background: rgba(255, 255, 255, 0.7) !important;
-  backdrop-filter: blur(20px) saturate(180%) brightness(105%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(105%) !important;
+/* ============================================= */
+/* 复选框 - iOS 开关风格 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] input[type="checkbox"] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  width: 20px !important;
+  height: 20px !important;
+  background: rgba(120, 120, 128, 0.16) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+}
+
+[data-gantt-theme="liquidGlass"] input[type="checkbox"]:checked {
+  background: var(--ios-blue) !important;
+}
+
+[data-gantt-theme="liquidGlass"] input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 3px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+[data-gantt-theme="liquidGlass"] input[type="checkbox"]:hover {
+  background: rgba(120, 120, 128, 0.24) !important;
+}
+
+[data-gantt-theme="liquidGlass"] input[type="checkbox"]:checked:hover {
+  background: rgba(0, 122, 255, 0.85) !important;
+}
+
+/* ============================================= */
+/* 进度条 - 玻璃填充效果 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .progress-bar,
+[data-gantt-theme="liquidGlass"] .task-progress {
+  background: rgba(255, 255, 255, 0.3) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+[data-gantt-theme="liquidGlass"] .progress-bar-fill,
+[data-gantt-theme="liquidGlass"] .task-progress-fill {
+  background: linear-gradient(90deg, 
+    rgba(52, 199, 89, 0.9) 0%, 
+    rgba(48, 209, 88, 0.95) 100%
+  ) !important;
+  border-radius: 8px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+  position: relative !important;
+}
+
+/* 进度条高光 */
+[data-gantt-theme="liquidGlass"] .progress-bar-fill::before,
+[data-gantt-theme="liquidGlass"] .task-progress-fill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.4) 0%,
+    transparent 100%
+  );
+  border-radius: 8px 8px 0 0;
+}
+
+/* ============================================= */
+/* 标签和徽章 - 玻璃胶囊 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .tag,
+[data-gantt-theme="liquidGlass"] .badge,
+[data-gantt-theme="liquidGlass"] .label {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-radius: 20px !important;
+  color: #1d1d1f !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 4px 12px !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .tag.primary,
+[data-gantt-theme="liquidGlass"] .badge.primary {
+  background: rgba(0, 122, 255, 0.15) !important;
+  color: var(--ios-blue) !important;
+  border-color: rgba(0, 122, 255, 0.2) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .tag.success,
+[data-gantt-theme="liquidGlass"] .badge.success {
+  background: rgba(52, 199, 89, 0.15) !important;
+  color: #34C759 !important;
+  border-color: rgba(52, 199, 89, 0.2) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .tag.warning,
+[data-gantt-theme="liquidGlass"] .badge.warning {
+  background: rgba(255, 149, 0, 0.15) !important;
+  color: #FF9500 !important;
+  border-color: rgba(255, 149, 0, 0.2) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .tag.danger,
+[data-gantt-theme="liquidGlass"] .badge.danger {
+  background: rgba(255, 59, 48, 0.15) !important;
+  color: #FF3B30 !important;
+  border-color: rgba(255, 59, 48, 0.2) !important;
+}
+
+/* ============================================= */
+/* 分隔线 - 玻璃边缘 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] hr,
+[data-gantt-theme="liquidGlass"] .divider {
+  border: none !important;
+  height: 1px !important;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(0, 0, 0, 0.08) 20%,
+    rgba(0, 0, 0, 0.08) 80%,
+    transparent 100%
+  ) !important;
+  margin: 16px 0 !important;
+}
+
+/* ============================================= */
+/* 空状态 - 玻璃占位 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .empty-state {
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 2px dashed rgba(0, 0, 0, 0.08) !important;
+  border-radius: 20px !important;
+  color: var(--ios-gray-1) !important;
+  padding: 40px !important;
+  text-align: center !important;
+}
+
+[data-gantt-theme="liquidGlass"] .empty-state-icon {
+  color: var(--ios-gray-2) !important;
+  font-size: 48px !important;
+  margin-bottom: 16px !important;
+}
+
+[data-gantt-theme="liquidGlass"] .empty-state-text {
+  font-size: 15px !important;
+  font-weight: 400 !important;
+}
+
+/* ============================================= */
+/* 单元格样式 - iOS 风格 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .cell,
+[data-gantt-theme="liquidGlass"] .cellNo {
+  background: transparent !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+  color: #1d1d1f !important;
+  font-size: 13px !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] .cell:hover,
+[data-gantt-theme="liquidGlass"] .cellNo:hover {
+  background: rgba(0, 122, 255, 0.04) !important;
+}
+
+/* ============================================= */
+/* 折叠按钮 - iOS 风格 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .collapse-btn {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
   border: 1px solid rgba(0, 0, 0, 0.06) !important;
   border-radius: 8px !important;
   box-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+    0 2px 6px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  color: var(--ios-gray-1) !important;
+  transition: all 0.2s ease !important;
 }
 
-[data-gantt-theme="liquidGlass"] .pane-trigger:hover {
-  background: rgba(255, 255, 255, 0.85) !important;
-  backdrop-filter: blur(25px) saturate(200%) brightness(110%) !important;
-  -webkit-backdrop-filter: blur(25px) saturate(200%) brightness(110%) !important;
+[data-gantt-theme="liquidGlass"] .collapse-btn:hover {
+  background: rgba(0, 122, 255, 0.1) !important;
+  border-color: rgba(0, 122, 255, 0.2) !important;
+  color: var(--ios-blue) !important;
+  transform: scale(1.05) !important;
   box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 4px 12px rgba(0, 122, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .collapse-btn:active {
+  transform: scale(0.95) !important;
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ============================================= */
+/* 操作按钮 - iOS 风格 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .action-btn {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 6px !important;
+  color: var(--ios-gray-1) !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] .action-btn:hover {
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .action-btn.add-btn:hover {
+  background: rgba(52, 199, 89, 0.12) !important;
+  color: #34C759 !important;
+}
+
+[data-gantt-theme="liquidGlass"] .action-btn.delete-btn:hover {
+  background: rgba(255, 59, 48, 0.12) !important;
+  color: #FF3B30 !important;
+}
+
+/* ============================================= */
+/* 树形连线 - iOS 风格 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .tree-line-vertical,
+[data-gantt-theme="liquidGlass"] .tree-line-horizontal {
+  background: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ============================================= */
+/* 内容区域 - 玻璃效果 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .content {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+}
+
+/* ============================================= */
+/* 日期输入框 - iOS 风格 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .dateInput {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-radius: 12px !important;
+  padding: 8px 16px !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.04),
     inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
 }
 
-[data-gantt-theme="liquidGlass"] .pane-trigger .icon {
-  opacity: 0.6;
-  transition: opacity 0.2s ease;
+/* ============================================= */
+/* 甘特图容器 - 玻璃背景 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .gantt-container,
+[data-gantt-theme="liquidGlass"] .page {
+  background: linear-gradient(180deg, 
+    #E8F0F8 0%, 
+    #F0F4F8 30%,
+    #F8FAFC 70%,
+    #FFFFFF 100%
+  ) !important;
 }
 
-[data-gantt-theme="liquidGlass"] .pane-trigger:hover .icon {
-  opacity: 0.9;
+[data-gantt-theme="liquidGlass"] .gantt {
+  background: transparent !important;
 }
 
-/* Metro 主题分割条 - 金属质感 */
-[data-gantt-theme="metro"] .pane-trigger {
-  border: 1px solid #d0d0d0 !important;
-  border-radius: 4px !important;
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.1),
-    0 2px 4px rgba(0, 0, 0, 0.1) !important;
-}
+/* ============================================= */
+/* 子菜单弹出层 - 玻璃效果 */
+/* ============================================= */
 
-[data-gantt-theme="metro"] .pane-trigger:hover {
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.15),
-    0 3px 6px rgba(0, 0, 0, 0.15) !important;
-}
-
-/* Dark 主题分割条 - 深色金属 */
-[data-gantt-theme="dark"] .pane-trigger {
-  border: 1px solid #404040 !important;
-  border-radius: 4px !important;
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
-    0 2px 8px rgba(0, 0, 0, 0.4) !important;
-}
-
-[data-gantt-theme="dark"] .pane-trigger:hover {
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.6),
-    0 3px 12px rgba(0, 212, 255, 0.3) !important;
-}
-
-/* Modern 主题分割条 - 扁平现代 */
-[data-gantt-theme="modern"] .pane-trigger {
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 6px !important;
-  box-shadow: 
-    0 1px 3px rgba(0, 0, 0, 0.08),
-    0 1px 2px rgba(0, 0, 0, 0.06) !important;
-}
-
-[data-gantt-theme="modern"] .pane-trigger:hover {
-  border-color: #cbd5e0 !important;
-  box-shadow: 
-    0 4px 6px rgba(99, 102, 241, 0.15),
-    0 2px 4px rgba(0, 0, 0, 0.08) !important;
-}
-
-/* Classic 主题分割条 - 经典边框 */
-[data-gantt-theme="classic"] .pane-trigger {
-  border: 2px solid #cbd5e1 !important;
-  border-radius: 2px !important;
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    0 1px 2px rgba(0, 0, 0, 0.1) !important;
-}
-
-[data-gantt-theme="classic"] .pane-trigger:hover {
-  border-color: #2563eb !important;
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    0 2px 4px rgba(37, 99, 235, 0.2) !important;
-}
-
-/* Colorful 主题分割条 - 鲜艳渐变 */
-[data-gantt-theme="colorful"] .pane-trigger {
-  border: 1px solid #fbbf24 !important;
-  border-radius: 8px !important;
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
-    0 2px 6px rgba(251, 191, 36, 0.3) !important;
-}
-
-[data-gantt-theme="colorful"] .pane-trigger:hover {
-  border-color: #f59e0b !important;
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    0 4px 12px rgba(245, 158, 11, 0.4) !important;
-}
-
-/* Apple 主题分割条 - iOS 风格 */
-[data-gantt-theme="apple"] .pane-trigger {
+[data-gantt-theme="liquidGlass"] .day-submenu-popup,
+[data-gantt-theme="liquidGlass"] .hour-submenu-popup {
   background: rgba(255, 255, 255, 0.95) !important;
-  border: 0.5px solid rgba(0, 0, 0, 0.1) !important;
-  border-radius: 6px !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 12px !important;
   box-shadow: 
-    0 1px 3px rgba(0, 0, 0, 0.08),
-    inset 0 0.5px 0 rgba(255, 255, 255, 0.9) !important;
+    0 12px 40px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  overflow: hidden !important;
 }
 
-[data-gantt-theme="apple"] .pane-trigger:hover {
-  background: rgba(242, 242, 247, 0.98) !important;
-  border-color: rgba(0, 122, 255, 0.3) !important;
-  box-shadow: 
-    0 2px 8px rgba(0, 122, 255, 0.15),
-    inset 0 0.5px 0 rgba(255, 255, 255, 1) !important;
+[data-gantt-theme="liquidGlass"] .submenu-item {
+  background: transparent !important;
+  color: #1d1d1f !important;
+  font-size: 14px !important;
+  padding: 10px 16px !important;
+  transition: all 0.15s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] .submenu-item:hover {
+  background: rgba(0, 122, 255, 0.1) !important;
+  color: var(--ios-blue) !important;
+}
+
+[data-gantt-theme="liquidGlass"] .submenu-item.active {
+  background: var(--ios-blue) !important;
+  color: #ffffff !important;
+}
+
+/* ============================================= */
+/* 无数据状态 - iOS 风格 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .nodata {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  color: var(--ios-gray-1) !important;
+  font-size: 15px !important;
+  font-weight: 400 !important;
+}
+
+/* ============================================= */
+/* 配置区域 - iOS 风格 */
+/* ============================================= */
+
+[data-gantt-theme="liquidGlass"] .config-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+[data-gantt-theme="liquidGlass"] .config-section {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.04) !important;
+  border-radius: 16px !important;
+  padding: 16px !important;
+  margin-bottom: 16px !important;
+}
+
+[data-gantt-theme="liquidGlass"] .config-group {
+  margin-bottom: 12px !important;
+}
+
+[data-gantt-theme="liquidGlass"] .config-label {
+  color: #1d1d1f !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+[data-gantt-theme="liquidGlass"] .select-input {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 10px !important;
+  color: #1d1d1f !important;
+  font-size: 14px !important;
+  padding: 8px 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-gantt-theme="liquidGlass"] .select-input:focus {
+  border-color: var(--ios-blue) !important;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1) !important;
+  outline: none !important;
 }
