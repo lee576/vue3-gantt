@@ -57,7 +57,16 @@
       
       // 计算容器尺寸
       const containerWidth = computed(() => {
-        return timelineCellCount.value * scale.value;
+        const baseWidth = timelineCellCount.value * scale.value;
+        // 获取父容器宽度，确保至少填满可用空间
+        if (barContent.value) {
+          const parentContainer = barContent.value.parentElement;
+          if (parentContainer) {
+            const availableWidth = parentContainer.clientWidth;
+            return Math.max(baseWidth, availableWidth);
+          }
+        }
+        return baseWidth;
       });
       
       const containerHeight = computed(() => {

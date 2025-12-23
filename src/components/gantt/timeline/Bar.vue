@@ -96,38 +96,65 @@ export default defineComponent({
             const totalWidth = timelineCellCount.value * cellWidth;
             const { bgContent, bgSecondary, borderColor } = getThemeColorsLocal();
             
-            // 基础网格线背景 - 在每个单元格的右边界绘制竖线（与表头对齐）
-            let backgroundImage = `
-                repeating-linear-gradient(
-                    to right,
-                    transparent 0px,
-                    transparent ${cellWidth - 1}px,
-                    ${borderColor} ${cellWidth - 1}px,
-                    ${borderColor} ${cellWidth}px
-                )
-            `;
+            // 获取容器宽度，确保至少填满可用空间
+            let containerWidth = totalWidth;
+            if (bar.value) {
+                const parentContainer = bar.value.closest('.content');
+                if (parentContainer) {
+                    const availableWidth = parentContainer.clientWidth;
+                    containerWidth = Math.max(totalWidth, availableWidth);
+                }
+            }
             
-            // 日模式下添加周末背景色
-            if (mode.value === '日') {
-                const weekendIndices = getWeekendIndicesLocal.value;
-                if (weekendIndices.length > 0) {
-                    // 为周末列创建背景色层
-                    const weekendGradients = weekendIndices.map(idx => {
-                        const start = idx * cellWidth;
-                        const end = start + cellWidth;
-                        return `linear-gradient(to right, transparent ${start}px, ${bgSecondary} ${start}px, ${bgSecondary} ${end}px, transparent ${end}px)`;
-                    });
-                    backgroundImage = weekendGradients.join(', ') + ', ' + backgroundImage;
+            // 基础网格线背景 - 只在查询范围内绘制竖线
+            let backgroundImage = '';
+            
+            // 查询范围内的竖线
+            if (totalWidth > 0) {
+                backgroundImage = `
+                    repeating-linear-gradient(
+                        to right,
+                        transparent 0px,
+                        transparent ${cellWidth - 1}px,
+                        ${borderColor} ${cellWidth - 1}px,
+                        ${borderColor} ${cellWidth}px
+                    )
+                `;
+                
+                // 日模式下添加周末背景色
+                if (mode.value === '日') {
+                    const weekendIndices = getWeekendIndicesLocal.value;
+                    if (weekendIndices.length > 0) {
+                        // 为周末列创建背景色层
+                        const weekendGradients = weekendIndices.map(idx => {
+                            const start = idx * cellWidth;
+                            const end = start + cellWidth;
+                            return `linear-gradient(to right, transparent ${start}px, ${bgSecondary} ${start}px, ${bgSecondary} ${end}px, transparent ${end}px)`;
+                        });
+                        backgroundImage = weekendGradients.join(', ') + ', ' + backgroundImage;
+                    }
+                }
+            }
+            
+            // 超出查询范围的区域只显示背景色，不显示竖线
+            const extraWidth = containerWidth - totalWidth;
+            if (extraWidth > 0) {
+                // 如果有查询范围内的内容，在其后添加纯色背景
+                if (totalWidth > 0) {
+                    backgroundImage += `, linear-gradient(to right, transparent ${totalWidth}px, ${bgContent} ${totalWidth}px)`;
+                } else {
+                    // 如果没有查询范围内的内容，整个区域都是纯色背景
+                    backgroundImage = `linear-gradient(to right, ${bgContent} 0px, ${bgContent} 100%)`;
                 }
             }
             
             return {
                 height: props.rowHeight + 'px',
-                width: totalWidth + 'px',
-                minWidth: totalWidth + 'px',
+                width: containerWidth + 'px',
+                minWidth: containerWidth + 'px',
                 background: bgContent,
                 backgroundImage: backgroundImage,
-                backgroundSize: `${totalWidth}px 100%`,
+                backgroundSize: `${containerWidth}px 100%`,
                 borderBottom: `1px solid ${borderColor}`
             };
         });
@@ -548,7 +575,13 @@ export default defineComponent({
                         let multiple = Math.round(currentX / scale.value);
                         let alignedX = multiple * scale.value;
                         if (alignedX < 0) alignedX = 0;
-                        if (alignedX > timelineCellCount.value * scale.value) alignedX = timelineCellCount.value * scale.value;
+                        
+                        // 限制拖拽不能超出查询范围（考虑任务宽度）
+                        const maxX = timelineCellCount.value * scale.value;
+                        if (alignedX + oldBarWidth.value > maxX) {
+                            alignedX = maxX - oldBarWidth.value;
+                            if (alignedX < 0) alignedX = 0;
+                        }
 
                         const parentIdField = mapFields.value.parentId || 'pid';
                         const currentParentId = props.row[parentIdField];
@@ -838,6 +871,15 @@ export default defineComponent({
                                     }
                                 }
                             }
+                        }
+
+                        // 限制 resize 不能超出查询范围
+                        const maxX = timelineCellCount.value * scale.value;
+                        if (currentX + newWidth > maxX) {
+                            newWidth = maxX - currentX;
+                            widthCells = Math.round(newWidth / scale.value);
+                            if (widthCells < 1) widthCells = 1;
+                            newWidth = widthCells * scale.value;
                         }
 
                         target.setAttribute('width', newWidth.toString());

@@ -1,6 +1,6 @@
 <template>
   <div ref="tableBar" class="table">
-    <div class="header" :style="{ height: `${headersHeight}px`, width: 'fit-content' }">
+    <div class="header" :style="{ height: `${headersHeight}px`, width: 'fit-content', minWidth: '100%' }">
       <TimelineHeader :weekHeaders="weekHeaders" :hourHeaders="hourHeaders" :dayHeaders="dayHeaders"
         :monthHeaders="monthHeaders"></TimelineHeader>
     </div>

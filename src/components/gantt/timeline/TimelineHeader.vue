@@ -2,7 +2,7 @@
   <div class="headerContainer" ref="headerContainerRef">
     <!-- 使用虚拟滚动时的渲染 -->
     <template v-if="useVirtual">
-      <div v-if="monthHeaders && monthHeaders.length > 0" class="header" :style="{ width: totalWidth + 'px' }">
+      <div v-if="monthHeaders && monthHeaders.length > 0" class="header" :style="{ width: totalWidth + 'px', minWidth: '100%' }">
         <div class="virtual-spacer" :style="{ width: monthOffsetX + 'px', flexShrink: 0 }"></div>
         <template v-for='item in visibleMonthHeaders' :key="item.key">
           <div class="headerCaption" style="border-bottom:0px" :style="{ width: item.width + 'px' }">
@@ -10,7 +10,7 @@
           </div>
         </template>
       </div>
-      <div v-if="weekHeaders && weekHeaders.length > 0" class="header" :style="{ width: totalWidth + 'px' }">
+      <div v-if="weekHeaders && weekHeaders.length > 0" class="header" :style="{ width: totalWidth + 'px', minWidth: '100%' }">
         <div class="virtual-spacer" :style="{ width: weekOffsetX + 'px', flexShrink: 0 }"></div>
         <template v-for='item in visibleWeekHeaders' :key="item.key">
           <div class="headerCaption" style="border-top:1px" :style="{ width: item.width + 'px' }">
@@ -18,7 +18,7 @@
           </div>
         </template>
       </div>
-      <div v-if="dayHeaders && dayHeaders.length > 0" class="header" :style="{ width: totalWidth + 'px' }">
+      <div v-if="dayHeaders && dayHeaders.length > 0" class="header" :style="{ width: totalWidth + 'px', minWidth: '100%' }">
         <div class="virtual-spacer" :style="{ width: dayOffsetX + 'px', flexShrink: 0 }"></div>
         <template v-for='item in visibleDayHeaders' :key="item.key">
           <div class="headerCaption" :style="{ width: item.width + 'px' }">
@@ -31,7 +31,7 @@
           </div>
         </template>
       </div>
-      <div v-if="hourHeaders && hourHeaders.length > 0" class="header" :style="{ width: totalWidth + 'px' }">
+      <div v-if="hourHeaders && hourHeaders.length > 0" class="header" :style="{ width: totalWidth + 'px', minWidth: '100%' }">
         <div class="virtual-spacer" :style="{ width: hourOffsetX + 'px', flexShrink: 0 }"></div>
         <template v-for='item in visibleHourHeaders' :key="item.key">
           <div class="headerCaption" :style="{ width: item.width + 'px' }">
@@ -43,21 +43,21 @@
     
     <!-- 不使用虚拟滚动时的原始渲染 -->
     <template v-else>
-      <div v-if="monthHeaders && monthHeaders.length > 0" class="header">
+      <div v-if="monthHeaders && monthHeaders.length > 0" class="header" :style="{ minWidth: '100%' }">
         <template v-for='item in monthHeaders' :key="item.title">
           <div class="headerCaption" style="border-bottom:0px" :style="{ width: item.width + 'px' }">
             <span :style="{ width: item.width + 'px' }">{{item.title}}</span>
           </div>
         </template>
       </div>
-      <div v-if="weekHeaders && weekHeaders.length > 0" class="header">
+      <div v-if="weekHeaders && weekHeaders.length > 0" class="header" :style="{ minWidth: '100%' }">
         <template v-for='item in weekHeaders' :key="item.title">
           <div class="headerCaption" style="border-top:1px" :style="{ width: item.width + 'px' }">
             <span :style="{ width: item.width + 'px' }">{{item.title}}</span>
           </div>
         </template>
       </div>
-      <div v-if="dayHeaders && dayHeaders.length > 0" class="header">
+      <div v-if="dayHeaders && dayHeaders.length > 0" class="header" :style="{ minWidth: '100%' }">
         <template v-for='item in dayHeaders' :key="item.title">
           <div class="headerCaption" :style="{ width: item.width + 'px' }">
             <span :style="{ width: item.width + 'px' }">{{item.title}}</span>
@@ -69,7 +69,7 @@
           </div>
         </template>
       </div>
-      <div v-if="hourHeaders && hourHeaders.length > 0" class="header">
+      <div v-if="hourHeaders && hourHeaders.length > 0" class="header" :style="{ minWidth: '100%' }">
         <template v-for='item in hourHeaders' :key="item.title">
           <div class="headerCaption" :style="{ width: item.width + 'px' }">
             <span :style="{ width: item.width + 'px' }">{{item.title}}</span>
@@ -124,7 +124,6 @@ export default defineComponent({
     
     const headerContainerRef = ref<HTMLElement | null>(null);
     const scrollLeft = ref(0);
-    const containerWidth = ref(0);
     
     // 计算总单元格数（使用最细粒度的表头）
     const totalCellCount = computed(() => {
@@ -212,7 +211,7 @@ export default defineComponent({
     // 可见的月份表头
     const visibleMonthResult = computed(() => {
       if (!useVirtual.value) return { items: [], offsetX: 0 };
-      return getVisibleHeaders(monthHeaders.value, scrollLeft.value, containerWidth.value || window.innerWidth);
+      return getVisibleHeaders(monthHeaders.value, scrollLeft.value, window.innerWidth);
     });
     const visibleMonthHeaders = computed(() => visibleMonthResult.value.items);
     const monthOffsetX = computed(() => visibleMonthResult.value.offsetX);
@@ -220,7 +219,7 @@ export default defineComponent({
     // 可见的周表头
     const visibleWeekResult = computed(() => {
       if (!useVirtual.value) return { items: [], offsetX: 0 };
-      return getVisibleHeaders(weekHeaders.value, scrollLeft.value, containerWidth.value || window.innerWidth);
+      return getVisibleHeaders(weekHeaders.value, scrollLeft.value, window.innerWidth);
     });
     const visibleWeekHeaders = computed(() => visibleWeekResult.value.items);
     const weekOffsetX = computed(() => visibleWeekResult.value.offsetX);
@@ -228,7 +227,7 @@ export default defineComponent({
     // 可见的日表头
     const visibleDayResult = computed(() => {
       if (!useVirtual.value) return { items: [], offsetX: 0 };
-      return getVisibleHeaders(dayHeaders.value, scrollLeft.value, containerWidth.value || window.innerWidth);
+      return getVisibleHeaders(dayHeaders.value, scrollLeft.value, window.innerWidth);
     });
     const visibleDayHeaders = computed(() => visibleDayResult.value.items);
     const dayOffsetX = computed(() => visibleDayResult.value.offsetX);
@@ -236,7 +235,7 @@ export default defineComponent({
     // 可见的小时表头
     const visibleHourResult = computed(() => {
       if (!useVirtual.value) return { items: [], offsetX: 0 };
-      return getVisibleHeaders(hourHeaders.value, scrollLeft.value, containerWidth.value || window.innerWidth);
+      return getVisibleHeaders(hourHeaders.value, scrollLeft.value, window.innerWidth);
     });
     const visibleHourHeaders = computed(() => visibleHourResult.value.items);
     const hourOffsetX = computed(() => visibleHourResult.value.offsetX);
@@ -278,22 +277,12 @@ export default defineComponent({
     
     onMounted(() => {
       if (headerContainerRef.value) {
-        containerWidth.value = headerContainerRef.value.clientWidth;
-        
         // 监听父级滚动容器
         const scrollContainer = headerContainerRef.value.closest('.table');
         if (scrollContainer) {
           scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
           scrollLeft.value = scrollContainer.scrollLeft;
         }
-        
-        // 监听窗口大小变化
-        const resizeObserver = new ResizeObserver(() => {
-          if (headerContainerRef.value) {
-            containerWidth.value = headerContainerRef.value.clientWidth;
-          }
-        });
-        resizeObserver.observe(headerContainerRef.value);
       }
     });
     
