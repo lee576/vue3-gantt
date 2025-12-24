@@ -114,20 +114,30 @@
       const showGuideLine = ref(false);
       const guideLineX = ref(0);
 
-      const handleMouseMove = debounce((e: MouseEvent) => {
+      let mouseMoveRafId: number | null = null;
+      
+      const handleMouseMove = (e: MouseEvent) => {
         if (!barContent.value) return;
         
-        const rect = barContent.value.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left + barContent.value.scrollLeft;
+        // 取消之前的requestAnimationFrame
+        if (mouseMoveRafId) {
+          cancelAnimationFrame(mouseMoveRafId);
+        }
         
-        // 计算当前鼠标所在的列中心位置
-        const cellWidth = scale.value;
-        const columnIndex = Math.floor(mouseX / cellWidth);
-        const columnCenterX = columnIndex * cellWidth + cellWidth / 2;
-        
-        guideLineX.value = columnCenterX;
-        showGuideLine.value = true;
-      }, 50); // 使用较短的延迟以保持响应性
+        mouseMoveRafId = requestAnimationFrame(() => {
+          if (!barContent.value) return;
+          const rect = barContent.value.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left + barContent.value.scrollLeft;
+          
+          // 计算当前鼠标所在的列中心位置
+          const cellWidth = scale.value;
+          const columnIndex = Math.floor(mouseX / cellWidth);
+          const columnCenterX = columnIndex * cellWidth + cellWidth / 2;
+          
+          guideLineX.value = columnCenterX;
+          showGuideLine.value = true;
+        });
+      }; // 使用requestAnimationFrame优化性能
 
       const handleMouseLeave = () => {
         showGuideLine.value = false;
