@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div v-if='showRow' class="barRow" :style="barRowStyle" @mouseover="hoverActive()"
         @mouseleave="hoverInactive()" :class="{ active: hover }" :data-task-id="row[mapFields.id]">
         <svg key="row.no" v-if='showRow' ref='bar' class="bar" :height="barHeight + 'px'" :class="{ active: hover }"
@@ -18,6 +18,11 @@ import sharedState from '../state/ShareState';
 import { Symbols } from '../state/Symbols';
 import { t } from '../i18n';
 import { svgCache, isWeekend as isWeekendDay } from '../composables/PerformanceConfig';
+import { useBarGeometry } from './composables/useBarGeometry';
+import { useBarTheme } from './composables/useBarTheme';
+import { useHover } from './composables/useHover';
+import { useProgress } from './composables/useProgress';
+import { useInteractions } from './composables/useInteractions';
 
 export default defineComponent({
     name: 'Bar',
@@ -32,1089 +37,94 @@ export default defineComponent({
         const bar = ref<SVGSVGElement | null>(null);
         const barHeight = ref(props.rowHeight * 0.7);
         const direction = ref<string | null>(null);
-        const oldBarDataX = ref(0);
-        const oldBarWidth = ref(0);
         const showRow = ref(true);
         const hover = ref(false);
         const barColor = ref('');
         const isBarInteracted = ref(false);
         const themeVersion = ref(0);
-        const isProgressDragging = ref(false);
+        
+        // 使用 useBarGeometry composables
+        const { oldBarDataX, oldBarWidth, computePosition } = useBarGeometry(props, store.mapFields);
+        
+        // 使用 useBarTheme composables
+        const { themeVersion: themeVersionFromComposable, barRowStyle, WeekEndColor: WeekEndColorFromComposable, setupThemeObserver } = useBarTheme(bar, props);
+        
+        // 更新 themeVersion 以保持兼容性
+        watch(() => themeVersionFromComposable.value, () => {
+            themeVersion.value = themeVersionFromComposable.value;
+        });
+        
+
 
         const timelineCellCount = computed(() => store.timelineCellCount);
         const scale = computed(() => store.scale);
         const mode = computed(() => store.mode);
         const mapFields = computed(() => store.mapFields);
-        const progress = computed(() => {
-            const progressValue = Number(props.row[mapFields.value.progress]);
-            if (isNaN(progressValue)) return '0.00%';
-            return (progressValue * 100).toFixed(2) + '%';
-        });
+        // 使用 useProgress composables
+        const { progress, isProgressDragging: isProgressDraggingFromComposable, emitProgressUpdate: emitProgressUpdateFromComposable } = useProgress(props, emit, store.mapFields);
 
         const setBarColor = inject(Symbols.SetBarColorSymbol) as ((row: any) => string) | undefined;
 
-        // 获取主题颜色
-        const getThemeColorsLocal = () => {
-            let bgContent = '#ffffff', bgSecondary = '#f8f8f8', borderColor = '#cecece';
-            if (bar.value) {
-                let element = bar.value.parentElement;
-                while (element) {
-                    if (element.hasAttribute('data-gantt-theme')) {
-                        bgContent = getComputedStyle(element).getPropertyValue('--bg-content').trim() || '#ffffff';
-                        bgSecondary = getComputedStyle(element).getPropertyValue('--bg-secondary').trim() || '#f8f8f8';
-                        borderColor = getComputedStyle(element).getPropertyValue('--border').trim() || '#cecece';
-                        break;
-                    }
-                    element = element.parentElement;
-                }
-            }
-            return { bgContent, bgSecondary, borderColor };
-        };
 
-        // 计算周末列的索引（用于CSS背景）
-        const getWeekendIndicesLocal = computed(() => {
-            if (mode.value !== '日') return [];
-            const indices: number[] = [];
-            const isHalfDay = store.daySubMode === 'half';
-            const cellsPerDay = isHalfDay ? 2 : 1;
-            
-            for (let i = 0; i < timelineCellCount.value; i++) {
-                const dayIndex = isHalfDay ? Math.floor(i / cellsPerDay) : i;
-                const currentDate = dayjs(props.startGanttDate).add(dayIndex, 'days');
-                if (isWeekendDay(currentDate)) {
-                    indices.push(i);
-                }
-            }
-            return indices;
-        });
 
-        // 使用CSS背景绘制网格的样式
-        const barRowStyle = computed(() => {
-            // 依赖 themeVersion 以响应主题变化
-            themeVersion.value;
-            const cellWidth = scale.value;
-            const totalWidth = timelineCellCount.value * cellWidth;
-            const { bgContent, bgSecondary, borderColor } = getThemeColorsLocal();
-            
-            // 获取容器宽度，确保至少填满可用空间
-            let containerWidth = totalWidth;
-            if (bar.value) {
-                const parentContainer = bar.value.closest('.content');
-                if (parentContainer) {
-                    const availableWidth = parentContainer.clientWidth;
-                    containerWidth = Math.max(totalWidth, availableWidth);
-                }
-            }
-            
-            // 基础网格线背景 - 只在查询范围内绘制竖线
-            let backgroundImage = '';
-            
-            // 查询范围内的竖线
-            if (totalWidth > 0) {
-                backgroundImage = `
-                    repeating-linear-gradient(
-                        to right,
-                        transparent 0px,
-                        transparent ${cellWidth - 1}px,
-                        ${borderColor} ${cellWidth - 1}px,
-                        ${borderColor} ${cellWidth}px
-                    )
-                `;
-                
-                // 日模式下添加周末背景色
-                if (mode.value === '日') {
-                    const weekendIndices = getWeekendIndicesLocal.value;
-                    if (weekendIndices.length > 0) {
-                        // 为周末列创建背景色层
-                        const weekendGradients = weekendIndices.map(idx => {
-                            const start = idx * cellWidth;
-                            const end = start + cellWidth;
-                            return `linear-gradient(to right, transparent ${start}px, ${bgSecondary} ${start}px, ${bgSecondary} ${end}px, transparent ${end}px)`;
-                        });
-                        backgroundImage = weekendGradients.join(', ') + ', ' + backgroundImage;
-                    }
-                }
-            }
-            
-            // 超出查询范围的区域只显示背景色，不显示竖线
-            const extraWidth = containerWidth - totalWidth;
-            if (extraWidth > 0) {
-                // 如果有查询范围内的内容，在其后添加纯色背景
-                if (totalWidth > 0) {
-                    backgroundImage += `, linear-gradient(to right, transparent ${totalWidth}px, ${bgContent} ${totalWidth}px)`;
-                } else {
-                    // 如果没有查询范围内的内容，整个区域都是纯色背景
-                    backgroundImage = `linear-gradient(to right, ${bgContent} 0px, ${bgContent} 100%)`;
-                }
-            }
-            
-            return {
-                height: props.rowHeight + 'px',
-                width: containerWidth + 'px',
-                minWidth: containerWidth + 'px',
-                background: bgContent,
-                backgroundImage: backgroundImage,
-                backgroundSize: `${containerWidth}px 100%`,
-                borderBottom: `1px solid ${borderColor}`
-            };
-        });
 
-        // 进度更新事件
-        const emitProgressUpdate = (newProgress: number) => {
-            const detail = {
-                taskId: props.row[mapFields.value.id],
-                oldProgress: Number(props.row[mapFields.value.progress]) || 0,
-                newProgress: newProgress,
-                task: props.row
-            };
-            emit('progress-update', detail);
-            window.dispatchEvent(new CustomEvent('taskProgressUpdate', { detail }));
-            console.log('Task progress updated:', detail);
-        };
 
-        watch(() => sharedState.highlightedId, (newId) => {
-            hover.value = props.row[mapFields.value['id']] === newId;
-        });
-
-        const hoverActive = () => sharedState.triggerHighlight(props.row[mapFields.value.id] as number | null);
-        const hoverInactive = () => sharedState.triggerHighlight(null);
-
-        const WeekEndColor = (count: number) => {
-            themeVersion.value;
-            let bgContent = '#ffffff', bgSecondary = '#f8f8f8';
-            if (bar.value) {
-                let element = bar.value.parentElement;
-                while (element) {
-                    if (element.hasAttribute('data-gantt-theme')) {
-                        bgContent = getComputedStyle(element).getPropertyValue('--bg-content').trim() || '#ffffff';
-                        bgSecondary = getComputedStyle(element).getPropertyValue('--bg-secondary').trim() || '#f8f8f8';
-                        break;
-                    }
-                    element = element.parentElement;
-                }
-            }
-            switch (mode.value) {
-                case '季度': {
-                    // 季度模式按月计算，不显示周末背景色
-                    return bgContent;
-                }
-                case '月': {
-                    let currentDate = dayjs(props.startGanttDate).startOf('month').add(count, 'months');
-                    return bgContent;
-                }
-                case '日': {
-                    // 使用 SVG 缓存优化日期计算
-                    const cacheKey = `weekend-${props.startGanttDate}-${count}-${store.daySubMode}`;
-                    if (svgCache.has(cacheKey)) {
-                        const isWeekendResult = svgCache.get(cacheKey);
-                        return isWeekendResult ? bgSecondary : bgContent;
-                    }
-                    
-                    const isHalfDay = store.daySubMode === 'half';
-                    // 半天模式下，每2个单元格为1天
-                    const dayIndex = isHalfDay ? Math.floor(count / 2) : count;
-                    let currentDate = dayjs(props.startGanttDate).add(dayIndex, 'days');
-                    // 使用公共函数判断周末
-                    const isWeekendResult = isWeekendDay(currentDate);
-                    
-                    // 缓存计算结果
-                    svgCache.set(cacheKey, isWeekendResult);
-                    return isWeekendResult ? bgSecondary : bgContent;
-                }
-                case '周': case '时': return bgContent;
-            }
-        };
+        // 使用 useHover composables
+        const { hover: hoverFromComposable, hoverActive, hoverInactive } = useHover(props);
 
         const setBarDate = mutations.setBarDate;
         const setAllowChangeTaskDate = mutations.setAllowChangeTaskDate;
+        
+        // 用于存储交互功能
+        let drawBarFromComposable: ((barElement?: SVGSVGElement) => void) | null = null;
+        let destroyInteractions: (() => void) | null = null;
+        
+        // 初始化交互功能
+        const initInteractions = (barElement: SVGSVGElement) => {
+            const interactions = useInteractions({
+                bar: barElement,
+                barHeight: barHeight.value,
+                mapFields: store.mapFields,
+                props,
+                oldBarDataX,
+                oldBarWidth,
+                progress,
+                barColor,
+                isProgressDragging: isProgressDraggingFromComposable,
+                emitProgressUpdate: emitProgressUpdateFromComposable,
+                computePosition
+            });
+            drawBarFromComposable = interactions.drawBar;
+            destroyInteractions = interactions.destroy;
+        };
+        
+
 
         const drowBar = (barElement: SVGSVGElement) => {
-            let dataX = 0;
-            switch (mode.value) {
-                case '季度': {
-                    // 季度模式：按季度计算位置和宽度
-                    const ganttStartQuarter = dayjs(props.startGanttDate).startOf('quarter');
-                    const taskStartQuarter = dayjs(props.row[mapFields.value.startdate]).startOf('quarter');
-                    const taskEndQuarter = dayjs(props.row[mapFields.value.enddate]).startOf('quarter');
-
-                    // 计算从甘特图开始季度到任务开始季度的季度数
-                    let fromStartQuarters = (taskStartQuarter.year() - ganttStartQuarter.year()) * 4 +
-                        (taskStartQuarter.quarter() - ganttStartQuarter.quarter());
-                    dataX = scale.value * fromStartQuarters;
-
-                    // 计算任务跨越的季度数
-                    let spendQuarters = (taskEndQuarter.year() - taskStartQuarter.year()) * 4 +
-                        (taskEndQuarter.quarter() - taskStartQuarter.quarter()) + 1;
-                    oldBarWidth.value = spendQuarters * scale.value;
-                    props.row[mapFields.value.takestime] = spendQuarters + t('durationUnit.quarters');
-                    break;
-                }
-                case '月': {
-                    // 月模式：按月计算位置和宽度
-                    const ganttStartMonth = dayjs(props.startGanttDate).startOf('month');
-                    const taskStartMonth = dayjs(props.row[mapFields.value.startdate]).startOf('month');
-                    const taskEndMonth = dayjs(props.row[mapFields.value.enddate]).startOf('month');
-
-                    let fromStartMonths = (taskStartMonth.year() - ganttStartMonth.year()) * 12 +
-                        (taskStartMonth.month() - ganttStartMonth.month());
-                    dataX = scale.value * fromStartMonths;
-
-                    let spendMonths = (taskEndMonth.year() - taskStartMonth.year()) * 12 +
-                        (taskEndMonth.month() - taskStartMonth.month()) + 1;
-                    oldBarWidth.value = spendMonths * scale.value;
-                    props.row[mapFields.value.takestime] = spendMonths + t('durationUnit.months');
-                    break;
-                }
-                case '日': {
-                    // 判断是否为半天模式
-                    const isHalfDay = store.daySubMode === 'half';
-                    const cellsPerDay = isHalfDay ? 2 : 1; // 半天模式下每天有2个单元格
-
-                    let fromPlanStartDays = dayjs(props.row[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days');
-
-                    if (isHalfDay) {
-                        // 半天模式：根据小时判断是上午还是下午
-                        const startHour = dayjs(props.row[mapFields.value.startdate]).hour();
-                        const endHour = dayjs(props.row[mapFields.value.enddate]).hour();
-                        const startIsAM = startHour < 12;
-                        const endIsAM = endHour < 12;
-
-                        // 计算起始单元格索引：天数*2 + (上午0, 下午1)
-                        const startCellOffset = startIsAM ? 0 : 1;
-                        const endCellOffset = endIsAM ? 0 : 1;
-
-                        dataX = scale.value * (fromPlanStartDays * 2 + startCellOffset);
-
-                        const endDays = dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.startGanttDate), 'days');
-                        const endCellIndex = endDays * 2 + endCellOffset;
-                        const startCellIndex = fromPlanStartDays * 2 + startCellOffset;
-
-                        oldBarWidth.value = (endCellIndex - startCellIndex + 1) * scale.value;
-                    } else {
-                        dataX = scale.value * fromPlanStartDays * cellsPerDay;
-                    }
-
-                    let spendDays = dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'days') + 1;
-                    if (!isHalfDay) {
-                        oldBarWidth.value = spendDays * scale.value * cellsPerDay;
-                    }
-                    props.row[mapFields.value.takestime] = spendDays + t('durationUnit.days');
-                    break;
-                }
-                case '周': {
-                    const startGanttWeek = dayjs(props.startGanttDate).startOf('isoWeek');
-                    const taskStartWeek = dayjs(props.row[mapFields.value.startdate]).startOf('isoWeek');
-                    let fromPlanStartWeeks = taskStartWeek.diff(startGanttWeek, 'week');
-                    dataX = scale.value * fromPlanStartWeeks;
-                    const taskEndWeek = dayjs(props.row[mapFields.value.enddate]).startOf('isoWeek');
-                    let spendWeeks = taskEndWeek.diff(taskStartWeek, 'week') + 1;
-                    oldBarWidth.value = spendWeeks * scale.value;
-                    props.row[mapFields.value.takestime] = spendWeeks + t('durationUnit.weeks');
-                    break;
-                }
-                case '时': {
-                    // 根据时模式的子模式计算位置
-                    const hourSubMode = store.hourSubMode || '60';
-                    const minuteInterval = parseInt(hourSubMode);
-                    
-                    if (minuteInterval < 60) {
-                        // 15分钟或30分钟模式：使用分钟计算
-                        let fromPlanStartMinutes = dayjs(props.row[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'minutes');
-                        let cellIndex = Math.floor(fromPlanStartMinutes / minuteInterval);
-                        dataX = scale.value * cellIndex;
-                        
-                        let spendMinutes = dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'minutes') + minuteInterval;
-                        let widthCells = Math.ceil(spendMinutes / minuteInterval);
-                        oldBarWidth.value = widthCells * scale.value;
-                        
-                        // 计算持续时间显示
-                        const diffHours = Math.floor(spendMinutes / 60);
-                        const remainMinutes = spendMinutes % 60;
-                        if (diffHours > 0 && remainMinutes > 0) {
-                            props.row[mapFields.value.takestime] = t('durationUnit.hoursAndMinutes', { hours: diffHours, minutes: remainMinutes });
-                        } else if (diffHours > 0) {
-                            props.row[mapFields.value.takestime] = `${diffHours}${t('durationUnit.hours')}`;
-                        } else {
-                            props.row[mapFields.value.takestime] = `${remainMinutes}${t('durationUnit.minutes')}`;
-                        }
-                    } else {
-                        // 60分钟模式：使用小时计算
-                        let fromPlanStartHours = dayjs(props.row[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'hours');
-                        dataX = scale.value * fromPlanStartHours;
-                        let spendHours = dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'hours') + 1;
-                        oldBarWidth.value = spendHours * scale.value;
-                        props.row[mapFields.value.takestime] = spendHours + t('durationUnit.hours');
-                    }
-                    break;
-                }
-            }
+            // 使用 useBarGeometry 的计算结果
+            const { dataX, width } = computePosition();
             oldBarDataX.value = dataX;
-            let svg = SVG(barElement as unknown as HTMLElement);
+            oldBarWidth.value = width;
+            
+            // 设置基本的 SVG 属性
             const borderColor = getComputedStyle(barElement).getPropertyValue('--border') || '#cecece';
             barElement.setAttribute('data-x', dataX.toString());
             barElement.setAttribute('width', oldBarWidth.value.toString());
             barElement.setAttribute('stroke', borderColor);
             barElement.setAttribute('stroke-width', '1px');
             barElement.style.transform = `translate(${dataX}px, 0px)`;
-
-            let p = svg.select('pattern').first();
-            let g = (svg.children().filter((child) => child.type === 'g')[0] as any) || svg.group();
-            let innerRect = svg.select('.innerRect').first();
-            let outerRect = svg.select('rect:not(.innerRect):not(.progressHandle)').first();
-            let text = svg.select('text').first();
-            let progressHandle = svg.select('.progressHandle').first();
-
-            if (!p) {
-                // SVG pattern 不能跨实例共享，所以直接创建
-                p = svg.pattern(10, 10, (add) => {
-                    (add as any).path('M10 -5 -10,15M15,0,0,15M0 -5 -20,15').fill('none').stroke({ color: 'gray', opacity: 0.4, width: 5 });
-                });
+            
+            // 初始化交互功能（如果尚未初始化）
+            if (!drawBarFromComposable) {
+                initInteractions(barElement);
             }
-            if (!g) g = svg.group();
-
-            let innerRectWidth = props.row[mapFields.value.progress]
-                ? Number(oldBarWidth.value) * Number(props.row[mapFields.value.progress])
-                : Number(oldBarWidth.value);
-
-            if (!innerRect) {
-                innerRect = svg.rect(innerRectWidth, barHeight.value).radius(10);
-                innerRect.addClass('innerRect');
-                g.add(innerRect);
-            } else {
-                innerRect.fill({ color: barColor.value, opacity: 0.4 });
-                innerRect.width(innerRectWidth);
+            
+            // 调用交互绘制功能
+            if (drawBarFromComposable) {
+                drawBarFromComposable(barElement);
             }
-
-            if (!outerRect) {
-                outerRect = svg.rect(oldBarWidth.value, barHeight.value).radius(10).fill(p).stroke({ color: borderColor, width: 1 });
-                outerRect.on('mouseover', () => outerRect.animate(200).attr({ stroke: '#000', strokeWidth: 2, opacity: 1 }));
-                outerRect.on('mouseleave', () => outerRect.animate(200).attr({ stroke: '#0066ff', strokeWidth: 10, opacity: 0.4 }));
-            } else {
-                outerRect.width(oldBarWidth.value);
-            }
-
-            if (!text) {
-                text = svg.text(progress.value).stroke('#faf7ec');
-            } else {
-                (text as any).text(progress.value);
-            }
-            const textBBox = text.bbox();
-            (text as any).font({ size: 15, anchor: 'middle', leading: '1em' })
-                .fill('#000').attr('opacity', 1).attr('dominant-baseline', 'middle')
-                .center(innerRect.width() / 2 + textBBox.width / 2, innerRect.height() / 2);
-
-            // 进度调节滑块 - 三角形拖拽手柄 + 对齐虚线
-            const handleWidth = 12;
-            const handleHeight = 8;
-            const handleX = innerRectWidth - handleWidth / 2;
-            // 三角形位置：Bar底部边缘穿过三角形中心
-            const handleY = barHeight.value - handleHeight / 2;
-            const lineX = innerRectWidth;
-
-            // 获取主题颜色的辅助函数
-            const getThemeColors = () => {
-                let primary = '#f59e0b', primaryDark = '#d97706', primaryLight = '#fbbf24';
-                let element = barElement.parentElement;
-                while (element) {
-                    if (element.hasAttribute('data-gantt-theme')) {
-                        primary = getComputedStyle(element).getPropertyValue('--primary').trim() || primary;
-                        primaryDark = getComputedStyle(element).getPropertyValue('--primary-dark').trim() || primaryDark;
-                        primaryLight = getComputedStyle(element).getPropertyValue('--primary-light').trim() || primaryLight;
-                        break;
-                    }
-                    element = element.parentElement;
-                }
-                return { primary, primaryDark, primaryLight };
-            };
-
-            // 查找或创建对齐虚线
-            let guideLineEl = barElement.querySelector('.progressGuideLine') as SVGLineElement | null;
-            const themeColors = getThemeColors();
-
-            if (!guideLineEl) {
-                // 创建对齐虚线
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                line.setAttribute('class', 'progressGuideLine');
-                line.setAttribute('x1', String(lineX));
-                line.setAttribute('y1', '0');
-                line.setAttribute('x2', String(lineX));
-                line.setAttribute('y2', String(handleY));
-                line.setAttribute('stroke', themeColors.primaryDark);
-                line.setAttribute('stroke-width', '2');
-                line.setAttribute('stroke-dasharray', '4,3');
-                line.setAttribute('opacity', '0.8');
-                barElement.appendChild(line);
-                guideLineEl = line;
-            }
-            // 始终更新位置和可见性
-            guideLineEl.setAttribute('x1', String(lineX));
-            guideLineEl.setAttribute('x2', String(lineX));
-            guideLineEl.setAttribute('y2', String(handleY));
-            guideLineEl.setAttribute('stroke', themeColors.primaryDark);
-            guideLineEl.setAttribute('opacity', '0.8');
-
-            if (!progressHandle) {
-                // 创建三角形手柄
-                const trianglePoints = `${handleWidth / 2},0 0,${handleHeight} ${handleWidth},${handleHeight}`;
-                progressHandle = svg.polygon(trianglePoints)
-                    .fill(themeColors.primary)
-                    .stroke({ color: themeColors.primaryDark, width: 1 })
-                    .addClass('progressHandle');
-
-                const handleElement = progressHandle.node as unknown as SVGPolygonElement;
-                handleElement.style.cursor = 'ew-resize';
-                handleElement.style.pointerEvents = 'auto';
-                progressHandle.move(handleX, handleY);
-
-                // 用于记录当前X位置
-                let currentHandleX = handleX;
-
-                // 悬停效果 - 高亮显示
-                handleElement.addEventListener('mouseenter', () => {
-                    if (!isProgressDragging.value) {
-                        const colors = getThemeColors();
-                        handleElement.setAttribute('fill', colors.primaryLight);
-                        handleElement.setAttribute('stroke', colors.primary);
-                        handleElement.setAttribute('stroke-width', '2');
-                        guideLineEl!.setAttribute('stroke', colors.primaryLight);
-                        guideLineEl!.setAttribute('stroke-width', '2');
-                        guideLineEl!.setAttribute('opacity', '1');
-                    }
-                });
-                handleElement.addEventListener('mouseleave', () => {
-                    if (!isProgressDragging.value) {
-                        const colors = getThemeColors();
-                        handleElement.setAttribute('fill', colors.primary);
-                        handleElement.setAttribute('stroke', colors.primaryDark);
-                        handleElement.setAttribute('stroke-width', '1');
-                        guideLineEl!.setAttribute('stroke', colors.primaryDark);
-                        guideLineEl!.setAttribute('stroke-width', '2');
-                        guideLineEl!.setAttribute('opacity', '0.8');
-                    }
-                });
-
-                // 拖拽交互
-                interact(handleElement).draggable({
-                    inertia: false,
-                    listeners: {
-                        start: () => {
-                            isProgressDragging.value = true;
-                            const colors = getThemeColors();
-                            handleElement.setAttribute('fill', colors.primaryDark);
-                            handleElement.setAttribute('stroke', colors.primaryDark);
-                            handleElement.setAttribute('stroke-width', '2');
-                            guideLineEl!.setAttribute('stroke', colors.primaryDark);
-                            guideLineEl!.setAttribute('stroke-width', '2');
-                            guideLineEl!.setAttribute('opacity', '1');
-                        },
-                        move: (event) => {
-                            currentHandleX += event.dx;
-                            currentHandleX = Math.max(-handleWidth / 2, Math.min(currentHandleX, oldBarWidth.value - handleWidth / 2));
-
-                            progressHandle.move(currentHandleX, handleY);
-
-                            // 更新虚线位置
-                            const newLineX = currentHandleX + handleWidth / 2;
-                            guideLineEl!.setAttribute('x1', String(newLineX));
-                            guideLineEl!.setAttribute('x2', String(newLineX));
-
-                            // 更新进度
-                            const newProgress = Math.min(1, Math.max(0, (currentHandleX + handleWidth / 2) / oldBarWidth.value));
-                            innerRect.width(newProgress * oldBarWidth.value);
-                            (text as any).text((newProgress * 100).toFixed(2) + '%');
-                            (text as any).center(innerRect.width() / 2 + textBBox.width / 2, innerRect.height() / 2);
-                        },
-                        end: () => {
-                            isProgressDragging.value = false;
-                            const colors = getThemeColors();
-                            handleElement.setAttribute('fill', colors.primary);
-                            handleElement.setAttribute('stroke', colors.primaryDark);
-                            handleElement.setAttribute('stroke-width', '1');
-                            guideLineEl!.setAttribute('stroke', colors.primaryDark);
-                            guideLineEl!.setAttribute('stroke-width', '2');
-                            guideLineEl!.setAttribute('opacity', '0.8');
-
-                            const newProgress = Math.min(1, Math.max(0, (currentHandleX + handleWidth / 2) / oldBarWidth.value));
-                            props.row[mapFields.value.progress] = newProgress;
-                            emitProgressUpdate(newProgress);
-                        }
-                    }
-                });
-            } else {
-                progressHandle.move(handleX, handleY);
-                // 更新已存在的三角形颜色以响应主题变化
-                const handleElement = progressHandle.node as unknown as SVGPolygonElement;
-                handleElement.setAttribute('fill', themeColors.primary);
-                handleElement.setAttribute('stroke', themeColors.primaryDark);
-            }
-
+            
             setBarDate({ id: props.row[mapFields.value.id], startDate: props.row[mapFields.value.startdate], endDate: props.row[mapFields.value.enddate] });
-
-            // 拖拽功能
-            interact(barElement).draggable({
-                inertia: false,
-                modifiers: [interact.modifiers.restrictRect({ restriction: 'parent', endOnly: true })],
-                autoScroll: true,
-                listeners: {
-                    start: (event: { target: SVGSVGElement }) => {
-                        if (isProgressDragging.value) return;
-                        oldBarDataX.value = Number(event.target.getAttribute('data-x'));
-                        oldBarWidth.value = event.target.width.baseVal.value;
-                    },
-                    move: (event: { target: SVGSVGElement; dx: number; rect: { width: number; height: number } }) => {
-                        if (isProgressDragging.value) return;
-                        let x = ((parseFloat(event.target.getAttribute('data-x') || '0') || 0) + event.dx).toString();
-                        Object.assign(event.target.style, { width: `${event.rect.width}px`, height: `${event.rect.height}px`, transform: `translate(${x}px, 0px)` });
-                        event.target.setAttribute('data-x', x);
-                        event.target.setAttribute('data-y', '0');
-                    },
-                    end: (event: { target: SVGSVGElement }) => {
-                        if (isProgressDragging.value) return;
-                        let target = event.target;
-                        let currentX = parseFloat(target.getAttribute('data-x') || '0') || 0;
-                        let multiple = Math.round(currentX / scale.value);
-                        let alignedX = multiple * scale.value;
-                        if (alignedX < 0) alignedX = 0;
-                        
-                        // 限制拖拽不能超出查询范围（考虑任务宽度）
-                        const maxX = timelineCellCount.value * scale.value;
-                        if (alignedX + oldBarWidth.value > maxX) {
-                            alignedX = maxX - oldBarWidth.value;
-                            if (alignedX < 0) alignedX = 0;
-                        }
-
-                        const parentIdField = mapFields.value.parentId || 'pid';
-                        const currentParentId = props.row[parentIdField];
-                        if (currentParentId && currentParentId !== '0') {
-                            const parentTask = store.tasks.find(t => String(t[mapFields.value.id]) === String(currentParentId));
-                            if (parentTask) {
-                                let parentStartX = 0;
-                                if (mode.value === '季度' || mode.value === '月') {
-                                    // 季度/月模式按月计算
-                                    const ganttStartMonth = dayjs(props.startGanttDate).startOf('month');
-                                    const parentStartMonth = dayjs(parentTask[mapFields.value.startdate]).startOf('month');
-                                    const monthsDiff = (parentStartMonth.year() - ganttStartMonth.year()) * 12 +
-                                        (parentStartMonth.month() - ganttStartMonth.month());
-                                    parentStartX = monthsDiff * scale.value;
-                                } else if (mode.value === '日') {
-                                    parentStartX = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days') * scale.value;
-                                } else if (mode.value === '周') {
-                                    const ganttStartWeek = dayjs(props.startGanttDate).startOf('isoWeek');
-                                    const parentStartWeek = dayjs(parentTask[mapFields.value.startdate]).startOf('isoWeek');
-                                    parentStartX = parentStartWeek.diff(ganttStartWeek, 'week') * scale.value;
-                                } else if (mode.value === '时') {
-                                    const hourSubMode = store.hourSubMode || '60';
-                                    const minuteInterval = parseInt(hourSubMode);
-                                    if (minuteInterval < 60) {
-                                        // 15分钟或30分钟模式：使用分钟计算
-                                        const parentStartMinutes = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'minutes');
-                                        const parentStartCellIndex = Math.floor(parentStartMinutes / minuteInterval);
-                                        parentStartX = parentStartCellIndex * scale.value;
-                                    } else {
-                                        // 60分钟模式：使用小时计算
-                                        parentStartX = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'hours') * scale.value;
-                                    }
-                                }
-                                if (alignedX < parentStartX) alignedX = parentStartX;
-                            }
-                        }
-
-                        target.style.transform = `translate(${alignedX}px, 0px)`;
-                        target.setAttribute('data-x', alignedX.toString());
-
-                        const cellsMoved = Math.round((alignedX - oldBarDataX.value) / scale.value);
-                        let daysOffset = 0, hoursOffset = 0, monthsOffset = 0, quartersOffset = 0;
-                        if (mode.value === '季度') quartersOffset = cellsMoved;
-                        else if (mode.value === '月') monthsOffset = cellsMoved;
-                        else if (mode.value === '日') {
-                            const isHalfDay = store.daySubMode === 'half';
-                            if (isHalfDay) {
-                                // 半天模式：根据最终位置的单元格索引直接计算时间
-                                const newStartCellIndex = Math.round(alignedX / scale.value);
-                                const barWidthCells = Math.round(oldBarWidth.value / scale.value);
-                                const newEndCellIndex = newStartCellIndex + barWidthCells - 1;
-
-                                // 计算新的开始日期时间
-                                const startDays = Math.floor(newStartCellIndex / 2);
-                                const startIsAM = (newStartCellIndex % 2) === 0;
-                                const newStartDate = dayjs(props.startGanttDate).add(startDays, 'days').hour(startIsAM ? 0 : 12).minute(0).second(0);
-
-                                // 计算新的结束日期时间
-                                const endDays = Math.floor(newEndCellIndex / 2);
-                                const endIsAM = (newEndCellIndex % 2) === 0;
-                                const newEndDate = dayjs(props.startGanttDate).add(endDays, 'days').hour(endIsAM ? 11 : 23).minute(59).second(59);
-
-                                props.row[mapFields.value.startdate] = newStartDate.format('YYYY-MM-DD HH:mm:ss');
-                                props.row[mapFields.value.enddate] = newEndDate.format('YYYY-MM-DD HH:mm:ss');
-                                props.row[mapFields.value.takestime] = (endDays - startDays + 1) + t('durationUnit.days');
-                            } else {
-                                daysOffset = cellsMoved;
-                            }
-                        }
-                        else if (mode.value === '周') daysOffset = cellsMoved * 7;
-                        else if (mode.value === '时') {
-                            // 根据时模式的子模式计算时间
-                            const hourSubMode = store.hourSubMode || '60';
-                            const minuteInterval = parseInt(hourSubMode);
-                            
-                            if (minuteInterval < 60) {
-                                // 15分钟或30分钟模式：根据最终位置的单元格索引直接计算时间
-                                const newStartCellIndex = Math.round(alignedX / scale.value);
-                                const barWidthCells = Math.round(oldBarWidth.value / scale.value);
-                                const newEndCellIndex = newStartCellIndex + barWidthCells - 1;
-                                
-                                // 每小时的单元格数
-                                const cellsPerHour = 60 / minuteInterval;
-                                // 每天的单元格数
-                                const cellsPerDay = 24 * cellsPerHour;
-                                
-                                // 计算新的开始日期时间
-                                const startDays = Math.floor(newStartCellIndex / cellsPerDay);
-                                const startCellInDay = newStartCellIndex % cellsPerDay;
-                                const startHour = Math.floor(startCellInDay / cellsPerHour);
-                                const startMinute = (startCellInDay % cellsPerHour) * minuteInterval;
-                                const newStartDate = dayjs(props.startGanttDate).add(startDays, 'days').hour(startHour).minute(startMinute).second(0);
-                                
-                                // 计算新的结束日期时间
-                                const endDays = Math.floor(newEndCellIndex / cellsPerDay);
-                                const endCellInDay = newEndCellIndex % cellsPerDay;
-                                const endHour = Math.floor(endCellInDay / cellsPerHour);
-                                const endMinute = (endCellInDay % cellsPerHour) * minuteInterval + minuteInterval - 1;
-                                const newEndDate = dayjs(props.startGanttDate).add(endDays, 'days').hour(endHour).minute(endMinute).second(59);
-                                
-                                props.row[mapFields.value.startdate] = newStartDate.format('YYYY-MM-DD HH:mm:ss');
-                                props.row[mapFields.value.enddate] = newEndDate.format('YYYY-MM-DD HH:mm:ss');
-                                
-                                // 计算持续时间
-                                const diffMinutes = newEndDate.diff(newStartDate, 'minutes') + 1;
-                                const diffHours = Math.floor(diffMinutes / 60);
-                                const remainMinutes = diffMinutes % 60;
-                                if (diffHours > 0 && remainMinutes > 0) {
-                                    props.row[mapFields.value.takestime] = t('durationUnit.hoursAndMinutes', { hours: diffHours, minutes: remainMinutes });
-                                } else if (diffHours > 0) {
-                                    props.row[mapFields.value.takestime] = `${diffHours}${t('durationUnit.hours')}`;
-                                } else {
-                                    props.row[mapFields.value.takestime] = `${remainMinutes}${t('durationUnit.minutes')}`;
-                                }
-                            } else {
-                                // 60分钟模式：使用偏移量
-                                hoursOffset = cellsMoved;
-                            }
-                        }
-
-                        // 半天模式和时模式子模式已在上面处理，这里跳过
-                        const isHalfDayMode = mode.value === '日' && store.daySubMode === 'half';
-                        const isHourSubMode = mode.value === '时' && (store.hourSubMode === '15' || store.hourSubMode === '30');
-
-                        if (mode.value === '季度') {
-                            props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(quartersOffset, 'quarters').format('YYYY-MM-DD HH:mm:ss');
-                            props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate]).add(quartersOffset, 'quarters').format('YYYY-MM-DD HH:mm:ss');
-                            const taskStartQuarter = dayjs(props.row[mapFields.value.startdate]).startOf('quarter');
-                            const taskEndQuarter = dayjs(props.row[mapFields.value.enddate]).startOf('quarter');
-                            const spendQuarters = (taskEndQuarter.year() - taskStartQuarter.year()) * 4 +
-                                (taskEndQuarter.quarter() - taskStartQuarter.quarter()) + 1;
-                            props.row[mapFields.value.takestime] = spendQuarters + t('durationUnit.quarters');
-                        } else if (mode.value === '月') {
-                            props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(monthsOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
-                            props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate]).add(monthsOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
-                            const taskStartMonth = dayjs(props.row[mapFields.value.startdate]).startOf('month');
-                            const taskEndMonth = dayjs(props.row[mapFields.value.enddate]).startOf('month');
-                            const spendMonths = (taskEndMonth.year() - taskStartMonth.year()) * 12 +
-                                (taskEndMonth.month() - taskStartMonth.month()) + 1;
-                            props.row[mapFields.value.takestime] = spendMonths + t('durationUnit.months');
-                        } else if (mode.value === '时' && !isHourSubMode) {
-                            // 60分钟模式：使用小时偏移
-                            props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(hoursOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
-                            props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate]).add(hoursOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
-                            props.row[mapFields.value.takestime] = (dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'hours') + 1) + t('durationUnit.hours');
-                        } else if (!isHalfDayMode && !isHourSubMode) {
-                            props.row[mapFields.value.startdate] = dayjs(props.row[mapFields.value.startdate]).add(daysOffset, 'days').format('YYYY-MM-DD HH:mm:ss');
-                            props.row[mapFields.value.enddate] = dayjs(props.row[mapFields.value.enddate]).add(daysOffset, 'days').format('YYYY-MM-DD HH:mm:ss');
-                            if (mode.value === '日') {
-                                props.row[mapFields.value.takestime] = (dayjs(props.row[mapFields.value.enddate]).diff(dayjs(props.row[mapFields.value.startdate]), 'days') + 1) + t('durationUnit.days');
-                            } else if (mode.value === '周') {
-                                const startWeek = dayjs(props.row[mapFields.value.startdate]).startOf('isoWeek');
-                                const endWeek = dayjs(props.row[mapFields.value.enddate]).startOf('isoWeek');
-                                props.row[mapFields.value.takestime] = (endWeek.diff(startWeek, 'week') + 1) + t('durationUnit.weeks');
-                            }
-                        }
-
-                        // 联动子任务
-                        const newParentStartDate = dayjs(props.row[mapFields.value.startdate]);
-                        const currentTaskId = props.row[mapFields.value.id];
-                        const getAllChildren = (parentId: any, tasks: any[]): any[] => {
-                            const children: any[] = [];
-                            for (const task of tasks) {
-                                if (String(task[parentIdField]) === String(parentId)) {
-                                    children.push(task);
-                                    children.push(...getAllChildren(task[mapFields.value.id], tasks));
-                                }
-                            }
-                            return children;
-                        };
-                        const childTasks = getAllChildren(currentTaskId, store.tasks);
-                        
-                        // 计算实际偏移量
-                        const actualOffset = mode.value === '季度' ? quartersOffset : 
-                                            (mode.value === '月' ? monthsOffset : 
-                                            (mode.value === '时' ? hoursOffset : daysOffset));
-                        const shouldCheckChildren = isHalfDayMode || isHourSubMode || actualOffset > 0;
-                        
-                        if (shouldCheckChildren) {
-                            for (const child of childTasks) {
-                                if (dayjs(child[mapFields.value.startdate]).isBefore(newParentStartDate)) {
-                                    if (mode.value === '季度') {
-                                        child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(quartersOffset, 'quarters').format('YYYY-MM-DD HH:mm:ss');
-                                        child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(quartersOffset, 'quarters').format('YYYY-MM-DD HH:mm:ss');
-                                    } else if (mode.value === '月') {
-                                        child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(monthsOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
-                                        child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(monthsOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
-                                    } else if (mode.value === '时') {
-                                        if (isHourSubMode) {
-                                            // 15分钟或30分钟模式：计算子任务需要移动的分钟数
-                                            const childOffset = newParentStartDate.diff(dayjs(child[mapFields.value.startdate]), 'minutes');
-                                            child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(childOffset, 'minutes').format('YYYY-MM-DD HH:mm:ss');
-                                            child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(childOffset, 'minutes').format('YYYY-MM-DD HH:mm:ss');
-                                        } else {
-                                            // 60分钟模式：使用小时偏移
-                                            child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(hoursOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
-                                            child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(hoursOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
-                                        }
-                                    } else if (isHalfDayMode) {
-                                        // 半天模式：计算子任务需要移动的小时数
-                                        const childOffset = newParentStartDate.diff(dayjs(child[mapFields.value.startdate]), 'hours');
-                                        child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(childOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
-                                        child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(childOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
-                                    } else {
-                                        child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(daysOffset, 'days').format('YYYY-MM-DD HH:mm:ss');
-                                        child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(daysOffset, 'days').format('YYYY-MM-DD HH:mm:ss');
-                                    }
-                                    setBarDate({ id: child[mapFields.value.id], startDate: child[mapFields.value.startdate], endDate: child[mapFields.value.enddate] });
-                                }
-                            }
-                        }
-                        setBarDate({ id: props.row[mapFields.value.id], startDate: props.row[mapFields.value.startdate], endDate: props.row[mapFields.value.enddate] });
-                    }
-                }
-            });
-
-            // 调整大小功能
-            interact(barElement).resizable({
-                edges: { left: true, right: true, bottom: false, top: false },
-                listeners: {
-                    start: (event: { target: SVGSVGElement }) => {
-                        oldBarDataX.value = Number(event.target.getAttribute('data-x'));
-                        oldBarWidth.value = Number(event.target.getAttribute('width'));
-                    },
-                    end: (event: { target: SVGSVGElement; rect: { width: number }; edges: { left: boolean; right: boolean } }) => {
-                        setAllowChangeTaskDate(props.row);
-                        let target = event.target;
-                        let newWidth = event.rect.width;
-                        let widthCells = Math.round(newWidth / scale.value);
-                        if (widthCells < 1) widthCells = 1;
-                        newWidth = widthCells * scale.value;
-                        let currentX = oldBarDataX.value;
-                        
-                        // 判断是否是 resize 右边（开始日期不变的情况）
-                        const isResizeRight = event.edges && event.edges.right && !event.edges.left;
-
-                        if (event.edges && event.edges.left) {
-                            currentX = oldBarDataX.value + (oldBarWidth.value - newWidth);
-                            currentX = Math.round(currentX / scale.value) * scale.value;
-                            if (currentX < 0) currentX = 0;
-
-                            const parentIdField = mapFields.value.parentId || 'pid';
-                            const currentParentId = props.row[parentIdField];
-                            if (currentParentId && currentParentId !== '0') {
-                                const parentTask = store.tasks.find(t => String(t[mapFields.value.id]) === String(currentParentId));
-                                if (parentTask) {
-                                    let parentStartX = 0;
-                                    if (mode.value === '季度') {
-                                        const ganttStartQuarter = dayjs(props.startGanttDate).startOf('quarter');
-                                        const parentStartQuarter = dayjs(parentTask[mapFields.value.startdate]).startOf('quarter');
-                                        const quartersDiff = (parentStartQuarter.year() - ganttStartQuarter.year()) * 4 +
-                                            (parentStartQuarter.quarter() - ganttStartQuarter.quarter());
-                                        parentStartX = quartersDiff * scale.value;
-                                    } else if (mode.value === '月') {
-                                        const ganttStartMonth = dayjs(props.startGanttDate).startOf('month');
-                                        const parentStartMonth = dayjs(parentTask[mapFields.value.startdate]).startOf('month');
-                                        const monthsDiff = (parentStartMonth.year() - ganttStartMonth.year()) * 12 +
-                                            (parentStartMonth.month() - ganttStartMonth.month());
-                                        parentStartX = monthsDiff * scale.value;
-                                    } else if (mode.value === '日') {
-                                        const isHalfDay = store.daySubMode === 'half';
-                                        const cellsPerDay = isHalfDay ? 2 : 1;
-                                        parentStartX = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days') * scale.value * cellsPerDay;
-                                    } else if (mode.value === '周') {
-                                        const ganttStartWeek = dayjs(props.startGanttDate).startOf('isoWeek');
-                                        const parentStartWeek = dayjs(parentTask[mapFields.value.startdate]).startOf('isoWeek');
-                                        parentStartX = parentStartWeek.diff(ganttStartWeek, 'week') * scale.value;
-                                    } else if (mode.value === '时') {
-                                        const hourSubMode = store.hourSubMode || '60';
-                                        const minuteInterval = parseInt(hourSubMode);
-                                        if (minuteInterval < 60) {
-                                            // 15分钟或30分钟模式：使用分钟计算
-                                            const parentStartMinutes = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'minutes');
-                                            const parentStartCellIndex = Math.floor(parentStartMinutes / minuteInterval);
-                                            parentStartX = parentStartCellIndex * scale.value;
-                                        } else {
-                                            // 60分钟模式：使用小时计算
-                                            parentStartX = dayjs(parentTask[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'hours') * scale.value;
-                                        }
-                                    }
-                                    if (currentX < parentStartX) {
-                                        currentX = parentStartX;
-                                        newWidth = oldBarDataX.value + oldBarWidth.value - currentX;
-                                        widthCells = Math.round(newWidth / scale.value);
-                                        if (widthCells < 1) widthCells = 1;
-                                        newWidth = widthCells * scale.value;
-                                    }
-                                }
-                            }
-                        }
-
-                        // 限制 resize 不能超出查询范围
-                        const maxX = timelineCellCount.value * scale.value;
-                        if (currentX + newWidth > maxX) {
-                            newWidth = maxX - currentX;
-                            widthCells = Math.round(newWidth / scale.value);
-                            if (widthCells < 1) widthCells = 1;
-                            newWidth = widthCells * scale.value;
-                        }
-
-                        target.setAttribute('width', newWidth.toString());
-                        target.style.width = newWidth + 'px';
-                        target.style.transform = `translate(${currentX}px, 0px)`;
-                        target.setAttribute('data-x', currentX.toString());
-                        
-                        // 计算单元格索引
-                        let startCellIndex = Math.round(currentX / scale.value);
-                        let endCellIndex = startCellIndex + widthCells - 1;
-                        let newStartDate: string, newEndDate: string;
-
-                        if (mode.value === '季度') {
-                            // 季度模式：按季度计算
-                            const ganttStartQuarter = dayjs(props.startGanttDate).startOf('quarter');
-                            newStartDate = isResizeRight 
-                                ? props.row[mapFields.value.startdate] 
-                                : ganttStartQuarter.add(startCellIndex, 'quarters').format('YYYY-MM-DD HH:mm:ss');
-                            newEndDate = ganttStartQuarter.add(endCellIndex, 'quarters').endOf('quarter').format('YYYY-MM-DD HH:mm:ss');
-                            props.row[mapFields.value.takestime] = widthCells + t('durationUnit.quarters');
-                        } else if (mode.value === '月') {
-                            // 月模式：按月计算
-                            const ganttStartMonth = dayjs(props.startGanttDate).startOf('month');
-                            newStartDate = isResizeRight 
-                                ? props.row[mapFields.value.startdate] 
-                                : ganttStartMonth.add(startCellIndex, 'months').format('YYYY-MM-DD HH:mm:ss');
-                            newEndDate = ganttStartMonth.add(endCellIndex, 'months').endOf('month').format('YYYY-MM-DD HH:mm:ss');
-                            props.row[mapFields.value.takestime] = widthCells + t('durationUnit.months');
-                        } else if (mode.value === '日') {
-                            // 半天模式下，每2个单元格为1天
-                            const isHalfDay = store.daySubMode === 'half';
-                            const cellsPerDay = isHalfDay ? 2 : 1;
-                            const endDays = isHalfDay ? Math.floor(endCellIndex / cellsPerDay) : endCellIndex;
-
-                            if (isHalfDay) {
-                                // 半天模式：判断是上午(0)还是下午(1)
-                                const startIsAM = (startCellIndex % 2) === 0;
-                                const endIsAM = (endCellIndex % 2) === 0;
-
-                                // 上午00:00:00，下午12:00:00
-                                const startHour = startIsAM ? 0 : 12;
-                                const endHour = endIsAM ? 11 : 23; // 上午结束11:59:59，下午结束23:59:59
-
-                                // resize 右边时保持原始开始日期
-                                if (isResizeRight) {
-                                    newStartDate = props.row[mapFields.value.startdate];
-                                    // 基于原始开始日期计算天数
-                                    const originalStartDays = dayjs(props.row[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days');
-                                    const actualDays = endDays - originalStartDays + 1;
-                                    props.row[mapFields.value.takestime] = actualDays + t('durationUnit.days');
-                                } else {
-                                    const startDays = Math.floor(startCellIndex / cellsPerDay);
-                                    newStartDate = dayjs(props.startGanttDate).add(startDays, 'days').hour(startHour).minute(0).second(0).format('YYYY-MM-DD HH:mm:ss');
-                                    const actualDays = endDays - startDays + 1;
-                                    props.row[mapFields.value.takestime] = actualDays + t('durationUnit.days');
-                                }
-                                newEndDate = dayjs(props.startGanttDate).add(endDays, 'days').hour(endHour).minute(59).second(59).format('YYYY-MM-DD HH:mm:ss');
-                            } else {
-                                // 普通日模式
-                                if (isResizeRight) {
-                                    newStartDate = props.row[mapFields.value.startdate];
-                                    // 基于原始开始日期计算结束日期
-                                    const originalStartDays = dayjs(props.row[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'days');
-                                    const newEndDays = originalStartDays + widthCells - 1;
-                                    // 结束日期设置为当天的结束时间（23:59:59）
-                                    newEndDate = dayjs(props.startGanttDate).add(newEndDays, 'days').hour(23).minute(59).second(59).format('YYYY-MM-DD HH:mm:ss');
-                                    const actualDays = widthCells;
-                                    props.row[mapFields.value.takestime] = actualDays + t('durationUnit.days');
-                                } else {
-                                    const startDays = startCellIndex;
-                                    newStartDate = dayjs(props.startGanttDate).add(startDays, 'days').format('YYYY-MM-DD HH:mm:ss');
-                                    // 结束日期设置为当天的结束时间（23:59:59）
-                                    newEndDate = dayjs(props.startGanttDate).add(endCellIndex, 'days').hour(23).minute(59).second(59).format('YYYY-MM-DD HH:mm:ss');
-                                    const actualDays = endCellIndex - startDays + 1;
-                                    props.row[mapFields.value.takestime] = actualDays + t('durationUnit.days');
-                                }
-                            }
-                        } else if (mode.value === '周') {
-                            const ganttStartWeek = dayjs(props.startGanttDate).startOf('isoWeek');
-                            newStartDate = isResizeRight 
-                                ? props.row[mapFields.value.startdate] 
-                                : ganttStartWeek.add(startCellIndex, 'weeks').format('YYYY-MM-DD HH:mm:ss');
-                            newEndDate = ganttStartWeek.add(endCellIndex, 'weeks').endOf('isoWeek').format('YYYY-MM-DD HH:mm:ss');
-                            props.row[mapFields.value.takestime] = widthCells + t('durationUnit.weeks');
-                        } else if (mode.value === '时') {
-                            // 时模式：根据子模式计算
-                            const hourSubMode = store.hourSubMode || '60';
-                            const minuteInterval = parseInt(hourSubMode);
-                            
-                            if (minuteInterval < 60) {
-                                // 15分钟或30分钟模式
-                                const cellsPerHour = 60 / minuteInterval;
-                                const cellsPerDay = 24 * cellsPerHour;
-                                
-                                // 计算开始时间（resize 右边时保持原始开始日期）
-                                if (isResizeRight) {
-                                    newStartDate = props.row[mapFields.value.startdate];
-                                } else {
-                                    const startDays = Math.floor(startCellIndex / cellsPerDay);
-                                    const startCellInDay = startCellIndex % cellsPerDay;
-                                    const startHour = Math.floor(startCellInDay / cellsPerHour);
-                                    const startMinute = (startCellInDay % cellsPerHour) * minuteInterval;
-                                    newStartDate = dayjs(props.startGanttDate).add(startDays, 'days').hour(startHour).minute(startMinute).second(0).format('YYYY-MM-DD HH:mm:ss');
-                                }
-                                
-                                // 计算结束时间
-                                const endDays = Math.floor(endCellIndex / cellsPerDay);
-                                const endCellInDay = endCellIndex % cellsPerDay;
-                                const endHour = Math.floor(endCellInDay / cellsPerHour);
-                                const endMinute = (endCellInDay % cellsPerHour) * minuteInterval + minuteInterval - 1;
-                                newEndDate = dayjs(props.startGanttDate).add(endDays, 'days').hour(endHour).minute(endMinute).second(59).format('YYYY-MM-DD HH:mm:ss');
-                                
-                                // 计算持续时间
-                                const diffMinutes = dayjs(newEndDate).diff(dayjs(newStartDate), 'minutes') + 1;
-                                const diffHours = Math.floor(diffMinutes / 60);
-                                const remainMinutes = diffMinutes % 60;
-                                if (diffHours > 0 && remainMinutes > 0) {
-                                    props.row[mapFields.value.takestime] = t('durationUnit.hoursAndMinutes', { hours: diffHours, minutes: remainMinutes });
-                                } else if (diffHours > 0) {
-                                    props.row[mapFields.value.takestime] = `${diffHours}${t('durationUnit.hours')}`;
-                                } else {
-                                    props.row[mapFields.value.takestime] = `${remainMinutes}${t('durationUnit.minutes')}`;
-                                }
-                            } else {
-                                // 60分钟模式
-                                if (isResizeRight) {
-                                    newStartDate = props.row[mapFields.value.startdate];
-                                    // 基于原始开始时间计算结束时间
-                                    const originalStartHours = dayjs(props.row[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'hours');
-                                    const newEndCellIndex = originalStartHours + widthCells - 1;
-                                    newEndDate = dayjs(props.startGanttDate).add(newEndCellIndex, 'hours').minute(59).second(59).format('YYYY-MM-DD HH:mm:ss');
-                                } else {
-                                    newStartDate = dayjs(props.startGanttDate).add(startCellIndex, 'hours').format('YYYY-MM-DD HH:mm:ss');
-                                    newEndDate = dayjs(props.startGanttDate).add(endCellIndex, 'hours').minute(59).second(59).format('YYYY-MM-DD HH:mm:ss');
-                                }
-                                props.row[mapFields.value.takestime] = widthCells + t('durationUnit.hours');
-                            }
-                        } else {
-                            // 默认小时模式
-                            if (isResizeRight) {
-                                newStartDate = props.row[mapFields.value.startdate];
-                                // 基于原始开始时间计算结束时间
-                                const originalStartHours = dayjs(props.row[mapFields.value.startdate]).diff(dayjs(props.startGanttDate), 'hours');
-                                const newEndCellIndex = originalStartHours + widthCells - 1;
-                                newEndDate = dayjs(props.startGanttDate).add(newEndCellIndex, 'hours').minute(59).second(59).format('YYYY-MM-DD HH:mm:ss');
-                            } else {
-                                newStartDate = dayjs(props.startGanttDate).add(startCellIndex, 'hours').format('YYYY-MM-DD HH:mm:ss');
-                                newEndDate = dayjs(props.startGanttDate).add(endCellIndex, 'hours').minute(59).second(59).format('YYYY-MM-DD HH:mm:ss');
-                            }
-                            props.row[mapFields.value.takestime] = widthCells + t('durationUnit.hours');
-                        }
-
-                        props.row[mapFields.value.startdate] = newStartDate;
-                        props.row[mapFields.value.enddate] = newEndDate;
-
-                        let svg = SVG(barElement as unknown as HTMLElement);
-                        let innerRect = svg.select('.innerRect').first();
-                        let outerRect = svg.select('rect:not(.innerRect):not(.progressHandle)').first();
-                        if (innerRect) {
-                            let innerRectWidth = props.row[mapFields.value.progress] ? newWidth * Number(props.row[mapFields.value.progress]) : newWidth;
-                            innerRect.width(innerRectWidth);
-                        }
-                        if (outerRect) outerRect.width(newWidth);
-
-                        // 联动子任务
-                        if (event.edges && event.edges.left) {
-                            const newParentStartDate = dayjs(newStartDate);
-                            const currentTaskId = props.row[mapFields.value.id];
-                            const parentIdField = mapFields.value.parentId || 'pid';
-                            const getAllChildren = (parentId: any, tasks: any[]): any[] => {
-                                const children: any[] = [];
-                                for (const task of tasks) {
-                                    if (String(task[parentIdField]) === String(parentId)) {
-                                        children.push(task);
-                                        children.push(...getAllChildren(task[mapFields.value.id], tasks));
-                                    }
-                                }
-                                return children;
-                            };
-                            const childTasks = getAllChildren(currentTaskId, store.tasks);
-                            for (const child of childTasks) {
-                                if (dayjs(child[mapFields.value.startdate]).isBefore(newParentStartDate)) {
-                                    if (mode.value === '季度') {
-                                        // 季度模式按季度计算偏移
-                                        const childStartQuarter = dayjs(child[mapFields.value.startdate]).startOf('quarter');
-                                        const parentStartQuarter = newParentStartDate.startOf('quarter');
-                                        const childOffset = (parentStartQuarter.year() - childStartQuarter.year()) * 4 +
-                                            (parentStartQuarter.quarter() - childStartQuarter.quarter());
-                                        child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(childOffset, 'quarters').format('YYYY-MM-DD HH:mm:ss');
-                                        child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(childOffset, 'quarters').format('YYYY-MM-DD HH:mm:ss');
-                                    } else if (mode.value === '月') {
-                                        // 月模式按月计算偏移
-                                        const childStartMonth = dayjs(child[mapFields.value.startdate]).startOf('month');
-                                        const parentStartMonth = newParentStartDate.startOf('month');
-                                        const childOffset = (parentStartMonth.year() - childStartMonth.year()) * 12 +
-                                            (parentStartMonth.month() - childStartMonth.month());
-                                        child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(childOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
-                                        child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(childOffset, 'months').format('YYYY-MM-DD HH:mm:ss');
-                                    } else if (mode.value === '时') {
-                                        // 根据时模式子模式选择使用分钟或小时
-                                        const hourSubMode = store.hourSubMode || '60';
-                                        if (hourSubMode === '15' || hourSubMode === '30') {
-                                            // 15分钟或30分钟模式：使用分钟计算偏移
-                                            const childOffset = newParentStartDate.diff(dayjs(child[mapFields.value.startdate]), 'minutes');
-                                            child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(childOffset, 'minutes').format('YYYY-MM-DD HH:mm:ss');
-                                            child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(childOffset, 'minutes').format('YYYY-MM-DD HH:mm:ss');
-                                        } else {
-                                            // 60分钟模式：使用小时计算偏移
-                                            const childOffset = newParentStartDate.diff(dayjs(child[mapFields.value.startdate]), 'hours');
-                                            child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(childOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
-                                            child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(childOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
-                                        }
-                                    } else if (mode.value === '日' && store.daySubMode === 'half') {
-                                        // 半天模式：使用小时计算偏移
-                                        const childOffset = newParentStartDate.diff(dayjs(child[mapFields.value.startdate]), 'hours');
-                                        child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(childOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
-                                        child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(childOffset, 'hours').format('YYYY-MM-DD HH:mm:ss');
-                                    } else {
-                                        const childOffset = newParentStartDate.diff(dayjs(child[mapFields.value.startdate]), 'days');
-                                        child[mapFields.value.startdate] = dayjs(child[mapFields.value.startdate]).add(childOffset, 'days').format('YYYY-MM-DD HH:mm:ss');
-                                        child[mapFields.value.enddate] = dayjs(child[mapFields.value.enddate]).add(childOffset, 'days').format('YYYY-MM-DD HH:mm:ss');
-                                    }
-                                    setBarDate({ id: child[mapFields.value.id], startDate: child[mapFields.value.startdate], endDate: child[mapFields.value.enddate] });
-                                }
-                            }
-                        }
-                        setBarDate({ id: props.row[mapFields.value.id], startDate: newStartDate, endDate: newEndDate });
-                    }
-                },
-                modifiers: [
-                    interact.modifiers.restrictEdges({ outer: 'parent' }),
-                    interact.modifiers.restrictSize({ min: { width: scale.value, height: barHeight.value } })
-                ],
-                inertia: false, hold: 1
-            });
         };
 
         watch(() => [props.row[mapFields.value.startdate], props.row[mapFields.value.enddate]], () => {
@@ -1137,33 +147,41 @@ export default defineComponent({
                 barColor.value = setBarColor(props.row);
                 if (bar.value) drowBar(bar.value);
             }
-            // 监听主题变化
+            // 使用 useBarTheme 提供的主题观察器
             if (bar.value) {
-                let ganttContainer = bar.value.parentElement;
-                while (ganttContainer && !ganttContainer.hasAttribute('data-gantt-theme')) {
-                    ganttContainer = ganttContainer.parentElement;
-                }
-                if (ganttContainer) {
-                    const observer = new MutationObserver(() => { themeVersion.value++; });
-                    observer.observe(ganttContainer, { attributes: true, attributeFilter: ['data-gantt-theme', 'style'] });
-                    onBeforeUnmount(() => observer.disconnect());
-                }
+                setupThemeObserver();
             }
         });
 
         onDeactivated(() => {
-            if (bar.value) { try { interact(bar.value).unset(); } catch (e) { } }
+            if (bar.value) { 
+                try { 
+                    interact(bar.value).unset(); 
+                } catch (e) { 
+                    console.warn('Error unsetting interact:', e);
+                } 
+            }
             showRow.value = false;
         });
 
         onBeforeUnmount(() => {
-            if (bar.value) { try { interact(bar.value).unset(); } catch (e) { } }
+            if (bar.value) { 
+                try { 
+                    interact(bar.value).unset(); 
+                } catch (e) { 
+                    console.warn('Error unsetting interact:', e);
+                } 
+            }
+            // 清理交互功能
+            if (destroyInteractions) {
+                destroyInteractions();
+            }
             showRow.value = false;
         });
 
         return {
-            bar, barHeight, direction, oldBarDataX, oldBarWidth, showRow, hover, barColor,
-            timelineCellCount, scale, mode, mapFields, hoverActive, hoverInactive, WeekEndColor, barRowStyle
+            bar, barHeight, direction, oldBarDataX, oldBarWidth, showRow, hover: hoverFromComposable, barColor,
+            timelineCellCount, scale, mode, mapFields, hoverActive, hoverInactive, WeekEndColor: WeekEndColorFromComposable, barRowStyle
         };
     },
 })
