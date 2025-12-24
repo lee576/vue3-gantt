@@ -252,6 +252,10 @@ export function useInteractions(deps: InteractionDeps) {
             const handleElement = progressHandle.node as unknown as SVGPolygonElement;
             handleElement.setAttribute('fill', themeColors.primary);
             handleElement.setAttribute('stroke', themeColors.primaryDark);
+            
+            // 更新虚线的位置
+            guideLineEl!.setAttribute('x1', String(lineX));
+            guideLineEl!.setAttribute('x2', String(lineX));
         }
 
         // 更新resize handle的位置（如果它们存在）
@@ -339,6 +343,21 @@ export function useInteractions(deps: InteractionDeps) {
                     if (rightHandle) {
                         rightHandle.x(width - 6);
                         rightHandle.y(0);
+                    }
+                    
+                    // 更新进度手柄和虚线的位置（根据进度百分比）
+                    const progressHandle = svg.select('.progressHandle').first();
+                    if (progressHandle && innerRect) {
+                        // 计算进度手柄相对于新宽度的位置
+                        const progressValue = props.row[mapFields.progress] || 0;
+                        const handleX = innerRect.width() - handleWidth / 2;
+                        const handleY = barHeight - handleHeight / 2;
+                        progressHandle.move(handleX, handleY);
+                        
+                        // 更新虚线的位置
+                        const lineX = innerRect.width();
+                        guideLineEl!.setAttribute('x1', String(lineX));
+                        guideLineEl!.setAttribute('x2', String(lineX));
                     }
                 },
                 end: (event) => {
@@ -499,6 +518,25 @@ export function useInteractions(deps: InteractionDeps) {
                     if (rightHandle) {
                         rightHandle.x(alignedWidth - 6);
                         rightHandle.y(0);
+                    }
+                    
+                    // 更新进度手柄和虚线的位置（根据进度百分比）
+                    const progressHandle = svg.select('.progressHandle').first();
+                    if (progressHandle) {
+                        // 获取内部矩形以确定进度位置
+                        const innerRect = svg.select('.innerRect').first();
+                        if (innerRect) {
+                            // 计算进度手柄相对于新宽度的位置
+                            const progressValue = props.row[mapFields.progress] || 0;
+                            const handleX = innerRect.width() - handleWidth / 2;
+                            const handleY = barHeight - handleHeight / 2;
+                            progressHandle.move(handleX, handleY);
+                            
+                            // 更新虚线的位置
+                            const lineX = innerRect.width();
+                            guideLineEl!.setAttribute('x1', String(lineX));
+                            guideLineEl!.setAttribute('x2', String(lineX));
+                        }
                     }
                     
                     setBarDate({ id: props.row[mapFields.id], startDate: newStartDate, endDate: newEndDate });

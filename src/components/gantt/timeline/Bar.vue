@@ -14,10 +14,7 @@ import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 dayjs.extend(isoWeek);
 import { store, mutations } from '../state/Store';
-import sharedState from '../state/ShareState';
 import { Symbols } from '../state/Symbols';
-import { t } from '../i18n';
-import { svgCache, isWeekend as isWeekendDay } from '../composables/PerformanceConfig';
 import { useBarGeometry } from './composables/useBarGeometry';
 import { useBarTheme } from './composables/useBarTheme';
 import { useHover } from './composables/useHover';
@@ -54,8 +51,6 @@ export default defineComponent({
             themeVersion.value = themeVersionFromComposable.value;
         });
         
-
-
         const timelineCellCount = computed(() => store.timelineCellCount);
         const scale = computed(() => store.scale);
         const mode = computed(() => store.mode);
@@ -64,10 +59,6 @@ export default defineComponent({
         const { progress, isProgressDragging: isProgressDraggingFromComposable, emitProgressUpdate: emitProgressUpdateFromComposable } = useProgress(props, emit, store.mapFields);
 
         const setBarColor = inject(Symbols.SetBarColorSymbol) as ((row: any) => string) | undefined;
-
-
-
-
 
         // 使用 useHover composables
         const { hover: hoverFromComposable, hoverActive, hoverInactive } = useHover(props);
@@ -98,8 +89,6 @@ export default defineComponent({
             destroyInteractions = interactions.destroy;
         };
         
-
-
         const drowBar = (barElement: SVGSVGElement) => {
             // 使用 useBarGeometry 的计算结果
             const { dataX, width } = computePosition();
