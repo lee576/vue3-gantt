@@ -4,9 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vue3 Gantt 独立组件示例</title>
+  <title>Vue3 Gantt 完整功能示例</title>
 
-  <!-- 引入 Vue 3 -->
   <!-- 引入 Vue 3 -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <!-- 引入依赖库 -->
@@ -14,7 +13,6 @@
   <script src="https://unpkg.com/@vueuse/core@11.3.0/index.iife.min.js"></script>
   <script src="https://unpkg.com/interactjs@1.10.27/dist/interact.min.js"></script>
   <script src="https://unpkg.com/svg.js@2.7.1/dist/svg.min.js"></script>
-  <!-- zod 不需要在浏览器环境中加载，组件内部已经处理 -->
 
   <!-- 引入 Gantt 组件样式 -->
   <link rel="stylesheet" href="./dist/vue3-gantt.css">
@@ -26,22 +24,15 @@
       box-sizing: border-box;
     }
 
-    /* 
-     * 重要：使用 height: 100% 时，必须确保 html 和 body 也设置了 height: 100%
-     * 否则组件会高度塔陷
-     */
     html, body {
       height: 100%;
     }
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f8f8f8;
     }
 
-    /* 
-     * 方式 1（当前使用）：html/body 设置 100% + #app 设置 100vh
-     * 优点：简单直接，不依赖父元素
-     */
     #app {
       width: 100vw;
       height: 100vh;
@@ -49,21 +40,15 @@
       flex-direction: column;
     }
 
-    /* 
-     * 方式 2（也可使用）：html/body/app 全部设置 100%
-     * #app {
-     *   width: 100%;
-     *   height: 100%; 
-     *   display: flex;
-     *   flex-direction: column;
-     * }
-     */
-
+    /* 头部样式 */
     .demo-header {
       background: linear-gradient(145deg, #f5f5f5, #e8e8e8);
       border-bottom: 1px solid #d0d0d0;
       padding: 16px 24px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .demo-header h1 {
@@ -78,22 +63,407 @@
       color: #666;
     }
 
+    .header-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .metro-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      background: linear-gradient(145deg, #ffffff, #f5f5f5);
+      border: 1px solid #d0d0d0;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      color: #666666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .metro-btn:hover {
+      background: linear-gradient(145deg, #f5f5f5, #e8e8e8);
+      color: #333333;
+    }
+
+    .metro-btn-primary {
+      background: linear-gradient(145deg, #0078d4, #106ebe) !important;
+      color: #ffffff !important;
+    }
+
+    .metro-btn-primary:hover {
+      background: linear-gradient(145deg, #106ebe, #005a9e) !important;
+    }
+
     .gantt-wrapper {
       flex: 1;
       overflow: hidden;
+    }
+
+    /* 模态对话框样式 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .task-dialog {
+      background: #ffffff;
+      border-radius: 4px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .dialog-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid #e0e0e0;
+      background: linear-gradient(145deg, #f5f5f5, #e8e8e8);
+    }
+
+    .dialog-header h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #333333;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: #666666;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .close-btn:hover {
+      background: rgba(0, 0, 0, 0.1);
+      color: #333333;
+    }
+
+    .dialog-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #555555;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d0d0d0;
+      border-radius: 2px;
+      font-size: 14px;
+      transition: all 0.2s;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #0078d4;
+      box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+    }
+
+    .dialog-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 16px 24px;
+      border-top: 1px solid #e0e0e0;
+      background: #f8f8f8;
+    }
+
+    /* 消息提示 */
+    .message-toast {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      padding: 16px 24px;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 10000;
+      animation: slideInRight 0.3s ease-out;
+      min-width: 280px;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .message-toast.success {
+      background: #107c10;
+      color: #ffffff;
+      border-left: 4px solid #0b5a0b;
+    }
+
+    .message-toast.error {
+      background: #d83b01;
+      color: #ffffff;
+      border-left: 4px solid #a72700;
+    }
+
+    .message-toast.warning {
+      background: #ffb900;
+      color: #333333;
+      border-left: 4px solid #d39300;
+    }
+
+    .section-divider {
+      text-align: center;
+      margin: 24px 0 20px;
+      position: relative;
+    }
+
+    .section-divider span {
+      background: #ffffff;
+      padding: 0 16px;
+      color: #666666;
+      font-size: 14px;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-divider::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: #d0d0d0;
+      z-index: 0;
+    }
+
+    .required-mark {
+      color: #d83b01;
+      font-weight: bold;
+      margin-left: 4px;
     }
   </style>
 </head>
 
 <body>
   <div id="app">
+    <!-- 头部 -->
     <div class="demo-header">
-      <h1>🎯 Vue3 Gantt 独立组件示例</h1>
-      <p>✅ 所有样式已打包，无需外部依赖 | ✅ 支持 7 种主题 | ✅ 支持 8 种语言</p>
+      <div>
+        <h1>🎯 Vue3 Gantt 完整功能示例</h1>
+        <p>✅ 自定义字段 | ✅ 任务编辑 | ✅ 表单验证 | ✅ 列显示设置</p>
+      </div>
+      <div class="header-actions">
+        <button class="metro-btn metro-btn-primary" @click="openAddRootTaskDialog">
+          + 新建根任务
+        </button>
+        <button class="metro-btn" @click="openCustomFieldsDialog">
+          ⚙ 自定义字段
+        </button>
+      </div>
     </div>
+
+    <!-- 甘特图 -->
     <div class="gantt-wrapper">
-      <gantt :style-config="styleConfig" :data-config="dataConfig" :event-config="eventConfig">
+      <gantt
+        :style-config="styleConfig"
+        :data-config="dataConfig"
+        :event-config="eventConfig">
       </gantt>
+    </div>
+
+    <!-- 任务编辑对话框 -->
+    <div v-if="showTaskDialog" class="modal-overlay" @click.self="closeTaskDialog">
+      <div class="task-dialog">
+        <div class="dialog-header">
+          <h2>{{ isEditMode ? '编辑任务' : '新建任务' }}</h2>
+          <button class="close-btn" @click="closeTaskDialog">×</button>
+        </div>
+        <div class="dialog-body">
+          <div class="form-group">
+            <label>任务名称 <span class="required-mark">*</span></label>
+            <input v-model="taskForm.taskNo" type="text" placeholder="请输入任务名称" />
+          </div>
+          <div class="form-group">
+            <label>优先级</label>
+            <select v-model="taskForm.level">
+              <option value="紧急">紧急</option>
+              <option value="重要">重要</option>
+              <option value="一般">一般</option>
+              <option value="不重要">不重要</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>开始时间 <span class="required-mark">*</span></label>
+            <input v-model="taskForm.start_date" type="datetime-local" />
+          </div>
+          <div class="form-group">
+            <label>结束时间 <span class="required-mark">*</span></label>
+            <input v-model="taskForm.end_date" type="datetime-local" />
+          </div>
+          <div class="form-group">
+            <label>进度 (0-1)</label>
+            <input v-model.number="taskForm.job_progress" type="number" min="0" max="1" step="0.1" />
+          </div>
+
+          <!-- 自定义字段 -->
+          <div v-if="customFields.length > 0">
+            <div class="section-divider">
+              <span>自定义字段</span>
+            </div>
+            <div v-for="field in customFields" :key="field.id" class="form-group">
+              <label>
+                {{ field.label }}
+                <span v-if="field.required" class="required-mark">*</span>
+              </label>
+
+              <!-- 文本 -->
+              <input v-if="field.type === 'text'"
+                     v-model="taskForm.customFieldValues[field.id]"
+                     type="text"
+                     :placeholder="field.placeholder || `请输入${field.label}`"
+                     :required="field.required" />
+
+              <!-- 数字 -->
+              <input v-else-if="field.type === 'number'"
+                     v-model.number="taskForm.customFieldValues[field.id]"
+                     type="number"
+                     :placeholder="field.placeholder || `请输入${field.label}`"
+                     :required="field.required" />
+
+              <!-- 日期 -->
+              <input v-else-if="field.type === 'date'"
+                     v-model="taskForm.customFieldValues[field.id]"
+                     type="date"
+                     :required="field.required" />
+
+              <!-- 下拉选择 -->
+              <select v-else-if="field.type === 'select'"
+                      v-model="taskForm.customFieldValues[field.id]"
+                      :required="field.required">
+                <option value="">请选择{{ field.label }}</option>
+                <option v-for="option in field.options" :key="option" :value="option">
+                  {{ option }}
+                </option>
+              </select>
+
+              <!-- 多行文本 -->
+              <textarea v-else-if="field.type === 'textarea'"
+                        v-model="taskForm.customFieldValues[field.id]"
+                        :placeholder="field.placeholder || `请输入${field.label}`"
+                        :required="field.required"
+                        rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button class="metro-btn" @click="closeTaskDialog">取消</button>
+          <button class="metro-btn metro-btn-primary" @click="saveTask">
+            {{ isEditMode ? '保存' : '创建' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 自定义字段管理对话框（简化版） -->
+    <div v-if="showCustomFieldsDialog" class="modal-overlay" @click.self="closeCustomFieldsDialog">
+      <div class="task-dialog">
+        <div class="dialog-header">
+          <h2>自定义字段管理</h2>
+          <button class="close-btn" @click="closeCustomFieldsDialog">×</button>
+        </div>
+        <div class="dialog-body">
+          <p style="color: #666; margin-bottom: 20px;">
+            💡 提示：在实际使用中，您可以添加文本、数字、日期、下拉选择等多种类型的自定义字段。
+            此示例已预设了"负责人"字段作为演示。
+          </p>
+          <div v-if="customFields.length > 0">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px;">已添加的字段：</h3>
+            <div v-for="field in customFields" :key="field.id"
+                 style="padding: 12px; background: #f8f8f8; margin-bottom: 8px; border-radius: 4px;">
+              <strong>{{ field.label }}</strong>
+              <span style="color: #666; font-size: 12px;"> - {{ getFieldTypeLabel(field.type) }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button class="metro-btn metro-btn-primary" @click="closeCustomFieldsDialog">
+            关闭
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 消息提示 -->
+    <div v-if="message" :class="['message-toast', message.type]">
+      {{ message.text }}
     </div>
   </div>
 
@@ -102,7 +472,6 @@
 
   <script>
     const { createApp } = Vue;
-    // 从 Vue3Gantt 中解构所需内容
     const Gantt = Vue3Gantt.default || Vue3Gantt.Gantt;
     const LinkType = Vue3Gantt.LinkType || {
       FINISH_TO_START: 0,
@@ -120,8 +489,43 @@
         const currentMonth = today.format('YYYY-MM');
         const startOfMonth = today.startOf('month').format('YYYY-MM-DD');
         const endOfMonth = today.endOf('month').format('YYYY-MM-DD');
-              
+
         return {
+          // 对话框状态
+          showTaskDialog: false,
+          showCustomFieldsDialog: false,
+          isEditMode: false,
+          isRootTask: false,
+
+          // 任务表单
+          taskForm: {
+            id: null,
+            pid: '0',
+            taskNo: '',
+            level: '一般',
+            start_date: today.format('YYYY-MM-DDTHH:mm'),
+            end_date: today.add(1, 'day').format('YYYY-MM-DDTHH:mm'),
+            job_progress: 0,
+            spend_time: null,
+            customFieldValues: {}
+          },
+
+          // 消息提示
+          message: null,
+
+          // 自定义字段（预设一个"负责人"字段作为示例）
+          customFields: [
+            {
+              id: 'field-assignee',
+              label: '负责人',
+              type: 'text',
+              placeholder: '请输入负责人姓名',
+              required: true,
+              options: []
+            }
+          ],
+
+          // 样式配置
           styleConfig: {
             headersHeight: 100,
             rowHeight: 60,
@@ -135,87 +539,13 @@
               return colorMap[row.level] || '#333333';
             }
           },
+
+          // 数据配置
           dataConfig: {
             queryStartDate: startOfMonth,
             queryEndDate: endOfMonth,
-            dataSource: [
-              {
-                id: '1',
-                pid: '0',
-                taskNo: '项目规划阶段',
-                level: '重要',
-                start_date: `${currentMonth}-01 08:00:00`,
-                end_date: `${currentMonth}-06 18:00:00`,
-                job_progress: '0.85',
-                spend_time: null
-              },
-              {
-                id: '2',
-                pid: '1',
-                taskNo: '需求分析',
-                level: '紧急',
-                start_date: `${currentMonth}-01 08:00:00`,
-                end_date: `${currentMonth}-02 18:00:00`,
-                job_progress: '1.0',
-                spend_time: null
-              },
-              {
-                id: '3',
-                pid: '1',
-                taskNo: '技术选型',
-                level: '重要',
-                start_date: `${currentMonth}-03 08:00:00`,
-                end_date: `${currentMonth}-04 18:00:00`,
-                job_progress: '0.9',
-                spend_time: null
-              },
-              {
-                id: '4',
-                pid: '1',
-                taskNo: '架构设计',
-                level: '重要',
-                start_date: `${currentMonth}-05 08:00:00`,
-                end_date: `${currentMonth}-06 18:00:00`,
-                job_progress: '0.7',
-                spend_time: null
-              },
-              {
-                id: '5',
-                pid: '0',
-                taskNo: '开发阶段',
-                level: '重要',
-                start_date: `${currentMonth}-07 08:00:00`,
-                end_date: `${currentMonth}-18 18:00:00`,
-                job_progress: '0.5',
-                spend_time: null
-              },
-              {
-                id: '6',
-                pid: '5',
-                taskNo: '前端开发',
-                level: '重要',
-                start_date: `${currentMonth}-07 08:00:00`,
-                end_date: `${currentMonth}-13 18:00:00`,
-                job_progress: '0.6',
-                spend_time: null
-              },
-              {
-                id: '7',
-                pid: '5',
-                taskNo: '后端开发',
-                level: '重要',
-                start_date: `${currentMonth}-10 08:00:00`,
-                end_date: `${currentMonth}-18 18:00:00`,
-                job_progress: '0.5',
-                spend_time: null
-              }
-            ],
-            dependencies: [
-              { sourceTaskId: '2', targetTaskId: '3', type: 0 }, // FINISH_TO_START
-              { sourceTaskId: '3', targetTaskId: '4', type: 0 }, // FINISH_TO_START
-              { sourceTaskId: '1', targetTaskId: '5', type: 0 }, // FINISH_TO_START
-              { sourceTaskId: '6', targetTaskId: '7', type: 1 }  // START_TO_START
-            ],
+            dataSource: [],
+            dependencies: [],
             mapFields: {
               id: 'id',
               parentId: 'pid',
@@ -227,50 +557,363 @@
               progress: 'job_progress'
             },
             taskHeaders: [
-              { title: '序号', width: 160, property: 'no', show: true },
+              { title: 'id', width: 100, property: 'id', show: false },
+              { title: '父id', width: 100, property: 'parentId', show: false },
+              { title: '序号', width: 160, property: 'no', show: true, fixed: true },
               { title: '任务名称', width: 190, property: 'task', show: true },
               { title: '优先级', width: 90, property: 'priority', show: true },
               { title: '开始时间', width: 150, property: 'startdate', show: true },
               { title: '结束时间', width: 150, property: 'enddate', show: true },
-              { title: '耗时', width: 90, property: 'takestime', show: true }
+              { title: '耗时', width: 90, property: 'takestime', show: true },
+              // 自定义字段：负责人
+              { title: '负责人', width: 120, property: 'customField_field-assignee', show: true }
             ]
           },
+
+          // 事件配置
           eventConfig: {
-            addRootTask: (row) => {
-              // 添加根任务事件
+            addRootTask: () => {
+              this.openAddRootTaskDialog();
             },
-            addSubTask: (task) => {
-              // 添加子任务事件
+            addSubTask: (row) => {
+              this.openAddSubTaskDialog(row.id);
             },
-            removeTask: (task) => {
-              // 删除任务事件
+            removeTask: (row) => {
+              this.removeTask(row.id);
             },
-            editTask: (task) => {
-              // 编辑任务事件
-            },
-            queryTask: (startDate, endDate, mode) => {
-              // 查询任务事件
-            },
-            barDate: (id, startDate, endDate) => {
-              // 任务日期变更事件
-            },
-            allowChangeTaskDate: (allow) => {
-              // 是否允许改变任务日期
+            editTask: (row) => {
+              this.openEditTaskDialog(row.id);
             },
             updateProgress: (detail) => {
-              // 进度更新事件
+              const task = this.dataConfig.dataSource.find(t => t.id === detail.taskId);
+              if (task) {
+                task.job_progress = String(detail.newProgress);
+                this.showMessage('进度更新成功', 'success');
+              }
+            },
+            queryTask: (startDate, endDate, mode) => {
+              this.loadInitialData();
+            },
+            barDate: (id, startDate, endDate) => {
+              const task = this.dataConfig.dataSource.find(t => t.id === id);
+              if (task) {
+                task.start_date = startDate;
+                task.end_date = endDate;
+                this.showMessage('任务日期更新成功', 'success');
+              }
+            },
+            allowChangeTaskDate: (allow) => {
+              console.log('允许改变任务日期:', allow);
             }
           }
         };
       },
-      mounted() {
-        // 重要：需要等待一个 tick 让组件完全初始化
-        setTimeout(() => {
-          const startDate = this.dataConfig.queryStartDate;
-          const endDate = this.dataConfig.queryEndDate;
+      methods: {
+        // 加载初始数据
+        loadInitialData() {
+          const currentMonth = dayjs().format('YYYY-MM');
 
+          // 模拟后端返回的任务数据（包含自定义字段值）
+          const tasks = [
+            {
+              id: '1',
+              pid: '0',
+              taskNo: '项目规划阶段',
+              level: '重要',
+              start_date: `${currentMonth}-01 08:00:00`,
+              end_date: `${currentMonth}-06 18:00:00`,
+              job_progress: '0.85',
+              spend_time: null,
+              customFieldValues: {
+                'field-assignee': '张三'
+              }
+            },
+            {
+              id: '2',
+              pid: '1',
+              taskNo: '需求分析',
+              level: '紧急',
+              start_date: `${currentMonth}-01 08:00:00`,
+              end_date: `${currentMonth}-02 18:00:00`,
+              job_progress: '1.0',
+              spend_time: null,
+              customFieldValues: {
+                'field-assignee': '李四'
+              }
+            },
+            {
+              id: '3',
+              pid: '1',
+              taskNo: '技术选型',
+              level: '重要',
+              start_date: `${currentMonth}-03 08:00:00`,
+              end_date: `${currentMonth}-04 18:00:00`,
+              job_progress: '0.9',
+              spend_time: null,
+              customFieldValues: {
+                'field-assignee': '王五'
+              }
+            },
+            {
+              id: '4',
+              pid: '1',
+              taskNo: '架构设计',
+              level: '重要',
+              start_date: `${currentMonth}-05 08:00:00`,
+              end_date: `${currentMonth}-06 18:00:00`,
+              job_progress: '0.7',
+              spend_time: null,
+              customFieldValues: {
+                'field-assignee': '赵六'
+              }
+            },
+            {
+              id: '5',
+              pid: '0',
+              taskNo: '开发阶段',
+              level: '重要',
+              start_date: `${currentMonth}-07 08:00:00`,
+              end_date: `${currentMonth}-18 18:00:00`,
+              job_progress: '0.5',
+              spend_time: null,
+              customFieldValues: {
+                'field-assignee': '钱七'
+              }
+            },
+            {
+              id: '6',
+              pid: '5',
+              taskNo: '前端开发',
+              level: '重要',
+              start_date: `${currentMonth}-07 08:00:00`,
+              end_date: `${currentMonth}-13 18:00:00`,
+              job_progress: '0.6',
+              spend_time: null,
+              customFieldValues: {
+                'field-assignee': '孙八'
+              }
+            },
+            {
+              id: '7',
+              pid: '5',
+              taskNo: '后端开发',
+              level: '重要',
+              start_date: `${currentMonth}-10 08:00:00`,
+              end_date: `${currentMonth}-18 18:00:00`,
+              job_progress: '0.5',
+              spend_time: null,
+              customFieldValues: {
+                'field-assignee': '周九'
+              }
+            }
+          ];
+
+          // 处理自定义字段：将 customFieldValues 展开到顶层
+          this.dataConfig.dataSource = tasks.map(task => {
+            const processedTask = { ...task };
+            if (task.customFieldValues) {
+              this.customFields.forEach(field => {
+                const value = task.customFieldValues[field.id];
+                if (value !== undefined) {
+                  processedTask[`customField_${field.id}`] = value;
+                }
+              });
+            }
+            return processedTask;
+          });
+
+          // 任务依赖关系
+          this.dataConfig.dependencies = [
+            { sourceTaskId: '2', targetTaskId: '3', type: LinkType.FINISH_TO_START },
+            { sourceTaskId: '3', targetTaskId: '4', type: LinkType.FINISH_TO_START },
+            { sourceTaskId: '1', targetTaskId: '5', type: LinkType.FINISH_TO_START },
+            { sourceTaskId: '6', targetTaskId: '7', type: LinkType.START_TO_START }
+          ];
+        },
+
+        // 打开新建根任务对话框
+        openAddRootTaskDialog() {
+          this.isEditMode = false;
+          this.isRootTask = true;
+          this.taskForm = {
+            id: null,
+            pid: '0',
+            taskNo: '',
+            level: '一般',
+            start_date: dayjs().format('YYYY-MM-DDTHH:mm'),
+            end_date: dayjs().add(1, 'day').format('YYYY-MM-DDTHH:mm'),
+            job_progress: 0,
+            spend_time: null,
+            customFieldValues: {}
+          };
+          this.showTaskDialog = true;
+        },
+
+        // 打开新建子任务对话框
+        openAddSubTaskDialog(parentId) {
+          this.isEditMode = false;
+          this.isRootTask = false;
+          const parentTask = this.dataConfig.dataSource.find(t => t.id === parentId);
+          this.taskForm = {
+            id: null,
+            pid: parentId,
+            taskNo: '',
+            level: '一般',
+            start_date: parentTask ? parentTask.start_date.replace(' ', 'T').slice(0, 16) : dayjs().format('YYYY-MM-DDTHH:mm'),
+            end_date: parentTask ? parentTask.end_date.replace(' ', 'T').slice(0, 16) : dayjs().add(1, 'day').format('YYYY-MM-DDTHH:mm'),
+            job_progress: 0,
+            spend_time: null,
+            customFieldValues: {}
+          };
+          this.showTaskDialog = true;
+        },
+
+        // 打开编辑任务对话框
+        openEditTaskDialog(taskId) {
+          this.isEditMode = true;
+          this.isRootTask = false;
+          const task = this.dataConfig.dataSource.find(t => t.id === taskId);
+          if (task) {
+            this.taskForm = {
+              id: task.id,
+              pid: task.pid,
+              taskNo: task.taskNo,
+              level: task.level,
+              start_date: task.start_date.replace(' ', 'T').slice(0, 16),
+              end_date: task.end_date.replace(' ', 'T').slice(0, 16),
+              job_progress: parseFloat(task.job_progress),
+              spend_time: task.spend_time,
+              customFieldValues: task.customFieldValues || {}
+            };
+            this.showTaskDialog = true;
+          }
+        },
+
+        // 关闭任务对话框
+        closeTaskDialog() {
+          this.showTaskDialog = false;
+        },
+
+        // 保存任务
+        saveTask() {
+          // 简单验证
+          if (!this.taskForm.taskNo.trim()) {
+            this.showMessage('任务名称不能为空', 'error');
+            return;
+          }
+
+          // 格式化日期时间
+          const formatDate = (dateStr) => {
+            return dayjs(dateStr).format('YYYY-MM-DD HH:mm:ss');
+          };
+
+          const taskData = {
+            ...this.taskForm,
+            start_date: formatDate(this.taskForm.start_date),
+            end_date: formatDate(this.taskForm.end_date),
+            job_progress: String(this.taskForm.job_progress)
+          };
+
+          if (this.isEditMode && this.taskForm.id) {
+            // 更新任务
+            const index = this.dataConfig.dataSource.findIndex(t => t.id === this.taskForm.id);
+            if (index !== -1) {
+              const updatedTask = { ...this.dataConfig.dataSource[index], ...taskData };
+
+              // 处理自定义字段
+              if (updatedTask.customFieldValues) {
+                this.customFields.forEach(field => {
+                  const value = updatedTask.customFieldValues[field.id];
+                  if (value !== undefined) {
+                    updatedTask[`customField_${field.id}`] = value;
+                  }
+                });
+              }
+
+              this.dataConfig.dataSource[index] = updatedTask;
+              // 强制触发响应式更新
+              this.dataConfig.dataSource = [...this.dataConfig.dataSource];
+              this.showMessage('任务更新成功', 'success');
+            }
+          } else {
+            // 新增任务
+            const newTask = {
+              id: `task-${Date.now()}`,
+              ...taskData
+            };
+
+            // 处理自定义字段
+            if (newTask.customFieldValues) {
+              this.customFields.forEach(field => {
+                const value = newTask.customFieldValues[field.id];
+                if (value !== undefined) {
+                  newTask[`customField_${field.id}`] = value;
+                }
+              });
+            }
+
+            this.dataConfig.dataSource.push(newTask);
+            this.showMessage('任务创建成功', 'success');
+          }
+
+          this.closeTaskDialog();
+        },
+
+        // 删除任务
+        removeTask(taskId) {
+          if (confirm('确定要删除此任务吗？此操作将同时删除所有子任务！')) {
+            const deleteTaskAndChildren = (id) => {
+              const children = this.dataConfig.dataSource.filter(t => t.pid === id);
+              children.forEach(child => deleteTaskAndChildren(child.id));
+              this.dataConfig.dataSource = this.dataConfig.dataSource.filter(t => t.id !== id);
+            };
+
+            deleteTaskAndChildren(taskId);
+            this.showMessage('任务删除成功', 'success');
+          }
+        },
+
+        // 打开自定义字段对话框
+        openCustomFieldsDialog() {
+          this.showCustomFieldsDialog = true;
+        },
+
+        // 关闭自定义字段对话框
+        closeCustomFieldsDialog() {
+          this.showCustomFieldsDialog = false;
+        },
+
+        // 获取字段类型标签
+        getFieldTypeLabel(type) {
+          const labels = {
+            text: '文本',
+            number: '数字',
+            date: '日期',
+            datetime: '日期时间',
+            select: '下拉选择',
+            textarea: '多行文本',
+            checkbox: '复选框'
+          };
+          return labels[type] || type;
+        },
+
+        // 显示消息提示
+        showMessage(text, type = 'success') {
+          this.message = { text, type };
+          setTimeout(() => {
+            this.message = null;
+          }, 3000);
+        }
+      },
+      mounted() {
+        // 加载初始数据
+        setTimeout(() => {
           if (this.eventConfig.queryTask) {
-            this.eventConfig.queryTask(startDate, endDate, '月');
+            this.eventConfig.queryTask(
+              this.dataConfig.queryStartDate,
+              this.dataConfig.queryEndDate,
+              '月'
+            );
           }
         }, 100);
       }
