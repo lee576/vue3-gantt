@@ -16,6 +16,12 @@
           </svg>
           新建根任务
         </button>
+        <button class="metro-btn" @click="openCustomFieldsDialog">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/>
+          </svg>
+          自定义字段
+        </button>
         <button class="metro-btn" @click="refreshData">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
@@ -72,6 +78,91 @@
               </option>
             </select>
           </div>
+
+          <!-- 自定义字段 -->
+          <div v-if="customFields.length > 0" class="custom-fields-section">
+            <div class="section-divider">
+              <span>自定义字段</span>
+            </div>
+
+            <div v-for="field in customFields" :key="field.id" class="form-group">
+              <label>
+                {{ field.label }}
+                <span v-if="field.required" class="required-mark">*</span>
+              </label>
+
+              <!-- 文本输入 -->
+              <input
+                v-if="field.type === 'text'"
+                v-model="taskForm.customFieldValues[field.id]"
+                type="text"
+                :placeholder="field.placeholder || `请输入${field.label}`"
+                :required="field.required"
+              />
+
+              <!-- 数字输入 -->
+              <input
+                v-else-if="field.type === 'number'"
+                v-model.number="taskForm.customFieldValues[field.id]"
+                type="number"
+                :placeholder="field.placeholder || `请输入${field.label}`"
+                :required="field.required"
+              />
+
+              <!-- 日期输入 -->
+              <input
+                v-else-if="field.type === 'date'"
+                v-model="taskForm.customFieldValues[field.id]"
+                type="date"
+                :required="field.required"
+              />
+
+              <!-- 日期时间输入 -->
+              <input
+                v-else-if="field.type === 'datetime'"
+                v-model="taskForm.customFieldValues[field.id]"
+                type="datetime-local"
+                :required="field.required"
+              />
+
+              <!-- 下拉选择 -->
+              <select
+                v-else-if="field.type === 'select'"
+                v-model="taskForm.customFieldValues[field.id]"
+                :required="field.required"
+              >
+                <option value="">请选择{{ field.label }}</option>
+                <option
+                  v-for="option in field.options"
+                  :key="option"
+                  :value="option"
+                >
+                  {{ option }}
+                </option>
+              </select>
+
+              <!-- 多行文本 -->
+              <textarea
+                v-else-if="field.type === 'textarea'"
+                v-model="taskForm.customFieldValues[field.id]"
+                :placeholder="field.placeholder || `请输入${field.label}`"
+                :required="field.required"
+                rows="3"
+              ></textarea>
+
+              <!-- 复选框 -->
+              <div v-else-if="field.type === 'checkbox'" class="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  :id="`checkbox-${field.id}`"
+                  v-model="taskForm.customFieldValues[field.id]"
+                />
+                <label :for="`checkbox-${field.id}`" class="checkbox-label">
+                  {{ field.placeholder || '启用' }}
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="dialog-footer">
           <button class="metro-btn" @click="closeTaskDialog">取消</button>
@@ -104,6 +195,129 @@
     <div v-if="message" :class="['message-toast', message.type]">
       {{ message.text }}
     </div>
+
+    <!-- 自定义字段管理对话框 -->
+    <div v-if="showCustomFieldsDialog" class="modal-overlay" @click.self="closeCustomFieldsDialog">
+      <div class="custom-fields-dialog">
+        <div class="dialog-header">
+          <h2>自定义字段管理</h2>
+          <button class="close-btn" @click="closeCustomFieldsDialog">×</button>
+        </div>
+        <div class="dialog-body">
+          <!-- 已有字段列表 -->
+          <div class="fields-list">
+            <h3>已添加的字段</h3>
+            <div v-if="customFields.length === 0" class="empty-state">
+              <p>暂无自定义字段，点击下方按钮添加</p>
+            </div>
+            <div v-else class="field-items">
+              <div v-for="(field, index) in customFields" :key="field.id" class="field-item">
+                <div class="field-info">
+                  <div class="field-name">
+                    <strong>{{ field.label }}</strong>
+                    <span class="field-type-badge">{{ getFieldTypeLabel(field.type) }}</span>
+                    <span v-if="field.required" class="required-badge">必填</span>
+                  </div>
+                  <div class="field-meta">
+                    <span v-if="field.placeholder">占位符: {{ field.placeholder }}</span>
+                    <span v-if="field.options && field.options.length > 0">
+                      选项: {{ field.options.join(', ') }}
+                    </span>
+                  </div>
+                </div>
+                <div class="field-actions">
+                  <button class="icon-btn" @click="editCustomField(index)" title="编辑">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                    </svg>
+                  </button>
+                  <button class="icon-btn delete" @click="deleteCustomField(index)" title="删除">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 添加/编辑字段表单 -->
+          <div class="add-field-section">
+            <h3>{{ editingFieldIndex !== null ? '编辑字段' : '添加新字段' }}</h3>
+            <div class="form-group">
+              <label>字段名称 <span class="required-mark">*</span></label>
+              <input v-model="newField.label" type="text" placeholder="例如: 负责人" />
+            </div>
+
+            <div class="form-group">
+              <label>字段类型 <span class="required-mark">*</span></label>
+              <select v-model="newField.type">
+                <option value="text">文本</option>
+                <option value="number">数字</option>
+                <option value="date">日期</option>
+                <option value="datetime">日期时间</option>
+                <option value="select">下拉选择</option>
+                <option value="textarea">多行文本</option>
+                <option value="checkbox">复选框</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>占位符/提示文本</label>
+              <input v-model="newField.placeholder" type="text" placeholder="例如: 请输入负责人姓名" />
+            </div>
+
+            <div v-if="newField.type === 'select'" class="form-group">
+              <label>下拉选项 <span class="required-mark">*</span></label>
+              <div class="options-input">
+                <input
+                  v-model="newOptionText"
+                  type="text"
+                  placeholder="输入选项后按回车添加"
+                  @keypress.enter.prevent="addOption"
+                />
+                <button class="metro-btn metro-btn-sm" @click="addOption">添加</button>
+              </div>
+              <div v-if="newField.options.length > 0" class="options-list">
+                <div v-for="(option, idx) in newField.options" :key="idx" class="option-item">
+                  <span>{{ option }}</span>
+                  <button class="icon-btn-sm" @click="removeOption(idx)">×</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label-inline">
+                <input type="checkbox" v-model="newField.required" />
+                <span>必填字段</span>
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button
+                v-if="editingFieldIndex !== null"
+                class="metro-btn"
+                @click="cancelEditField"
+              >
+                取消编辑
+              </button>
+              <button
+                class="metro-btn metro-btn-primary"
+                @click="editingFieldIndex !== null ? updateCustomField() : addCustomField()"
+                :disabled="!newField.label || !newField.type || (newField.type === 'select' && newField.options.length === 0)"
+              >
+                {{ editingFieldIndex !== null ? '更新字段' : '添加字段' }}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button class="metro-btn metro-btn-primary" @click="saveCustomFields">
+            保存并关闭
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -114,54 +328,22 @@ import Gantt, { type DataConfig, type StyleConfig, type EventConfig } from './co
 import { LinkType } from './components/gantt/types/Types';
 
 // 模拟后端 API 服务
+// 在实际项目中，请将这些方法替换为真实的 API 调用
+// 自定义字段说明：
+// - 任务对象应包含 customFieldValues 字段，格式为 { fieldId: value }
+// - 例如：{ customFieldValues: { 'field-123': '张三', 'field-456': 100 } }
+// - 后端需要存储和返回 customFieldValues 数据
 const mockApi = {
   // 模拟延迟
   delay: (ms: number) => new Promise(resolve => setTimeout(resolve, ms)),
-
-  // 查询任务列表
-  async queryTasks(_startDate: string, _endDate: string) {
-    await this.delay(500); // 模拟网络延迟
-    const currentMonth = dayjs().format('YYYY-MM');
-    return {
-      code: 200,
-      message: '查询成功',
-      data: {
-        tasks: [
-          // 模拟数据（与原数据相同）
-          {
-            id: '1',
-            pid: '0',
-            taskNo: '项目规划阶段',
-            level: '重要',
-            start_date: `${currentMonth}-01 08:00:00`,
-            end_date: `${currentMonth}-06 18:00:00`,
-            job_progress: '0.85',
-            spend_time: null
-          },
-          {
-            id: '2',
-            pid: '1',
-            taskNo: '需求分析',
-            level: '紧急',
-            start_date: `${currentMonth}-01 08:00:00`,
-            end_date: `${currentMonth}-02 18:00:00`,
-            job_progress: '1.0',
-            spend_time: null
-          },
-          // ... 其他任务数据会在完整实现中添加
-        ],
-        dependencies: [
-          { sourceTaskId: '2', targetTaskId: 'milestone-1', type: LinkType.FINISH_TO_START },
-          // ... 其他依赖关系
-        ]
-      }
-    };
-  },
 
   // 新增任务
   async addTask(task: any) {
     await this.delay(300);
     console.log('新增任务请求:', task);
+    // 实际项目中，这里应该是：
+    // const response = await axios.post('/api/tasks', task);
+    // return response.data;
     return {
       code: 200,
       message: '任务创建成功',
@@ -176,6 +358,9 @@ const mockApi = {
   async updateTask(taskId: string, task: any) {
     await this.delay(300);
     console.log('更新任务请求:', taskId, task);
+    // 实际项目中，这里应该是：
+    // const response = await axios.put(`/api/tasks/${taskId}`, task);
+    // return response.data;
     return {
       code: 200,
       message: '任务更新成功',
@@ -233,6 +418,7 @@ interface TaskForm {
   end_date: string;
   job_progress: number;
   spend_time: string | null;
+  customFieldValues: Record<string, any>;
 }
 
 const taskForm = ref<TaskForm>({
@@ -242,7 +428,8 @@ const taskForm = ref<TaskForm>({
   start_date: dayjs().format('YYYY-MM-DDTHH:mm'),
   end_date: dayjs().add(1, 'day').format('YYYY-MM-DDTHH:mm'),
   job_progress: 0,
-  spend_time: null
+  spend_time: null,
+  customFieldValues: {}
 });
 
 // 删除任务相关
@@ -270,6 +457,229 @@ const availableParentTasks = computed(() => {
     task.type !== 'milestone' && (!taskForm.value.id || task.id !== taskForm.value.id)
   );
 });
+
+// ============ 自定义字段管理 ============
+
+// 自定义字段定义接口
+interface CustomField {
+  id: string;
+  label: string;
+  type: 'text' | 'number' | 'date' | 'datetime' | 'select' | 'textarea' | 'checkbox';
+  placeholder?: string;
+  required: boolean;
+  options: string[];
+}
+
+// 自定义字段状态
+const showCustomFieldsDialog = ref(false);
+const customFields = ref<CustomField[]>([]);
+const editingFieldIndex = ref<number | null>(null);
+const newField = ref<CustomField>({
+  id: '',
+  label: '',
+  type: 'text',
+  placeholder: '',
+  required: false,
+  options: []
+});
+const newOptionText = ref('');
+
+// 从 localStorage 加载自定义字段
+const loadCustomFields = () => {
+  const saved = localStorage.getItem('gantt_custom_fields');
+  if (saved) {
+    try {
+      customFields.value = JSON.parse(saved);
+      updateTaskHeaders();
+    } catch (error) {
+      console.error('加载自定义字段失败:', error);
+    }
+  }
+};
+
+// 更新任务表头,将自定义字段添加到列显示中
+const updateTaskHeaders = () => {
+  // 获取基础表头（不包含自定义字段）
+  // 注意：序号列(no)是固定列，始终显示，不参与列显示设置
+  const baseHeaders = [
+    { title: 'id', width: 100, property: 'id', show: false },
+    { title: '父id', width: 100, property: 'parentId', show: false },
+    { title: '序号', width: 160, property: 'no', show: true, fixed: true },
+    { title: '任务名称', width: 190, property: 'task', show: true },
+    { title: '优先级', width: 90, property: 'priority', show: true },
+    { title: '开始时间', width: 150, property: 'startdate', show: true },
+    { title: '结束时间', width: 150, property: 'enddate', show: true },
+    { title: '耗时', width: 90, property: 'takestime', show: true }
+  ];
+
+  // 为每个自定义字段创建表头
+  const customFieldHeaders = customFields.value.map(field => ({
+    title: field.label,
+    width: 120,
+    property: `customField_${field.id}`,
+    show: true,
+    isCustomField: true,
+    fieldId: field.id
+  }));
+
+  // 合并基础表头和自定义字段表头
+  dataConfig.value.taskHeaders = [...baseHeaders, ...customFieldHeaders];
+};
+
+// 处理任务数据，将自定义字段值展开到任务对象中
+const processTasksWithCustomFields = (tasks: any[]) => {
+  return tasks.map(task => {
+    const processedTask = { ...task };
+
+    // 如果任务有自定义字段值，展开到任务对象的顶层
+    if (task.customFieldValues) {
+      customFields.value.forEach(field => {
+        const value = task.customFieldValues[field.id];
+        if (value !== undefined) {
+          processedTask[`customField_${field.id}`] = value;
+        }
+      });
+    }
+
+    return processedTask;
+  });
+};
+
+// 保存自定义字段到 localStorage
+const saveCustomFieldsToStorage = () => {
+  localStorage.setItem('gantt_custom_fields', JSON.stringify(customFields.value));
+};
+
+// 打开自定义字段对话框
+const openCustomFieldsDialog = () => {
+  showCustomFieldsDialog.value = true;
+  resetNewField();
+};
+
+// 关闭自定义字段对话框
+const closeCustomFieldsDialog = () => {
+  showCustomFieldsDialog.value = false;
+  resetNewField();
+  editingFieldIndex.value = null;
+};
+
+// 重置新字段表单
+const resetNewField = () => {
+  newField.value = {
+    id: `field-${Date.now()}`,
+    label: '',
+    type: 'text',
+    placeholder: '',
+    required: false,
+    options: []
+  };
+  newOptionText.value = '';
+};
+
+// 添加自定义字段
+const addCustomField = () => {
+  if (!newField.value.label || !newField.value.type) {
+    showMessage('请填写字段名称和类型', 'warning');
+    return;
+  }
+
+  if (newField.value.type === 'select' && newField.value.options.length === 0) {
+    showMessage('下拉选择类型至少需要一个选项', 'warning');
+    return;
+  }
+
+  customFields.value.push({ ...newField.value, id: `field-${Date.now()}` });
+  showMessage('字段添加成功', 'success');
+  resetNewField();
+};
+
+// 编辑自定义字段
+const editCustomField = (index: number) => {
+  editingFieldIndex.value = index;
+  newField.value = { ...customFields.value[index] };
+};
+
+// 更新自定义字段
+const updateCustomField = () => {
+  if (editingFieldIndex.value === null) return;
+
+  if (!newField.value.label || !newField.value.type) {
+    showMessage('请填写字段名称和类型', 'warning');
+    return;
+  }
+
+  if (newField.value.type === 'select' && newField.value.options.length === 0) {
+    showMessage('下拉选择类型至少需要一个选项', 'warning');
+    return;
+  }
+
+  customFields.value[editingFieldIndex.value] = { ...newField.value };
+  showMessage('字段更新成功', 'success');
+  resetNewField();
+  editingFieldIndex.value = null;
+};
+
+// 取消编辑字段
+const cancelEditField = () => {
+  editingFieldIndex.value = null;
+  resetNewField();
+};
+
+// 删除自定义字段
+const deleteCustomField = (index: number) => {
+  const field = customFields.value[index];
+  if (confirm(`确定要删除字段"${field.label}"吗？`)) {
+    customFields.value.splice(index, 1);
+    showMessage('字段删除成功', 'success');
+
+    // 清理所有任务中的该字段值
+    dataConfig.value.dataSource.forEach((task: any) => {
+      if (task.customFieldValues && task.customFieldValues[field.id]) {
+        delete task.customFieldValues[field.id];
+      }
+    });
+  }
+};
+
+// 添加下拉选项
+const addOption = () => {
+  if (!newOptionText.value.trim()) return;
+
+  if (newField.value.options.includes(newOptionText.value.trim())) {
+    showMessage('选项已存在', 'warning');
+    return;
+  }
+
+  newField.value.options.push(newOptionText.value.trim());
+  newOptionText.value = '';
+};
+
+// 删除下拉选项
+const removeOption = (index: number) => {
+  newField.value.options.splice(index, 1);
+};
+
+// 保存自定义字段配置
+const saveCustomFields = () => {
+  saveCustomFieldsToStorage();
+  updateTaskHeaders();
+  showMessage('自定义字段配置已保存', 'success');
+  closeCustomFieldsDialog();
+};
+
+// 获取字段类型标签
+const getFieldTypeLabel = (type: string): string => {
+  const labels: Record<string, string> = {
+    text: '文本',
+    number: '数字',
+    date: '日期',
+    datetime: '日期时间',
+    select: '下拉选择',
+    textarea: '多行文本',
+    checkbox: '复选框'
+  };
+  return labels[type] || type;
+};
 
 // 定义样式配置
 const styleConfig = ref<StyleConfig>({
@@ -308,7 +718,7 @@ const dataConfig = ref<DataConfig>({
   taskHeaders: [
     { title: 'id', width: 100, property: 'id', show: false },
     { title: '父id', width: 100, property: 'parentId', show: false },
-    { title: '序号', width: 160, property: 'no', show: true },
+    { title: '序号', width: 160, property: 'no', show: true, fixed: true },
     { title: '任务名称', width: 190, property: 'task', show: true },
     { title: '优先级', width: 90, property: 'priority', show: true },
     { title: '开始时间', width: 150, property: 'startdate', show: true },
@@ -327,7 +737,8 @@ const openAddRootTaskDialog = () => {
     start_date: dayjs().format('YYYY-MM-DDTHH:mm'),
     end_date: dayjs().add(1, 'day').format('YYYY-MM-DDTHH:mm'),
     job_progress: 0,
-    spend_time: null
+    spend_time: null,
+    customFieldValues: {}
   };
   showTaskDialog.value = true;
 };
@@ -343,7 +754,8 @@ const openAddSubTaskDialog = (parentId: string) => {
     start_date: parentTask ? parentTask.start_date.replace(' ', 'T').slice(0, 16) : dayjs().format('YYYY-MM-DDTHH:mm'),
     end_date: parentTask ? parentTask.end_date.replace(' ', 'T').slice(0, 16) : dayjs().add(1, 'day').format('YYYY-MM-DDTHH:mm'),
     job_progress: 0,
-    spend_time: null
+    spend_time: null,
+    customFieldValues: {}
   };
   showTaskDialog.value = true;
 };
@@ -361,7 +773,8 @@ const openEditTaskDialog = (taskId: string) => {
       start_date: task.start_date.replace(' ', 'T').slice(0, 16),
       end_date: task.end_date.replace(' ', 'T').slice(0, 16),
       job_progress: parseFloat(task.job_progress),
-      spend_time: task.spend_time
+      spend_time: task.spend_time,
+      customFieldValues: task.customFieldValues || {}
     };
     showTaskDialog.value = true;
   }
@@ -408,7 +821,23 @@ const saveTask = async () => {
         // 更新本地数据
         const index = dataConfig.value.dataSource.findIndex((t: any) => t.id === taskForm.value.id);
         if (index !== -1) {
-          dataConfig.value.dataSource[index] = { ...dataConfig.value.dataSource[index], ...taskData };
+          // 合并更新的数据
+          const updatedTask = { ...dataConfig.value.dataSource[index], ...taskData };
+
+          // 处理自定义字段：将 customFieldValues 展开到顶层
+          if (updatedTask.customFieldValues) {
+            customFields.value.forEach(field => {
+              const value = updatedTask.customFieldValues[field.id];
+              if (value !== undefined) {
+                updatedTask[`customField_${field.id}`] = value;
+              }
+            });
+          }
+
+          dataConfig.value.dataSource[index] = updatedTask;
+
+          // 强制触发响应式更新
+          dataConfig.value.dataSource = [...dataConfig.value.dataSource];
         }
         showMessage('任务更新成功', 'success');
         closeTaskDialog();
@@ -419,8 +848,19 @@ const saveTask = async () => {
       // 新增任务
       const response = await mockApi.addTask(taskData);
       if (response.code === 200) {
+        // 处理新任务的自定义字段
+        const newTask = response.data;
+        if (newTask.customFieldValues) {
+          customFields.value.forEach(field => {
+            const value = newTask.customFieldValues[field.id];
+            if (value !== undefined) {
+              newTask[`customField_${field.id}`] = value;
+            }
+          });
+        }
+
         // 添加到本地数据
-        dataConfig.value.dataSource.push(response.data);
+        dataConfig.value.dataSource.push(newTask);
         showMessage('任务创建成功', 'success');
         closeTaskDialog();
       } else {
@@ -984,9 +1424,10 @@ const eventConfig = ref<EventConfig>({
       { sourceTaskId: '31', targetTaskId: '29', type: LinkType.START_TO_FINISH }
     ]
     };
-    
-    // 使用后端返回的数据
-    dataConfig.value.dataSource = mockResponse.tasks;
+
+    // 使用后端返回的数据，并处理自定义字段
+    // 注意：在实际项目中，后端应该返回包含 customFieldValues 的任务数据
+    dataConfig.value.dataSource = processTasksWithCustomFields(mockResponse.tasks);
     dataConfig.value.dependencies = mockResponse.dependencies;
   },
   barDate: async (id: string, startDate: string, endDate: string) => {
@@ -1013,6 +1454,9 @@ const eventConfig = ref<EventConfig>({
 });
 
 onMounted(() => {
+  // 加载自定义字段配置
+  loadCustomFields();
+
   const startDate = dayjs().startOf('month').format('YYYY-MM-DD');
   const endDate = dayjs().endOf('month').format('YYYY-MM-DD');
   dataConfig.value.queryStartDate = startDate;
@@ -1315,5 +1759,302 @@ onMounted(() => {
   background: #ffb900;
   color: #333333;
   border-left: 4px solid #d39300;
+}
+
+/* 自定义字段相关样式 */
+.custom-fields-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 2px solid #e0e0e0;
+}
+
+.section-divider {
+  text-align: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.section-divider span {
+  background: #ffffff;
+  padding: 0 16px;
+  color: #666666;
+  font-size: 14px;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+}
+
+.section-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #d0d0d0;
+  z-index: 0;
+}
+
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 2px;
+  font-size: 14px;
+  font-family: 'Segoe UI', sans-serif;
+  transition: all 0.2s;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: #0078d4;
+  box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.checkbox-wrapper .checkbox-label {
+  margin: 0;
+  font-weight: normal;
+  color: #333333;
+  cursor: pointer;
+}
+
+.required-mark {
+  color: #d83b01;
+  font-weight: bold;
+  margin-left: 4px;
+}
+
+/* 自定义字段管理对话框 */
+.custom-fields-dialog {
+  background: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-out;
+}
+
+.custom-fields-dialog .dialog-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.fields-list,
+.add-field-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.fields-list h3,
+.add-field-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333333;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #0078d4;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999999;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.field-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.field-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px;
+  background: #f8f8f8;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.field-item:hover {
+  background: #f0f0f0;
+  border-color: #0078d4;
+}
+
+.field-info {
+  flex: 1;
+}
+
+.field-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.field-name strong {
+  font-size: 14px;
+  color: #333333;
+}
+
+.field-type-badge {
+  background: #0078d4;
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.required-badge {
+  background: #d83b01;
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.field-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-meta span {
+  font-size: 12px;
+  color: #666666;
+}
+
+.field-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666666;
+}
+
+.icon-btn:hover {
+  background: rgba(0, 120, 212, 0.1);
+  color: #0078d4;
+}
+
+.icon-btn.delete:hover {
+  background: rgba(216, 59, 1, 0.1);
+  color: #d83b01;
+}
+
+.options-input {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.options-input input {
+  flex: 1;
+}
+
+.metro-btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.options-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  background: #f8f8f8;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 1px solid #d0d0d0;
+  font-size: 13px;
+}
+
+.icon-btn-sm {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #d83b01;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.icon-btn-sm:hover {
+  color: #a72700;
+  transform: scale(1.2);
+}
+
+.checkbox-label-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.checkbox-label-inline input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  justify-content: flex-end;
 }
 </style>

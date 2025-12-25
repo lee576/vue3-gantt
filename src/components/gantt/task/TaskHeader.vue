@@ -1,17 +1,17 @@
 <template>
     <div class="header">
       <template v-for='(item, index) in headers' :key="index">
-        <div 
-          :property='item.property' 
-          :columnindex='index' 
-          v-show="item.show" 
+        <div
+          :property='item.property'
+          :columnindex='index'
+          v-show="item.property === 'no' || item.show"
           class="headerCaption"
           :style="{ width: `${item.width}px` }"
         >
           <span>{{ getHeaderTitle(item) }}</span>
           <!-- 列宽调整拖动手柄 -->
           <!-- 序号列（property='no'）始终显示拖动手柄，其他列只有在显示时才显示 -->
-          <div 
+          <div
             v-if="(item.property === 'no' || item.show) && index < headers.length - 1"
             class="resize-handle"
             @mousedown="startResize($event, index)"

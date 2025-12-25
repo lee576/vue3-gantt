@@ -46,15 +46,16 @@
 
         <!-- 列配置列表 -->
         <div class="column-list">
-          <div 
-            v-for="(header, index) in headers" 
+          <div
+            v-for="(header, index) in headers"
             :key="header.property"
+            v-show="header.property !== 'no'"
             class="column-item"
             :class="{ disabled: !header.show }"
           >
             <label class="checkbox-wrapper">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 :checked="header.show"
                 @change="toggleColumn(index)"
               />

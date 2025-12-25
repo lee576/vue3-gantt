@@ -159,16 +159,21 @@ export let mutations: MutationsType = {
     store.collapsedTasks = new Set(store.collapsedTasks);
   },
   setRootTask(rootTask: any): void {
-    store.rootTask = rootTask;
+    // 创建新对象并添加时间戳，确保每次都能触发 watch
+    store.rootTask = { ...rootTask, _timestamp: Date.now() };
   },
   setSubTask(subTask: any): void {
-    store.subTask = subTask;
+    // 创建新对象并添加时间戳，确保每次都能触发 watch
+    store.subTask = { ...subTask, _timestamp: Date.now() };
   },
   setEditTask(editTask: any): void {
-    store.editTask = editTask;
+    // 创建新对象并添加时间戳，确保每次都能触发 watch
+    // 这样即使双击同一任务多次，也能正确触发编辑对话框
+    store.editTask = { ...editTask, _timestamp: Date.now() };
   },
   setRemoveTask(removeTask: any): void {
-    store.removeTask = removeTask;
+    // 创建新对象并添加时间戳，确保每次都能触发 watch
+    store.removeTask = { ...removeTask, _timestamp: Date.now() };
   },
   setBarDate(barDate: { id: string; startDate: string; endDate: string }): void {
     store.barDate = barDate;
