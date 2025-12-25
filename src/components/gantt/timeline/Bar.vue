@@ -8,7 +8,6 @@
 </template>
 <script lang="ts">
 import { defineComponent, watch, ref, computed, onMounted, onDeactivated, onBeforeUnmount, inject } from 'vue';
-import SVG from 'svg.js';
 import interact from 'interactjs';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
@@ -33,25 +32,16 @@ export default defineComponent({
     setup(props, { emit }) {
         const bar = ref<SVGSVGElement | null>(null);
         const barHeight = ref(props.rowHeight * 0.7);
-        const direction = ref<string | null>(null);
         const showRow = ref(true);
-        const hover = ref(false);
         const barColor = ref('');
         const isBarInteracted = ref(false);
-        const themeVersion = ref(0);
-        
+
         // 使用 useBarGeometry composables
         const { oldBarDataX, oldBarWidth, computePosition } = useBarGeometry(props, store.mapFields);
-        
+
         // 使用 useBarTheme composables
-        const { themeVersion: themeVersionFromComposable, barRowStyle, WeekEndColor: WeekEndColorFromComposable, setupThemeObserver } = useBarTheme(bar, props);
-        
-        // 更新 themeVersion 以保持兼容性
-        watch(() => themeVersionFromComposable.value, () => {
-            themeVersion.value = themeVersionFromComposable.value;
-        });
-        
-        const timelineCellCount = computed(() => store.timelineCellCount);
+        const { barRowStyle, setupThemeObserver } = useBarTheme(bar, props);
+
         const scale = computed(() => store.scale);
         const mode = computed(() => store.mode);
         const mapFields = computed(() => store.mapFields);
@@ -169,8 +159,8 @@ export default defineComponent({
         });
 
         return {
-            bar, barHeight, direction, oldBarDataX, oldBarWidth, showRow, hover: hoverFromComposable, barColor,
-            timelineCellCount, scale, mode, mapFields, hoverActive, hoverInactive, WeekEndColor: WeekEndColorFromComposable, barRowStyle
+            bar, barHeight, showRow, hover: hoverFromComposable,
+            hoverActive, hoverInactive, barRowStyle, mapFields
         };
     },
 })
@@ -178,10 +168,6 @@ export default defineComponent({
 <style lang="scss" scoped>
 .barRow.active {
     background: var(--row-hover, #FFF3A1) !important;
-
-    .cell {
-        background: var(--row-hover, #FFF3A1) !important;
-    }
 }
 
 .barRow {
@@ -199,56 +185,6 @@ export default defineComponent({
         background-color: #faf7ec;
         border-radius: 10px;
         overflow: visible;
-    }
-
-    &:first-child .cell {
-        border-top: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
-        position: relative;
-        margin: 0;
-        box-sizing: border-box;
-
-        &:first-child {
-            border-left: 1px solid var(--border, #cecece);
-        }
-
-        &:not(:last-child) {
-            border-right: 1px solid var(--border, #cecece);
-        }
-
-        &:last-child {
-            border-right: 1px solid var(--border, #cecece);
-        }
-    }
-
-    &:not(:first-child) .cell {
-        border-top: 1px solid var(--border, #cecece);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
-        position: relative;
-        margin: 0;
-        box-sizing: border-box;
-
-        &:first-child {
-            border-left: 1px solid var(--border, #cecece);
-        }
-
-        &:not(:last-child) {
-            border-right: 1px solid var(--border, #cecece);
-        }
-
-        &:last-child {
-            border-right: 1px solid var(--border, #cecece);
-        }
-    }
-
-    &:last-child .cell {
-        border-bottom: 1px solid var(--border, #cecece);
     }
 }
 
