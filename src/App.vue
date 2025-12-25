@@ -974,6 +974,10 @@ const saveTask = async () => {
 
         // 添加到本地数据
         dataConfig.value.dataSource.push(newTask);
+        
+        // 强制触发响应式更新，确保新增任务能立即显示
+        dataConfig.value.dataSource = [...dataConfig.value.dataSource];
+        
         showMessage('任务创建成功', 'success');
         closeTaskDialog();
       } else {

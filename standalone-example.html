@@ -853,6 +853,10 @@
             }
 
             this.dataConfig.dataSource.push(newTask);
+            
+            // 强制触发响应式更新，确保新增任务能立即显示
+            this.dataConfig.dataSource = [...this.dataConfig.dataSource];
+            
             this.showMessage('任务创建成功', 'success');
           }
 
