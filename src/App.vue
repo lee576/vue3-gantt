@@ -44,7 +44,8 @@
         <div class="dialog-body">
           <div class="form-group">
             <label>任务名称</label>
-            <input v-model="taskForm.taskNo" type="text" placeholder="请输入任务名称" />
+            <input v-model="taskForm.taskNo" type="text" placeholder="请输入任务名称" :class="{ 'error': taskFormErrors.taskNo }" />
+            <div v-if="taskFormErrors.taskNo" class="error-message">{{ taskFormErrors.taskNo }}</div>
           </div>
           <div class="form-group">
             <label>优先级</label>
@@ -58,16 +59,20 @@
           <div class="form-row">
             <div class="form-group">
               <label>开始时间</label>
-              <input v-model="taskForm.start_date" type="datetime-local" />
+              <input v-model="taskForm.start_date" type="datetime-local" :class="{ 'error': taskFormErrors.start_date || taskFormErrors.dateRange }" />
+              <div v-if="taskFormErrors.start_date" class="error-message">{{ taskFormErrors.start_date }}</div>
             </div>
             <div class="form-group">
               <label>结束时间</label>
-              <input v-model="taskForm.end_date" type="datetime-local" />
+              <input v-model="taskForm.end_date" type="datetime-local" :class="{ 'error': taskFormErrors.end_date || taskFormErrors.dateRange }" />
+              <div v-if="taskFormErrors.end_date" class="error-message">{{ taskFormErrors.end_date }}</div>
+              <div v-if="taskFormErrors.dateRange" class="error-message">{{ taskFormErrors.dateRange }}</div>
             </div>
           </div>
           <div class="form-group">
             <label>进度 (0-1)</label>
-            <input v-model.number="taskForm.job_progress" type="number" min="0" max="1" step="0.1" />
+            <input v-model.number="taskForm.job_progress" type="number" min="0" max="1" step="0.1" :class="{ 'error': taskFormErrors.job_progress }" />
+            <div v-if="taskFormErrors.job_progress" class="error-message">{{ taskFormErrors.job_progress }}</div>
           </div>
           <div class="form-group" v-if="!isEditMode && !isRootTask">
             <label>父任务</label>
@@ -98,7 +103,9 @@
                 type="text"
                 :placeholder="field.placeholder || `请输入${field.label}`"
                 :required="field.required"
+                :class="{ 'error': taskFormErrors[`customField_${field.id}`] }"
               />
+              <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">{{ taskFormErrors[`customField_${field.id}`] }}</div>
 
               <!-- 数字输入 -->
               <input
@@ -107,7 +114,9 @@
                 type="number"
                 :placeholder="field.placeholder || `请输入${field.label}`"
                 :required="field.required"
+                :class="{ 'error': taskFormErrors[`customField_${field.id}`] }"
               />
+              <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">{{ taskFormErrors[`customField_${field.id}`] }}</div>
 
               <!-- 日期输入 -->
               <input
@@ -115,7 +124,9 @@
                 v-model="taskForm.customFieldValues[field.id]"
                 type="date"
                 :required="field.required"
+                :class="{ 'error': taskFormErrors[`customField_${field.id}`] }"
               />
+              <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">{{ taskFormErrors[`customField_${field.id}`] }}</div>
 
               <!-- 日期时间输入 -->
               <input
@@ -123,13 +134,16 @@
                 v-model="taskForm.customFieldValues[field.id]"
                 type="datetime-local"
                 :required="field.required"
+                :class="{ 'error': taskFormErrors[`customField_${field.id}`] }"
               />
+              <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">{{ taskFormErrors[`customField_${field.id}`] }}</div>
 
               <!-- 下拉选择 -->
               <select
                 v-else-if="field.type === 'select'"
                 v-model="taskForm.customFieldValues[field.id]"
                 :required="field.required"
+                :class="{ 'error': taskFormErrors[`customField_${field.id}`] }"
               >
                 <option value="">请选择{{ field.label }}</option>
                 <option
@@ -140,6 +154,7 @@
                   {{ option }}
                 </option>
               </select>
+              <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">{{ taskFormErrors[`customField_${field.id}`] }}</div>
 
               <!-- 多行文本 -->
               <textarea
@@ -148,7 +163,9 @@
                 :placeholder="field.placeholder || `请输入${field.label}`"
                 :required="field.required"
                 rows="3"
+                :class="{ 'error': taskFormErrors[`customField_${field.id}`] }"
               ></textarea>
+              <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">{{ taskFormErrors[`customField_${field.id}`] }}</div>
 
               <!-- 复选框 -->
               <div v-else-if="field.type === 'checkbox'" class="checkbox-wrapper">
@@ -156,11 +173,13 @@
                   type="checkbox"
                   :id="`checkbox-${field.id}`"
                   v-model="taskForm.customFieldValues[field.id]"
+                  :class="{ 'error': taskFormErrors[`customField_${field.id}`] }"
                 />
                 <label :for="`checkbox-${field.id}`" class="checkbox-label">
                   {{ field.placeholder || '启用' }}
                 </label>
               </div>
+              <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">{{ taskFormErrors[`customField_${field.id}`] }}</div>
             </div>
           </div>
         </div>
@@ -246,12 +265,13 @@
             <h3>{{ editingFieldIndex !== null ? '编辑字段' : '添加新字段' }}</h3>
             <div class="form-group">
               <label>字段名称 <span class="required-mark">*</span></label>
-              <input v-model="newField.label" type="text" placeholder="例如: 负责人" />
+              <input v-model="newField.label" type="text" placeholder="例如: 负责人" :class="{ 'error': customFieldFormErrors.label }" />
+              <div v-if="customFieldFormErrors.label" class="error-message">{{ customFieldFormErrors.label }}</div>
             </div>
 
             <div class="form-group">
               <label>字段类型 <span class="required-mark">*</span></label>
-              <select v-model="newField.type">
+              <select v-model="newField.type" :class="{ 'error': customFieldFormErrors.type }">
                 <option value="text">文本</option>
                 <option value="number">数字</option>
                 <option value="date">日期</option>
@@ -260,6 +280,7 @@
                 <option value="textarea">多行文本</option>
                 <option value="checkbox">复选框</option>
               </select>
+              <div v-if="customFieldFormErrors.type" class="error-message">{{ customFieldFormErrors.type }}</div>
             </div>
 
             <div class="form-group">
@@ -284,6 +305,7 @@
                   <button class="icon-btn-sm" @click="removeOption(idx)">×</button>
                 </div>
               </div>
+              <div v-if="customFieldFormErrors.options" class="error-message">{{ customFieldFormErrors.options }}</div>
             </div>
 
             <div class="form-group">
@@ -408,6 +430,9 @@ const showDeleteDialog = ref(false);
 const isEditMode = ref(false);
 const isRootTask = ref(false);
 
+// 验证状态
+const taskFormErrors = ref<Record<string, string>>({});
+
 // 任务表单数据
 interface TaskForm {
   id?: string;
@@ -431,6 +456,58 @@ const taskForm = ref<TaskForm>({
   spend_time: null,
   customFieldValues: {}
 });
+
+// 验证任务表单
+const validateTaskForm = (): boolean => {
+  const errors: Record<string, string> = {};
+  
+  // 验证任务名称（必填）
+  if (!taskForm.value.taskNo.trim()) {
+    errors.taskNo = '任务名称不能为空';
+  }
+  
+  // 验证开始时间（必填）
+  if (!taskForm.value.start_date) {
+    errors.start_date = '开始时间不能为空';
+  }
+  
+  // 验证结束时间（必填）
+  if (!taskForm.value.end_date) {
+    errors.end_date = '结束时间不能为空';
+  }
+  
+  // 验证开始时间不能晚于结束时间
+  if (taskForm.value.start_date && taskForm.value.end_date && 
+      dayjs(taskForm.value.start_date).isAfter(dayjs(taskForm.value.end_date))) {
+    errors.dateRange = '开始时间不能晚于结束时间';
+  }
+  
+  // 验证进度范围 (0-1)
+  if (taskForm.value.job_progress < 0 || taskForm.value.job_progress > 1) {
+    errors.job_progress = '进度必须在0-1之间';
+  }
+  
+  // 验证自定义字段
+  if (customFields.value.length > 0) {
+    customFields.value.forEach(field => {
+      if (field.required && (!taskForm.value.customFieldValues[field.id] || 
+          String(taskForm.value.customFieldValues[field.id]).trim() === '')) {
+        errors[`customField_${field.id}`] = `${field.label}为必填字段`;
+      }
+      
+      // 验证数字类型字段
+      if (field.type === 'number' && taskForm.value.customFieldValues[field.id] !== undefined) {
+        const value = Number(taskForm.value.customFieldValues[field.id]);
+        if (isNaN(value)) {
+          errors[`customField_${field.id}`] = `${field.label}必须是数字`;
+        }
+      }
+    });
+  }
+  
+  taskFormErrors.value = errors;
+  return Object.keys(errors).length === 0;
+};
 
 // 删除任务相关
 const deleteTaskId = ref('');
@@ -483,6 +560,32 @@ const newField = ref<CustomField>({
   options: []
 });
 const newOptionText = ref('');
+
+// 自定义字段表单验证状态
+const customFieldFormErrors = ref<Record<string, string>>({});
+
+// 验证自定义字段表单
+const validateCustomFieldForm = (): boolean => {
+  const errors: Record<string, string> = {};
+  
+  // 验证字段名称（必填）
+  if (!newField.value.label.trim()) {
+    errors.label = '字段名称不能为空';
+  }
+  
+  // 验证字段类型（必选）
+  if (!newField.value.type) {
+    errors.type = '请选择字段类型';
+  }
+  
+  // 验证下拉选项（如果是下拉类型且为必填）
+  if (newField.value.type === 'select' && newField.value.options.length === 0) {
+    errors.options = '下拉选择类型至少需要一个选项';
+  }
+  
+  customFieldFormErrors.value = errors;
+  return Object.keys(errors).length === 0;
+};
 
 // 从 localStorage 加载自定义字段
 const loadCustomFields = () => {
@@ -574,17 +677,13 @@ const resetNewField = () => {
     options: []
   };
   newOptionText.value = '';
+  customFieldFormErrors.value = {};
 };
 
 // 添加自定义字段
 const addCustomField = () => {
-  if (!newField.value.label || !newField.value.type) {
-    showMessage('请填写字段名称和类型', 'warning');
-    return;
-  }
-
-  if (newField.value.type === 'select' && newField.value.options.length === 0) {
-    showMessage('下拉选择类型至少需要一个选项', 'warning');
+  if (!validateCustomFieldForm()) {
+    showMessage('请修正表单中的错误', 'error');
     return;
   }
 
@@ -603,13 +702,8 @@ const editCustomField = (index: number) => {
 const updateCustomField = () => {
   if (editingFieldIndex.value === null) return;
 
-  if (!newField.value.label || !newField.value.type) {
-    showMessage('请填写字段名称和类型', 'warning');
-    return;
-  }
-
-  if (newField.value.type === 'select' && newField.value.options.length === 0) {
-    showMessage('下拉选择类型至少需要一个选项', 'warning');
+  if (!validateCustomFieldForm()) {
+    showMessage('请修正表单中的错误', 'error');
     return;
   }
 
@@ -652,11 +746,24 @@ const addOption = () => {
 
   newField.value.options.push(newOptionText.value.trim());
   newOptionText.value = '';
+  
+  // 清除相关错误信息
+  if (customFieldFormErrors.value.options) {
+    delete customFieldFormErrors.value.options;
+  }
 };
 
 // 删除下拉选项
 const removeOption = (index: number) => {
   newField.value.options.splice(index, 1);
+  
+  // 如果删除后选项为空且类型为select，则显示错误
+  if (newField.value.type === 'select' && newField.value.options.length === 0) {
+    customFieldFormErrors.value.options = '下拉选择类型至少需要一个选项';
+  } else if (customFieldFormErrors.value.options) {
+    // 否则清除错误信息
+    delete customFieldFormErrors.value.options;
+  }
 };
 
 // 保存自定义字段配置
@@ -801,6 +908,12 @@ const closeDeleteDialog = () => {
 
 // CRUD操作方法
 const saveTask = async () => {
+  // 首先验证表单
+  if (!validateTaskForm()) {
+    showMessage('请修正表单中的错误', 'error');
+    return;
+  }
+  
   try {
     // 格式化日期时间
     const formatDate = (dateStr: string) => {
@@ -1835,6 +1948,18 @@ onMounted(() => {
   color: #d83b01;
   font-weight: bold;
   margin-left: 4px;
+}
+
+.error {
+  border-color: #d83b01 !important;
+  box-shadow: 0 0 0 3px rgba(216, 59, 1, 0.1) !important;
+}
+
+.error-message {
+  color: #d83b01;
+  font-size: 12px;
+  margin-top: 4px;
+  margin-bottom: 8px;
 }
 
 /* 自定义字段管理对话框 */
