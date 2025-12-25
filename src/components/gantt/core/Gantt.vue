@@ -1,7 +1,5 @@
 <template>
     <div class="page gantt-container" ref="ganttContainer">
-        <!-- Liquid Glass SVG 滤镜 - 仅在 liquidGlass 主题下渲染 -->
-        <LiquidGlassFilter v-if="currentTheme === 'liquidGlass'" />
         <div class="toolbar">
             <div class="dateInput">
                 <DatePicker :date="startDate" :min-date="minStartDate" :max-date="maxStartDate"
@@ -221,7 +219,6 @@ import SplitPane from './SplitPane.vue';
 import TaskTable from '../task/TaskTable.vue';
 import RightTable from '../timeline/RightTable.vue';
 import GanttConfigPanel from '../config/GanttConfigPanel.vue';
-import LiquidGlassFilter from '../filters/LiquidGlassFilter.vue';
 import { store, mutations } from '../state/Store';
 export type { DataConfig, StyleConfig, EventConfig, TaskHeader } from '../types/Types';
 // 移除未使用的类型导入
