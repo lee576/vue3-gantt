@@ -44,11 +44,12 @@
 ## ✨ 核心特性
 
 ### 📅 多视图模式
-支持四种时间粒度，满足不同场景需求：
+支持五种时间粒度，满足不同场景需求：
+- **季度视图** - 超长期项目规划，按月显示
 - **月视图** - 长期项目规划，按天显示
-- **周视图** - 中期项目跟踪，按周显示  
-- **日视图** - 短期任务管理，精确到天
-- **时视图** - 精细任务调度，按小时显示
+- **周视图** - 中期项目跟踪，按周显示
+- **日视图** - 短期任务管理，支持全天/半天细分模式
+- **时视图** - 精细任务调度，支持小时/30分钟/15分钟细分模式
 
 ### 🔗 任务依赖管理
 - **完成-开始 (FS)** - 前置任务完成后，后续任务才能开始
@@ -62,7 +63,7 @@
 - 自动识别（开始时间=结束时间）或手动标记
 
 ### 🎨 主题系统
-- 内置 5 种精美主题（Metro/Dark/Modern/Classic/Colorful）
+- 内置 7 种精美主题（Metro/Dark/Modern/Classic/Colorful/Apple/Liquid Glass）
 - 支持深色模式，护眼舒适
 - 完整的 CSS 变量支持，轻松自定义主题
 - 主题设置自动保存到浏览器
@@ -480,19 +481,36 @@ dependencies: [
 
 | 模式 | 时间单位 | 表头示例 | 适用场景 |
 |------|----------|----------|----------|
-| 🗓️ **月视图** | 天 | `01 02 03 04 05 ...` | 长期项目规划 |
+| � **季度视图** | 月 | `2024-Q1 2024-Q2 2024-Q3 ...` | 超长期项目规划 |
+| ��️ **月视图** | 天 | `01 02 03 04 05 ...` | 长期项目规划 |
 | 📅 **日视图** | 天 | `周一 周二 周三 ...` | 短期任务管理 |
 | 📊 **周视图** | 周 | `W50 W51 W52 ...` | 中期项目跟踪 |
 | ⏰ **时视图** | 小时 | `08 09 10 11 12 ...` | 精细任务调度 |
 
-组件支持四种时间粒度视图：
+组件支持五种时间粒度视图：
 
-| 模式 | 说明 | 适用场景 |
-|------|------|----------|
-| 月 | 按天显示，月份为单位 | 长期项目规划 |
-| 日 | 按天显示，精确到天 | 短期任务管理 |
-| 周 | 按周显示 | 中期项目跟踪 |
-| 时 | 按小时显示 | 精细任务调度 |
+| 模式 | 说明 | 细分模式 | 适用场景 |
+|------|------|----------|----------|
+| 季度 | 按月显示，以季度为单位 | - | 超长期项目规划 |
+| 月 | 按天显示，以月份为单位 | - | 长期项目规划 |
+| 日 | 按天显示，精确到天 | 全天 / 半天 | 短期任务管理 |
+| 周 | 按周显示 | - | 中期项目跟踪 |
+| 时 | 按小时显示 | 小时 / 30分钟 / 15分钟 | 精细任务调度 |
+
+### 视图模式切换
+
+组件顶部提供视图模式切换按钮，点击即可在不同视图模式之间切换。
+
+### 细分模式说明
+
+**日视图细分模式：**
+- **全天** - 每天显示为一个完整的时间段
+- **半天** - 每天分为上午和下午两个时间段
+
+**时视图细分模式：**
+- **小时** - 每小时显示为一个时间段
+- **30分钟** - 每小时分为两个30分钟时间段
+- **15分钟** - 每小时分为四个15分钟时间段
 
 ## 主题系统
 
@@ -503,6 +521,8 @@ dependencies: [
 | ✨ **现代简约** | `#6366f1` | 简洁现代设计，清爽舒适 |
 | 💼 **经典商务** | `#2563eb` | 传统商务风格，稳重大方 |
 | 🎨 **彩色活力** | `#f59e0b` | 活泼彩色主题，充满活力 |
+| 🍎 **Apple 风格** | `#007aff` | 简约优雅的 macOS 风格，流畅自然 |
+| 💧 **Liquid Glass** | `#007aff` | iOS 26 液态玻璃效果，半透明流动质感 |
 
 ### 内置主题
 
@@ -513,6 +533,8 @@ dependencies: [
 | modern | 现代简约 | 简洁现代设计 |
 | classic | 经典商务 | 传统商务风格 |
 | colorful | 彩色活力 | 活泼彩色主题 |
+| apple | Apple 风格 | 简约优雅的 macOS 风格 |
+| liquidGlass | Liquid Glass | iOS 26 液态玻璃效果 |
 
 ### 切换主题
 
@@ -1420,47 +1442,96 @@ interface LinkConfig {
 ```
 src/
 ├── components/
+│   ├── CustomFieldsDialog.vue    # 自定义字段对话框
+│   ├── DeleteConfirmDialog.vue   # 删除确认对话框
+│   ├── MessageToast.vue          # 消息提示组件
+│   ├── TaskDialog.vue            # 任务编辑对话框
 │   └── gantt/
-│       ├── Gantt.vue           # 主组件
-│       ├── Bar.vue             # 任务条组件
-│       ├── BarRecursionRow.vue # 递归行组件
-│       ├── TaskLinks.vue       # 连线组件
-│       ├── TimelineHeader.vue  # 时间轴表头
-│       ├── TableContent.vue    # 表格内容
-│       ├── RightTable.vue      # 右侧甘特图区域
-│       ├── SplitPane.vue       # 分割面板
-│       ├── DatePicker.vue      # 日期选择器
-│       ├── GanttConfigPanel.vue    # 配置面板
-│       ├── GanttThemeSelector.vue  # 主题选择器
-│       ├── LanguageSelector.vue    # 语言选择器
-│       ├── LinkConfigPanel.vue     # 连线配置面板
-│       ├── Types.ts            # 类型定义
-│       ├── Store.ts            # 状态管理
-│       ├── ShareState.ts       # 共享状态
-│       ├── LinkConfig.ts       # 连线配置
-│       ├── Symbols.ts          # 注入符号
-│       ├── ZodSchema.ts        # 数据验证
-│       ├── i18n/               # 国际化系统
-│       │   ├── index.ts        # i18n 核心
-│       │   └── locales/        # 语言包
-│       │       ├── zh-CN.ts    # 中文语言包
-│       │       ├── en-US.ts    # 英文语言包
-│       │       ├── ja-JP.ts    # 日语语言包
-│       │       ├── ko-KR.ts    # 韩语语言包
-│       │       ├── fr-FR.ts    # 法语语言包
-│       │       ├── de-DE.ts    # 德语语言包
-│       │       ├── es-ES.ts    # 西班牙语语言包
-│       │       └── ru-RU.ts    # 俄语语言包
-│       ├── task/               # 任务相关组件
-│       │   ├── TaskTable.vue
-│       │   ├── TaskHeader.vue
-│       │   ├── TaskContent.vue
-│       │   └── TaskRow.vue
-│       └── themes/             # 主题配置
-│           └── GanttThemes.ts
-├── App.vue                     # 示例应用
-├── main.ts                     # 入口文件
-└── style.css                   # 全局样式
+│       ├── composables/          # 甘特图组合式函数
+│       │   ├── LinkConfig.ts
+│       │   ├── PerformanceConfig.ts
+│       │   ├── useHorizontalVirtualScroll.ts
+│       │   └── useVirtualScroll.ts
+│       ├── config/               # 配置面板组件
+│       │   ├── CheckboxConfig.vue
+│       │   ├── ColorInput.vue
+│       │   ├── ColumnConfigPanel.vue
+│       │   ├── ConfigSection.vue
+│       │   ├── DatePicker.vue
+│       │   ├── GanttConfigPanel.vue
+│       │   ├── GanttThemeSelector.vue
+│       │   ├── LanguageSelector.vue
+│       │   ├── LinkConfigPanel.vue
+│       │   ├── LinkTypeColorConfig.vue
+│       │   ├── PathTypeSelector.vue
+│       │   ├── SliderInput.vue
+│       │   └── ThemeSelector.vue
+│       ├── core/                 # 核心组件
+│       │   ├── Gantt.vue         # 主组件
+│       │   └── SplitPane.vue     # 分割面板
+│       ├── gantt.css             # 甘特图样式
+│       ├── i18n/                 # 国际化系统
+│       │   ├── index.ts          # i18n 核心
+│       │   └── locales/          # 语言包
+│       │       ├── zh-CN.ts      # 中文语言包
+│       │       ├── zh-TW.ts      # 繁体中文语言包
+│       │       ├── en-US.ts      # 英文语言包
+│       │       ├── ja-JP.ts      # 日语语言包
+│       │       ├── ko-KR.ts      # 韩语语言包
+│       │       ├── fr-FR.ts      # 法语语言包
+│       │       ├── de-DE.ts      # 德语语言包
+│       │       ├── es-ES.ts      # 西班牙语语言包
+│       │       └── ru-RU.ts      # 俄语语言包
+│       ├── links/                # 连线组件
+│       │   └── TaskLinks.vue     # 任务连线
+│       ├── state/                # 状态管理
+│       │   ├── ShareState.ts     # 共享状态
+│       │   ├── Store.ts          # 状态存储
+│       │   └── Symbols.ts        # 注入符号
+│       ├── task/                 # 任务相关组件
+│       │   ├── TaskTable.vue     # 任务表格
+│       │   ├── TaskHeader.vue    # 任务表头
+│       │   ├── TaskContent.vue   # 任务内容
+│       │   ├── TaskRow.vue       # 任务行
+│       │   └── TaskRecursionRow.vue  # 递归任务行
+│       ├── themes/               # 主题配置
+│       │   ├── GanttThemes.ts    # 主题定义
+│       │   └── LiquidGlass.css   # 液态玻璃主题
+│       ├── timeline/             # 时间轴组件
+│       │   ├── Bar.vue           # 任务条
+│       │   ├── BarRecursionRow.vue  # 递归任务条
+│       │   ├── Milestone.vue     # 里程碑
+│       │   ├── RightTable.vue    # 右侧甘特图区域
+│       │   ├── TableContent.vue  # 表格内容
+│       │   ├── TimelineHeader.vue  # 时间轴表头
+│       │   ├── composables/      # 时间轴组合式函数
+│       │   │   ├── useBarGeometry.ts
+│       │   │   ├── useBarTheme.ts
+│       │   │   ├── useHover.ts
+│       │   │   ├── useInteractions.ts
+│       │   │   └── useProgress.ts
+│       │   └── utils/            # 工具函数
+│       │       └── dateCalc.ts
+│       └── types/               # 类型定义
+│           ├── Types.ts          # 甘特图类型
+│           └── ZodSchema.ts      # 数据验证
+├── composables/                 # 全局组合式函数
+│   ├── useCustomFields.ts       # 自定义字段
+│   ├── useMessage.ts            # 消息提示
+│   └── useTaskManagement.ts     # 任务管理
+├── mock/                        # 模拟数据
+│   └── mockData.ts              # 示例数据
+├── services/                    # 服务层
+│   └── taskApi.ts               # 任务 API
+├── styles/                      # 全局样式
+│   └── dialog-common.css        # 对话框通用样式
+├── types/                       # 类型定义
+│   └── task.ts                  # 任务类型
+├── App.vue                      # 示例应用
+├── index.ts                     # 导出入口
+├── main.ts                      # 应用入口
+├── style.css                    # 全局样式
+└── vite-env.d.ts                # Vite 环境类型
 ```
 
 ## 完整示例

@@ -68,7 +68,6 @@
 import { ref, onMounted, computed } from 'vue';
 import dayjs from 'dayjs';
 import Gantt, { type DataConfig, type StyleConfig, type EventConfig } from './components/gantt/core/Gantt.vue';
-import { LinkType } from './components/gantt/types/Types';
 import TaskDialog from './components/TaskDialog.vue';
 import DeleteConfirmDialog from './components/DeleteConfirmDialog.vue';
 import CustomFieldsDialog from './components/CustomFieldsDialog.vue';
@@ -228,7 +227,7 @@ const refreshData = async () => {
   try {
     const startDate = dataConfig.value.queryStartDate || dayjs().startOf('month').format('YYYY-MM-DD');
     const endDate = dataConfig.value.queryEndDate || dayjs().endOf('month').format('YYYY-MM-DD');
-    await eventConfig.value.queryTask(startDate, endDate, '月');
+    await eventConfig.value.queryTask(startDate, endDate);
     messageToast.showMessage('数据刷新成功', 'success');
   } catch (error) {
     console.error('刷新数据失败:', error);
@@ -304,7 +303,7 @@ onMounted(() => {
   dataConfig.value.queryStartDate = startDate;
   dataConfig.value.queryEndDate = endDate;
   // 触发查询以加载数据
-  eventConfig.value.queryTask(startDate, endDate, '月');
+  eventConfig.value.queryTask(startDate, endDate);
 });
 </script>
 

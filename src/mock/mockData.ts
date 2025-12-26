@@ -17,7 +17,7 @@ export interface MockTask {
 export interface MockDependency {
   sourceTaskId: string;
   targetTaskId: string;
-  type: string;
+  type: LinkType;
 }
 
 export interface MockResponse {

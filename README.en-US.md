@@ -48,11 +48,12 @@ A feature-rich, highly customizable Vue 3 Gantt chart component that supports ta
 ## ✨ Core Features
 
 ### 📅 Multiple View Modes
-Four time granularities for different scenarios:
+Five time granularities for different scenarios:
+- **Quarter View** - Ultra-long-term project planning, displayed by month
 - **Month View** - Long-term project planning, displayed by day
 - **Week View** - Medium-term project tracking, displayed by week
-- **Day View** - Short-term task management, precise to day
-- **Hour View** - Fine task scheduling, displayed by hour
+- **Day View** - Short-term task management, supports full day/half day sub-modes
+- **Hour View** - Fine task scheduling, supports hour/30min/15min sub-modes
 
 ### 🔗 Task Dependency Management
 - **Finish-to-Start (FS)** - Successor task starts after predecessor finishes
@@ -489,19 +490,36 @@ dependencies: [
 
 | Mode | Time Unit | Header Example | Use Case |
 |------|-----------|----------------|----------|
+| 📆 **Quarter** | Month | `2024-Q1 2024-Q2 2024-Q3 ...` | Ultra long-term project planning |
 | 🗓️ **Month** | Day | `01 02 03 04 05 ...` | Long-term project planning |
 | 📅 **Day** | Day | `Mon Tue Wed ...` | Short-term task management |
 | 📊 **Week** | Week | `W50 W51 W52 ...` | Mid-term project tracking |
 | ⏰ **Hour** | Hour | `08 09 10 11 12 ...` | Precise task scheduling |
 
-The component supports four time granularity views:
+The component supports five time granularity views:
 
-| Mode | Description | Use Case |
-|------|-------------|----------|
-| Month | Display by day, month unit | Long-term project planning |
-| Day | Display by day, precise to day | Short-term task management |
-| Week | Display by week | Mid-term project tracking |
-| Hour | Display by hour | Precise task scheduling |
+| Mode | Description | Sub-modes | Use Case |
+|------|-------------|-----------|----------|
+| Quarter | Display by month, quarter unit | - | Ultra long-term project planning |
+| Month | Display by day, month unit | - | Long-term project planning |
+| Day | Display by day, precise to day | Full day / Half day | Short-term task management |
+| Week | Display by week | - | Mid-term project tracking |
+| Hour | Display by hour | Hour / 30min / 15min | Precise task scheduling |
+
+### View Mode Switching
+
+The component provides view mode switching buttons at the top. Click to switch between different view modes.
+
+### Sub-mode Details
+
+**Day View Sub-modes:**
+- **Full day** - Each day displays as a complete time segment
+- **Half day** - Each day is divided into morning and afternoon time segments
+
+**Hour View Sub-modes:**
+- **Hour** - Each hour displays as a time segment
+- **30min** - Each hour is divided into two 30-minute segments
+- **15min** - Each hour is divided into four 15-minute segments
 
 ## Theme System
 
@@ -512,6 +530,8 @@ The component supports four time granularity views:
 | ✨ **Modern** | `#6366f1` | Clean modern design, refreshing and comfortable |
 | 💼 **Classic** | `#2563eb` | Traditional business style, stable and dignified |
 | 🎨 **Colorful** | `#f59e0b` | Vibrant colorful theme, full of vitality |
+| 🍎 **Apple** | `#007aff` | Minimalist elegant macOS style, smooth and natural |
+| 💧 **Liquid Glass** | `#007aff` | iOS 26 liquid glass effect, translucent flowing texture |
 
 ### Built-in Themes
 
@@ -522,6 +542,8 @@ The component supports four time granularity views:
 | modern | Modern | Clean modern design |
 | classic | Classic | Traditional business style |
 | colorful | Colorful | Vibrant colorful theme |
+| apple | Apple | Minimalist elegant macOS style |
+| liquidGlass | Liquid Glass | iOS 26 liquid glass effect |
 
 ### Switching Themes
 
@@ -1681,47 +1703,96 @@ The component includes multiple performance optimizations:
 ```
 src/
 ├── components/
+│   ├── CustomFieldsDialog.vue    # Custom fields dialog
+│   ├── DeleteConfirmDialog.vue   # Delete confirmation dialog
+│   ├── MessageToast.vue          # Message toast component
+│   ├── TaskDialog.vue            # Task editing dialog
 │   └── gantt/
-│       ├── Gantt.vue           # Main component
-│       ├── Bar.vue             # Task bar component
-│       ├── BarRecursionRow.vue # Recursive row component
-│       ├── TaskLinks.vue       # Link component
-│       ├── TimelineHeader.vue  # Timeline header
-│       ├── TableContent.vue    # Table content
-│       ├── RightTable.vue      # Right Gantt chart area
-│       ├── SplitPane.vue       # Split panel
-│       ├── DatePicker.vue      # Date picker
-│       ├── GanttConfigPanel.vue    # Configuration panel
-│       ├── GanttThemeSelector.vue  # Theme selector
-│       ├── LanguageSelector.vue    # Language selector
-│       ├── LinkConfigPanel.vue     # Link configuration panel
-│       ├── Types.ts            # Type definitions
-│       ├── Store.ts            # State management
-│       ├── ShareState.ts       # Shared state
-│       ├── LinkConfig.ts       # Link configuration
-│       ├── Symbols.ts          # Injection symbols
-│       ├── ZodSchema.ts        # Data validation
-│       ├── i18n/               # Internationalization system
-│       │   ├── index.ts        # i18n core
-│       │   └── locales/        # Language packs
-│       │       ├── zh-CN.ts    # Chinese language pack
-│       │       ├── en-US.ts    # English language pack
-│       │       ├── ja-JP.ts    # Japanese language pack
-│       │       ├── ko-KR.ts    # Korean language pack
-│       │       ├── fr-FR.ts    # French language pack
-│       │       ├── de-DE.ts    # German language pack
-│       │       ├── es-ES.ts    # Spanish language pack
-│       │       └── ru-RU.ts    # Russian language pack
-│       ├── task/               # Task-related components
-│       │   ├── TaskTable.vue
-│       │   ├── TaskHeader.vue
-│       │   ├── TaskContent.vue
-│       │   └── TaskRow.vue
-│       └── themes/             # Theme configuration
-│           └── GanttThemes.ts
-├── App.vue                     # Example application
-├── main.ts                     # Entry file
-└── style.css                   # Global styles
+│       ├── composables/          # Gantt composables
+│       │   ├── LinkConfig.ts
+│       │   ├── PerformanceConfig.ts
+│       │   ├── useHorizontalVirtualScroll.ts
+│       │   └── useVirtualScroll.ts
+│       ├── config/               # Configuration panel components
+│       │   ├── CheckboxConfig.vue
+│       │   ├── ColorInput.vue
+│       │   ├── ColumnConfigPanel.vue
+│       │   ├── ConfigSection.vue
+│       │   ├── DatePicker.vue
+│       │   ├── GanttConfigPanel.vue
+│       │   ├── GanttThemeSelector.vue
+│       │   ├── LanguageSelector.vue
+│       │   ├── LinkConfigPanel.vue
+│       │   ├── LinkTypeColorConfig.vue
+│       │   ├── PathTypeSelector.vue
+│       │   ├── SliderInput.vue
+│       │   └── ThemeSelector.vue
+│       ├── core/                 # Core components
+│       │   ├── Gantt.vue         # Main component
+│       │   └── SplitPane.vue     # Split panel
+│       ├── gantt.css             # Gantt styles
+│       ├── i18n/                 # Internationalization system
+│       │   ├── index.ts          # i18n core
+│       │   └── locales/          # Language packs
+│       │       ├── zh-CN.ts      # Chinese language pack
+│       │       ├── zh-TW.ts      # Traditional Chinese language pack
+│       │       ├── en-US.ts      # English language pack
+│       │       ├── ja-JP.ts      # Japanese language pack
+│       │       ├── ko-KR.ts      # Korean language pack
+│       │       ├── fr-FR.ts      # French language pack
+│       │       ├── de-DE.ts      # German language pack
+│       │       ├── es-ES.ts      # Spanish language pack
+│       │       └── ru-RU.ts      # Russian language pack
+│       ├── links/                # Link components
+│       │   └── TaskLinks.vue     # Task links
+│       ├── state/                # State management
+│       │   ├── ShareState.ts     # Shared state
+│       │   ├── Store.ts          # State store
+│       │   └── Symbols.ts        # Injection symbols
+│       ├── task/                 # Task-related components
+│       │   ├── TaskTable.vue     # Task table
+│       │   ├── TaskHeader.vue    # Task header
+│       │   ├── TaskContent.vue   # Task content
+│       │   ├── TaskRow.vue       # Task row
+│       │   └── TaskRecursionRow.vue  # Recursive task row
+│       ├── themes/               # Theme configuration
+│       │   ├── GanttThemes.ts    # Theme definitions
+│       │   └── LiquidGlass.css   # Liquid glass theme
+│       ├── timeline/             # Timeline components
+│       │   ├── Bar.vue           # Task bar
+│       │   ├── BarRecursionRow.vue  # Recursive task bar
+│       │   ├── Milestone.vue     # Milestone
+│       │   ├── RightTable.vue    # Right Gantt chart area
+│       │   ├── TableContent.vue  # Table content
+│       │   ├── TimelineHeader.vue  # Timeline header
+│       │   ├── composables/      # Timeline composables
+│       │   │   ├── useBarGeometry.ts
+│       │   │   ├── useBarTheme.ts
+│       │   │   ├── useHover.ts
+│       │   │   ├── useInteractions.ts
+│       │   │   └── useProgress.ts
+│       │   └── utils/            # Utility functions
+│       │       └── dateCalc.ts
+│       └── types/               # Type definitions
+│           ├── Types.ts          # Gantt types
+│           └── ZodSchema.ts      # Data validation
+├── composables/                 # Global composables
+│   ├── useCustomFields.ts       # Custom fields
+│   ├── useMessage.ts            # Message toast
+│   └── useTaskManagement.ts     # Task management
+├── mock/                        # Mock data
+│   └── mockData.ts              # Sample data
+├── services/                    # Service layer
+│   └── taskApi.ts               # Task API
+├── styles/                      # Global styles
+│   └── dialog-common.css        # Dialog common styles
+├── types/                       # Type definitions
+│   └── task.ts                  # Task types
+├── App.vue                      # Example application
+├── index.ts                     # Export entry
+├── main.ts                      # Application entry
+├── style.css                    # Global styles
+└── vite-env.d.ts                # Vite environment types
 ```
 
 ## Complete Example
