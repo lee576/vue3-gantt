@@ -87,6 +87,37 @@
 - 计算结果缓存，提升响应速度
 - 按需渲染连线，优化绘制性能
 
+### 📝 自定义字段
+- **多种字段类型** - 支持文本、数字、日期、下拉选择等字段类型
+- **灵活配置** - 可为任务添加任意数量的自定义字段
+- **表单验证** - 内置字段验证规则，确保数据有效性
+- **本地存储** - 字段配置自动保存到浏览器，刷新不丢失
+- **动态管理** - 支持运行时添加、编辑、删除自定义字段
+
+### 💬 消息提示
+- **三种提示类型** - 成功、错误、警告，满足不同场景需求
+- **自动消失** - 提示信息自动消失，无需手动关闭
+- **优雅动画** - 流畅的进入和退出动画效果
+- **多语言支持** - 提示文本随语言设置自动切换
+
+### 🗑️ 删除确认
+- **安全删除** - 删除任务前弹出确认对话框，防止误操作
+- **级联删除** - 删除父任务时自动提示将同时删除所有子任务
+- **友好提示** - 清晰的警告信息，让用户了解删除影响范围
+
+### 🎛️ 配置面板
+- **连线样式配置** - 自定义任务连线的路径类型、颜色、宽度、虚线样式、箭头设置
+- **父子关系样式** - 配置父子任务的连接线样式
+- **列显示设置** - 灵活控制任务列表列的显示/隐藏
+- **一键重置** - 快速恢复默认配置
+
+### 🌲 树形任务结构
+- **层级展示** - 清晰的树形结构显示任务父子关系
+- **折叠展开** - 支持折叠/展开子任务，简化视图
+- **连接线** - 可视化连接线展示层级关系
+- **快速操作** - 行内按钮快速添加/删除子任务
+- **悬停高亮** - 鼠标悬停时高亮显示当前任务行
+
 ## 🚀 安装使用
 
 ### 方式一：通过 npm 安装（推荐）
@@ -505,9 +536,659 @@ dependencies: [
 }
 ```
 
-## 国际化支持
+## 自定义字段
 
-组件内置完整的国际化（i18n）系统，支持中英文双语切换，并可轻松扩展更多语言。
+组件支持强大的自定义字段功能，允许为任务添加任意数量的自定义字段，满足不同项目的个性化需求。
+
+### 功能特性
+
+- **多种字段类型** - 文本、数字、日期、下拉选择
+- **动态管理** - 运行时添加、编辑、删除字段
+- **表单验证** - 内置验证规则，确保数据有效性
+- **本地存储** - 字段配置自动保存到浏览器
+- **任务绑定** - 自定义字段值与任务数据关联
+
+### 字段类型
+
+| 类型 | 说明 | 示例值 |
+|------|------|--------|
+| 文本 | 单行文本输入 | "项目编号：PRJ-001" |
+| 数字 | 数值输入，支持小数 | 100.5 |
+| 日期 | 日期选择器 | "2024-12-01" |
+| 下拉选择 | 预定义选项列表 | "高优先级" |
+
+### 使用方法
+
+#### 1. 打开自定义字段管理
+
+在甘特图工具栏中点击"自定义字段"按钮，打开字段管理对话框。
+
+#### 2. 添加自定义字段
+
+```typescript
+// 示例：添加一个"负责人"字段
+const customField = {
+  id: 'field-1',
+  name: '负责人',
+  type: 'text',      // text | number | date | select
+  required: false,   // 是否必填
+  options: []        // 下拉选择时提供选项
+};
+```
+
+#### 3. 在任务中使用自定义字段
+
+自定义字段的值存储在任务的 `customFieldValues` 字段中：
+
+```typescript
+{
+  id: '1',
+  taskNo: '项目规划',
+  start_date: '2024-12-01',
+  end_date: '2024-12-06',
+  job_progress: '0.85',
+  customFieldValues: {
+    'field-1': '张三',           // 负责人
+    'field-2': '100',           // 预算
+    'field-3': '2024-11-30',    // 审批日期
+    'field-4': '高优先级'        // 优先级
+  }
+}
+```
+
+#### 4. 下拉选择字段配置
+
+```typescript
+const priorityField = {
+  id: 'field-priority',
+  name: '优先级',
+  type: 'select',
+  required: true,
+  options: [
+    { label: '紧急', value: 'urgent' },
+    { label: '重要', value: 'important' },
+    { label: '一般', value: 'normal' }
+  ]
+};
+```
+
+### 字段验证
+
+组件内置了基本的字段验证规则：
+
+- **必填字段** - 如果字段标记为 `required: true`，则必须提供值
+- **数字验证** - 数字字段只接受有效的数值
+- **日期验证** - 日期字段只接受有效的日期格式
+- **选项验证** - 下拉选择字段只接受预定义的选项值
+
+### API 集成
+
+#### 后端存储格式
+
+自定义字段值需要以特定格式存储到后端：
+
+```typescript
+// 推荐格式：JSON 字符串
+customFieldValues: JSON.stringify({
+  'field-1': '张三',
+  'field-2': '100'
+})
+
+// 或数组格式（需要后端支持）
+customFieldValues: [
+  { fieldId: 'field-1', value: '张三' },
+  { fieldId: 'field-2', value: '100' }
+]
+```
+
+#### 数据处理示例
+
+```typescript
+// 保存任务时
+const saveTask = async (task) => {
+  const payload = {
+    ...task,
+    customFieldValues: JSON.stringify(task.customFieldValues)
+  };
+  await api.saveTask(payload);
+};
+
+// 加载任务时
+const loadTask = async (taskId) => {
+  const data = await api.getTask(taskId);
+  return {
+    ...data,
+    customFieldValues: JSON.parse(data.customFieldValues || '{}')
+  };
+};
+```
+
+### 最佳实践
+
+1. **字段命名** - 使用清晰、简洁的字段名称，便于理解
+2. **必填设置** - 合理设置必填字段，避免过度限制
+3. **选项管理** - 下拉选择字段提供完整的选项列表
+4. **数据验证** - 在后端也进行字段验证，确保数据完整性
+5. **性能优化** - 避免添加过多自定义字段，影响性能
+
+## 配置面板
+
+组件提供了丰富的配置选项，允许用户自定义甘特图的外观和行为。
+
+### 甘特图配置面板
+
+点击工具栏中的"设置"按钮，打开甘特图配置面板。
+
+#### 语言设置
+
+- 支持切换 8 种语言（中/英/日/韩/法/德/西/俄）
+- 语言设置自动保存到浏览器
+- 切换后界面立即更新，无需刷新
+
+#### 主题设置
+
+- 5 种内置主题可选
+- 主题切换即时生效
+- 主题设置自动保存
+
+#### 连线样式配置
+
+| 配置项 | 说明 | 可选值 |
+|--------|------|--------|
+| 路径类型 | 连线的绘制路径 | 直线 / 贝塞尔曲线 / 阶梯线 |
+| 连线颜色 | 连线的颜色 | 颜色选择器 |
+| 连线宽度 | 连线的粗细 | 1px - 5px |
+| 虚线样式 | 是否使用虚线 | 实线 / 虚线 |
+| 箭头设置 | 是否显示箭头 | 显示 / 隐藏 |
+
+#### 父子关系样式
+
+| 配置项 | 说明 |
+|--------|------|
+| 连接线颜色 | 父子任务连接线的颜色 |
+| 连接线宽度 | 父子任务连接线的粗细 |
+| 连接线样式 | 实线或虚线 |
+
+### 列显示设置面板
+
+点击工具栏中的"列设置"按钮，打开列显示设置面板。
+
+#### 功能特性
+
+- **列显示控制** - 勾选/取消勾选来显示或隐藏列
+- **全部显示** - 一键显示所有列
+- **全部隐藏** - 一键隐藏所有列
+- **重置默认** - 恢复到默认列配置
+- **实时生效** - 设置更改立即反映在界面上
+
+#### 默认列配置
+
+```typescript
+taskHeaders: [
+  { title: '序号', width: 80, property: 'no', show: true },
+  { title: '任务名称', width: 200, property: 'task', show: true },
+  { title: '优先级', width: 90, property: 'priority', show: true },
+  { title: '开始时间', width: 150, property: 'startdate', show: true },
+  { title: '结束时间', width: 150, property: 'enddate', show: true },
+  { title: '耗时', width: 100, property: 'takestime', show: true },
+  { title: '进度', width: 100, property: 'progress', show: true }
+]
+```
+
+### 配置持久化
+
+所有配置（语言、主题、连线样式、列显示等）都会自动保存到浏览器的 localStorage 中，刷新页面后配置不会丢失。
+
+### 编程方式配置
+
+除了通过界面配置，也可以通过代码直接设置配置：
+
+```typescript
+// 设置主题
+import { setTheme } from './components/gantt/theme';
+setTheme('dark');
+
+// 设置语言
+import { setLocale } from './components/gantt/i18n';
+setLocale('en-US');
+
+// 修改列配置
+dataConfig.value.taskHeaders = [
+  { title: '序号', width: 80, property: 'no', show: true },
+  { title: '任务名称', width: 250, property: 'task', show: true },
+  // ... 其他列
+];
+```
+
+## 任务对话框
+
+组件提供了完整的任务创建和编辑对话框，支持基础字段和自定义字段的编辑。
+
+### 对话框功能
+
+#### 基础字段
+
+| 字段 | 说明 | 必填 |
+|------|------|------|
+| 任务名称 | 任务的名称 | ✅ |
+| 优先级 | 任务的优先级（紧急/重要/一般） | ✅ |
+| 开始时间 | 任务的开始日期和时间 | ✅ |
+| 结束时间 | 任务的结束日期和时间 | ✅ |
+| 进度 | 任务的完成进度（0-100%） | ✅ |
+
+#### 自定义字段
+
+根据配置的自定义字段，对话框会动态显示相应的输入控件。
+
+### 打开对话框
+
+#### 创建根任务
+
+```typescript
+// 通过工具栏按钮点击
+eventConfig.value.addRootTask?.(newTask);
+```
+
+#### 创建子任务
+
+```typescript
+// 在任务行点击"添加子任务"按钮
+eventConfig.value.addSubTask?.(parentTask);
+```
+
+#### 编辑任务
+
+```typescript
+// 双击任务或点击编辑按钮
+eventConfig.value.editTask?.(task);
+```
+
+### 表单验证
+
+对话框内置了表单验证功能：
+
+- **必填字段检查** - 确保所有必填字段都已填写
+- **日期逻辑验证** - 结束时间不能早于开始时间
+- **进度范围验证** - 进度值必须在 0-100 之间
+- **自定义字段验证** - 根据字段配置进行验证
+
+### 对话框事件
+
+```typescript
+const eventConfig = ref<EventConfig>({
+  // 添加根任务
+  addRootTask: (task) => {
+    console.log('添加根任务', task);
+    // 保存到后端
+    await api.createTask(task);
+  },
+
+  // 添加子任务
+  addSubTask: (parentTask) => {
+    console.log('添加子任务，父任务：', parentTask);
+    // 创建子任务
+    const subTask = {
+      pid: parentTask.id,
+      // ... 其他字段
+    };
+    await api.createTask(subTask);
+  },
+
+  // 编辑任务
+  editTask: (task) => {
+    console.log('编辑任务', task);
+    // 更新到后端
+    await api.updateTask(task);
+  }
+});
+```
+
+### 对话框样式
+
+对话框采用现代化的设计风格：
+
+- **模态窗口** - 阻止背景操作，确保用户专注
+- **响应式布局** - 自适应不同屏幕尺寸
+- **清晰的标签** - 每个字段都有明确的标签
+- **必填标识** - 必填字段有红色星号标记
+- **错误提示** - 验证失败时显示错误信息
+
+## 消息提示
+
+组件内置了优雅的消息提示系统，用于向用户反馈操作结果。
+
+### 提示类型
+
+| 类型 | 说明 | 图标 | 颜色 |
+|------|------|------|------|
+| 成功 | 操作成功完成 | ✅ | 绿色 |
+| 错误 | 操作失败或出错 | ❌ | 红色 |
+| 警告 | 需要注意的问题 | ⚠️ | 黄色 |
+
+### 使用方法
+
+#### 1. 通过组件内部触发
+
+组件内部会在以下情况自动显示消息提示：
+
+- 任务创建成功/失败
+- 任务更新成功/失败
+- 任务删除成功/失败
+- 自定义字段保存成功/失败
+- 配置更新成功
+
+#### 2. 编程方式调用
+
+```typescript
+import { showToast } from './components/MessageToast';
+
+// 显示成功消息
+showToast('success', '任务创建成功！');
+
+// 显示错误消息
+showToast('error', '操作失败，请重试');
+
+// 显示警告消息
+showToast('warning', '请注意：此操作不可撤销');
+```
+
+### 提示特性
+
+- **自动消失** - 提示信息在 3 秒后自动消失
+- **手动关闭** - 点击关闭按钮可立即关闭
+- **优雅动画** - 流畅的淡入淡出动画
+- **多语言支持** - 提示文本随语言设置自动切换
+- **位置固定** - 固定在页面右上角，不遮挡操作区域
+
+### 消息示例
+
+```typescript
+// 成功提示
+showToast('success', '任务已成功保存');
+
+// 错误提示
+showToast('error', '保存失败：网络连接错误');
+
+// 警告提示
+showToast('warning', '删除任务将同时删除所有子任务');
+```
+
+## 删除确认对话框
+
+为了防止误操作，组件在删除任务时会弹出确认对话框。
+
+### 对话框功能
+
+- **删除警告** - 清晰的警告信息
+- **级联删除提示** - 如果删除父任务，会提示将同时删除所有子任务
+- **确认/取消** - 用户可以选择确认或取消删除操作
+
+### 删除流程
+
+```
+用户点击删除按钮
+    ↓
+检查是否有子任务
+    ↓
+显示确认对话框
+    ↓
+用户确认删除
+    ↓
+执行删除操作
+    ↓
+显示删除结果提示
+```
+
+### 对话框内容
+
+#### 删除普通任务
+
+```
+⚠️ 确认删除
+
+您确定要删除此任务吗？
+
+此操作不可撤销。
+```
+
+#### 删除父任务（包含子任务）
+
+```
+⚠️ 确认删除
+
+您确定要删除此任务吗？
+
+注意：删除此任务将同时删除其所有子任务（共 3 个）。
+
+此操作不可撤销。
+```
+
+### 事件处理
+
+```typescript
+const eventConfig = ref<EventConfig>({
+  removeTask: async (task) => {
+    // 检查是否有子任务
+    const hasChildren = dataConfig.value.dataSource.some(
+      t => t.pid === task.id
+    );
+
+    // 显示确认对话框
+    const confirmed = await showDeleteConfirm(task, hasChildren);
+
+    if (confirmed) {
+      // 执行删除
+      await api.deleteTask(task.id);
+      // 更新数据源
+      dataConfig.value.dataSource = dataConfig.value.dataSource.filter(
+        t => t.id !== task.id
+      );
+      // 显示成功提示
+      showToast('success', '任务已删除');
+    }
+  }
+});
+```
+
+### 安全特性
+
+- **二次确认** - 所有删除操作都需要用户确认
+- **级联提示** - 明确告知用户删除的影响范围
+- **不可撤销警告** - 提醒用户操作的不可逆性
+- **子任务统计** - 显示将要删除的子任务数量
+
+## 树形任务结构
+
+组件支持完整的树形任务结构，可以清晰地展示任务的层级关系。
+
+### 核心特性
+
+- **层级展示** - 通过缩进和连接线清晰展示父子关系
+- **折叠展开** - 支持折叠/展开子任务，简化复杂项目视图
+- **视觉连接** - 树形连接线直观展示任务层级
+- **快速操作** - 行内按钮快速添加/删除子任务
+- **悬停高亮** - 鼠标悬停时高亮显示当前任务行
+
+### 任务层级结构
+
+```typescript
+// 根任务（pid = '0'）
+{
+  id: '1',
+  pid: '0',           // '0' 表示根任务
+  taskNo: '项目开发',
+  start_date: '2024-12-01',
+  end_date: '2024-12-31'
+}
+
+// 子任务
+{
+  id: '1-1',
+  pid: '1',           // 父任务ID
+  taskNo: '前端开发',
+  start_date: '2024-12-01',
+  end_date: '2024-12-15'
+}
+
+// 孙任务
+{
+  id: '1-1-1',
+  pid: '1-1',         // 父任务ID
+  taskNo: 'UI设计',
+  start_date: '2024-12-01',
+  end_date: '2024-12-05'
+}
+```
+
+### 视觉元素
+
+#### 1. 缩进显示
+
+子任务会根据层级自动缩进，每层缩进固定距离：
+
+```
+├─ 项目开发
+│  ├─ 前端开发
+│  │  ├─ UI设计
+│  │  └─ 功能开发
+│  └─ 后端开发
+│     ├─ API设计
+│     └─ 数据库设计
+```
+
+#### 2. 连接线
+
+树形连接线清晰地展示父子关系：
+
+- **垂直线** - 连接父任务到子任务
+- **水平线** - 标记任务的层级位置
+- **分支线** - 展示任务的分支结构
+
+#### 3. 折叠/展开按钮
+
+每个有子任务的任务左侧都有折叠/展开按钮：
+
+- **展开状态** (▶) - 显示所有子任务
+- **折叠状态** (▼) - 隐藏所有子任务
+
+### 交互操作
+
+#### 添加子任务
+
+在任务行点击"添加子任务"按钮，会自动：
+
+1. 创建新的子任务
+2. 设置正确的父任务ID
+3. 打开任务编辑对话框
+4. 保存后自动刷新树形结构
+
+```typescript
+const addSubTask = (parentTask) => {
+  const newTask = {
+    id: generateId(),
+    pid: parentTask.id,  // 设置父任务ID
+    taskNo: '新子任务',
+    start_date: parentTask.start_date,
+    end_date: parentTask.end_date,
+    job_progress: '0'
+  };
+  eventConfig.value.addSubTask?.(newTask);
+};
+```
+
+#### 删除任务
+
+删除任务时会：
+
+1. 检查是否有子任务
+2. 显示确认对话框（包含级联删除提示）
+3. 删除任务及其所有子任务
+4. 自动更新树形结构
+
+```typescript
+const deleteTask = (task) => {
+  // 级联删除所有子任务
+  const deleteRecursive = (taskId) => {
+    const children = dataConfig.value.dataSource.filter(
+      t => t.pid === taskId
+    );
+    children.forEach(child => deleteRecursive(child.id));
+    dataConfig.value.dataSource = dataConfig.value.dataSource.filter(
+      t => t.id !== taskId
+    );
+  };
+  deleteRecursive(task.id);
+};
+```
+
+#### 折叠/展开
+
+点击折叠/展开按钮可以：
+
+- **展开** - 显示所有子任务和孙任务
+- **折叠** - 隐藏所有后代任务
+- **状态记忆** - 折叠状态会保存到 localStorage
+
+### 父子任务联动
+
+父任务移动时，子任务会自动跟随移动，保持相对时间关系：
+
+```typescript
+// 父任务移动 5 天
+const moveParentTask = (task, days) => {
+  const oldStart = dayjs(task.start_date);
+  const oldEnd = dayjs(task.end_date);
+
+  // 更新父任务
+  task.start_date = oldStart.add(days, 'day').format('YYYY-MM-DD');
+  task.end_date = oldEnd.add(days, 'day').format('YYYY-MM-DD');
+
+  // 子任务跟随移动
+  const children = getChildren(task.id);
+  children.forEach(child => {
+    const childOldStart = dayjs(child.start_date);
+    const childOldEnd = dayjs(child.end_date);
+    child.start_date = childOldStart.add(days, 'day').format('YYYY-MM-DD');
+    child.end_date = childOldEnd.add(days, 'day').format('YYYY-MM-DD');
+  });
+};
+```
+
+### 样式自定义
+
+可以通过 CSS 自定义树形结构的样式：
+
+```css
+/* 连接线颜色 */
+.gantt-tree-line {
+  border-color: #d0d0d0;
+}
+
+/* 折叠/展开按钮 */
+.gantt-collapse-btn {
+  color: #666;
+  cursor: pointer;
+}
+
+.gantt-collapse-btn:hover {
+  color: #333;
+}
+
+/* 行悬停效果 */
+.gantt-row:hover {
+  background-color: #f5f5f5;
+}
+```
+
+### 最佳实践
+
+1. **合理层级** - 建议层级不超过 5 层，过深的层级会影响可读性
+2. **任务命名** - 使用清晰的命名规范，便于理解层级关系
+3. **折叠管理** - 对于大型项目，合理使用折叠功能简化视图
+4. **批量操作** - 父任务移动时子任务自动跟随，避免逐个调整
+5. **性能优化** - 深层嵌套时注意性能，考虑使用折叠减少渲染数量
+
+## 国际化支持
 
 ### 支持的语言
 

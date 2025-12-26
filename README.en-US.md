@@ -91,6 +91,37 @@ Four time granularities for different scenarios:
 - Cached computations, improves response speed
 - On-demand link rendering, optimized drawing performance
 
+### 📝 Custom Fields
+- **Multiple Field Types** - Supports text, number, date, dropdown selection field types
+- **Flexible Configuration** - Add any number of custom fields to tasks
+- **Form Validation** - Built-in field validation rules ensure data validity
+- **Local Storage** - Field configuration automatically saved to browser, persists after refresh
+- **Dynamic Management** - Add, edit, delete custom fields at runtime
+
+### 💬 Message Toast
+- **Three Alert Types** - Success, error, warning for different scenarios
+- **Auto Dismiss** - Messages automatically disappear without manual closing
+- **Elegant Animation** - Smooth enter and exit animation effects
+- **Multi-language Support** - Alert text automatically switches with language settings
+
+### 🗑️ Delete Confirmation
+- **Safe Deletion** - Confirmation dialog before task deletion prevents accidental operations
+- **Cascade Delete** - When deleting parent task, automatically prompts that all subtasks will be deleted
+- **Friendly Prompts** - Clear warning messages inform users about deletion impact scope
+
+### 🎛️ Configuration Panels
+- **Link Style Configuration** - Customize task link path type, color, width, dashed style, arrow settings
+- **Parent-Child Relationship Style** - Configure parent-child task connection line styles
+- **Column Display Settings** - Flexibly control task list column show/hide
+- **One-click Reset** - Quickly restore default configuration
+
+### 🌲 Tree Task Structure
+- **Hierarchy Display** - Clear tree structure showing task parent-child relationships
+- **Collapse/Expand** - Support collapsing/expanding subtasks to simplify view
+- **Connection Lines** - Visual connection lines showing hierarchy relationships
+- **Quick Operations** - Inline buttons for quickly adding/deleting subtasks
+- **Hover Highlight** - Mouse hover highlights current task row
+
 ## 🚀 Installation
 
 ### Option 1: Install via npm (Recommended)
@@ -514,9 +545,911 @@ A theme selector is provided in the top right corner of the component. Click to 
 }
 ```
 
-## Internationalization Support
+## Custom Fields
 
-The component has a built-in complete internationalization (i18n) system, supporting bilingual switching between Chinese and English, and can easily extend more languages.
+The component supports powerful custom field functionality, allowing you to add any number of custom fields to tasks to meet different project personalization needs.
+
+### Features
+
+- **Multiple Field Types** - Text, number, date, dropdown selection
+- **Dynamic Management** - Add, edit, delete fields at runtime
+- **Form Validation** - Built-in validation rules ensure data validity
+- **Local Storage** - Field configuration automatically saved to browser
+- **Task Binding** - Custom field values associated with task data
+
+### Field Types
+
+| Type | Description | Example Value |
+|------|-------------|---------------|
+| Text | Single-line text input | "Project ID: PRJ-001" |
+| Number | Numeric input, supports decimals | 100.5 |
+| Date | Date picker | "2024-12-01" |
+| Dropdown | Predefined option list | "High Priority" |
+
+### Usage
+
+#### 1. Open Custom Field Management
+
+Click the "Custom Fields" button in the Gantt chart toolbar to open the field management dialog.
+
+#### 2. Add Custom Field
+
+```typescript
+// Example: Add an "Owner" field
+const customField = {
+  id: 'field-1',
+  name: 'Owner',
+  type: 'text',      // text | number | date | select
+  required: false,   // Whether required
+  options: []        // Options for dropdown selection
+};
+```
+
+#### 3. Use Custom Fields in Tasks
+
+Custom field values are stored in the task's `customFieldValues` field:
+
+```typescript
+{
+  id: '1',
+  taskNo: 'Project Planning',
+  start_date: '2024-12-01',
+  end_date: '2024-12-06',
+  job_progress: '0.85',
+  customFieldValues: {
+    'field-1': 'John Doe',           // Owner
+    'field-2': '100',               // Budget
+    'field-3': '2024-11-30',        // Approval Date
+    'field-4': 'High Priority'      // Priority
+  }
+}
+```
+
+#### 4. Dropdown Field Configuration
+
+```typescript
+const priorityField = {
+  id: 'field-priority',
+  name: 'Priority',
+  type: 'select',
+  required: true,
+  options: [
+    { label: 'Urgent', value: 'urgent' },
+    { label: 'Important', value: 'important' },
+    { label: 'Normal', value: 'normal' }
+  ]
+};
+```
+
+### Field Validation
+
+The component includes basic field validation rules:
+
+- **Required Fields** - If field is marked as `required: true`, a value must be provided
+- **Number Validation** - Number fields only accept valid numeric values
+- **Date Validation** - Date fields only accept valid date formats
+- **Option Validation** - Dropdown fields only accept predefined option values
+
+### API Integration
+
+#### Backend Storage Format
+
+Custom field values need to be stored in the backend in a specific format:
+
+```typescript
+// Recommended format: JSON string
+customFieldValues: JSON.stringify({
+  'field-1': 'John Doe',
+  'field-2': '100'
+})
+
+// Or array format (requires backend support)
+customFieldValues: [
+  { fieldId: 'field-1', value: 'John Doe' },
+  { fieldId: 'field-2', value: '100' }
+]
+```
+
+#### Data Processing Example
+
+```typescript
+// When saving task
+const saveTask = async (task) => {
+  const payload = {
+    ...task,
+    customFieldValues: JSON.stringify(task.customFieldValues)
+  };
+  await api.saveTask(payload);
+};
+
+// When loading task
+const loadTask = async (taskId) => {
+  const data = await api.getTask(taskId);
+  return {
+    ...data,
+    customFieldValues: JSON.parse(data.customFieldValues || '{}')
+  };
+};
+```
+
+### Best Practices
+
+1. **Field Naming** - Use clear, concise field names for easy understanding
+2. **Required Settings** - Reasonably set required fields to avoid over-restriction
+3. **Option Management** - Provide complete option lists for dropdown fields
+4. **Data Validation** - Also validate fields in backend to ensure data integrity
+5. **Performance Optimization** - Avoid adding too many custom fields that affect performance
+
+## Configuration Panels
+
+The component provides two powerful configuration panels for customizing Gantt chart display and behavior.
+
+### Gantt Configuration Panel
+
+Access via the "Gantt Config" button in the toolbar.
+
+#### Language Settings
+
+- **Language Selection** - Switch between Chinese (zh-CN) and English (en-US)
+- **Auto-detection** - Automatically detects browser language on first load
+
+#### Theme Settings
+
+- **Light/Dark Mode** - Switch between light and dark themes
+- **Theme Persistence** - Theme preference saved to local storage
+
+#### Dependency Line Styles
+
+Configure task dependency line appearance:
+
+```typescript
+{
+  pathType: 'straight',      // Connection path type: straight | curved
+  color: '#409EFF',         // Line color
+  width: 2,                 // Line width (px)
+  dashed: false,            // Whether to use dashed line
+  showArrow: true,          // Whether to show arrow
+  arrowSize: 6              // Arrow size (px)
+}
+```
+
+**Path Types:**
+- **Straight** - Direct straight line connection
+- **Curved** - Smooth curved line connection
+
+**Style Options:**
+- **Color** - Supports any valid CSS color value
+- **Width** - 1-5px recommended
+- **Dashed** - Creates dashed line effect
+- **Arrow** - Shows direction indicator at end point
+
+### Column Configuration Panel
+
+Access via the "Column Config" button in the toolbar.
+
+#### Column Display Settings
+
+Control which columns are visible in the task list:
+
+```typescript
+const columns = [
+  { key: 'taskNo', label: 'Task Name', visible: true },
+  { key: 'start_date', label: 'Start Date', visible: true },
+  { key: 'end_date', label: 'End Date', visible: true },
+  { key: 'job_progress', label: 'Progress', visible: true },
+  { key: 'duration', label: 'Duration', visible: false }
+];
+```
+
+#### Column Operations
+
+- **Toggle Visibility** - Click checkbox to show/hide column
+- **Show All** - Display all columns at once
+- **Hide All** - Hide all columns at once
+- **Reset Default** - Restore to default column configuration
+
+#### Column Types
+
+| Column Key | Description | Format |
+|------------|-------------|--------|
+| taskNo | Task name | Text |
+| start_date | Start date | YYYY-MM-DD |
+| end_date | End date | YYYY-MM-DD |
+| job_progress | Progress percentage | 0-100% |
+| duration | Task duration | Number (days) |
+
+### Configuration Persistence
+
+All configuration settings are automatically saved to browser local storage:
+
+```typescript
+// Storage keys
+const CONFIG_KEYS = {
+  ganttConfig: 'vue3-gantt-config',      // Gantt chart settings
+  columnConfig: 'vue3-gantt-columns',    // Column display settings
+  customFields: 'vue3-gantt-fields'      // Custom field definitions
+};
+```
+
+**Benefits:**
+- Settings persist across page refreshes
+- Configuration shared across browser sessions
+- Easy to reset to defaults if needed
+
+### Best Practices
+
+1. **Line Visibility** - Use contrasting colors for dependency lines
+2. **Column Balance** - Don't show too many columns at once
+3. **Theme Consistency** - Match Gantt chart theme with application theme
+4. **Performance** - Complex line styles may impact performance with many tasks
+
+## Task Dialog
+
+The task dialog provides a comprehensive interface for creating and editing tasks with rich features.
+
+### Dialog Features
+
+- **Dual Mode** - Create new task or edit existing task
+- **Form Validation** - Real-time validation with error messages
+- **Custom Fields** - Support for dynamic custom field inputs
+- **Date Constraints** - Automatic date validation and adjustment
+- **Progress Control** - Visual progress slider with percentage display
+
+### Basic Fields
+
+#### Task Name
+
+```typescript
+{
+  taskNo: 'Project Planning',  // Required, max length 200
+  name: 'Project Planning'     // Display name (optional)
+}
+```
+
+- **Required** - Yes
+- **Max Length** - 200 characters
+- **Validation** - Cannot be empty
+
+#### Date Range
+
+```typescript
+{
+  start_date: '2024-12-01',  // Start date
+  end_date: '2024-12-06'     // End date
+}
+```
+
+**Features:**
+- **Date Picker** - Built-in date picker for easy selection
+- **Auto-adjustment** - End date automatically adjusted if before start date
+- **Format** - YYYY-MM-DD
+- **Validation** - End date must be >= start date
+
+#### Progress
+
+```typescript
+{
+  job_progress: '0.85'  // Progress value (0-1)
+}
+```
+
+**Features:**
+- **Slider Control** - Visual slider for easy adjustment
+- **Percentage Display** - Shows progress as percentage (0-100%)
+- **Decimal Support** - Supports decimal values (e.g., 0.5 = 50%)
+- **Validation** - Must be between 0 and 1
+
+### Custom Fields Section
+
+The dialog dynamically renders custom fields based on configuration:
+
+```typescript
+// Example custom fields in dialog
+const customFields = [
+  {
+    id: 'field-1',
+    name: 'Owner',
+    type: 'text',
+    value: 'John Doe'
+  },
+  {
+    id: 'field-2',
+    name: 'Budget',
+    type: 'number',
+    value: '10000'
+  },
+  {
+    id: 'field-3',
+    name: 'Priority',
+    type: 'select',
+    options: [
+      { label: 'High', value: 'high' },
+      { label: 'Medium', value: 'medium' },
+      { label: 'Low', value: 'low' }
+    ],
+    value: 'high'
+  }
+];
+```
+
+**Field Types:**
+- **Text Input** - Single-line text field
+- **Number Input** - Numeric field with validation
+- **Date Picker** - Date selection field
+- **Dropdown** - Select from predefined options
+
+### Form Validation
+
+The dialog implements comprehensive validation:
+
+```typescript
+// Validation rules
+const rules = {
+  taskNo: [
+    { required: true, message: 'Task name is required' },
+    { max: 200, message: 'Task name cannot exceed 200 characters' }
+  ],
+  start_date: [
+    { required: true, message: 'Start date is required' }
+  ],
+  end_date: [
+    { required: true, message: 'End date is required' },
+    { 
+      validator: (rule, value, callback) => {
+        if (value < start_date) {
+          callback(new Error('End date must be after start date'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ]
+};
+```
+
+**Validation Types:**
+- **Required Fields** - Ensures mandatory fields are filled
+- **Format Validation** - Validates date and number formats
+- **Business Rules** - Enforces logical constraints (e.g., end >= start)
+- **Custom Field Validation** - Validates based on field type and requirements
+
+### Dialog Actions
+
+#### Save Button
+
+- Validates all fields before saving
+- Shows error messages if validation fails
+- Emits save event with task data
+- Closes dialog on successful save
+
+#### Cancel Button
+
+- Closes dialog without saving
+- Discards any unsaved changes
+- No confirmation required
+
+### Best Practices
+
+1. **Clear Naming** - Use descriptive task names
+2. **Date Planning** - Set realistic date ranges
+3. **Progress Updates** - Regularly update progress values
+4. **Custom Fields** - Use custom fields for project-specific data
+5. **Validation** - Pay attention to validation messages
+
+## Message Toast
+
+The component includes a built-in message toast system for providing user feedback.
+
+### Message Types
+
+Three types of messages are supported:
+
+| Type | Icon | Color | Usage |
+|------|------|-------|-------|
+| Success | ✓ | Green | Successful operations (save, delete, etc.) |
+| Error | ✗ | Red | Failed operations (validation errors, API errors) |
+| Warning | ⚠ | Orange | Warnings (unsaved changes, potential issues) |
+
+### Usage
+
+#### Display Success Message
+
+```typescript
+// In component
+import { useMessage } from '@/composables/useMessage';
+
+const { showMessage } = useMessage();
+
+// Show success message
+showMessage('Task saved successfully', 'success');
+```
+
+#### Display Error Message
+
+```typescript
+// Show error message
+showMessage('Failed to save task: Invalid data', 'error');
+```
+
+#### Display Warning Message
+
+```typescript
+// Show warning message
+showMessage('Unsaved changes will be lost', 'warning');
+```
+
+### Message Behavior
+
+**Auto-dismissal:**
+- Success messages: 3 seconds
+- Error messages: 5 seconds
+- Warning messages: 4 seconds
+
+**Manual Dismissal:**
+- Click message to dismiss immediately
+- Hover to pause auto-dismissal timer
+
+**Positioning:**
+- Top-right corner of screen
+- Stacked vertically for multiple messages
+- Maximum 3 messages displayed simultaneously
+
+### Message Queue
+
+The toast system manages a message queue:
+
+```typescript
+// Message queue properties
+interface Message {
+  id: string;           // Unique message ID
+  type: 'success' | 'error' | 'warning';
+  content: string;      // Message text
+  duration: number;     // Display duration (ms)
+  timestamp: number;    // Creation timestamp
+}
+```
+
+**Queue Management:**
+- New messages added to end of queue
+- Oldest messages dismissed first
+- Prevents duplicate messages
+
+### Styling
+
+Messages are styled according to type:
+
+```css
+/* Success message */
+.message-success {
+  background: #f0f9ff;
+  border-left: 4px solid #67c23a;
+  color: #67c23a;
+}
+
+/* Error message */
+.message-error {
+  background: #fef0f0;
+  border-left: 4px solid #f56c6c;
+  color: #f56c6c;
+}
+
+/* Warning message */
+.message-warning {
+  background: #fdf6ec;
+  border-left: 4px solid #e6a23c;
+  color: #e6a23c;
+}
+```
+
+### Best Practices
+
+1. **Clear Messages** - Use clear, concise message text
+2. **Appropriate Types** - Choose correct message type for situation
+3. **User Feedback** - Provide feedback for all user actions
+4. **Error Details** - Include helpful information in error messages
+5. **Avoid Spam** - Don't show too many messages in short time
+
+## Delete Confirmation Dialog
+
+The delete confirmation dialog ensures safe task deletion with clear warnings and options.
+
+### Dialog Features
+
+- **Warning Display** - Shows clear warning about deletion consequences
+- **Cascade Warning** - Informs about child task deletion
+- **Confirmation Required** - Prevents accidental deletions
+- **Action Buttons** - Clear confirm and cancel options
+
+### Dialog Content
+
+#### Warning Message
+
+```
+⚠️ Warning: You are about to delete this task
+```
+
+#### Cascade Warning (for parent tasks)
+
+```
+Note: This will also delete all child tasks under this task.
+Are you sure you want to continue?
+```
+
+#### Confirmation Question
+
+```
+Are you sure you want to delete this task?
+```
+
+### Dialog Actions
+
+#### Confirm Button
+
+- **Text** - "Confirm" or "Delete"
+- **Style** - Red/danger color to indicate destructive action
+- **Action** - Deletes task and all child tasks (if any)
+- **Feedback** - Shows success message after deletion
+
+#### Cancel Button
+
+- **Text** - "Cancel"
+- **Style** - Gray/neutral color
+- **Action** - Closes dialog without deleting
+- **Feedback** - No action taken
+
+### Deletion Behavior
+
+#### Simple Task Deletion
+
+When deleting a task without children:
+
+```typescript
+// Single task deletion
+const deleteTask = (taskId: string) => {
+  // 1. Show confirmation dialog
+  // 2. User confirms
+  // 3. Delete task from data
+  // 4. Show success message
+  // 5. Update UI
+};
+```
+
+#### Parent Task Deletion
+
+When deleting a task with children:
+
+```typescript
+// Parent task with children
+const deleteTaskWithChildren = (taskId: string) => {
+  // 1. Show confirmation dialog with cascade warning
+  // 2. User confirms
+  // 3. Delete all child tasks recursively
+  // 4. Delete parent task
+  // 5. Show success message
+  // 6. Update UI
+};
+```
+
+**Cascade Deletion:**
+- All child tasks are deleted
+- Child tasks' children are also deleted
+- Entire subtree is removed from data
+
+### Safety Features
+
+#### Double Confirmation
+
+For critical deletions, the dialog may require additional confirmation:
+
+```typescript
+// Example: Delete task with many children
+if (childCount > 10) {
+  // Show additional confirmation step
+  const confirmed = await showDoubleConfirmation();
+  if (!confirmed) return;
+}
+```
+
+#### Undo Support (Optional)
+
+The component can be extended to support undo:
+
+```typescript
+// Store deleted tasks for potential undo
+const deletedTasks = [];
+
+const deleteTask = (task) => {
+  // Save task before deletion
+  deletedTasks.push({
+    task: task,
+    timestamp: Date.now()
+  });
+  
+  // Perform deletion
+  performDeletion(task.id);
+};
+
+const undoDelete = () => {
+  const lastDeleted = deletedTasks.pop();
+  if (lastDeleted) {
+    restoreTask(lastDeleted.task);
+  }
+};
+```
+
+### Best Practices
+
+1. **Clear Warnings** - Always show clear warnings before deletion
+2. **Cascade Info** - Inform users about child task deletion
+3. **Confirmation** - Always require confirmation for deletion
+4. **Feedback** - Show success message after deletion
+5. **Recovery** - Consider implementing undo functionality
+
+## Tree Task Structure
+
+The component supports hierarchical task tree structure with rich visualization and interaction features.
+
+### Core Features
+
+- **Multi-level Hierarchy** - Support unlimited task nesting levels
+- **Visual Indentation** - Clear visual representation of task hierarchy
+- **Connection Lines** - Tree-style connection lines between parent and child tasks
+- **Expand/Collapse** - Interactive expand/collapse for parent tasks
+- **Task Numbering** - Hierarchical task numbering (1, 1.1, 1.1.1, etc.)
+- **Inline Operations** - Add/delete child tasks directly from task row
+
+### Task Hierarchy Structure
+
+Tasks can be organized in a tree structure:
+
+```typescript
+// Example task hierarchy
+const tasks = [
+  {
+    id: '1',
+    taskNo: 'Project Phase 1',
+    level: 0,           // Root level
+    children: [
+      {
+        id: '1-1',
+        taskNo: 'Task 1.1',
+        level: 1,       // First level child
+        children: [
+          {
+            id: '1-1-1',
+            taskNo: 'Task 1.1.1',
+            level: 2    // Second level child
+          }
+        ]
+      },
+      {
+        id: '1-2',
+        taskNo: 'Task 1.2',
+        level: 1
+      }
+    ]
+  }
+];
+```
+
+**Level Properties:**
+- `level: 0` - Root task (no parent)
+- `level: 1` - First level child
+- `level: 2` - Second level child
+- And so on...
+
+### Visual Elements
+
+#### Indentation
+
+Each level of hierarchy is indented by a fixed amount:
+
+```css
+/* Indentation per level */
+.task-row {
+  padding-left: calc(level * 24px);
+}
+```
+
+**Visual Effect:**
+- Level 0: No indentation
+- Level 1: 24px indentation
+- Level 2: 48px indentation
+- Level 3: 72px indentation
+
+#### Connection Lines
+
+Tree-style connection lines show parent-child relationships:
+
+```
+├─ Task 1.0 (parent)
+│  ├─ Task 1.1 (child)
+│  │  ├─ Task 1.1.1 (grandchild)
+│  │  └─ Task 1.1.2 (grandchild)
+│  └─ Task 1.2 (child)
+└─ Task 2.0 (parent)
+```
+
+**Line Types:**
+- **Vertical Line** - Connects parent to children
+- **Horizontal Line** - Connects to task name
+- **Corner** - Smooth corner at connection point
+
+#### Expand/Collapse Icons
+
+Parent tasks display expand/collapse indicators:
+
+- **Expanded (▾)** - Shows children, click to collapse
+- **Collapsed (▸)** - Hides children, click to expand
+- **Leaf Task** - No icon (no children)
+
+### Interaction Operations
+
+#### Expand/Collapse Tasks
+
+Click the expand/collapse icon to toggle visibility:
+
+```typescript
+// Expand task
+const expandTask = (taskId: string) => {
+  const task = findTask(taskId);
+  if (task) {
+    task.expanded = true;
+    // Show all child tasks
+  }
+};
+
+// Collapse task
+const collapseTask = (taskId: string) => {
+  const task = findTask(taskId);
+  if (task) {
+    task.expanded = false;
+    // Hide all child tasks
+  }
+};
+```
+
+**Keyboard Support:**
+- `Right Arrow` - Expand task
+- `Left Arrow` - Collapse task
+
+#### Add Child Task
+
+Click the "+" button on a task row to add a child:
+
+```typescript
+const addChildTask = (parentTaskId: string) => {
+  const parentTask = findTask(parentTaskId);
+  if (parentTask) {
+    const newTask = {
+      id: generateId(),
+      taskNo: 'New Task',
+      level: parentTask.level + 1,
+      parentId: parentTaskId
+    };
+    parentTask.children.push(newTask);
+    // Auto-expand parent to show new child
+    parentTask.expanded = true;
+  }
+};
+```
+
+#### Delete Task
+
+Click the "×" button to delete a task:
+
+```typescript
+const deleteTask = (taskId: string) => {
+  // Show confirmation dialog
+  const confirmed = showDeleteConfirmation(taskId);
+  if (confirmed) {
+    // Delete task and all children
+    removeTaskAndChildren(taskId);
+  }
+};
+```
+
+**Cascade Deletion:**
+- Deleting a parent task deletes all its children
+- Deleting a child task only deletes that child
+- Confirmation dialog warns about cascade deletion
+
+### Parent-Child Task Linkage
+
+#### Date Constraints
+
+Child task dates are constrained by parent task dates:
+
+```typescript
+// Child task cannot extend beyond parent
+const validateChildDates = (child: Task, parent: Task) => {
+  if (child.start_date < parent.start_date) {
+    child.start_date = parent.start_date;
+  }
+  if (child.end_date > parent.end_date) {
+    child.end_date = parent.end_date;
+  }
+};
+```
+
+**Rules:**
+- Child start date >= Parent start date
+- Child end date <= Parent end date
+- Parent dates automatically adjust if needed
+
+#### Progress Calculation
+
+Parent task progress is calculated from children:
+
+```typescript
+// Calculate parent progress from children
+const calculateParentProgress = (parent: Task) => {
+  if (!parent.children || parent.children.length === 0) {
+    return parent.job_progress;
+  }
+  
+  const totalProgress = parent.children.reduce((sum, child) => {
+    return sum + parseFloat(child.job_progress);
+  }, 0);
+  
+  return (totalProgress / parent.children.length).toFixed(2);
+};
+```
+
+**Calculation Method:**
+- Average of all child task progress
+- Automatically updates when child progress changes
+- Can be overridden manually
+
+### Style Customization
+
+#### Indentation Width
+
+Customize indentation per level:
+
+```typescript
+const config = {
+  indentationWidth: 24  // px per level
+};
+```
+
+#### Line Styles
+
+Customize connection line appearance:
+
+```css
+.tree-line {
+  color: #dcdfe6;        /* Line color */
+  width: 1px;            /* Line width */
+  style: solid;          /* Line style */
+}
+```
+
+#### Icon Styles
+
+Customize expand/collapse icons:
+
+```css
+.expand-icon {
+  color: #909399;        /* Icon color */
+  font-size: 14px;       /* Icon size */
+  cursor: pointer;       /* Pointer cursor */
+}
+
+.expand-icon:hover {
+  color: #409EFF;        /* Hover color */
+}
+```
+
+### Best Practices
+
+1. **Shallow Hierarchy** - Keep hierarchy depth reasonable (3-5 levels max)
+2. **Clear Naming** - Use descriptive names at each level
+3. **Logical Grouping** - Group related tasks under same parent
+4. **Regular Review** - Periodically review and reorganize structure
+5. **Consistent Indentation** - Maintain consistent indentation for clarity
+
+## Internationalization Support
 
 ### Supported Languages
 
