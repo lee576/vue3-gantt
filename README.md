@@ -1,8 +1,27 @@
 # Vue3 Gantt 甘特图组件
 
-**Languages / 语言选择:** [English](#english-documentation) | [简体中文](#chinese-documentation) | [View Separate Files](.) 
+**Languages / 语言选择:**
+[<span style="color: #0078d4; font-weight: bold;">简体中文</span>](#chinese-documentation) |
+[<span style="color: #0078d4; font-weight: bold;">English</span>](#english-documentation) |
+[View Separate Files](.)
 
-> 💡 **提示**: GitHub 上也可查看独立语言版本文件：[README.md](README.md) (默认中文) | [README.en-US.md](README.en-US.md) (English)
+> 💡 **提示**: 点击上方语言链接可直接跳转到对应文档 | GitHub 上也可查看独立语言版本文件：[README.md](README.md) (默认中文) | [README.en-US.md](README.en-US.md) (English)
+
+<style>
+html {
+  scroll-behavior: smooth;
+}
+details > summary {
+  cursor: pointer;
+  list-style: none;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+details[open] > summary {
+  border-bottom: 1px solid #e0e0e0;
+}
+</style>
 
 ---
 
