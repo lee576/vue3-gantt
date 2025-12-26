@@ -176,6 +176,12 @@ defineEmits<{
 }>();
 </script>
 
+<script lang="ts">
+export default {
+  name: 'TaskDialog'
+}
+</script>
+
 <style scoped>
 @import '../styles/dialog-common.css';
 

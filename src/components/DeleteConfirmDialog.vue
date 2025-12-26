@@ -29,6 +29,12 @@ defineEmits<{
 }>();
 </script>
 
+<script lang="ts">
+export default {
+  name: 'DeleteConfirmDialog'
+}
+</script>
+
 <style scoped>
 @import '../styles/dialog-common.css';
 </style>

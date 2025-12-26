@@ -12,6 +12,12 @@ defineProps<{
 }>();
 </script>
 
+<script lang="ts">
+export default {
+  name: 'MessageToast'
+}
+</script>
+
 <style scoped>
 .message-toast {
   position: fixed;

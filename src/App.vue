@@ -4,7 +4,7 @@
       <div class="metro-app-title">
         <div class="metro-title-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8v-10h-8v10zm0-18v6h8V3h-8z" />
           </svg>
         </div>
         <h1>项目甘特图管理系统</h1>
@@ -192,8 +192,10 @@ const handleConfirmDelete = () => {
 
 // 自定义字段管理事件处理
 const handleDeleteCustomField = (index: number) => {
-  if (customFieldsManagement.deleteCustomField(index, dataConfig.value.dataSource)) {
-    messageToast.showMessage('字段删除成功', 'success');
+  if (customFieldsManagement.deleteCustomField) {
+    if (customFieldsManagement.deleteCustomField(index, dataConfig.value.dataSource)) {
+      messageToast.showMessage('字段删除成功', 'success');
+    }
   }
 };
 
