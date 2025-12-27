@@ -70,6 +70,12 @@ export const PerformanceConfig = {
   
   // 是否使用CSS网格背景替代cell div
   USE_CSS_GRID_BACKGROUND: true,
+
+  // 是否启用 Web Worker 处理数据
+  ENABLE_WEB_WORKER: true,
+
+  // 启用 Worker 的任务数量阈值(任务数超过此值时使用 Worker)
+  WORKER_THRESHOLD: 50,
 };
 
 // 全局 SVG 缓存实例

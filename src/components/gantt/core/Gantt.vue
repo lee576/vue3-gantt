@@ -212,6 +212,8 @@ dayjs.extend(quarterOfYear);
 import { Symbols } from '../state/Symbols';
 import { linkDataManager, useLinkConfig } from '../composables/LinkConfig';
 import { useI18n } from '../i18n';
+import { PerformanceConfig } from '../composables/PerformanceConfig';
+import { getWorkerManager, destroyWorkerManager } from '../workers/WorkerManager';
 // 导入日期选择器组件
 import DatePicker from '../config/DatePicker.vue';
 // 导入分割面板组件
@@ -801,6 +803,13 @@ export default defineComponent({
             }
         };
 
+        // 判断是否使用 Worker 处理数据
+        const shouldUseWorker = (tasks: any[]) => {
+            return PerformanceConfig.ENABLE_WEB_WORKER &&
+                   tasks.length > PerformanceConfig.WORKER_THRESHOLD;
+        };
+
+        // 主线程递归处理数据(保留作为 fallback)
         const RecursionData = (id: any, tasks: any[], level: number) => {
             let findResult = tasks.filter(obj => obj[mapFields.value['parentId']] === id);
             if (findResult && findResult.length > 0) {
@@ -821,6 +830,27 @@ export default defineComponent({
                     initData.value.push(findResult[i]);
                     RecursionData(findResult[i][mapFields.value['id']], tasks, level);
                 }
+            }
+        };
+
+        // 使用 Worker 处理数据
+        const processDataWithWorker = async (tasks: any[]) => {
+            try {
+                const workerManager = getWorkerManager();
+                const processedData = await workerManager.processRecursionData(
+                    '0',
+                    tasks,
+                    0,
+                    mapFields.value
+                );
+                return processedData;
+            } catch (error) {
+                console.warn('Worker processing failed, falling back to main thread:', error);
+                // Worker 失败时回退到主线程处理
+                initData.value = [];
+                let level: number = 0;
+                RecursionData('0', tasks, level);
+                return initData.value;
             }
         };
 
@@ -1099,39 +1129,52 @@ export default defineComponent({
             }
         };
 
-        onMounted(() => {
+        onMounted(async () => {
             monthHeaders.value = [];
             weekHeaders.value = [];
             dayHeaders.value = [];
             hourHeaders.value = [];
 
-            let level: number = 0;
-            RecursionData('0', dataSource.value, level);
-            mutations.setTasks(initData.value);
+            // 使用 Worker 或主线程处理数据
+            if (shouldUseWorker(dataSource.value)) {
+                const processedData = await processDataWithWorker(dataSource.value);
+                mutations.setTasks(processedData);
+            } else {
+                let level: number = 0;
+                RecursionData('0', dataSource.value, level);
+                mutations.setTasks(initData.value);
+            }
+
             nextTick(() => {
                 // mode.value 已在初始化时设置为 '日'，不再在这里覆盖
                 mutations.setMode(mode.value);
                 // 初始化时生成时间轴表头
                 setTimeLineHeaders(mode.value);
             });
-            
+
             // 监听进度更新事件
             window.addEventListener('taskProgressUpdate', handleProgressUpdate);
         });
         
         // 优化：监听dataSource变化，使用节流避免频繁更新
         let updateTimer: ReturnType<typeof setTimeout> | null = null;
-        watch(dataSource, (newVal) => {
+        watch(dataSource, async (newVal) => {
             if (newVal && newVal.length > 0) {
                 // 使用节流，避免频繁更新
                 if (updateTimer) {
                     clearTimeout(updateTimer);
                 }
-                updateTimer = setTimeout(() => {
-                    initData.value = [];
-                    let level: number = 0;
-                    RecursionData('0', newVal, level);
-                    mutations.setTasks(initData.value);
+                updateTimer = setTimeout(async () => {
+                    // 使用 Worker 或主线程处理数据
+                    if (shouldUseWorker(newVal)) {
+                        const processedData = await processDataWithWorker(newVal);
+                        mutations.setTasks(processedData);
+                    } else {
+                        initData.value = [];
+                        let level: number = 0;
+                        RecursionData('0', newVal, level);
+                        mutations.setTasks(initData.value);
+                    }
                     updateTimer = null;
                 }, 100);
             } else if (newVal && newVal.length === 0) {
@@ -1143,6 +1186,9 @@ export default defineComponent({
         onBeforeUnmount(() => {
             // 清理进度更新事件监听
             window.removeEventListener('taskProgressUpdate', handleProgressUpdate);
+
+            // 清理 Worker
+            destroyWorkerManager();
         });
 
         provide(Symbols.AddRootTaskSymbol, (row: Record<string, any>) => {
