@@ -51,7 +51,7 @@ export const PerformanceConfig = {
   DEBOUNCE_DELAY: 300,
   
   // 虚拟滚动：上下缓冲区的行数
-  VIRTUAL_SCROLL_BUFFER: 5,
+  VIRTUAL_SCROLL_BUFFER: 50,
   
   // 是否启用虚拟滚动
   ENABLE_VIRTUAL_SCROLL: true,

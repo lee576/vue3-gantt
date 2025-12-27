@@ -142,9 +142,9 @@ export default defineComponent({
       // 获取任务在当前容器中的位置
       const barRowRect = barElement.getBoundingClientRect();
       const containerRect = rightTableContent.getBoundingClientRect();
-      
-      // 计算任务相对于容器的位置
-      const relativeY = barRowRect.top - containerRect.top;
+
+      // 计算任务相对于容器的位置，需要加上滚动偏移量
+      const relativeY = barRowRect.top - containerRect.top + rightTableContent.scrollTop;
       
       if (isMilestone) {
         // 里程碑：菱形的中心点是连接点
@@ -1037,19 +1037,42 @@ export default defineComponent({
     // 监听DOM变化（拖拽时重绘）
     let resizeObserver: ResizeObserver | null = null;
     let mutationObserver: MutationObserver | null = null;
-    
+    let scrollRafId: number | null = null;
+
+    // 优化滚动处理函数，使用 requestAnimationFrame
+    const handleScroll = () => {
+      if (scrollRafId) {
+        cancelAnimationFrame(scrollRafId);
+      }
+      scrollRafId = requestAnimationFrame(() => {
+        updateLinks();
+        scrollRafId = null;
+      });
+    };
+
     onMounted(() => {
       // 初始更新
       setTimeout(updateLinks, 100);
-      
+
       // 监听容器大小变化
       const container = document.querySelector('.gantt');
       if (container) {
         resizeObserver = new ResizeObserver(updateLinks);
         resizeObserver.observe(container);
-        
 
-        
+        // 监听 RightTable 区域的滚动（横向和纵向）
+        const rightTableBar = container.querySelector('.table') as HTMLElement;
+        if (rightTableBar) {
+          // 监听 RightTable 的横向滚动
+          rightTableBar.addEventListener('scroll', handleScroll, { passive: true });
+        }
+
+        // 监听 TableContent 的纵向滚动
+        const tableContent = container.querySelector('.table .content') as HTMLElement;
+        if (tableContent) {
+          tableContent.addEventListener('scroll', handleScroll, { passive: true });
+        }
+
         // 监听DOM变化（任务条位置变化）
         mutationObserver = new MutationObserver((mutations) => {
           let shouldUpdate = false;
@@ -1058,12 +1081,12 @@ export default defineComponent({
             // 检查是否是SVG bar元素或其父元素
             if (mutation.type === 'attributes') {
               const attrName = mutation.attributeName;
-              if (attrName === 'data-x' || 
-                  attrName === 'width' || 
+              if (attrName === 'data-x' ||
+                  attrName === 'width' ||
                   attrName === 'style' ||
                   attrName === 'transform') {
                 // 检查是否是bar元素
-                if (target.classList?.contains('bar') || 
+                if (target.classList?.contains('bar') ||
                     target.classList?.contains('barRow') ||
                     target.tagName === 'svg') {
                   shouldUpdate = true;
@@ -1075,7 +1098,7 @@ export default defineComponent({
             requestAnimationFrame(updateLinks);
           }
         });
-        
+
         mutationObserver.observe(container, {
           attributes: true,
           subtree: true,
@@ -1083,8 +1106,25 @@ export default defineComponent({
         });
       }
     });
-    
+
     onUnmounted(() => {
+      // 清理滚动监听
+      const container = document.querySelector('.gantt');
+      if (container) {
+        const rightTableBar = container.querySelector('.table') as HTMLElement;
+        if (rightTableBar) {
+          rightTableBar.removeEventListener('scroll', handleScroll);
+        }
+
+        const tableContent = container.querySelector('.table .content') as HTMLElement;
+        if (tableContent) {
+          tableContent.removeEventListener('scroll', handleScroll);
+        }
+      }
+
+      if (scrollRafId) {
+        cancelAnimationFrame(scrollRafId);
+      }
       if (resizeObserver) {
         resizeObserver.disconnect();
       }
