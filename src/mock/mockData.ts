@@ -498,7 +498,7 @@ export const getPerformanceTestResponse = (): MockResponse => {
       const duration = Math.floor(Math.random() * 5) + 1;
       const startDate = dayjs(`${currentMonth}-01`).add(startDateOffset + i, 'day');
       const endDate = startDate.add(duration, 'day');
-      const progress = (Math.random() * 100).toFixed(2);
+      const progress = (Math.random()).toFixed(2);
 
       generatedTasks.push({
         id: taskId,
@@ -530,7 +530,7 @@ export const getPerformanceTestResponse = (): MockResponse => {
       level: priorities[Math.floor(Math.random() * priorities.length)],
       start_date: dayjs(`${currentMonth}-01`).add(startDateOffset, 'day').format('YYYY-MM-DD HH:mm:ss'),
       end_date: dayjs(`${currentMonth}-01`).add(startDateOffset + 10, 'day').format('YYYY-MM-DD HH:mm:ss'),
-      job_progress: (Math.random() * 100).toFixed(2),
+      job_progress: (Math.random()).toFixed(2),
       spend_time: null
     };
     tasks.push(rootTask);
@@ -554,7 +554,7 @@ export const getPerformanceTestResponse = (): MockResponse => {
     const duration = Math.floor(Math.random() * 5) + 1;
     const startDate = dayjs(`${currentMonth}-01`).add(Math.floor(Math.random() * 25), 'day');
     const endDate = startDate.add(duration, 'day');
-    const progress = (Math.random() * 100).toFixed(2);
+    const progress = (Math.random()).toFixed(2);
 
     tasks.push({
       id: taskId,
