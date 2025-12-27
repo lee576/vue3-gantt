@@ -98,27 +98,45 @@ export function isWeekend(date: string | dayjs.Dayjs): boolean {
  * @param timelineCellCount 时间线单元格总数
  * @param mode 时间模式
  * @param daySubMode 日模式的子模式
+ * @param hourSubMode 时模式的子模式
  * @returns 周末列的索引数组
  */
 export function getWeekendIndices(
   startGanttDate: string,
   timelineCellCount: number,
   mode: string,
-  daySubMode?: string
+  daySubMode?: string,
+  hourSubMode?: string
 ): number[] {
-  if (mode !== '日') return [];
+  if (mode !== '日' && mode !== '时') return [];
   
   const indices: number[] = [];
-  const isHalfDay = daySubMode === 'half';
-  const cellsPerDay = isHalfDay ? 2 : 1;
   
-  for (let i = 0; i < timelineCellCount; i++) {
-    const dayIndex = isHalfDay ? Math.floor(i / cellsPerDay) : i;
-    const currentDate = dayjs(startGanttDate).add(dayIndex, 'days');
-    if (isWeekend(currentDate)) {
-      indices.push(i);
+  if (mode === '日') {
+    const isHalfDay = daySubMode === 'half';
+    const cellsPerDay = isHalfDay ? 2 : 1;
+    
+    for (let i = 0; i < timelineCellCount; i++) {
+      const dayIndex = isHalfDay ? Math.floor(i / cellsPerDay) : i;
+      const currentDate = dayjs(startGanttDate).add(dayIndex, 'days');
+      if (isWeekend(currentDate)) {
+        indices.push(i);
+      }
+    }
+  } else if (mode === '时') {
+    const minuteInterval = parseInt(hourSubMode || '60');
+    const cellsPerHour = 60 / minuteInterval;
+    const cellsPerDay = 24 * cellsPerHour;
+    
+    for (let i = 0; i < timelineCellCount; i++) {
+      const dayIndex = Math.floor(i / cellsPerDay);
+      const currentDate = dayjs(startGanttDate).add(dayIndex, 'days');
+      if (isWeekend(currentDate)) {
+        indices.push(i);
+      }
     }
   }
+  
   return indices;
 }
 
@@ -128,6 +146,7 @@ export function getWeekendIndices(
  * @param startGanttDate 甘特图开始日期
  * @param mode 时间模式
  * @param daySubMode 日模式的子模式
+ * @param hourSubMode 时模式的子模式
  * @param bgContent 普通背景色
  * @param bgSecondary 周末背景色
  * @returns 背景颜色
@@ -137,6 +156,7 @@ export function getWeekendColor(
   startGanttDate: string,
   mode: string,
   daySubMode: string | undefined,
+  hourSubMode: string | undefined,
   bgContent: string,
   bgSecondary: string
 ): string {
@@ -144,11 +164,9 @@ export function getWeekendColor(
     case '季度':
     case '月':
     case '周':
-    case '时':
       // 这些模式不显示周末背景色
       return bgContent;
     case '日': {
-      // 使用 SVG 缓存优化日期计算
       const cacheKey = `weekend-${startGanttDate}-${count}-${daySubMode}`;
       if (svgCache.has(cacheKey)) {
         const isWeekendDay = svgCache.get(cacheKey);
@@ -160,7 +178,24 @@ export function getWeekendColor(
       const currentDate = dayjs(startGanttDate).add(dayIndex, 'days');
       const isWeekendDay = isWeekend(currentDate);
       
-      // 缓存计算结果
+      svgCache.set(cacheKey, isWeekendDay);
+      return isWeekendDay ? bgSecondary : bgContent;
+    }
+    case '时': {
+      const minuteInterval = parseInt(hourSubMode || '60');
+      const cellsPerHour = 60 / minuteInterval;
+      const cellsPerDay = 24 * cellsPerHour;
+      
+      const cacheKey = `weekend-${startGanttDate}-${count}-${hourSubMode}`;
+      if (svgCache.has(cacheKey)) {
+        const isWeekendDay = svgCache.get(cacheKey);
+        return isWeekendDay ? bgSecondary : bgContent;
+      }
+      
+      const dayIndex = Math.floor(count / cellsPerDay);
+      const currentDate = dayjs(startGanttDate).add(dayIndex, 'days');
+      const isWeekendDay = isWeekend(currentDate);
+      
       svgCache.set(cacheKey, isWeekendDay);
       return isWeekendDay ? bgSecondary : bgContent;
     }

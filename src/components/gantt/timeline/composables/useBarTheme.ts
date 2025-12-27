@@ -1,7 +1,7 @@
 import { computed, onBeforeUnmount, ref, type Ref } from 'vue';
 import dayjs from 'dayjs';
 import { store } from '../../state/Store';
-import { svgCache, isWeekend as isWeekendDay } from '../../composables/PerformanceConfig';
+import { getWeekendIndices as getWeekendIndicesShared, getWeekendColor as getWeekendColorShared } from '../../composables/PerformanceConfig';
 
 type ThemeColors = { bgContent: string; bgSecondary: string; borderColor: string };
 
@@ -27,17 +27,13 @@ export function useBarTheme(bar: Ref<SVGSVGElement | null>, props: any) {
     const themeVersion = ref(0);
 
     const getWeekendIndices = computed(() => {
-        if (store.mode !== '日') return [];
-        const indices: number[] = [];
-        const isHalfDay = store.daySubMode === 'half';
-        const cellsPerDay = isHalfDay ? 2 : 1;
-
-        for (let i = 0; i < store.timelineCellCount; i++) {
-            const dayIndex = isHalfDay ? Math.floor(i / cellsPerDay) : i;
-            const currentDate = dayjs(props.startGanttDate).add(dayIndex, 'days');
-            if (isWeekendDay(currentDate)) indices.push(i);
-        }
-        return indices;
+        return getWeekendIndicesShared(
+            props.startGanttDate,
+            store.timelineCellCount,
+            store.mode,
+            store.daySubMode,
+            store.hourSubMode
+        );
     });
 
     const barRowStyle = computed(() => {
@@ -66,13 +62,13 @@ export function useBarTheme(bar: Ref<SVGSVGElement | null>, props: any) {
                 )
             `;
 
-            if (store.mode === '日') {
+            if (store.mode === '日' || store.mode === '时') {
                 const weekendIndices = getWeekendIndices.value;
                 if (weekendIndices.length > 0) {
                     const weekendGradients = weekendIndices.map(idx => {
                         const start = idx * cellWidth;
                         const end = start + cellWidth;
-                        return `linear-gradient(to right, transparent ${start}px, ${bgSecondary} ${start}px, ${bgSecondary} ${end}px, transparent ${end}px)`;
+                        return `linear-gradient(to right, transparent ${start}px, ${bgSecondary} ${start}px, ${bgSecondary} ${end - 1}px, ${borderColor} ${end - 1}px, ${borderColor} ${end}px, transparent ${end}px)`;
                     });
                     backgroundImage = weekendGradients.join(', ') + ', ' + backgroundImage;
                 }
@@ -102,27 +98,15 @@ export function useBarTheme(bar: Ref<SVGSVGElement | null>, props: any) {
     const WeekEndColor = (count: number) => {
         themeVersion.value;
         const { bgContent, bgSecondary } = findThemeColors(bar.value);
-        switch (store.mode) {
-            case '季度':
-                return bgContent;
-            case '月':
-                return bgContent;
-            case '日': {
-                const cacheKey = `weekend-${props.startGanttDate}-${count}-${store.daySubMode}`;
-                if (svgCache.has(cacheKey)) {
-                    const isWeekendResult = svgCache.get(cacheKey);
-                    return isWeekendResult ? bgSecondary : bgContent;
-                }
-                const isHalfDay = store.daySubMode === 'half';
-                const dayIndex = isHalfDay ? Math.floor(count / 2) : count;
-                const currentDate = dayjs(props.startGanttDate).add(dayIndex, 'days');
-                const isWeekendResult = isWeekendDay(currentDate);
-                svgCache.set(cacheKey, isWeekendResult);
-                return isWeekendResult ? bgSecondary : bgContent;
-            }
-            default:
-                return bgContent;
-        }
+        return getWeekendColorShared(
+            count,
+            props.startGanttDate,
+            store.mode,
+            store.daySubMode,
+            store.hourSubMode,
+            bgContent,
+            bgSecondary
+        );
     };
 
     let observer: MutationObserver | null = null;

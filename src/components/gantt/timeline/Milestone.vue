@@ -18,7 +18,7 @@ import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 dayjs.extend(isoWeek);
 import { store, mutations } from '../state/Store';
-import { svgCache, isWeekend } from '../composables/PerformanceConfig';
+import { getWeekendIndices as getWeekendIndicesShared, getWeekendColor as getWeekendColorShared } from '../composables/PerformanceConfig';
 import sharedState from '../state/ShareState';
 import { Symbols } from '../state/Symbols';
 import { t } from '../i18n';
@@ -47,8 +47,7 @@ export default defineComponent({
 
         const setBarColor = inject(Symbols.SetBarColorSymbol) as ((row: any) => string) | undefined;
 
-        // 获取主题颜色
-        const getThemeColors = () => {
+        const findThemeColors = () => {
             let bgContent = '#ffffff', bgSecondary = '#f8f8f8', borderColor = '#cecece';
             if (milestone.value) {
                 let element = milestone.value.parentElement;
@@ -67,20 +66,13 @@ export default defineComponent({
 
         // 计算周末列的索引（用于CSS背景）
         const getWeekendIndices = computed(() => {
-            if (mode.value !== '日') return [];
-            const indices: number[] = [];
-            const isHalfDay = store.daySubMode === 'half';
-            const cellsPerDay = isHalfDay ? 2 : 1;
-            
-            for (let i = 0; i < timelineCellCount.value; i++) {
-                const dayIndex = isHalfDay ? Math.floor(i / cellsPerDay) : i;
-                const currentDate = dayjs(props.startGanttDate).add(dayIndex, 'days');
-                // 使用公共函数判断周末
-                if (isWeekend(currentDate)) {
-                    indices.push(i);
-                }
-            }
-            return indices;
+            return getWeekendIndicesShared(
+                props.startGanttDate,
+                timelineCellCount.value,
+                mode.value,
+                store.daySubMode,
+                store.hourSubMode
+            );
         });
 
         // 使用CSS背景绘制网格的样式
@@ -89,7 +81,7 @@ export default defineComponent({
             themeVersion.value;
             const cellWidth = scale.value;
             const totalWidth = timelineCellCount.value * cellWidth;
-            const { bgContent, bgSecondary, borderColor } = getThemeColors();
+            const { bgContent, bgSecondary, borderColor } = findThemeColors();
             
             // 基础网格线背景 - 在每个单元格的右边界绘制竖线（与表头对齐）
             let backgroundImage = `
@@ -102,14 +94,14 @@ export default defineComponent({
                 )
             `;
             
-            // 日模式下添加周末背景色
-            if (mode.value === '日') {
+            // 日模式和时模式下添加周末背景色
+            if (mode.value === '日' || mode.value === '时') {
                 const weekendIndices = getWeekendIndices.value;
                 if (weekendIndices.length > 0) {
                     const weekendGradients = weekendIndices.map(idx => {
                         const start = idx * cellWidth;
                         const end = start + cellWidth;
-                        return `linear-gradient(to right, transparent ${start}px, ${bgSecondary} ${start}px, ${bgSecondary} ${end}px, transparent ${end}px)`;
+                        return `linear-gradient(to right, transparent ${start}px, ${bgSecondary} ${start}px, ${bgSecondary} ${end - 1}px, ${borderColor} ${end - 1}px, ${borderColor} ${end}px, transparent ${end}px)`;
                     });
                     backgroundImage = weekendGradients.join(', ') + ', ' + backgroundImage;
                 }
@@ -135,37 +127,16 @@ export default defineComponent({
 
         const WeekEndColor = (count: number) => {
             themeVersion.value;
-            let bgContent = '#ffffff', bgSecondary = '#f8f8f8';
-            if (milestone.value) {
-                let element = milestone.value.parentElement;
-                while (element) {
-                    if (element.hasAttribute('data-gantt-theme')) {
-                        bgContent = getComputedStyle(element).getPropertyValue('--bg-content').trim() || '#ffffff';
-                        bgSecondary = getComputedStyle(element).getPropertyValue('--bg-secondary').trim() || '#f8f8f8';
-                        break;
-                    }
-                    element = element.parentElement;
-                }
-            }
-            switch (mode.value) {
-                case '季度': {
-                    // 季度模式按月计算，不显示周末背景色
-                    return bgContent;
-                }
-                                case '月': {
-                    let currentDate = dayjs(props.startGanttDate).startOf('month').add(count, 'months');
-                    return bgContent;
-                }
-                case '日': {
-                    const isHalfDay = store.daySubMode === 'half';
-                    // 半天模式下，每2个单元格为1天
-                    const dayIndex = isHalfDay ? Math.floor(count / 2) : count;
-                    let currentDate = dayjs(props.startGanttDate).add(dayIndex, 'days');
-                    // 使用公共函数判断周末
-                    return isWeekend(currentDate) ? bgSecondary : bgContent;
-                }
-                case '周': case '时': return bgContent;
-            }
+            const { bgContent, bgSecondary } = findThemeColors();
+            return getWeekendColorShared(
+                count,
+                props.startGanttDate,
+                mode.value,
+                store.daySubMode,
+                store.hourSubMode,
+                bgContent,
+                bgSecondary
+            );
         };
 
         const setBarDate = mutations.setBarDate;
