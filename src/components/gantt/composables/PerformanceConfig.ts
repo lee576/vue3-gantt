@@ -44,30 +44,30 @@ class SVGCache {
 }
 
 export const PerformanceConfig = {
-  // 节流延迟时间（毫秒）
-  THROTTLE_DELAY: 100,
-  
+  // 节流延迟时间（毫秒）- 平衡响应速度和性能
+  THROTTLE_DELAY: 16,
+
   // 防抖延迟时间（毫秒）
   DEBOUNCE_DELAY: 300,
-  
-  // 虚拟滚动：上下缓冲区的行数
-  VIRTUAL_SCROLL_BUFFER: 30,
-  
+
+  // 虚拟滚动：上下缓冲区的行数 - 保持足够缓冲避免白屏
+  VIRTUAL_SCROLL_BUFFER: 10,
+
   // 是否启用虚拟滚动
   ENABLE_VIRTUAL_SCROLL: true,
-  
-  // SVG缓存大小
-  SVG_CACHE_SIZE: 100,
-  
+
+  // SVG缓存大小 - 增大以减少重复计算
+  SVG_CACHE_SIZE: 200,
+
   // 是否启用requestAnimationFrame优化
   USE_RAF: true,
-  
-  // 批量更新延迟
+
+  // 批量更新延迟 - 保持60fps
   BATCH_UPDATE_DELAY: 16, // 约60fps
-  
-  // 启用虚拟滚动的任务数量阈值
-  VIRTUAL_SCROLL_THRESHOLD: 100,
-  
+
+  // 启用虚拟滚动的任务数量阈值 - 降低阈值让更多情况使用虚拟滚动
+  VIRTUAL_SCROLL_THRESHOLD: 50,
+
   // 是否使用CSS网格背景替代cell div
   USE_CSS_GRID_BACKGROUND: true,
 

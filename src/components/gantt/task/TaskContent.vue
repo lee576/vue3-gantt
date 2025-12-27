@@ -51,9 +51,12 @@ export default defineComponent({
         // 优化：使用requestAnimationFrame优化滚动性能
         let rafId: number | null = null;
         const scroll = () => {
+            if (!taskContent.value) return;
+
             if (rafId) {
                 cancelAnimationFrame(rafId);
             }
+
             rafId = requestAnimationFrame(() => {
                 if (taskContent.value) {
                     setScrollFlag(true); // 标记当前面板为主动滚动
@@ -139,11 +142,20 @@ export default defineComponent({
     overflow-x: hidden;
     position: relative;
     box-sizing: border-box;
-    
+
+    /* 性能优化：使用GPU加速 */
+    transform: translateZ(0);
+    will-change: scroll-position;
+
+    /* 使用硬件加速的合成层 */
+    contain: layout style paint;
+
     .content-inner {
         width: 100%;
         display: flex;
         flex-direction: column;
+        /* 避免不必要的布局计算 */
+        contain: layout style;
     }
 
     .moveToBar {

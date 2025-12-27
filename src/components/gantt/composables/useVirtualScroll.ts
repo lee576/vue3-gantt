@@ -66,9 +66,13 @@ export function useVirtualScroll(options: VirtualScrollOptions): VirtualScrollRe
   };
   
   // 滚动处理（使用 RAF 节流）
+  // 简化节流逻辑，确保每一帧都能及时更新
   let rafId: number | null = null;
+
   const onScroll = () => {
-    if (rafId) return;
+    // 如果RAF已经在等待，直接返回（避免重复调度）
+    if (rafId !== null) return;
+
     rafId = requestAnimationFrame(() => {
       updateVisibleRange();
       rafId = null;

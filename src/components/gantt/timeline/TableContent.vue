@@ -94,9 +94,12 @@
       // 优化：使用requestAnimationFrame优化滚动性能
       let rafId: number | null = null;
       const scroll = () => {
+        if (!barContent.value) return;
+
         if (rafId) {
           cancelAnimationFrame(rafId);
         }
+
         rafId = requestAnimationFrame(() => {
           if (barContent.value) {
             setScrollFlag(false); // 标记当前面板为主动滚动
@@ -181,10 +184,17 @@
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
-    
+
+    /* 性能优化：使用GPU加速和合成层 */
+    transform: translateZ(0);
+    will-change: scroll-position;
+    contain: layout style paint;
+
     .content-inner {
       width: 100%;
       position: relative;
+      /* 避免不必要的布局计算 */
+      contain: layout style;
     }
   }
 
