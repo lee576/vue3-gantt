@@ -23,6 +23,13 @@
           </svg>
           自定义字段
         </button>
+        <button class="metro-btn" @click="togglePerformanceTest">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4h2v4zm0-6h-2V7h2v4z" />
+          </svg>
+          {{ isPerformanceTest ? '切换正常数据' : '性能测试(1000条)' }}
+        </button>
         <button class="metro-btn" @click="refreshData">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path
@@ -76,11 +83,14 @@ import { useMessage } from './composables/useMessage';
 import { useCustomFields } from './composables/useCustomFields';
 import { useTaskManagement } from './composables/useTaskManagement';
 import { taskApi } from './services/taskApi';
-import { getMockResponse } from './mock/mockData';
+import { getMockResponse, getPerformanceTestResponse } from './mock/mockData';
 
 // 初始化 Composables
 const messageToast = useMessage();
 const customFieldsManagement = useCustomFields();
+
+// 性能测试模式
+const isPerformanceTest = ref(false);
 
 // 定义数据配置
 const dataConfig = ref<DataConfig>({
@@ -235,6 +245,21 @@ const refreshData = async () => {
   }
 };
 
+// 切换性能测试模式
+const togglePerformanceTest = async () => {
+  isPerformanceTest.value = !isPerformanceTest.value;
+  try {
+    const startDate = dataConfig.value.queryStartDate || dayjs().startOf('month').format('YYYY-MM-DD');
+    const endDate = dataConfig.value.queryEndDate || dayjs().endOf('month').format('YYYY-MM-DD');
+    await eventConfig.value.queryTask(startDate, endDate);
+    const modeText = isPerformanceTest.value ? '性能测试模式' : '正常数据模式';
+    messageToast.showMessage(`已切换到${modeText}`, 'success');
+  } catch (error) {
+    console.error('切换模式失败:', error);
+    messageToast.showMessage('切换失败，请稍后重试', 'error');
+  }
+};
+
 // 定义事件配置
 const eventConfig = ref<EventConfig>({
   addRootTask: () => {
@@ -265,8 +290,7 @@ const eventConfig = ref<EventConfig>({
     dataConfig.value.queryStartDate = queryStart;
     dataConfig.value.queryEndDate = queryEnd;
 
-    // 使用导入的 mock 数据
-    const mockResponse = getMockResponse();
+    const mockResponse = isPerformanceTest.value ? getPerformanceTestResponse() : getMockResponse();
 
     dataConfig.value.dataSource = customFieldsManagement.processTasksWithCustomFields(mockResponse.tasks);
     dataConfig.value.dependencies = mockResponse.dependencies;

@@ -481,3 +481,92 @@ export const getMockResponse = (): MockResponse => {
     ]
   };
 };
+
+export const getPerformanceTestResponse = (): MockResponse => {
+  const currentMonth = dayjs().format('YYYY-MM');
+  const tasks: MockTask[] = [];
+  const dependencies: MockDependency[] = [];
+  const priorities = ['紧急', '重要', '一般', '不重要'];
+  const taskTypes = ['开发', '测试', '设计', '文档', '部署', '优化', '修复', '分析', '规划', '维护'];
+
+  const generateTasks = (parentId: string, level: number, count: number, startDateOffset: number) => {
+    const generatedTasks: MockTask[] = [];
+    for (let i = 0; i < count; i++) {
+      const taskId = `${parentId}-${i}`;
+      const taskType = taskTypes[Math.floor(Math.random() * taskTypes.length)];
+      const priority = priorities[Math.floor(Math.random() * priorities.length)];
+      const duration = Math.floor(Math.random() * 5) + 1;
+      const startDate = dayjs(`${currentMonth}-01`).add(startDateOffset + i, 'day');
+      const endDate = startDate.add(duration, 'day');
+      const progress = (Math.random() * 100).toFixed(2);
+
+      generatedTasks.push({
+        id: taskId,
+        pid: parentId,
+        taskNo: `${taskType}任务 ${i + 1}`,
+        level: priority,
+        start_date: startDate.format('YYYY-MM-DD HH:mm:ss'),
+        end_date: endDate.format('YYYY-MM-DD HH:mm:ss'),
+        job_progress: progress,
+        spend_time: null
+      });
+
+      if (level < 2 && Math.random() > 0.5) {
+        const subTasks = generateTasks(taskId, level + 1, Math.floor(Math.random() * 3) + 1, startDateOffset + i);
+        generatedTasks.push(...subTasks);
+      }
+    }
+    return generatedTasks;
+  };
+
+  const rootTaskCount = 50;
+  for (let i = 0; i < rootTaskCount; i++) {
+    const rootTaskId = `root-${i}`;
+    const startDateOffset = Math.floor(Math.random() * 20);
+    const rootTask = {
+      id: rootTaskId,
+      pid: '0',
+      taskNo: `项目 ${i + 1}`,
+      level: priorities[Math.floor(Math.random() * priorities.length)],
+      start_date: dayjs(`${currentMonth}-01`).add(startDateOffset, 'day').format('YYYY-MM-DD HH:mm:ss'),
+      end_date: dayjs(`${currentMonth}-01`).add(startDateOffset + 10, 'day').format('YYYY-MM-DD HH:mm:ss'),
+      job_progress: (Math.random() * 100).toFixed(2),
+      spend_time: null
+    };
+    tasks.push(rootTask);
+
+    const subTasks = generateTasks(rootTaskId, 1, Math.floor(Math.random() * 5) + 2, startDateOffset);
+    tasks.push(...subTasks);
+
+    if (subTasks.length > 0) {
+      dependencies.push({
+        sourceTaskId: subTasks[0].id,
+        targetTaskId: subTasks[subTasks.length - 1].id,
+        type: LinkType.FINISH_TO_START
+      });
+    }
+  }
+
+  while (tasks.length < 1000) {
+    const taskId = `extra-${tasks.length}`;
+    const taskType = taskTypes[Math.floor(Math.random() * taskTypes.length)];
+    const priority = priorities[Math.floor(Math.random() * priorities.length)];
+    const duration = Math.floor(Math.random() * 5) + 1;
+    const startDate = dayjs(`${currentMonth}-01`).add(Math.floor(Math.random() * 25), 'day');
+    const endDate = startDate.add(duration, 'day');
+    const progress = (Math.random() * 100).toFixed(2);
+
+    tasks.push({
+      id: taskId,
+      pid: '0',
+      taskNo: `${taskType}任务 ${tasks.length}`,
+      level: priority,
+      start_date: startDate.format('YYYY-MM-DD HH:mm:ss'),
+      end_date: endDate.format('YYYY-MM-DD HH:mm:ss'),
+      job_progress: progress,
+      spend_time: null
+    });
+  }
+
+  return { tasks, dependencies };
+};

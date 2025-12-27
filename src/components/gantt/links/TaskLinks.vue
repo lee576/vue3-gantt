@@ -12,52 +12,95 @@
       overflow: 'visible'
     }"
   >
-    <!-- 渲染所有连线 -->
-    <g v-for="link in links" :key="link.id">
-      <!-- 连线路径 -->
-      <path
-        :d="link.path"
-        :stroke="getLinkStyle(link.type).color"
-        :stroke-width="getLinkStyle(link.type).width"
-        :stroke-dasharray="getLinkStyle(link.type).dashArray"
-        fill="none"
-        :class="['task-link', link.type, { 
-          'dash-animated': isDashedLine(link.type) && linkConfig.enableDashAnimation 
-        }]"
-        :style="getDashAnimationStyle(link)"
-      />
-      
-      <!-- 箭头 -->
-      <polygon
-        v-if="linkConfig.showArrow && link.arrowPoints && link.arrowPoints.length > 0"
-        :points="link.arrowPoints"
-        :fill="getLinkStyle(link.type).color"
-        :stroke="getLinkStyle(link.type).color"
-        :stroke-width="0.5"
-        class="task-link-arrow"
-      />
-      
-      <!-- 连线标签（可选） -->
-      <text
-        v-if="link.label && linkConfig.showLabels"
-        :x="link.labelX"
-        :y="link.labelY"
-        :fill="linkConfig.labelColor"
-        :font-size="linkConfig.labelFontSize"
-        text-anchor="middle"
-        class="task-link-label"
-      >
-        {{ link.label }}
-      </text>
-    </g>
+    <!-- 虚拟滚动：只渲染可见区域的连线 -->
+    <template v-if="useVirtualScroll">
+      <g v-for="link in visibleLinks" :key="link.id">
+        <!-- 连线路径 -->
+        <path
+          :d="link.path"
+          :stroke="getLinkStyle(link.type).color"
+          :stroke-width="getLinkStyle(link.type).width"
+          :stroke-dasharray="getLinkStyle(link.type).dashArray"
+          fill="none"
+          :class="['task-link', link.type, { 
+            'dash-animated': isDashedLine(link.type) && linkConfig.enableDashAnimation 
+          }]"
+          :style="getDashAnimationStyle(link)"
+        />
+        
+        <!-- 箭头 -->
+        <polygon
+          v-if="linkConfig.showArrow && link.arrowPoints && link.arrowPoints.length > 0"
+          :points="link.arrowPoints"
+          :fill="getLinkStyle(link.type).color"
+          :stroke="getLinkStyle(link.type).color"
+          :stroke-width="0.5"
+          class="task-link-arrow"
+        />
+        
+        <!-- 连线标签（可选） -->
+        <text
+          v-if="link.label && linkConfig.showLabels"
+          :x="link.labelX"
+          :y="link.labelY"
+          :fill="linkConfig.labelColor"
+          :font-size="linkConfig.labelFontSize"
+          text-anchor="middle"
+          class="task-link-label"
+        >
+          {{ link.label }}
+        </text>
+      </g>
+    </template>
+    <!-- 普通模式：渲染所有连线 -->
+    <template v-else>
+      <g v-for="link in links" :key="link.id">
+        <!-- 连线路径 -->
+        <path
+          :d="link.path"
+          :stroke="getLinkStyle(link.type).color"
+          :stroke-width="getLinkStyle(link.type).width"
+          :stroke-dasharray="getLinkStyle(link.type).dashArray"
+          fill="none"
+          :class="['task-link', link.type, { 
+            'dash-animated': isDashedLine(link.type) && linkConfig.enableDashAnimation 
+          }]"
+          :style="getDashAnimationStyle(link)"
+        />
+        
+        <!-- 箭头 -->
+        <polygon
+          v-if="linkConfig.showArrow && link.arrowPoints && link.arrowPoints.length > 0"
+          :points="link.arrowPoints"
+          :fill="getLinkStyle(link.type).color"
+          :stroke="getLinkStyle(link.type).color"
+          :stroke-width="0.5"
+          class="task-link-arrow"
+        />
+        
+        <!-- 连线标签（可选） -->
+        <text
+          v-if="link.label && linkConfig.showLabels"
+          :x="link.labelX"
+          :y="link.labelY"
+          :fill="linkConfig.labelColor"
+          :font-size="linkConfig.labelFontSize"
+          text-anchor="middle"
+          class="task-link-label"
+        >
+          {{ link.label }}
+        </text>
+      </g>
+    </template>
   </svg>
 </template>
 
 <script lang="ts">
-import { defineComponent, watch, ref, onMounted, onUnmounted } from 'vue';
+import { defineComponent, watch, ref, onMounted, onUnmounted, computed } from 'vue';
 import { store } from '../state/Store';
 import { LinkType, LinkPathType, type LinkConfig, type TaskLink } from '../types/Types';
 import { linkDataManager } from '../composables/LinkConfig';
+import { PerformanceConfig } from '../composables/PerformanceConfig';
 
 
 
@@ -101,6 +144,35 @@ export default defineComponent({
   },
   setup(props) {
     const links = ref<TaskLink[]>([]);
+    
+    // 虚拟滚动状态
+    const scrollTop = ref(0);
+    const containerHeight = ref(0);
+    
+    // 判断是否启用虚拟滚动
+    const useVirtualScroll = computed(() => {
+      return PerformanceConfig.ENABLE_VIRTUAL_SCROLL && 
+             links.value.length >= PerformanceConfig.VIRTUAL_SCROLL_THRESHOLD;
+    });
+    
+    // 计算可见区域的连线
+    const visibleLinks = computed(() => {
+      if (!useVirtualScroll.value) return links.value;
+      
+      const buffer = PerformanceConfig.VIRTUAL_SCROLL_BUFFER * 60; // 缓冲区像素高度
+      const viewStart = scrollTop.value - buffer;
+      const viewEnd = scrollTop.value + containerHeight.value + buffer;
+      
+      return links.value.filter(link => {
+        // 检查连线是否在可见区域内
+        const sourceY = link.sourceY || 0;
+        const targetY = link.targetY || 0;
+        const minY = Math.min(sourceY, targetY);
+        const maxY = Math.max(sourceY, targetY);
+        
+        return maxY >= viewStart && minY <= viewEnd;
+      });
+    });
     
     // 获取任务位置信息
     const getTaskPosition = (taskId: string) => {
@@ -830,6 +902,10 @@ export default defineComponent({
     };
     
     // 更新连线
+    let updateLinksRafId: number | null = null;
+    let lastUpdateTime = 0;
+    const UPDATE_THROTTLE = 50; // 50ms 节流
+    
     // 获取所有被折叠的子任务ID集合（递归）
     const getAllCollapsedChildren = (parentId: any): Set<any> => {
       const collapsedChildren = new Set<any>();
@@ -861,6 +937,23 @@ export default defineComponent({
     };
     
     const updateLinks = () => {
+      const now = Date.now();
+      const timeSinceLastUpdate = now - lastUpdateTime;
+      
+      // 节流：如果距离上次更新时间太短，则跳过
+      if (timeSinceLastUpdate < UPDATE_THROTTLE) {
+        if (updateLinksRafId) {
+          cancelAnimationFrame(updateLinksRafId);
+        }
+        updateLinksRafId = requestAnimationFrame(() => {
+          updateLinks();
+          updateLinksRafId = null;
+        });
+        return;
+      }
+      
+      lastUpdateTime = now;
+      
       const newLinks: TaskLink[] = [];
       
       // 获取连线类型显示配置
@@ -906,7 +999,9 @@ export default defineComponent({
                 path,
                 arrowPoints,
                 labelX: childPos.centerX,
-                labelY: childPos.centerY - 10
+                labelY: childPos.centerY - 10,
+                sourceY: parentPos.centerY,
+                targetY: childPos.centerY
               });
             }
           }
@@ -985,7 +1080,9 @@ export default defineComponent({
             arrowPoints,
             label: labelMap[dep.type] || '',
             labelX: (sourcePos.centerX + targetPos.centerX) / 2,
-            labelY: (sourcePos.centerY + targetPos.centerY) / 2 - 10
+            labelY: (sourcePos.centerY + targetPos.centerY) / 2 - 10,
+            sourceY: sourcePos.centerY,
+            targetY: targetPos.centerY
           });
         }
       });
@@ -1045,6 +1142,12 @@ export default defineComponent({
         cancelAnimationFrame(scrollRafId);
       }
       scrollRafId = requestAnimationFrame(() => {
+        // 更新虚拟滚动状态
+        const tableContent = document.querySelector('.table .content') as HTMLElement;
+        if (tableContent) {
+          scrollTop.value = tableContent.scrollTop;
+          containerHeight.value = tableContent.clientHeight;
+        }
         updateLinks();
         scrollRafId = null;
       });
@@ -1166,6 +1269,8 @@ export default defineComponent({
     
     return {
       links,
+      visibleLinks,
+      useVirtualScroll,
       updateLinks,
       getLinkStyle,
       isDashedLine,
