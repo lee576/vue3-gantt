@@ -22,6 +22,8 @@ interface StoreType {
     expand: boolean;
   };
   collapsedTasks: Set<any>; // 记录已折叠的任务ID集合
+  allCollapsed: boolean; // 全局折叠状态：true表示所有节点都折叠，false表示所有节点都展开
+  allCollapsedTaskIds: Set<any>; // 缓存所有被折叠的任务ID（包括子孙任务）
   rootTask: any;
   subTask: any;
   editTask: any;
@@ -56,6 +58,8 @@ const initialStore: StoreType = {
     expand: true
   },
   collapsedTasks: new Set(),
+  allCollapsed: false, // 默认全部展开
+  allCollapsedTaskIds: new Set(), // 缓存所有被折叠的任务ID（包括子孙任务）
   rootTask: {},
   subTask: {},
   editTask: {},
@@ -71,6 +75,36 @@ const initialStore: StoreType = {
 export let serialNumber: number = 0;
 // 使用reactive保证响应式正常工作
 export let store = reactive(initialStore) as StoreType;
+
+// 辅助函数：获取某个任务的所有子孙任务ID
+const getAllChildrenIds = (parentId: any, tasks: any[], parentIdField: string): Set<any> => {
+  const childrenIds = new Set<any>();
+  
+  const collectChildren = (pid: any) => {
+    const children = tasks.filter(task => task[parentIdField] === pid);
+    children.forEach(child => {
+      const childId = child[store.mapFields['id']];
+      childrenIds.add(childId);
+      collectChildren(childId);
+    });
+  };
+  
+  collectChildren(parentId);
+  return childrenIds;
+};
+
+// 辅助函数：更新所有被折叠的任务ID缓存
+const updateAllCollapsedTaskIds = () => {
+  const allCollapsedIds = new Set<any>();
+  const parentIdField = store.mapFields['parentId'];
+  
+  store.collapsedTasks.forEach(collapsedId => {
+    const childrenIds = getAllChildrenIds(collapsedId, store.tasks, parentIdField);
+    childrenIds.forEach(id => allCollapsedIds.add(id));
+  });
+  
+  store.allCollapsedTaskIds = allCollapsedIds;
+};
 
 // 定义 Mutations 类型
 interface MutationsType {
@@ -91,6 +125,8 @@ interface MutationsType {
   setHourSubMode: (hourSubMode: '60' | '30' | '15') => void; // 设置时模式的子模式
   setExpandRow: (expandRow: { pid: number; expand: boolean }) => void;
   toggleTaskCollapse: (taskId: any) => void; // 切换任务折叠状态
+  collapseAllTasks: () => void; // 折叠所有有子节点的任务
+  expandAllTasks: () => void; // 展开所有任务
   setRootTask: (rootTask: any) => void;
   setSubTask: (subTask: any) => void;
   setEditTask: (editTask: any) => void;
@@ -157,6 +193,33 @@ export let mutations: MutationsType = {
     }
     // 触发响应式更新
     store.collapsedTasks = new Set(store.collapsedTasks);
+    // 更新缓存
+    updateAllCollapsedTaskIds();
+  },
+  collapseAllTasks(): void {
+    // 找出所有有子节点的任务ID
+    const parentTasks = new Set<any>();
+    const parentIdField = store.mapFields['parentId'];
+    
+    store.tasks.forEach(task => {
+      const parentId = task[parentIdField];
+      if (parentId && parentId !== '0') {
+        parentTasks.add(parentId);
+      }
+    });
+    
+    // 将这些任务ID添加到折叠集合
+    store.collapsedTasks = new Set(parentTasks);
+    store.allCollapsed = true;
+    // 更新缓存
+    updateAllCollapsedTaskIds();
+  },
+  expandAllTasks(): void {
+    // 清空折叠集合
+    store.collapsedTasks = new Set();
+    store.allCollapsed = false;
+    // 清空缓存
+    store.allCollapsedTaskIds = new Set();
   },
   setRootTask(rootTask: any): void {
     // 创建新对象并添加时间戳，确保每次都能触发 watch

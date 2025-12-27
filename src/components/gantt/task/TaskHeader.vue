@@ -6,9 +6,21 @@
           :columnindex='index'
           v-show="item.property === 'no' || item.show"
           class="headerCaption"
+          :class="{ 'no-column': item.property === 'no' }"
           :style="{ width: `${item.width}px` }"
         >
-          <span>{{ getHeaderTitle(item) }}</span>
+          <span v-if="item.property !== 'no'">{{ getHeaderTitle(item) }}</span>
+          <!-- 序号列：显示折叠/展开按钮 + 标题 -->
+          <template v-else>
+            <div class="collapse-button-wrapper">
+              <CollapseButton
+                :collapsed="allCollapsed"
+                :title="allCollapsed ? '展开所有' : '折叠所有'"
+                @toggle="toggleAllCollapse"
+              />
+            </div>
+            <span>{{ getHeaderTitle(item) }}</span>
+          </template>
           <!-- 列宽调整拖动手柄 -->
           <!-- 序号列（property='no'）始终显示拖动手柄，其他列只有在显示时才显示 -->
           <div
@@ -22,10 +34,15 @@
   </template>
 
   <script lang="ts">
-  import { defineComponent, ref } from 'vue';
+  import { defineComponent, ref, computed, nextTick } from 'vue';
   import { useI18n } from '../i18n';
+  import { store, mutations } from '../state/Store';
+  import CollapseButton from './CollapseButton.vue';
 
   export default defineComponent({
+    components: {
+      CollapseButton
+    },
     props: {
       headers: {
         type: Array as () => {
@@ -39,6 +56,19 @@
     },
     setup(props) {
       const { t } = useI18n();
+      
+      // 全局折叠状态
+      const allCollapsed = computed(() => store.allCollapsed);
+      
+      // 切换全局折叠/展开
+      const toggleAllCollapse = async () => {
+        if (allCollapsed.value) {
+          mutations.expandAllTasks();
+        } else {
+          mutations.collapseAllTasks();
+        }
+        await nextTick();
+      };
       
       // 拖动调整状态
       const resizing = ref(false);
@@ -160,7 +190,9 @@
       
       return {
         getHeaderTitle,
-        startResize
+        startResize,
+        allCollapsed,
+        toggleAllCollapse
       };
     }
   });
@@ -223,6 +255,19 @@
     &:hover {
       background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
       color: var(--primary, #0078d4);
+    }
+
+    // 序号列的特殊样式
+    &.no-column {
+      position: relative;
+
+      .collapse-button-wrapper {
+        position: absolute;
+        left: 24px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1;
+      }
     }
 
     // 列宽调整拖动手柄

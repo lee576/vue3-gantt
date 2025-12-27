@@ -57,22 +57,12 @@
                         <!-- 左侧：折叠按钮 + 序号 -->
                         <div class="no-left-section" :style="{ paddingLeft: (row.treeLevel || 0) * 16 + 'px' }">
                             <!-- 折叠/展开按钮 -->
-                            <button 
-                                v-if="hasChildren" 
-                                @click.stop="toggleCollapse" 
-                                class="collapse-btn"
-                                :class="{ collapsed: isCollapsed }"
+                            <CollapseButton
+                                v-if="hasChildren"
+                                :collapsed="isCollapsed"
                                 :title="isCollapsed ? '展开' : '折叠'"
-                            >
-                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                    <!-- 三角形箭头 -->
-                                    <path 
-                                        class="arrow" 
-                                        d="M5 4 L14 9 L5 14 Z" 
-                                        fill="currentColor"
-                                    />
-                                </svg>
-                            </button>
+                                @toggle="toggleCollapse"
+                            />
                             <!-- 无子节点时的占位空间（透明，不遮挡横线） -->
                             <span v-else class="collapse-placeholder"></span>
                             
@@ -122,8 +112,12 @@
 import { defineComponent, ref, onMounted, computed, inject, watch } from 'vue';
 import { store, mutations } from '../state/Store';
 import sharedState from '../state/ShareState';
+import CollapseButton from './CollapseButton.vue';
 
 export default defineComponent({
+    components: {
+        CollapseButton
+    },
     props: {
         headers: {
             type: Array as () => any[],

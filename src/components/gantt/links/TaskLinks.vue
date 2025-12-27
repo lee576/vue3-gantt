@@ -906,34 +906,10 @@ export default defineComponent({
     let lastUpdateTime = 0;
     const UPDATE_THROTTLE = 50; // 50ms 节流
     
-    // 获取所有被折叠的子任务ID集合（递归）
-    const getAllCollapsedChildren = (parentId: any): Set<any> => {
-      const collapsedChildren = new Set<any>();
-      
-      const collectChildren = (pid: any) => {
-        const children = store.tasks.filter(task => task[store.mapFields.parentId] === pid);
-        children.forEach(child => {
-          const childId = child[store.mapFields.id];
-          collapsedChildren.add(childId);
-          // 递归收集所有子孙任务
-          collectChildren(childId);
-        });
-      };
-      
-      collectChildren(parentId);
-      return collapsedChildren;
-    };
-    
     // 检查任务是否被折叠（任务本身或其任何祖先被折叠）
+    // 使用缓存：直接从 store.allCollapsedTaskIds 获取所有被折叠的任务ID
     const isTaskCollapsed = (taskId: any): boolean => {
-      // 检查所有已折叠的任务
-      for (const collapsedId of store.collapsedTasks) {
-        const collapsedChildren = getAllCollapsedChildren(collapsedId);
-        if (collapsedChildren.has(taskId)) {
-          return true;
-        }
-      }
-      return false;
+      return store.allCollapsedTaskIds.has(taskId);
     };
     
     const updateLinks = () => {
