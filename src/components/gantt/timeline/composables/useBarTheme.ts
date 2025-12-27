@@ -65,9 +65,26 @@ export function useBarTheme(bar: Ref<SVGSVGElement | null>, props: any) {
             if (store.mode === '日' || store.mode === '时') {
                 const weekendIndices = getWeekendIndices.value;
                 if (weekendIndices.length > 0) {
-                    const weekendGradients = weekendIndices.map(idx => {
-                        const start = idx * cellWidth;
-                        const end = start + cellWidth;
+                    const weekendRanges: { start: number; end: number }[] = [];
+                    let currentRange: { start: number; end: number } | null = null;
+                    
+                    for (const idx of weekendIndices) {
+                        if (currentRange === null) {
+                            currentRange = { start: idx, end: idx + 1 };
+                        } else if (idx === currentRange.end) {
+                            currentRange.end = idx + 1;
+                        } else {
+                            weekendRanges.push(currentRange);
+                            currentRange = { start: idx, end: idx + 1 };
+                        }
+                    }
+                    if (currentRange !== null) {
+                        weekendRanges.push(currentRange);
+                    }
+                    
+                    const weekendGradients = weekendRanges.map(range => {
+                        const start = range.start * cellWidth;
+                        const end = range.end * cellWidth;
                         return `linear-gradient(to right, transparent ${start}px, ${bgSecondary} ${start}px, ${bgSecondary} ${end - 1}px, ${borderColor} ${end - 1}px, ${borderColor} ${end}px, transparent ${end}px)`;
                     });
                     backgroundImage = weekendGradients.join(', ') + ', ' + backgroundImage;
@@ -118,7 +135,7 @@ export function useBarTheme(bar: Ref<SVGSVGElement | null>, props: any) {
         }
         if (ganttContainer) {
             observer = new MutationObserver(() => { themeVersion.value++; });
-            observer.observe(ganttContainer, { attributes: true, attributeFilter: ['data-gantt-theme', 'style'] });
+            observer.observe(ganttContainer, { attributes: true, attributeFilter: ['data-gantt-theme'] });
         }
     };
     onBeforeUnmount(() => observer?.disconnect());

@@ -47,7 +47,8 @@ export default defineComponent({
 
         const setBarColor = inject(Symbols.SetBarColorSymbol) as ((row: any) => string) | undefined;
 
-        const findThemeColors = () => {
+        const themeColors = computed(() => {
+            themeVersion.value;
             let bgContent = '#ffffff', bgSecondary = '#f8f8f8', borderColor = '#cecece';
             if (milestone.value) {
                 let element = milestone.value.parentElement;
@@ -62,7 +63,7 @@ export default defineComponent({
                 }
             }
             return { bgContent, bgSecondary, borderColor };
-        };
+        });
 
         // 计算周末列的索引（用于CSS背景）
         const getWeekendIndices = computed(() => {
@@ -81,7 +82,7 @@ export default defineComponent({
             themeVersion.value;
             const cellWidth = scale.value;
             const totalWidth = timelineCellCount.value * cellWidth;
-            const { bgContent, bgSecondary, borderColor } = findThemeColors();
+            const { bgContent, bgSecondary, borderColor } = themeColors.value;
             
             // 基础网格线背景 - 在每个单元格的右边界绘制竖线（与表头对齐）
             let backgroundImage = `
@@ -98,9 +99,26 @@ export default defineComponent({
             if (mode.value === '日' || mode.value === '时') {
                 const weekendIndices = getWeekendIndices.value;
                 if (weekendIndices.length > 0) {
-                    const weekendGradients = weekendIndices.map(idx => {
-                        const start = idx * cellWidth;
-                        const end = start + cellWidth;
+                    const weekendRanges: { start: number; end: number }[] = [];
+                    let currentRange: { start: number; end: number } | null = null;
+                    
+                    for (const idx of weekendIndices) {
+                        if (currentRange === null) {
+                            currentRange = { start: idx, end: idx + 1 };
+                        } else if (idx === currentRange.end) {
+                            currentRange.end = idx + 1;
+                        } else {
+                            weekendRanges.push(currentRange);
+                            currentRange = { start: idx, end: idx + 1 };
+                        }
+                    }
+                    if (currentRange !== null) {
+                        weekendRanges.push(currentRange);
+                    }
+                    
+                    const weekendGradients = weekendRanges.map(range => {
+                        const start = range.start * cellWidth;
+                        const end = range.end * cellWidth;
                         return `linear-gradient(to right, transparent ${start}px, ${bgSecondary} ${start}px, ${bgSecondary} ${end - 1}px, ${borderColor} ${end - 1}px, ${borderColor} ${end}px, transparent ${end}px)`;
                     });
                     backgroundImage = weekendGradients.join(', ') + ', ' + backgroundImage;
@@ -127,7 +145,7 @@ export default defineComponent({
 
         const WeekEndColor = (count: number) => {
             themeVersion.value;
-            const { bgContent, bgSecondary } = findThemeColors();
+            const { bgContent, bgSecondary } = themeColors.value;
             return getWeekendColorShared(
                 count,
                 props.startGanttDate,
@@ -481,7 +499,7 @@ export default defineComponent({
                 }
                 if (ganttContainer) {
                     const observer = new MutationObserver(() => { themeVersion.value++; });
-                    observer.observe(ganttContainer, { attributes: true, attributeFilter: ['data-gantt-theme', 'style'] });
+                    observer.observe(ganttContainer, { attributes: true, attributeFilter: ['data-gantt-theme'] });
                     onBeforeUnmount(() => observer.disconnect());
                 }
             }
