@@ -185,11 +185,21 @@ export default defineComponent({
         background-color: #faf7ec;
         border-radius: 10px;
         overflow: visible;
+        cursor: move;
     }
 }
 
 .progressHandle {
     pointer-events: auto !important;
     cursor: ew-resize !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.progressHandle:hover {
+    cursor: ew-resize !important;
+}
+
+.progressGuideLine {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 </style>

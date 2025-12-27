@@ -1,4 +1,4 @@
-﻿import SVG from 'svg.js';
+import SVG from 'svg.js';
 import interact from 'interactjs';
 import dayjs from 'dayjs';
 import { store, mutations } from '../../state/Store';
@@ -77,7 +77,7 @@ export function useInteractions(deps: InteractionDeps) {
         }
         try {
             (outerRect as any).node.style.cursor = 'move';
-            (outerRect as any).node.style.pointerEvents = 'all';
+            (outerRect as any).node.style.pointerEvents = 'visible';
         } catch (e) { /* ignore */ }
 
         // 创建左右resize handle
@@ -146,6 +146,7 @@ export function useInteractions(deps: InteractionDeps) {
         };
 
         let guideLineEl = bar.querySelector('.progressGuideLine') as SVGLineElement | null;
+        let guideLineHitArea = bar.querySelector('.progressGuideLineHitArea') as SVGRectElement | null;
         const themeColors = getThemeColors();
 
         if (!guideLineEl) {
@@ -159,10 +160,66 @@ export function useInteractions(deps: InteractionDeps) {
             line.setAttribute('stroke-width', '2');
             line.setAttribute('stroke-dasharray', '4,3');
             line.setAttribute('opacity', '0.8');
-            // 设置虚线的样式，但不接收鼠标事件
             line.style.pointerEvents = 'none';
             bar.appendChild(line);
             guideLineEl = line;
+
+            const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            hitArea.setAttribute('class', 'progressGuideLineHitArea');
+            hitArea.setAttribute('x', String(lineX - 8));
+            hitArea.setAttribute('y', '0');
+            hitArea.setAttribute('width', '16');
+            hitArea.setAttribute('height', String(handleY));
+            hitArea.setAttribute('fill', 'transparent');
+            hitArea.setAttribute('stroke', 'none');
+            hitArea.style.pointerEvents = 'all';
+            hitArea.style.cursor = 'ew-resize';
+            bar.insertBefore(hitArea, line);
+            guideLineHitArea = hitArea;
+
+            let hitAreaCurrentX = lineX;
+
+            interact(hitArea).draggable({
+                cursorChecker: () => 'ew-resize',
+                inertia: false,
+                listeners: {
+                    start: () => {
+                        hitAreaCurrentX = (hitArea as any).hitAreaCurrentX || lineX;
+                        isProgressDragging.value = true;
+                        const colors = getThemeColors();
+                        guideLineEl!.setAttribute('stroke', colors.primary);
+                        guideLineEl!.setAttribute('stroke-width', '3');
+                        guideLineEl!.setAttribute('opacity', '1');
+                    },
+                    move: (event) => {
+                        hitAreaCurrentX += event.dx;
+                        hitAreaCurrentX = Math.max(0, Math.min(hitAreaCurrentX, oldBarWidth.value));
+                        const newLineX = hitAreaCurrentX;
+                        guideLineEl!.setAttribute('x1', String(newLineX));
+                        guideLineEl!.setAttribute('x2', String(newLineX));
+                        hitArea.setAttribute('x', String(newLineX - 8));
+                        if (progressHandle) {
+                            const handleX = newLineX - handleWidth / 2;
+                            progressHandle.move(handleX, handleY);
+                        }
+                        const newProgress = Math.min(1, Math.max(0, newLineX / oldBarWidth.value));
+                        innerRect.width(newProgress * oldBarWidth.value);
+                        (text as any).text((newProgress * 100).toFixed(2) + '%');
+                        (text as any).center(innerRect.width() / 2 + textBBox.width / 2, innerRect.height() / 2);
+                    },
+                    end: () => {
+                        isProgressDragging.value = false;
+                        const colors = getThemeColors();
+                        guideLineEl!.setAttribute('stroke', colors.primaryDark);
+                        guideLineEl!.setAttribute('stroke-width', '2');
+                        guideLineEl!.setAttribute('opacity', '0.8');
+                        (hitArea as any).hitAreaCurrentX = hitAreaCurrentX;
+                        const newProgress = Math.min(1, Math.max(0, hitAreaCurrentX / oldBarWidth.value));
+                        props.row[mapFields.progress] = newProgress;
+                        emitProgressUpdate(newProgress);
+                    }
+                }
+            });
         }
         guideLineEl.setAttribute('x1', String(lineX));
         guideLineEl.setAttribute('x2', String(lineX));
@@ -170,16 +227,51 @@ export function useInteractions(deps: InteractionDeps) {
         guideLineEl.setAttribute('stroke', themeColors.primaryDark);
         guideLineEl.setAttribute('opacity', '0.8');
 
+        if (guideLineHitArea) {
+            guideLineHitArea.setAttribute('x', String(lineX - 8));
+            guideLineHitArea.setAttribute('height', String(handleY));
+            (guideLineHitArea as any).hitAreaCurrentX = lineX;
+        }
+
         if (!progressHandle) {
             const trianglePoints = `${handleWidth / 2},0 0,${handleHeight} ${handleWidth},${handleHeight}`;
+
+            // 创建渐变定义
+            const gradientId = `progress-handle-gradient-${Math.random().toString(36).substr(2, 9)}`;
+            const gradient = svg.gradient('linear', (add) => {
+                (add as any).stop(0, themeColors.primaryLight, 1);
+                (add as any).stop(0.5, themeColors.primary, 1);
+                (add as any).stop(1, themeColors.primaryDark, 0.9);
+            });
+            gradient.attr({ id: gradientId, x1: '0%', y1: '0%', x2: '0%', y2: '100%' });
+
             progressHandle = svg.polygon(trianglePoints)
-                .fill(themeColors.primary)
-                .stroke({ color: themeColors.primaryDark, width: 1 })
+                .fill(`url(#${gradientId})`)
+                .stroke({ color: themeColors.primaryDark, width: 1.5 })
                 .addClass('progressHandle');
+
+            // 将进度手柄移到最顶层，确保它不被其他元素覆盖
+            progressHandle.front();
+
+            // 添加阴影滤镜
+            const filterId = `progress-handle-shadow-${Math.random().toString(36).substr(2, 9)}`;
+            const defs = svg.defs();
+            const filter = (defs as any).element('filter');
+            filter.attr({ id: filterId, x: '-50%', y: '-50%', width: '200%', height: '200%' });
+
+            const feDropShadow = document.createElementNS('http://www.w3.org/2000/svg', 'feDropShadow');
+            feDropShadow.setAttribute('dx', '0');
+            feDropShadow.setAttribute('dy', '2');
+            feDropShadow.setAttribute('stdDeviation', '2');
+            feDropShadow.setAttribute('flood-color', themeColors.primaryDark);
+            feDropShadow.setAttribute('flood-opacity', '0.3');
+            filter.node.appendChild(feDropShadow);
+
+            progressHandle.attr({ filter: `url(#${filterId})` });
 
             const handleElement = progressHandle.node as unknown as SVGPolygonElement;
             handleElement.style.cursor = 'ew-resize';
-            handleElement.style.pointerEvents = 'auto';
+            handleElement.style.pointerEvents = 'all';
             progressHandle.move(handleX, handleY);
 
             let currentHandleX = handleX;
@@ -187,20 +279,34 @@ export function useInteractions(deps: InteractionDeps) {
             handleElement.addEventListener('mouseenter', () => {
                 if (!isProgressDragging.value) {
                     const colors = getThemeColors();
-                    handleElement.setAttribute('fill', colors.primaryLight);
-                    handleElement.setAttribute('stroke', colors.primaryDark);
+                    // 改变父 SVG 的光标
+                    bar.style.cursor = 'ew-resize';
+                    // 确保光标样式正确
+                    handleElement.style.cursor = 'ew-resize';
+                    // 创建悬停状态的渐变
+                    const hoverGradientId = `progress-handle-hover-${Math.random().toString(36).substr(2, 9)}`;
+                    const hoverGradient = svg.gradient('linear', (add) => {
+                        (add as any).stop(0, '#ffffff', 0.9);
+                        (add as any).stop(0.3, colors.primaryLight, 1);
+                        (add as any).stop(1, colors.primary, 1);
+                    });
+                    hoverGradient.attr({ id: hoverGradientId, x1: '0%', y1: '0%', x2: '0%', y2: '100%' });
+                    handleElement.setAttribute('fill', `url(#${hoverGradientId})`);
+                    handleElement.setAttribute('stroke', colors.primary);
                     handleElement.setAttribute('stroke-width', '2');
                     guideLineEl!.setAttribute('stroke', colors.primaryLight);
-                    guideLineEl!.setAttribute('stroke-width', '2');
+                    guideLineEl!.setAttribute('stroke-width', '2.5');
                     guideLineEl!.setAttribute('opacity', '1');
                 }
             });
             handleElement.addEventListener('mouseleave', () => {
                 if (!isProgressDragging.value) {
                     const colors = getThemeColors();
-                    handleElement.setAttribute('fill', colors.primary);
+                    // 恢复父 SVG 的光标
+                    bar.style.cursor = 'move';
+                    handleElement.setAttribute('fill', `url(#${gradientId})`);
                     handleElement.setAttribute('stroke', colors.primaryDark);
-                    handleElement.setAttribute('stroke-width', '1');
+                    handleElement.setAttribute('stroke-width', '1.5');
                     guideLineEl!.setAttribute('stroke', colors.primaryDark);
                     guideLineEl!.setAttribute('stroke-width', '2');
                     guideLineEl!.setAttribute('opacity', '0.8');
@@ -208,16 +314,25 @@ export function useInteractions(deps: InteractionDeps) {
             });
 
             interact(handleElement).draggable({
+                cursorChecker: () => 'ew-resize',
                 inertia: false,
                 listeners: {
                     start: () => {
                         isProgressDragging.value = true;
                         const colors = getThemeColors();
-                        handleElement.setAttribute('fill', colors.primaryDark);
+                        // 创建拖拽状态的渐变
+                        const dragGradientId = `progress-handle-drag-${Math.random().toString(36).substr(2, 9)}`;
+                        const dragGradient = svg.gradient('linear', (add) => {
+                            (add as any).stop(0, colors.primary, 1);
+                            (add as any).stop(0.5, colors.primaryDark, 1);
+                            (add as any).stop(1, colors.primaryDark, 0.95);
+                        });
+                        dragGradient.attr({ id: dragGradientId, x1: '0%', y1: '0%', x2: '0%', y2: '100%' });
+                        handleElement.setAttribute('fill', `url(#${dragGradientId})`);
                         handleElement.setAttribute('stroke', colors.primaryDark);
-                        handleElement.setAttribute('stroke-width', '2');
-                        guideLineEl!.setAttribute('stroke', colors.primaryDark);
-                        guideLineEl!.setAttribute('stroke-width', '2');
+                        handleElement.setAttribute('stroke-width', '2.5');
+                        guideLineEl!.setAttribute('stroke', colors.primary);
+                        guideLineEl!.setAttribute('stroke-width', '3');
                         guideLineEl!.setAttribute('opacity', '1');
                     },
                     move: (event) => {
@@ -227,6 +342,10 @@ export function useInteractions(deps: InteractionDeps) {
                         const newLineX = currentHandleX + handleWidth / 2;
                         guideLineEl!.setAttribute('x1', String(newLineX));
                         guideLineEl!.setAttribute('x2', String(newLineX));
+                        const hitArea = bar.querySelector('.progressGuideLineHitArea') as SVGRectElement | null;
+                        if (hitArea) {
+                            hitArea.setAttribute('x', String(newLineX - 8));
+                        }
                         const newProgress = Math.min(1, Math.max(0, (currentHandleX + handleWidth / 2) / oldBarWidth.value));
                         innerRect.width(newProgress * oldBarWidth.value);
                         (text as any).text((newProgress * 100).toFixed(2) + '%');
@@ -235,9 +354,9 @@ export function useInteractions(deps: InteractionDeps) {
                     end: () => {
                         isProgressDragging.value = false;
                         const colors = getThemeColors();
-                        handleElement.setAttribute('fill', colors.primary);
+                        handleElement.setAttribute('fill', `url(#${gradientId})`);
                         handleElement.setAttribute('stroke', colors.primaryDark);
-                        handleElement.setAttribute('stroke-width', '1');
+                        handleElement.setAttribute('stroke-width', '1.5');
                         guideLineEl!.setAttribute('stroke', colors.primaryDark);
                         guideLineEl!.setAttribute('stroke-width', '2');
                         guideLineEl!.setAttribute('opacity', '0.8');
@@ -249,11 +368,31 @@ export function useInteractions(deps: InteractionDeps) {
             });
         } else {
             progressHandle.move(handleX, handleY);
+
+            // 确保进度手柄在最顶层
+            progressHandle.front();
+
             const handleElement = progressHandle.node as unknown as SVGPolygonElement;
-            handleElement.setAttribute('fill', themeColors.primary);
+
+            // 创建渐变定义（如果还没有的话，为已存在的手柄也添加渐变）
+            const gradientId = `progress-handle-gradient-${Math.random().toString(36).substr(2, 9)}`;
+            const gradient = svg.gradient('linear', (add) => {
+                (add as any).stop(0, themeColors.primaryLight, 1);
+                (add as any).stop(0.5, themeColors.primary, 1);
+                (add as any).stop(1, themeColors.primaryDark, 0.9);
+            });
+            gradient.attr({ id: gradientId, x1: '0%', y1: '0%', x2: '0%', y2: '100%' });
+
+            handleElement.setAttribute('fill', `url(#${gradientId})`);
             handleElement.setAttribute('stroke', themeColors.primaryDark);
-            
-            // 更新虚线的位置
+
+            const hitArea = bar.querySelector('.progressGuideLineHitArea') as SVGRectElement | null;
+            if (hitArea) {
+                hitArea.setAttribute('x', String(lineX - 8));
+                hitArea.setAttribute('height', String(handleY));
+                (hitArea as any).hitAreaCurrentX = lineX;
+            }
+
             guideLineEl!.setAttribute('x1', String(lineX));
             guideLineEl!.setAttribute('x2', String(lineX));
         }
@@ -353,9 +492,14 @@ export function useInteractions(deps: InteractionDeps) {
                         const handleX = innerRect.width() - handleWidth / 2;
                         const handleY = barHeight - handleHeight / 2;
                         progressHandle.move(handleX, handleY);
-                        
-                        // 更新虚线的位置
+
                         const lineX = innerRect.width();
+                        const hitArea = bar.querySelector('.progressGuideLineHitArea') as SVGRectElement | null;
+                        if (hitArea) {
+                            hitArea.setAttribute('x', String(lineX - 8));
+                            hitArea.setAttribute('height', String(handleY));
+                            (hitArea as any).hitAreaCurrentX = lineX;
+                        }
                         guideLineEl!.setAttribute('x1', String(lineX));
                         guideLineEl!.setAttribute('x2', String(lineX));
                     }
@@ -531,9 +675,14 @@ export function useInteractions(deps: InteractionDeps) {
                             const handleX = innerRect.width() - handleWidth / 2;
                             const handleY = barHeight - handleHeight / 2;
                             progressHandle.move(handleX, handleY);
-                            
-                            // 更新虚线的位置
+
                             const lineX = innerRect.width();
+                            const hitArea = bar.querySelector('.progressGuideLineHitArea') as SVGRectElement | null;
+                            if (hitArea) {
+                                hitArea.setAttribute('x', String(lineX - 8));
+                                hitArea.setAttribute('height', String(handleY));
+                                (hitArea as any).hitAreaCurrentX = lineX;
+                            }
                             guideLineEl!.setAttribute('x1', String(lineX));
                             guideLineEl!.setAttribute('x2', String(lineX));
                         }

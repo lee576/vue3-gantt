@@ -181,3 +181,15 @@
 
 /* ==================== 导入 Liquid Glass 主题样式 ==================== */
 /* Liquid Glass 主题的完整样式定义 */
+
+/* ==================== 进度手柄样式优先级 ==================== */
+/* 确保进度手柄的光标样式不被覆盖 */
+.progressHandle,
+.progressHandle * {
+  cursor: ew-resize !important;
+}
+
+svg .progressHandle {
+  cursor: ew-resize !important;
+  pointer-events: all !important;
+}
