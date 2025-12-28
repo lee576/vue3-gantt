@@ -18,9 +18,9 @@ export default {
     settings: 'Ajustes',
     theme: 'Tema',
     to: 'a',
-    selectDate: 'Seleccionar fecha'
+    selectDate: 'Seleccionar fecha',
   },
-  
+
   // Date & Time
   date: {
     year: 'Año',
@@ -47,17 +47,17 @@ export default {
     september: 'Septiembre',
     october: 'Octubre',
     november: 'Noviembre',
-    december: 'Diciembre'
+    december: 'Diciembre',
   },
-  
+
   // Date Format
   dateFormat: {
     full: 'DD [de] MMMM [de] YYYY',
     short: 'DD/MM/YYYY',
     monthDay: 'DD MMM',
-    yearMonth: 'MMMM YYYY'
+    yearMonth: 'MMMM YYYY',
   },
-  
+
   // View Mode
   viewMode: {
     quarter: 'Trimestre',
@@ -69,9 +69,9 @@ export default {
     fullDay: 'Día completo',
     halfDay: 'Medio día',
     '15min': '15 minutos',
-    '30min': '30 minutos'
+    '30min': '30 minutos',
   },
-  
+
   // Duration Unit
   durationUnit: {
     quarters: 'trimestres',
@@ -80,9 +80,9 @@ export default {
     days: 'días',
     hours: 'horas',
     minutes: 'minutos',
-    hoursAndMinutes: '{hours}h {minutes}min'
+    hoursAndMinutes: '{hours}h {minutes}min',
   },
-  
+
   // Task
   task: {
     addRoot: 'Agregar tarea raíz',
@@ -99,9 +99,9 @@ export default {
     type: 'Tipo',
     taskType: 'Tarea',
     projectType: 'Proyecto',
-    milestoneType: 'Hito'
+    milestoneType: 'Hito',
   },
-  
+
   // Link Legend
   link: {
     legend: 'Leyenda de enlaces',
@@ -114,9 +114,9 @@ export default {
     ss: 'II',
     ff: 'FF',
     sf: 'IF',
-    pc: 'PH'
+    pc: 'PH',
   },
-  
+
   // Config Panel
   configPanel: {
     title: 'Configuración Gantt',
@@ -127,7 +127,7 @@ export default {
     previewTheme: 'Vista previa',
     exportConfig: 'Exportar configuración',
     importConfig: 'Importar configuración',
-    
+
     // Link Configuration
     linkConfig: {
       info: 'Configurar enlaces de dependencia de tareas (Fin-Inicio, Inicio-Inicio, etc.)',
@@ -158,10 +158,10 @@ export default {
       fontSize: 'Tamaño de fuente',
       typeColors: 'Colores de tipo de dependencia',
       parentChildStyle: 'Estilo de enlace padre-hijo',
-      parentChildInfo: 'Mostrar relación jerárquica entre tareas padre e hijo'
-    }
+      parentChildInfo: 'Mostrar relación jerárquica entre tareas padre e hijo',
+    },
   },
-  
+
   // Theme
   theme: {
     metro: 'Metro',
@@ -179,30 +179,30 @@ export default {
     oceanDesc: 'Estilo océano tranquilo y cómodo',
     appleDesc: 'Estilo macOS minimalista y elegante',
     classicDesc: 'Estilo empresarial tradicional y estable',
-    liquidGlassDesc: 'Efecto de Cristal Líquido iOS 26 con fluidez translúcida'
+    liquidGlassDesc: 'Efecto de Cristal Líquido iOS 26 con fluidez translúcida',
   },
-  
+
   // Date Picker
   datePicker: {
     selectDate: 'Seleccionar fecha',
-    clearDate: 'Borrar fecha'
+    clearDate: 'Borrar fecha',
   },
-  
+
   // Column Settings
   columnSettings: {
     title: 'Configuración de columnas',
     desc: 'Seleccionar columnas a mostrar',
     showAll: 'Mostrar todo',
     hideAll: 'Ocultar todo',
-    reset: 'Restablecer predeterminado'
+    reset: 'Restablecer predeterminado',
   },
-  
+
   // Tooltip
   tooltip: {
     addSubTask: 'Agregar subtarea',
     removeTask: 'Eliminar tarea actual',
     syncArrowColor: 'Sincronizar con color de línea',
     close: 'Cerrar',
-    columnSettings: 'Configuración de columnas'
-  }
-};
+    columnSettings: 'Configuración de columnas',
+  },
+}

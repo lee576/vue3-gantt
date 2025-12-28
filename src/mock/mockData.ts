@@ -1,32 +1,32 @@
-import dayjs from 'dayjs';
-import { LinkType } from '../components/gantt/types/Types';
+import DateUtils from '../components/gantt/utils/dateUtils'
+import { LinkType } from '../components/gantt/types/Types'
 
 export interface MockTask {
-  id: string;
-  pid: string;
-  taskNo: string;
-  level: string;
-  start_date: string;
-  end_date: string;
-  job_progress: string;
-  spend_time: string | null;
-  type?: string;
-  customFieldValues?: Record<string, any>;
+  id: string
+  pid: string
+  taskNo: string
+  level: string
+  start_date: string
+  end_date: string
+  job_progress: string
+  spend_time: string | null
+  type?: string
+  customFieldValues?: Record<string, any>
 }
 
 export interface MockDependency {
-  sourceTaskId: string;
-  targetTaskId: string;
-  type: LinkType;
+  sourceTaskId: string
+  targetTaskId: string
+  type: LinkType
 }
 
 export interface MockResponse {
-  tasks: MockTask[];
-  dependencies: MockDependency[];
+  tasks: MockTask[]
+  dependencies: MockDependency[]
 }
 
 export const getMockResponse = (): MockResponse => {
-  const currentMonth = dayjs().format('YYYY-MM');
+  const currentMonth = DateUtils.format(DateUtils.now(), 'YYYY-MM')
 
   return {
     tasks: [
@@ -39,7 +39,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-01 08:00:00`,
         end_date: `${currentMonth}-06 18:00:00`,
         job_progress: '0.85',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '2',
@@ -49,7 +49,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-01 08:00:00`,
         end_date: `${currentMonth}-02 18:00:00`,
         job_progress: '1.0',
-        spend_time: null
+        spend_time: null,
       },
       // 里程碑：需求分析完成
       {
@@ -61,7 +61,7 @@ export const getMockResponse = (): MockResponse => {
         end_date: `${currentMonth}-02 18:00:00`,
         job_progress: '1.0',
         spend_time: null,
-        type: 'milestone'
+        type: 'milestone',
       },
       {
         id: '3',
@@ -71,7 +71,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-03 08:00:00`,
         end_date: `${currentMonth}-04 18:00:00`,
         job_progress: '0.9',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '4',
@@ -81,7 +81,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-05 08:00:00`,
         end_date: `${currentMonth}-06 18:00:00`,
         job_progress: '0.7',
-        spend_time: null
+        spend_time: null,
       },
       // 里程碑：项目规划完成
       {
@@ -93,7 +93,7 @@ export const getMockResponse = (): MockResponse => {
         end_date: `${currentMonth}-06 18:00:00`,
         job_progress: '1.0',
         spend_time: null,
-        type: 'milestone'
+        type: 'milestone',
       },
 
       // 第二个主任务组 - 开发阶段
@@ -105,7 +105,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-07 08:00:00`,
         end_date: `${currentMonth}-18 18:00:00`,
         job_progress: '0.5',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '6',
@@ -115,7 +115,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-07 08:00:00`,
         end_date: `${currentMonth}-15 18:00:00`,
         job_progress: '0.6',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '7',
@@ -125,7 +125,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-07 08:00:00`,
         end_date: `${currentMonth}-09 18:00:00`,
         job_progress: '1.0',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '8',
@@ -135,7 +135,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-10 08:00:00`,
         end_date: `${currentMonth}-13 18:00:00`,
         job_progress: '0.7',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '9',
@@ -145,7 +145,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-10 08:00:00`,
         end_date: `${currentMonth}-15 18:00:00`,
         job_progress: '0.4',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '10',
@@ -155,7 +155,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-07 08:00:00`,
         end_date: `${currentMonth}-18 18:00:00`,
         job_progress: '0.5',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '11',
@@ -165,7 +165,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-07 08:00:00`,
         end_date: `${currentMonth}-09 18:00:00`,
         job_progress: '1.0',
-        spend_time: null
+        spend_time: null,
       },
       // 里程碑：API设计完成
       {
@@ -177,7 +177,7 @@ export const getMockResponse = (): MockResponse => {
         end_date: `${currentMonth}-09 18:00:00`,
         job_progress: '1.0',
         spend_time: null,
-        type: 'milestone'
+        type: 'milestone',
       },
       {
         id: '12',
@@ -187,7 +187,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-10 08:00:00`,
         end_date: `${currentMonth}-12 18:00:00`,
         job_progress: '0.8',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '13',
@@ -197,7 +197,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-13 08:00:00`,
         end_date: `${currentMonth}-18 18:00:00`,
         job_progress: '0.3',
-        spend_time: null
+        spend_time: null,
       },
       // 里程碑：开发阶段完成
       {
@@ -209,7 +209,7 @@ export const getMockResponse = (): MockResponse => {
         end_date: `${currentMonth}-18 18:00:00`,
         job_progress: '0.5',
         spend_time: null,
-        type: 'milestone'
+        type: 'milestone',
       },
 
       // 第三个主任务组 - 测试阶段
@@ -221,7 +221,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-19 08:00:00`,
         end_date: `${currentMonth}-24 18:00:00`,
         job_progress: '0.3',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '15',
@@ -231,7 +231,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-19 08:00:00`,
         end_date: `${currentMonth}-20 18:00:00`,
         job_progress: '0.8',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '16',
@@ -241,7 +241,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-21 08:00:00`,
         end_date: `${currentMonth}-22 18:00:00`,
         job_progress: '0.4',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '17',
@@ -251,7 +251,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-23 08:00:00`,
         end_date: `${currentMonth}-24 12:00:00`,
         job_progress: '0.2',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '18',
@@ -261,7 +261,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-23 08:00:00`,
         end_date: `${currentMonth}-24 18:00:00`,
         job_progress: '0.1',
-        spend_time: null
+        spend_time: null,
       },
       // 里程碑：测试阶段完成
       {
@@ -273,7 +273,7 @@ export const getMockResponse = (): MockResponse => {
         end_date: `${currentMonth}-24 18:00:00`,
         job_progress: '0.3',
         spend_time: null,
-        type: 'milestone'
+        type: 'milestone',
       },
 
       // 第四个主任务组 - 部署上线
@@ -285,7 +285,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-25 08:00:00`,
         end_date: `${currentMonth}-27 18:00:00`,
         job_progress: '0.0',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '20',
@@ -295,7 +295,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-25 08:00:00`,
         end_date: `${currentMonth}-25 18:00:00`,
         job_progress: '0.0',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '21',
@@ -305,7 +305,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-26 08:00:00`,
         end_date: `${currentMonth}-26 18:00:00`,
         job_progress: '0.0',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '22',
@@ -315,7 +315,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-27 08:00:00`,
         end_date: `${currentMonth}-27 18:00:00`,
         job_progress: '0.0',
-        spend_time: null
+        spend_time: null,
       },
       // 里程碑：项目上线
       {
@@ -327,7 +327,7 @@ export const getMockResponse = (): MockResponse => {
         end_date: `${currentMonth}-27 18:00:00`,
         job_progress: '0.0',
         spend_time: null,
-        type: 'milestone'
+        type: 'milestone',
       },
 
       // 第五个主任务组 - 维护优化
@@ -339,7 +339,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-28 08:00:00`,
         end_date: `${currentMonth}-30 18:00:00`,
         job_progress: '0.0',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '24',
@@ -349,7 +349,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-28 08:00:00`,
         end_date: `${currentMonth}-30 12:00:00`,
         job_progress: '0.0',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '25',
@@ -359,7 +359,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-28 08:00:00`,
         end_date: `${currentMonth}-30 12:00:00`,
         job_progress: '0.0',
-        spend_time: null
+        spend_time: null,
       },
 
       // 第六个主任务组 - 文档编写（贯穿整个项目）
@@ -371,7 +371,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-01 08:00:00`,
         end_date: `${currentMonth}-25 18:00:00`,
         job_progress: '0.5',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '27',
@@ -381,7 +381,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-01 08:00:00`,
         end_date: `${currentMonth}-15 18:00:00`,
         job_progress: '0.7',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '28',
@@ -391,7 +391,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-01 08:00:00`,
         end_date: `${currentMonth}-20 18:00:00`,
         job_progress: '0.4',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '29',
@@ -401,7 +401,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-15 08:00:00`,
         end_date: `${currentMonth}-25 18:00:00`,
         job_progress: '0.3',
-        spend_time: null
+        spend_time: null,
       },
 
       // 第七个主任务组 - 培训支持
@@ -413,7 +413,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-26 08:00:00`,
         end_date: `${currentMonth}-30 18:00:00`,
         job_progress: '0.0',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '31',
@@ -423,7 +423,7 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-26 08:00:00`,
         end_date: `${currentMonth}-28 18:00:00`,
         job_progress: '0.0',
-        spend_time: null
+        spend_time: null,
       },
       {
         id: '32',
@@ -433,8 +433,8 @@ export const getMockResponse = (): MockResponse => {
         start_date: `${currentMonth}-26 08:00:00`,
         end_date: `${currentMonth}-30 18:00:00`,
         job_progress: '0.0',
-        spend_time: null
-      }
+        spend_time: null,
+      },
     ],
     dependencies: [
       // ===== 里程碑依赖关系 =====
@@ -477,96 +477,117 @@ export const getMockResponse = (): MockResponse => {
 
       // ===== 开始-完成 (START_TO_FINISH) =====
       { sourceTaskId: '19', targetTaskId: '23', type: LinkType.START_TO_FINISH },
-      { sourceTaskId: '31', targetTaskId: '29', type: LinkType.START_TO_FINISH }
-    ]
-  };
-};
+      { sourceTaskId: '31', targetTaskId: '29', type: LinkType.START_TO_FINISH },
+    ],
+  }
+}
 
 export const getPerformanceTestResponse = (): MockResponse => {
-  const currentMonth = dayjs().format('YYYY-MM');
-  const tasks: MockTask[] = [];
-  const dependencies: MockDependency[] = [];
-  const priorities = ['紧急', '重要', '一般', '不重要'];
-  const taskTypes = ['开发', '测试', '设计', '文档', '部署', '优化', '修复', '分析', '规划', '维护'];
+  const currentMonth = DateUtils.format(DateUtils.now(), 'YYYY-MM')
+  const tasks: MockTask[] = []
+  const dependencies: MockDependency[] = []
+  const priorities = ['紧急', '重要', '一般', '不重要']
+  const taskTypes = ['开发', '测试', '设计', '文档', '部署', '优化', '修复', '分析', '规划', '维护']
 
-  const generateTasks = (parentId: string, level: number, count: number, startDateOffset: number) => {
-    const generatedTasks: MockTask[] = [];
+  const generateTasks = (
+    parentId: string,
+    level: number,
+    count: number,
+    startDateOffset: number
+  ) => {
+    const generatedTasks: MockTask[] = []
     for (let i = 0; i < count; i++) {
-      const taskId = `${parentId}-${i}`;
-      const taskType = taskTypes[Math.floor(Math.random() * taskTypes.length)];
-      const priority = priorities[Math.floor(Math.random() * priorities.length)];
-      const duration = Math.floor(Math.random() * 5) + 1;
-      const startDate = dayjs(`${currentMonth}-01`).add(startDateOffset + i, 'day');
-      const endDate = startDate.add(duration, 'day');
-      const progress = (Math.random()).toFixed(2);
+      const taskId = `${parentId}-${i}`
+      const taskType = taskTypes[Math.floor(Math.random() * taskTypes.length)]
+      const priority = priorities[Math.floor(Math.random() * priorities.length)]
+      const duration = Math.floor(Math.random() * 5) + 1
+      const startDate = DateUtils.add(DateUtils.create(`${currentMonth}-01`), startDateOffset + i, 'day')
+      const endDate = DateUtils.add(startDate, duration, 'day')
+      const progress = Math.random().toFixed(2)
 
       generatedTasks.push({
         id: taskId,
         pid: parentId,
         taskNo: `${taskType}任务 ${i + 1}`,
         level: priority,
-        start_date: startDate.format('YYYY-MM-DD HH:mm:ss'),
-        end_date: endDate.format('YYYY-MM-DD HH:mm:ss'),
+        start_date: DateUtils.format(startDate, 'YYYY-MM-DD HH:mm:ss'),
+        end_date: DateUtils.format(endDate, 'YYYY-MM-DD HH:mm:ss'),
         job_progress: progress,
-        spend_time: null
-      });
+        spend_time: null,
+      })
 
       if (level < 2 && Math.random() > 0.5) {
-        const subTasks = generateTasks(taskId, level + 1, Math.floor(Math.random() * 3) + 1, startDateOffset + i);
-        generatedTasks.push(...subTasks);
+        const subTasks = generateTasks(
+          taskId,
+          level + 1,
+          Math.floor(Math.random() * 3) + 1,
+          startDateOffset + i
+        )
+        generatedTasks.push(...subTasks)
       }
     }
-    return generatedTasks;
-  };
+    return generatedTasks
+  }
 
-  const rootTaskCount = 50;
+  const rootTaskCount = 50
   for (let i = 0; i < rootTaskCount; i++) {
-    const rootTaskId = `root-${i}`;
-    const startDateOffset = Math.floor(Math.random() * 20);
+    const rootTaskId = `root-${i}`
+    const startDateOffset = Math.floor(Math.random() * 20)
     const rootTask = {
       id: rootTaskId,
       pid: '0',
       taskNo: `项目 ${i + 1}`,
       level: priorities[Math.floor(Math.random() * priorities.length)],
-      start_date: dayjs(`${currentMonth}-01`).add(startDateOffset, 'day').format('YYYY-MM-DD HH:mm:ss'),
-      end_date: dayjs(`${currentMonth}-01`).add(startDateOffset + 10, 'day').format('YYYY-MM-DD HH:mm:ss'),
-      job_progress: (Math.random()).toFixed(2),
-      spend_time: null
-    };
-    tasks.push(rootTask);
+      start_date: DateUtils.format(
+        DateUtils.add(DateUtils.create(`${currentMonth}-01`), startDateOffset, 'day'),
+        'YYYY-MM-DD HH:mm:ss'
+      ),
+      end_date: DateUtils.format(
+        DateUtils.add(DateUtils.create(`${currentMonth}-01`), startDateOffset + 10, 'day'),
+        'YYYY-MM-DD HH:mm:ss'
+      ),
+      job_progress: Math.random().toFixed(2),
+      spend_time: null,
+    }
+    tasks.push(rootTask)
 
-    const subTasks = generateTasks(rootTaskId, 1, Math.floor(Math.random() * 5) + 2, startDateOffset);
-    tasks.push(...subTasks);
+    const subTasks = generateTasks(
+      rootTaskId,
+      1,
+      Math.floor(Math.random() * 5) + 2,
+      startDateOffset
+    )
+    tasks.push(...subTasks)
 
     if (subTasks.length > 0) {
       dependencies.push({
         sourceTaskId: subTasks[0].id,
         targetTaskId: subTasks[subTasks.length - 1].id,
-        type: LinkType.FINISH_TO_START
-      });
+        type: LinkType.FINISH_TO_START,
+      })
     }
   }
 
   while (tasks.length < 1000) {
-    const taskId = `extra-${tasks.length}`;
-    const taskType = taskTypes[Math.floor(Math.random() * taskTypes.length)];
-    const priority = priorities[Math.floor(Math.random() * priorities.length)];
-    const duration = Math.floor(Math.random() * 5) + 1;
-    const startDate = dayjs(`${currentMonth}-01`).add(Math.floor(Math.random() * 25), 'day');
-    const endDate = startDate.add(duration, 'day');
-    const progress = (Math.random()).toFixed(2);
+    const taskId = `extra-${tasks.length}`
+    const taskType = taskTypes[Math.floor(Math.random() * taskTypes.length)]
+    const priority = priorities[Math.floor(Math.random() * priorities.length)]
+    const duration = Math.floor(Math.random() * 5) + 1
+    const startDate = DateUtils.add(DateUtils.create(`${currentMonth}-01`), Math.floor(Math.random() * 25), 'day')
+    const endDate = DateUtils.add(startDate, duration, 'day')
+    const progress = Math.random().toFixed(2)
 
     tasks.push({
       id: taskId,
       pid: '0',
       taskNo: `${taskType}任务 ${tasks.length}`,
       level: priority,
-      start_date: startDate.format('YYYY-MM-DD HH:mm:ss'),
-      end_date: endDate.format('YYYY-MM-DD HH:mm:ss'),
+      start_date: DateUtils.format(startDate, 'YYYY-MM-DD HH:mm:ss'),
+      end_date: DateUtils.format(endDate, 'YYYY-MM-DD HH:mm:ss'),
       job_progress: progress,
-      spend_time: null
-    });
+      spend_time: null,
+    })
   }
 
-  return { tasks, dependencies };
-};
+  return { tasks, dependencies }
+}

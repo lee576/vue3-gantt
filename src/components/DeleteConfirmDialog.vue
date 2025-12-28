@@ -19,19 +19,19 @@
 
 <script lang="ts" setup>
 defineProps<{
-  show: boolean;
-  taskName: string;
-}>();
+  show: boolean
+  taskName: string
+}>()
 
 defineEmits<{
-  close: [];
-  confirm: [];
-}>();
+  close: []
+  confirm: []
+}>()
 </script>
 
 <script lang="ts">
 export default {
-  name: 'DeleteConfirmDialog'
+  name: 'DeleteConfirmDialog',
 }
 </script>
 

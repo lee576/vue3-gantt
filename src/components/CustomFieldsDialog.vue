@@ -30,12 +30,16 @@
               <div class="field-actions">
                 <button class="icon-btn" @click="$emit('edit-field', index)" title="编辑">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                    <path
+                      d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                    />
                   </svg>
                 </button>
                 <button class="icon-btn delete" @click="$emit('delete-field', index)" title="删除">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                    <path
+                      d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                    />
                   </svg>
                 </button>
               </div>
@@ -48,13 +52,20 @@
           <h3>{{ editingFieldIndex !== null ? '编辑字段' : '添加新字段' }}</h3>
           <div class="form-group">
             <label>字段名称 <span class="required-mark">*</span></label>
-            <input v-model="newField.label" type="text" placeholder="例如: 负责人" :class="{ 'error': customFieldFormErrors.label }" />
-            <div v-if="customFieldFormErrors.label" class="error-message">{{ customFieldFormErrors.label }}</div>
+            <input
+              v-model="newField.label"
+              type="text"
+              placeholder="例如: 负责人"
+              :class="{ error: customFieldFormErrors.label }"
+            />
+            <div v-if="customFieldFormErrors.label" class="error-message">
+              {{ customFieldFormErrors.label }}
+            </div>
           </div>
 
           <div class="form-group">
             <label>字段类型 <span class="required-mark">*</span></label>
-            <select v-model="newField.type" :class="{ 'error': customFieldFormErrors.type }">
+            <select v-model="newField.type" :class="{ error: customFieldFormErrors.type }">
               <option value="text">文本</option>
               <option value="number">数字</option>
               <option value="date">日期</option>
@@ -63,12 +74,18 @@
               <option value="textarea">多行文本</option>
               <option value="checkbox">复选框</option>
             </select>
-            <div v-if="customFieldFormErrors.type" class="error-message">{{ customFieldFormErrors.type }}</div>
+            <div v-if="customFieldFormErrors.type" class="error-message">
+              {{ customFieldFormErrors.type }}
+            </div>
           </div>
 
           <div class="form-group">
             <label>占位符/提示文本</label>
-            <input v-model="newField.placeholder" type="text" placeholder="例如: 请输入负责人姓名" />
+            <input
+              v-model="newField.placeholder"
+              type="text"
+              placeholder="例如: 请输入负责人姓名"
+            />
           </div>
 
           <div v-if="newField.type === 'select'" class="form-group">
@@ -89,7 +106,9 @@
                 <button class="icon-btn-sm" @click="$emit('remove-option', idx)">×</button>
               </div>
             </div>
-            <div v-if="customFieldFormErrors.options" class="error-message">{{ customFieldFormErrors.options }}</div>
+            <div v-if="customFieldFormErrors.options" class="error-message">
+              {{ customFieldFormErrors.options }}
+            </div>
           </div>
 
           <div class="form-group">
@@ -110,7 +129,11 @@
             <button
               class="metro-btn metro-btn-primary"
               @click="editingFieldIndex !== null ? $emit('update-field') : $emit('add-field')"
-              :disabled="!newField.label || !newField.type || (newField.type === 'select' && newField.options.length === 0)"
+              :disabled="
+                !newField.label ||
+                !newField.type ||
+                (newField.type === 'select' && newField.options.length === 0)
+              "
             >
               {{ editingFieldIndex !== null ? '更新字段' : '添加字段' }}
             </button>
@@ -118,44 +141,42 @@
         </div>
       </div>
       <div class="dialog-footer">
-        <button class="metro-btn metro-btn-primary" @click="$emit('save')">
-          保存并关闭
-        </button>
+        <button class="metro-btn metro-btn-primary" @click="$emit('save')">保存并关闭</button>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import type { CustomField } from '../types/task';
+import type { CustomField } from '../types/task'
 
 defineProps<{
-  show: boolean;
-  customFields: CustomField[];
-  newField: CustomField;
-  newOptionText: string;
-  customFieldFormErrors: Record<string, string>;
-  editingFieldIndex: number | null;
-  getFieldTypeLabel: (type: string) => string;
-}>();
+  show: boolean
+  customFields: CustomField[]
+  newField: CustomField
+  newOptionText: string
+  customFieldFormErrors: Record<string, string>
+  editingFieldIndex: number | null
+  getFieldTypeLabel: (type: string) => string
+}>()
 
 defineEmits<{
-  close: [];
-  'edit-field': [index: number];
-  'delete-field': [index: number];
-  'add-option': [];
-  'remove-option': [index: number];
-  'cancel-edit': [];
-  'add-field': [];
-  'update-field': [];
-  save: [];
-  'update:newOptionText': [value: string];
-}>();
+  close: []
+  'edit-field': [index: number]
+  'delete-field': [index: number]
+  'add-option': []
+  'remove-option': [index: number]
+  'cancel-edit': []
+  'add-field': []
+  'update-field': []
+  save: []
+  'update:newOptionText': [value: string]
+}>()
 </script>
 
 <script lang="ts">
 export default {
-  name: 'CustomFieldsDialog'
+  name: 'CustomFieldsDialog',
 }
 </script>
 
@@ -357,7 +378,7 @@ export default {
   font-weight: normal;
 }
 
-.checkbox-label-inline input[type="checkbox"] {
+.checkbox-label-inline input[type='checkbox'] {
   width: auto;
   margin: 0;
 }

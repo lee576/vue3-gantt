@@ -38,36 +38,36 @@
   --primary-dark: #106ebe;
   --primary-light: #1084d8;
   --secondary: #0d5aa7;
-  
+
   --bg-metal-light: linear-gradient(145deg, #ffffff, #f5f5f5);
   --bg-metal-normal: linear-gradient(145deg, #f5f5f5, #e8e8e8);
   --bg-metal-dark: linear-gradient(145deg, #e6e6e6, #d0d0d0);
   --bg-metal-pressed: linear-gradient(145deg, #e0e0e0, #f8f8f8);
-  
+
   --bg-active: linear-gradient(145deg, #0078d4, #106ebe);
   --bg-active-hover: linear-gradient(145deg, #1084d8, #0d5aa7);
   --bg-active-pressed: linear-gradient(145deg, #0d5aa7, #1084d8);
-  
+
   --border: #d0d0d0;
   --border-dark: #b0b0b0;
   --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
   --shadow-outset: 0 2px 4px rgba(0, 0, 0, 0.1);
   --shadow-active: inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.3);
-  
+
   --text-primary: #333333;
   --text-secondary: #666666;
   --text-muted: #999999;
   --text-white: #ffffff;
-  
+
   --bg-primary: #f8f8f8;
   --bg-secondary: #e8e8e8;
   --bg-content: #ffffff;
-  --row-hover: #FFF3A1;
-  
+  --row-hover: #fff3a1;
+
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
   --transition-slow: 0.35s ease;
-  
+
   --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   --font-size-base: 12px;
   --font-weight-normal: 500;

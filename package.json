@@ -46,7 +46,13 @@
     "build": "vue-tsc -b && vite build",
     "build:lib": "vite build --mode lib",
     "preview": "vite preview",
-    "prepublishOnly": "npm run build:lib"
+    "prepublishOnly": "npm run build:lib",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
+    "format": "prettier --write src/",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
   },
   "dependencies": {
     "@vueuse/core": "^13.0.0",
@@ -65,6 +71,16 @@
     "typescript": "~5.7.2",
     "vite": "^6.2.0",
     "vite-plugin-dts": "^4.5.4",
-    "vue-tsc": "^2.2.4"
+    "vite-plugin-remove-console": "^2.2.0",
+    "vue-tsc": "^2.2.4",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-vue": "^9.0.0",
+    "prettier": "^3.0.0",
+    "@vitest/ui": "^2.0.0",
+    "@vue/test-utils": "^2.4.0",
+    "jsdom": "^25.0.0",
+    "vitest": "^2.0.0"
   }
 }

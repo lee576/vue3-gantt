@@ -1,0 +1,13 @@
+node_modules
+dist
+*.local
+*.log
+coverage
+.npm
+.pnpm-store
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+*.min.js
+*.min.css

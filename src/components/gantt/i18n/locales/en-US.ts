@@ -17,9 +17,9 @@ export default {
     settings: 'Settings',
     theme: 'Theme',
     to: 'to',
-    selectDate: 'Select Date'
+    selectDate: 'Select Date',
   },
-  
+
   // Date & Time
   date: {
     year: 'Year',
@@ -46,17 +46,17 @@ export default {
     september: 'September',
     october: 'October',
     november: 'November',
-    december: 'December'
+    december: 'December',
   },
-  
+
   // Date Format
   dateFormat: {
     full: 'MMMM DD, YYYY',
     short: 'MM/DD/YYYY',
     monthDay: 'MMM DD',
-    yearMonth: 'MMMM YYYY'
+    yearMonth: 'MMMM YYYY',
   },
-  
+
   // View Mode
   viewMode: {
     quarter: 'Quarter',
@@ -68,9 +68,9 @@ export default {
     fullDay: 'Full Day',
     halfDay: 'Half Day',
     '15min': '15 Minutes',
-    '30min': '30 Minutes'
+    '30min': '30 Minutes',
   },
-  
+
   // Duration Unit
   durationUnit: {
     quarters: 'quarters',
@@ -79,9 +79,9 @@ export default {
     days: 'days',
     hours: 'hours',
     minutes: 'minutes',
-    hoursAndMinutes: '{hours}h {minutes}m'
+    hoursAndMinutes: '{hours}h {minutes}m',
   },
-  
+
   // Task
   task: {
     addRoot: 'Add Root Task',
@@ -98,9 +98,9 @@ export default {
     type: 'Type',
     taskType: 'Task',
     projectType: 'Project',
-    milestoneType: 'Milestone'
+    milestoneType: 'Milestone',
   },
-  
+
   // Link Legend
   link: {
     legend: 'Link Legend',
@@ -113,9 +113,9 @@ export default {
     ss: 'SS',
     ff: 'FF',
     sf: 'SF',
-    pc: 'PC'
+    pc: 'PC',
   },
-  
+
   // Config Panel
   configPanel: {
     title: 'Gantt Configuration',
@@ -126,7 +126,7 @@ export default {
     previewTheme: 'Preview',
     exportConfig: 'Export Config',
     importConfig: 'Import Config',
-    
+
     // Link Configuration
     linkConfig: {
       info: 'Configure task dependency links (Finish-to-Start, Start-to-Start, etc.)',
@@ -157,10 +157,10 @@ export default {
       fontSize: 'Font Size',
       typeColors: 'Dependency Type Colors',
       parentChildStyle: 'Parent-Child Link Style',
-      parentChildInfo: 'Display hierarchical relationship between parent and child tasks'
-    }
+      parentChildInfo: 'Display hierarchical relationship between parent and child tasks',
+    },
   },
-  
+
   // Theme
   theme: {
     metro: 'Metro',
@@ -178,30 +178,30 @@ export default {
     oceanDesc: 'Calm and comfortable ocean style',
     appleDesc: 'Minimalist and elegant macOS style',
     classicDesc: 'Traditional and stable business style',
-    liquidGlassDesc: 'iOS 26 Liquid Glass effect with translucent fluidity'
+    liquidGlassDesc: 'iOS 26 Liquid Glass effect with translucent fluidity',
   },
-  
+
   // Date Picker
   datePicker: {
     selectDate: 'Select Date',
-    clearDate: 'Clear Date'
+    clearDate: 'Clear Date',
   },
-  
+
   // Column Settings
   columnSettings: {
     title: 'Column Display Settings',
     desc: 'Check columns to display',
     showAll: 'Show All',
     hideAll: 'Hide All',
-    reset: 'Reset Default'
+    reset: 'Reset Default',
   },
-  
+
   // Tooltip
   tooltip: {
     addSubTask: 'Add Sub Task',
     removeTask: 'Delete Current Task',
     syncArrowColor: 'Sync with line color',
     close: 'Close',
-    columnSettings: 'Column Display Settings'
-  }
-};
+    columnSettings: 'Column Display Settings',
+  },
+}

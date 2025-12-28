@@ -10,32 +10,28 @@
     @keydown.space.prevent="$emit('toggle')"
   >
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path
-        class="arrow"
-        d="M5 4 L14 9 L5 14 Z"
-        fill="currentColor"
-      />
+      <path class="arrow" d="M5 4 L14 9 L5 14 Z" fill="currentColor" />
     </svg>
   </span>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'CollapseButton',
   props: {
     collapsed: {
       type: Boolean,
-      default: false
+      default: false,
     },
     title: {
       type: String,
-      default: '折叠'
-    }
+      default: '折叠',
+    },
   },
-  emits: ['toggle']
-});
+  emits: ['toggle'],
+})
 </script>
 
 <style lang="scss" scoped>
@@ -55,7 +51,9 @@ export default defineComponent({
   flex-shrink: 0;
   position: relative;
   z-index: 1;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 
   svg {
     width: 16px;
@@ -76,7 +74,9 @@ export default defineComponent({
   &:hover {
     background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
     color: #495057;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
 
     svg {
       transform: scale(1.1);
@@ -85,7 +85,9 @@ export default defineComponent({
 
   &:active {
     background: linear-gradient(135deg, #dee2e6 0%, #ced4da 100%);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.1),
+      inset 0 1px 2px rgba(0, 0, 0, 0.1);
 
     svg {
       transform: scale(0.95);

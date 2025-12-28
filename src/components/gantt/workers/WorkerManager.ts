@@ -3,25 +3,25 @@
  * 管理 Worker 实例,提供便捷的调用接口
  */
 
-import type { WorkerMessage, WorkerResponse } from './dataProcessor.worker';
+import type { WorkerMessage, WorkerResponse } from './dataProcessor.worker'
 
 export class WorkerManager {
-  private worker: Worker | null = null;
-  private messageId = 0;
+  private worker: Worker | null = null
+  private messageId = 0
   private pendingRequests = new Map<
     string,
     {
-      resolve: (value: any) => void;
-      reject: (error: any) => void;
-      timeout?: ReturnType<typeof setTimeout>;
+      resolve: (value: any) => void
+      reject: (error: any) => void
+      timeout?: ReturnType<typeof setTimeout>
     }
-  >();
+  >()
 
   // Worker 超时时间(毫秒)
-  private timeout = 10000;
+  private timeout = 10000
 
   constructor() {
-    this.initWorker();
+    this.initWorker()
   }
 
   /**
@@ -30,23 +30,22 @@ export class WorkerManager {
   private initWorker() {
     try {
       // Vite 使用 ?worker 后缀导入 Worker
-      this.worker = new Worker(
-        new URL('./dataProcessor.worker.ts', import.meta.url),
-        { type: 'module' }
-      );
+      this.worker = new Worker(new URL('./dataProcessor.worker.ts', import.meta.url), {
+        type: 'module',
+      })
 
       this.worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
-        this.handleWorkerMessage(event.data);
-      };
+        this.handleWorkerMessage(event.data)
+      }
 
-      this.worker.onerror = (error) => {
-        console.error('Worker error:', error);
+      this.worker.onerror = error => {
+        console.error('Worker error:', error)
         // 重新初始化 Worker
-        this.terminate();
-        this.initWorker();
-      };
+        this.terminate()
+        this.initWorker()
+      }
     } catch (error) {
-      console.error('Failed to initialize worker:', error);
+      console.error('Failed to initialize worker:', error)
     }
   }
 
@@ -54,24 +53,24 @@ export class WorkerManager {
    * 处理 Worker 返回的消息
    */
   private handleWorkerMessage(response: WorkerResponse) {
-    const { id, payload, error } = response;
+    const { id, payload, error } = response
 
-    if (!id) return;
+    if (!id) return
 
-    const pending = this.pendingRequests.get(id);
+    const pending = this.pendingRequests.get(id)
     if (pending) {
       // 清除超时计时器
       if (pending.timeout) {
-        clearTimeout(pending.timeout);
+        clearTimeout(pending.timeout)
       }
 
       if (error) {
-        pending.reject(new Error(error));
+        pending.reject(new Error(error))
       } else {
-        pending.resolve(payload);
+        pending.resolve(payload)
       }
 
-      this.pendingRequests.delete(id);
+      this.pendingRequests.delete(id)
     }
   }
 
@@ -81,32 +80,32 @@ export class WorkerManager {
   private sendMessage<T>(type: WorkerMessage['type'], payload: any): Promise<T> {
     return new Promise((resolve, reject) => {
       if (!this.worker) {
-        reject(new Error('Worker not initialized'));
-        return;
+        reject(new Error('Worker not initialized'))
+        return
       }
 
-      const id = `${type}_${this.messageId++}`;
+      const id = `${type}_${this.messageId++}`
 
       // 设置超时
       const timeoutId = setTimeout(() => {
-        this.pendingRequests.delete(id);
-        reject(new Error(`Worker timeout for ${type}`));
-      }, this.timeout);
+        this.pendingRequests.delete(id)
+        reject(new Error(`Worker timeout for ${type}`))
+      }, this.timeout)
 
       this.pendingRequests.set(id, {
         resolve,
         reject,
-        timeout: timeoutId
-      });
+        timeout: timeoutId,
+      })
 
       const message: WorkerMessage = {
         type,
         payload,
-        id
-      };
+        id,
+      }
 
-      this.worker.postMessage(message);
-    });
+      this.worker.postMessage(message)
+    })
   }
 
   /**
@@ -122,8 +121,8 @@ export class WorkerManager {
       id,
       tasks,
       level,
-      mapFields
-    });
+      mapFields,
+    })
   }
 
   /**
@@ -145,8 +144,8 @@ export class WorkerManager {
       scale,
       mapFields,
       daySubMode,
-      hourSubMode
-    });
+      hourSubMode,
+    })
   }
 
   /**
@@ -155,8 +154,8 @@ export class WorkerManager {
   async formatDates(dates: string[], format: string): Promise<string[]> {
     return this.sendMessage('FORMAT_DATES', {
       dates,
-      format
-    });
+      format,
+    })
   }
 
   /**
@@ -164,16 +163,16 @@ export class WorkerManager {
    */
   async calcDates(
     operations: Array<{
-      type: 'add' | 'subtract' | 'diff';
-      date: string;
-      amount?: number;
-      unit?: any;
-      date2?: string;
+      type: 'add' | 'subtract' | 'diff'
+      date: string
+      amount?: number
+      unit?: any
+      date2?: string
     }>
   ): Promise<any[]> {
     return this.sendMessage('CALC_DATES', {
-      operations
-    });
+      operations,
+    })
   }
 
   /**
@@ -184,14 +183,14 @@ export class WorkerManager {
       // 清除所有待处理的请求
       this.pendingRequests.forEach(({ reject, timeout }) => {
         if (timeout) {
-          clearTimeout(timeout);
+          clearTimeout(timeout)
         }
-        reject(new Error('Worker terminated'));
-      });
-      this.pendingRequests.clear();
+        reject(new Error('Worker terminated'))
+      })
+      this.pendingRequests.clear()
 
-      this.worker.terminate();
-      this.worker = null;
+      this.worker.terminate()
+      this.worker = null
     }
   }
 
@@ -199,21 +198,21 @@ export class WorkerManager {
    * 检查 Worker 是否可用
    */
   isAvailable(): boolean {
-    return this.worker !== null;
+    return this.worker !== null
   }
 }
 
 // 创建单例实例
-let instance: WorkerManager | null = null;
+let instance: WorkerManager | null = null
 
 /**
  * 获取 WorkerManager 实例
  */
 export function getWorkerManager(): WorkerManager {
   if (!instance) {
-    instance = new WorkerManager();
+    instance = new WorkerManager()
   }
-  return instance;
+  return instance
 }
 
 /**
@@ -221,7 +220,7 @@ export function getWorkerManager(): WorkerManager {
  */
 export function destroyWorkerManager() {
   if (instance) {
-    instance.terminate();
-    instance = null;
+    instance.terminate()
+    instance = null
   }
 }

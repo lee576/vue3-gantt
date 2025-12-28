@@ -18,9 +18,9 @@ export default {
     settings: '設定',
     theme: '主題',
     to: '至',
-    selectDate: '請選擇日期'
+    selectDate: '請選擇日期',
   },
-  
+
   // 日期時間
   date: {
     year: '年',
@@ -47,17 +47,17 @@ export default {
     september: '九月',
     october: '十月',
     november: '十一月',
-    december: '十二月'
+    december: '十二月',
   },
-  
+
   // 日期格式
   dateFormat: {
     full: 'YYYY年MM月DD日',
     short: 'YYYY-MM-DD',
     monthDay: 'MM月DD日',
-    yearMonth: 'YYYY年MM月'
+    yearMonth: 'YYYY年MM月',
   },
-  
+
   // 視圖模式
   viewMode: {
     quarter: '季度',
@@ -69,9 +69,9 @@ export default {
     fullDay: '全天',
     halfDay: '半天',
     '15min': '15分鐘',
-    '30min': '30分鐘'
+    '30min': '30分鐘',
   },
-  
+
   // 耗時單位
   durationUnit: {
     quarters: '季度',
@@ -80,9 +80,9 @@ export default {
     days: '天',
     hours: '小時',
     minutes: '分鐘',
-    hoursAndMinutes: '{hours}小時{minutes}分鐘'
+    hoursAndMinutes: '{hours}小時{minutes}分鐘',
   },
-  
+
   // 任務
   task: {
     addRoot: '新增根任務',
@@ -99,9 +99,9 @@ export default {
     type: '類型',
     taskType: '任務',
     projectType: '專案',
-    milestoneType: '里程碑'
+    milestoneType: '里程碑',
   },
-  
+
   // 連線圖例
   link: {
     legend: '連線圖例',
@@ -114,9 +114,9 @@ export default {
     ss: 'SS',
     ff: 'FF',
     sf: 'SF',
-    pc: 'PC'
+    pc: 'PC',
   },
-  
+
   // 配置面板
   configPanel: {
     title: '甘特圖配置',
@@ -127,7 +127,7 @@ export default {
     previewTheme: '預覽',
     exportConfig: '匯出配置',
     importConfig: '匯入配置',
-    
+
     // 連線配置
     linkConfig: {
       info: '以下配置用於任務依賴連線（完成-開始、開始-開始等關係）',
@@ -158,10 +158,10 @@ export default {
       fontSize: '字體大小',
       typeColors: '依賴類型顏色',
       parentChildStyle: '父子關係連線樣式',
-      parentChildInfo: '用於顯示父任務與子任務之間的層級結構關係'
-    }
+      parentChildInfo: '用於顯示父任務與子任務之間的層級結構關係',
+    },
   },
-  
+
   // 主題
   theme: {
     metro: 'Metro 金屬質感',
@@ -179,30 +179,30 @@ export default {
     oceanDesc: '沉靜舒適的海洋風格',
     appleDesc: '簡約優雅的 macOS 風格',
     classicDesc: '傳統穩重的商務風格',
-    liquidGlassDesc: 'iOS 26 液態玻璃效果，半透明流動質感'
+    liquidGlassDesc: 'iOS 26 液態玻璃效果，半透明流動質感',
   },
-  
+
   // 日期選擇器
   datePicker: {
     selectDate: '請選擇日期',
-    clearDate: '清除日期'
+    clearDate: '清除日期',
   },
-  
+
   // 列設定
   columnSettings: {
     title: '列顯示設定',
     desc: '勾選要顯示的列',
     showAll: '全部顯示',
     hideAll: '全部隱藏',
-    reset: '恢復預設'
+    reset: '恢復預設',
   },
-  
+
   // 提示資訊
   tooltip: {
     addSubTask: '新增子任務',
     removeTask: '刪除當前任務',
     syncArrowColor: '與線條顏色同步',
     close: '關閉',
-    columnSettings: '列顯示設定'
-  }
-};
+    columnSettings: '列顯示設定',
+  },
+}

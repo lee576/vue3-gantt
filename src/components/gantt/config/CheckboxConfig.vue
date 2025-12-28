@@ -1,10 +1,10 @@
 <template>
   <div class="config-group">
     <label class="config-label checkbox-label">
-      <input 
-        type="checkbox" 
+      <input
+        type="checkbox"
         :checked="modelValue"
-        @change="$emit('update:modelValue', ($event.target as HTMLInputElement).checked); $emit('change')"
+        @change="handleChange"
       />
       {{ label }}
     </label>
@@ -12,22 +12,29 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'CheckboxConfig',
   props: {
     modelValue: {
       type: Boolean,
-      required: true
+      required: true,
     },
     label: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
-  emits: ['update:modelValue', 'change']
-});
+  emits: ['update:modelValue', 'change'],
+  methods: {
+    handleChange(event: Event) {
+      const target = event.target as HTMLInputElement
+      this.$emit('update:modelValue', target.checked)
+      this.$emit('change')
+    }
+  }
+})
 </script>
 
 <style lang="scss" scoped>
@@ -47,8 +54,8 @@ export default defineComponent({
 
   .checkbox-label {
     cursor: pointer;
-    
-    input[type="checkbox"] {
+
+    input[type='checkbox'] {
       cursor: pointer;
     }
   }

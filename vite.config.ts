@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import dts from 'vite-plugin-dts'
+import removeConsole from 'vite-plugin-remove-console'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -9,6 +10,7 @@ export default defineConfig(({ mode }) => {
     return {
       plugins: [
         vue(),
+        removeConsole(),
         dts({
           insertTypesEntry: true,
           include: ['src/index.ts', 'src/components/gantt/**/*.ts', 'src/components/gantt/**/*.vue'],

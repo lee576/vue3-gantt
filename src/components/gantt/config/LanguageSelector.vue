@@ -10,7 +10,7 @@
       <span class="lang-label">{{ locale.label }}</span>
       <div v-if="modelValue === locale.value" class="lang-check">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
         </svg>
       </div>
     </div>
@@ -18,12 +18,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, type PropType } from 'vue';
-import type { Locale } from '../i18n';
+import { defineComponent, type PropType } from 'vue'
+import type { Locale } from '../i18n'
 
 export interface LocaleOption {
-  value: Locale;
-  label: string;
+  value: Locale
+  label: string
 }
 
 export default defineComponent({
@@ -31,15 +31,15 @@ export default defineComponent({
   props: {
     modelValue: {
       type: String as PropType<Locale>,
-      required: true
+      required: true,
     },
     locales: {
       type: Array as PropType<LocaleOption[]>,
-      required: true
-    }
+      required: true,
+    },
   },
-  emits: ['update:modelValue']
-});
+  emits: ['update:modelValue'],
+})
 </script>
 
 <style lang="scss" scoped>
@@ -47,7 +47,7 @@ export default defineComponent({
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 8px;
-  
+
   .language-option {
     padding: 10px 12px;
     border: 1px solid var(--border, #d0d0d0);
@@ -68,8 +68,10 @@ export default defineComponent({
     &.active {
       border-color: var(--primary, #0078d4);
       background: var(--bg-content, #ffffff);
-      box-shadow: 0 0 0 2px var(--primary, #0078d4), 0 2px 8px rgba(0, 120, 212, 0.15);
-      
+      box-shadow:
+        0 0 0 2px var(--primary, #0078d4),
+        0 2px 8px rgba(0, 120, 212, 0.15);
+
       .lang-label {
         color: var(--primary, #0078d4);
         font-weight: 600;

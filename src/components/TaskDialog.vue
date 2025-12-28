@@ -8,7 +8,12 @@
       <div class="dialog-body">
         <div class="form-group">
           <label>任务名称</label>
-          <input v-model="taskForm.taskNo" type="text" placeholder="请输入任务名称" :class="{ 'error': taskFormErrors.taskNo }" />
+          <input
+            v-model="taskForm.taskNo"
+            type="text"
+            placeholder="请输入任务名称"
+            :class="{ error: taskFormErrors.taskNo }"
+          />
           <div v-if="taskFormErrors.taskNo" class="error-message">{{ taskFormErrors.taskNo }}</div>
         </div>
         <div class="form-group">
@@ -23,20 +28,43 @@
         <div class="form-row">
           <div class="form-group">
             <label>开始时间</label>
-            <input v-model="taskForm.start_date" type="datetime-local" :class="{ 'error': taskFormErrors.start_date || taskFormErrors.dateRange }" />
-            <div v-if="taskFormErrors.start_date" class="error-message">{{ taskFormErrors.start_date }}</div>
+            <input
+              v-model="taskForm.start_date"
+              type="datetime-local"
+              :class="{ error: taskFormErrors.start_date || taskFormErrors.dateRange }"
+            />
+            <div v-if="taskFormErrors.start_date" class="error-message">
+              {{ taskFormErrors.start_date }}
+            </div>
           </div>
           <div class="form-group">
             <label>结束时间</label>
-            <input v-model="taskForm.end_date" type="datetime-local" :class="{ 'error': taskFormErrors.end_date || taskFormErrors.dateRange }" />
-            <div v-if="taskFormErrors.end_date" class="error-message">{{ taskFormErrors.end_date }}</div>
-            <div v-if="taskFormErrors.dateRange" class="error-message">{{ taskFormErrors.dateRange }}</div>
+            <input
+              v-model="taskForm.end_date"
+              type="datetime-local"
+              :class="{ error: taskFormErrors.end_date || taskFormErrors.dateRange }"
+            />
+            <div v-if="taskFormErrors.end_date" class="error-message">
+              {{ taskFormErrors.end_date }}
+            </div>
+            <div v-if="taskFormErrors.dateRange" class="error-message">
+              {{ taskFormErrors.dateRange }}
+            </div>
           </div>
         </div>
         <div class="form-group">
           <label>进度 (0-1)</label>
-          <input v-model.number="taskForm.job_progress" type="number" min="0" max="1" step="0.1" :class="{ 'error': taskFormErrors.job_progress }" />
-          <div v-if="taskFormErrors.job_progress" class="error-message">{{ taskFormErrors.job_progress }}</div>
+          <input
+            v-model.number="taskForm.job_progress"
+            type="number"
+            min="0"
+            max="1"
+            step="0.1"
+            :class="{ error: taskFormErrors.job_progress }"
+          />
+          <div v-if="taskFormErrors.job_progress" class="error-message">
+            {{ taskFormErrors.job_progress }}
+          </div>
         </div>
         <div class="form-group" v-if="!isEditMode && !isRootTask">
           <label>父任务</label>
@@ -67,9 +95,11 @@
               type="text"
               :placeholder="field.placeholder || `请输入${field.label}`"
               :required="field.required"
-              :class="{ 'error': taskFormErrors[`customField_${field.id}`] }"
+              :class="{ error: taskFormErrors[`customField_${field.id}`] }"
             />
-            <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">{{ taskFormErrors[`customField_${field.id}`] }}</div>
+            <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">
+              {{ taskFormErrors[`customField_${field.id}`] }}
+            </div>
 
             <!-- 数字输入 -->
             <input
@@ -78,9 +108,11 @@
               type="number"
               :placeholder="field.placeholder || `请输入${field.label}`"
               :required="field.required"
-              :class="{ 'error': taskFormErrors[`customField_${field.id}`] }"
+              :class="{ error: taskFormErrors[`customField_${field.id}`] }"
             />
-            <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">{{ taskFormErrors[`customField_${field.id}`] }}</div>
+            <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">
+              {{ taskFormErrors[`customField_${field.id}`] }}
+            </div>
 
             <!-- 日期输入 -->
             <input
@@ -88,9 +120,11 @@
               v-model="taskForm.customFieldValues[field.id]"
               type="date"
               :required="field.required"
-              :class="{ 'error': taskFormErrors[`customField_${field.id}`] }"
+              :class="{ error: taskFormErrors[`customField_${field.id}`] }"
             />
-            <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">{{ taskFormErrors[`customField_${field.id}`] }}</div>
+            <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">
+              {{ taskFormErrors[`customField_${field.id}`] }}
+            </div>
 
             <!-- 日期时间输入 -->
             <input
@@ -98,27 +132,27 @@
               v-model="taskForm.customFieldValues[field.id]"
               type="datetime-local"
               :required="field.required"
-              :class="{ 'error': taskFormErrors[`customField_${field.id}`] }"
+              :class="{ error: taskFormErrors[`customField_${field.id}`] }"
             />
-            <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">{{ taskFormErrors[`customField_${field.id}`] }}</div>
+            <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">
+              {{ taskFormErrors[`customField_${field.id}`] }}
+            </div>
 
             <!-- 下拉选择 -->
             <select
               v-else-if="field.type === 'select'"
               v-model="taskForm.customFieldValues[field.id]"
               :required="field.required"
-              :class="{ 'error': taskFormErrors[`customField_${field.id}`] }"
+              :class="{ error: taskFormErrors[`customField_${field.id}`] }"
             >
               <option value="">请选择{{ field.label }}</option>
-              <option
-                v-for="option in field.options"
-                :key="option"
-                :value="option"
-              >
+              <option v-for="option in field.options" :key="option" :value="option">
                 {{ option }}
               </option>
             </select>
-            <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">{{ taskFormErrors[`customField_${field.id}`] }}</div>
+            <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">
+              {{ taskFormErrors[`customField_${field.id}`] }}
+            </div>
 
             <!-- 多行文本 -->
             <textarea
@@ -127,9 +161,11 @@
               :placeholder="field.placeholder || `请输入${field.label}`"
               :required="field.required"
               rows="3"
-              :class="{ 'error': taskFormErrors[`customField_${field.id}`] }"
+              :class="{ error: taskFormErrors[`customField_${field.id}`] }"
             ></textarea>
-            <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">{{ taskFormErrors[`customField_${field.id}`] }}</div>
+            <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">
+              {{ taskFormErrors[`customField_${field.id}`] }}
+            </div>
 
             <!-- 复选框 -->
             <div v-else-if="field.type === 'checkbox'" class="checkbox-wrapper">
@@ -137,13 +173,15 @@
                 type="checkbox"
                 :id="`checkbox-${field.id}`"
                 v-model="taskForm.customFieldValues[field.id]"
-                :class="{ 'error': taskFormErrors[`customField_${field.id}`] }"
+                :class="{ error: taskFormErrors[`customField_${field.id}`] }"
               />
               <label :for="`checkbox-${field.id}`" class="checkbox-label">
                 {{ field.placeholder || '启用' }}
               </label>
             </div>
-            <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">{{ taskFormErrors[`customField_${field.id}`] }}</div>
+            <div v-if="taskFormErrors[`customField_${field.id}`]" class="error-message">
+              {{ taskFormErrors[`customField_${field.id}`] }}
+            </div>
           </div>
         </div>
       </div>
@@ -158,27 +196,27 @@
 </template>
 
 <script lang="ts" setup>
-import type { TaskForm, CustomField } from '../types/task';
+import type { TaskForm, CustomField } from '../types/task'
 
 defineProps<{
-  show: boolean;
-  isEditMode: boolean;
-  isRootTask: boolean;
-  taskForm: TaskForm;
-  taskFormErrors: Record<string, string>;
-  customFields: CustomField[];
-  availableParentTasks: any[];
-}>();
+  show: boolean
+  isEditMode: boolean
+  isRootTask: boolean
+  taskForm: TaskForm
+  taskFormErrors: Record<string, string>
+  customFields: CustomField[]
+  availableParentTasks: any[]
+}>()
 
 defineEmits<{
-  close: [];
-  save: [];
-}>();
+  close: []
+  save: []
+}>()
 </script>
 
 <script lang="ts">
 export default {
-  name: 'TaskDialog'
+  name: 'TaskDialog',
 }
 </script>
 
@@ -224,7 +262,7 @@ export default {
   gap: 8px;
 }
 
-.checkbox-wrapper input[type="checkbox"] {
+.checkbox-wrapper input[type='checkbox'] {
   width: auto;
   margin: 0;
 }

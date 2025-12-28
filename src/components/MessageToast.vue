@@ -5,16 +5,16 @@
 </template>
 
 <script lang="ts" setup>
-import type { Message } from '../types/task';
+import type { Message } from '../types/task'
 
 defineProps<{
-  message: Message | null;
-}>();
+  message: Message | null
+}>()
 </script>
 
 <script lang="ts">
 export default {
-  name: 'MessageToast'
+  name: 'MessageToast',
 }
 </script>
 

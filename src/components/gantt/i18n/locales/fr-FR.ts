@@ -18,9 +18,9 @@ export default {
     settings: 'Paramètres',
     theme: 'Thème',
     to: 'à',
-    selectDate: 'Sélectionner la date'
+    selectDate: 'Sélectionner la date',
   },
-  
+
   // Date & Time
   date: {
     year: 'Année',
@@ -47,17 +47,17 @@ export default {
     september: 'Septembre',
     october: 'Octobre',
     november: 'Novembre',
-    december: 'Décembre'
+    december: 'Décembre',
   },
-  
+
   // Date Format
   dateFormat: {
     full: 'DD MMMM YYYY',
     short: 'DD/MM/YYYY',
     monthDay: 'DD MMM',
-    yearMonth: 'MMMM YYYY'
+    yearMonth: 'MMMM YYYY',
   },
-  
+
   // View Mode
   viewMode: {
     quarter: 'Trimestre',
@@ -69,9 +69,9 @@ export default {
     fullDay: 'Journée complète',
     halfDay: 'Demi-journée',
     '15min': '15 minutes',
-    '30min': '30 minutes'
+    '30min': '30 minutes',
   },
-  
+
   // Duration Unit
   durationUnit: {
     quarters: 'trimestres',
@@ -80,9 +80,9 @@ export default {
     days: 'jours',
     hours: 'heures',
     minutes: 'minutes',
-    hoursAndMinutes: '{hours}h {minutes}min'
+    hoursAndMinutes: '{hours}h {minutes}min',
   },
-  
+
   // Task
   task: {
     addRoot: 'Ajouter une tâche racine',
@@ -99,9 +99,9 @@ export default {
     type: 'Type',
     taskType: 'Tâche',
     projectType: 'Projet',
-    milestoneType: 'Jalon'
+    milestoneType: 'Jalon',
   },
-  
+
   // Link Legend
   link: {
     legend: 'Légende des liens',
@@ -114,9 +114,9 @@ export default {
     ss: 'DD',
     ff: 'FF',
     sf: 'DF',
-    pc: 'PE'
+    pc: 'PE',
   },
-  
+
   // Config Panel
   configPanel: {
     title: 'Configuration Gantt',
@@ -127,7 +127,7 @@ export default {
     previewTheme: 'Aperçu',
     exportConfig: 'Exporter la configuration',
     importConfig: 'Importer la configuration',
-    
+
     // Link Configuration
     linkConfig: {
       info: 'Configurer les liens de dépendance des tâches (Fin-Début, Début-Début, etc.)',
@@ -158,10 +158,10 @@ export default {
       fontSize: 'Taille de police',
       typeColors: 'Couleurs des types de dépendance',
       parentChildStyle: 'Style de lien parent-enfant',
-      parentChildInfo: 'Afficher la relation hiérarchique entre les tâches parent et enfant'
-    }
+      parentChildInfo: 'Afficher la relation hiérarchique entre les tâches parent et enfant',
+    },
   },
-  
+
   // Theme
   theme: {
     metro: 'Metro',
@@ -179,30 +179,30 @@ export default {
     oceanDesc: 'Style océan calme et confortable',
     appleDesc: 'Style macOS minimaliste et élégant',
     classicDesc: 'Style business traditionnel et stable',
-    liquidGlassDesc: 'Effet Verre Liquide iOS 26 avec fluidité translucide'
+    liquidGlassDesc: 'Effet Verre Liquide iOS 26 avec fluidité translucide',
   },
-  
+
   // Date Picker
   datePicker: {
     selectDate: 'Sélectionner la date',
-    clearDate: 'Effacer la date'
+    clearDate: 'Effacer la date',
   },
-  
+
   // Column Settings
   columnSettings: {
     title: 'Paramètres de colonne',
     desc: 'Sélectionner les colonnes à afficher',
     showAll: 'Tout afficher',
     hideAll: 'Tout masquer',
-    reset: 'Réinitialiser par défaut'
+    reset: 'Réinitialiser par défaut',
   },
-  
+
   // Tooltip
   tooltip: {
     addSubTask: 'Ajouter une sous-tâche',
     removeTask: 'Supprimer la tâche actuelle',
     syncArrowColor: 'Synchroniser avec la couleur de la ligne',
     close: 'Fermer',
-    columnSettings: 'Paramètres de colonne'
-  }
-};
+    columnSettings: 'Paramètres de colonne',
+  },
+}

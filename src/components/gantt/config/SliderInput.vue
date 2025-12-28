@@ -1,22 +1,17 @@
 <template>
   <div class="slider-wrapper" @mousedown.stop @pointerdown.stop @touchstart.stop @click.stop>
-    <input 
-      type="range" 
-      :value="modelValue" 
+    <input
+      type="range"
+      :value="modelValue"
       @input="handleInput"
       @change="$emit('change')"
-      :min="min" 
-      :max="max" 
+      :min="min"
+      :max="max"
       :step="step"
       class="range-input"
     />
     <div class="slider-ticks">
-      <span 
-        v-for="tick in ticks" 
-        :key="tick.value" 
-        class="tick" 
-        :class="{ major: tick.isMajor }"
-      >
+      <span v-for="tick in ticks" :key="tick.value" class="tick" :class="{ major: tick.isMajor }">
         <span class="tick-mark"></span>
         <span v-if="tick.showLabel" class="tick-label">{{ tick.value }}</span>
       </span>
@@ -25,73 +20,74 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue';
+import { defineComponent, computed } from 'vue'
 
 export default defineComponent({
   name: 'SliderInput',
   props: {
     modelValue: {
       type: Number,
-      required: true
+      required: true,
     },
     min: {
       type: Number,
-      required: true
+      required: true,
     },
     max: {
       type: Number,
-      required: true
+      required: true,
     },
     step: {
       type: Number,
-      default: 1
+      default: 1,
     },
     labelStep: {
       type: Number,
-      default: undefined
+      default: undefined,
     },
     showLabels: {
       type: Boolean,
-      default: true
-    }
+      default: true,
+    },
   },
   emits: ['update:modelValue', 'change'],
   setup(props, { emit }) {
     const handleInput = (e: Event) => {
-      const value = parseFloat((e.target as HTMLInputElement).value);
-      emit('update:modelValue', value);
-    };
+      const value = parseFloat((e.target as HTMLInputElement).value)
+      emit('update:modelValue', value)
+    }
 
     const ticks = computed(() => {
-      const result: { value: number; isMajor: boolean; showLabel: boolean }[] = [];
-      const effectiveLabelStep = props.labelStep || props.step;
-      
+      const result: { value: number; isMajor: boolean; showLabel: boolean }[] = []
+      const effectiveLabelStep = props.labelStep || props.step
+
       for (let v = props.min; v <= props.max; v = Math.round((v + props.step) * 100) / 100) {
-        const isMajor = Math.abs(v - props.min) < 0.001 || 
-                        Math.abs(v - props.max) < 0.001 || 
-                        Math.abs((v - props.min) % effectiveLabelStep) < 0.001;
-        result.push({ 
-          value: v, 
-          isMajor, 
-          showLabel: props.showLabels && isMajor 
-        });
+        const isMajor =
+          Math.abs(v - props.min) < 0.001 ||
+          Math.abs(v - props.max) < 0.001 ||
+          Math.abs((v - props.min) % effectiveLabelStep) < 0.001
+        result.push({
+          value: v,
+          isMajor,
+          showLabel: props.showLabels && isMajor,
+        })
       }
-      return result;
-    });
+      return result
+    })
 
     return {
       handleInput,
-      ticks
-    };
-  }
-});
+      ticks,
+    }
+  },
+})
 </script>
 
 <style lang="scss" scoped>
 .slider-wrapper {
   position: relative;
   padding-bottom: 22px;
-  
+
   .range-input {
     position: relative;
     z-index: 2;
@@ -133,7 +129,7 @@ export default defineComponent({
       cursor: pointer;
       border-radius: 50%;
       border: 2px solid var(--primary, #0078d4);
-      box-shadow: 
+      box-shadow:
         0 2px 6px rgba(0, 120, 212, 0.3),
         0 1px 3px rgba(0, 0, 0, 0.12),
         inset 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -144,7 +140,7 @@ export default defineComponent({
 
     &::-webkit-slider-thumb:hover {
       transform: scale(1.15);
-      box-shadow: 
+      box-shadow:
         0 3px 12px rgba(0, 120, 212, 0.4),
         0 2px 6px rgba(0, 0, 0, 0.15),
         inset 0 1px 0 rgba(255, 255, 255, 1);
@@ -153,7 +149,7 @@ export default defineComponent({
 
     &::-webkit-slider-thumb:active {
       transform: scale(1.05);
-      box-shadow: 
+      box-shadow:
         0 1px 4px rgba(0, 120, 212, 0.5),
         inset 0 1px 2px rgba(0, 0, 0, 0.1);
     }
@@ -166,7 +162,7 @@ export default defineComponent({
       cursor: pointer;
       border-radius: 50%;
       border: 2px solid var(--primary, #0078d4);
-      box-shadow: 
+      box-shadow:
         0 2px 6px rgba(0, 120, 212, 0.3),
         0 1px 3px rgba(0, 0, 0, 0.12),
         inset 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -175,7 +171,7 @@ export default defineComponent({
 
     &::-moz-range-thumb:hover {
       transform: scale(1.15);
-      box-shadow: 
+      box-shadow:
         0 3px 12px rgba(0, 120, 212, 0.4),
         0 2px 6px rgba(0, 0, 0, 0.15),
         inset 0 1px 0 rgba(255, 255, 255, 1);
@@ -184,7 +180,7 @@ export default defineComponent({
 
     &::-moz-range-thumb:active {
       transform: scale(1.05);
-      box-shadow: 
+      box-shadow:
         0 1px 4px rgba(0, 120, 212, 0.5),
         inset 0 1px 2px rgba(0, 0, 0, 0.1);
     }
@@ -192,7 +188,7 @@ export default defineComponent({
     /* Focus 状态 */
     &:focus {
       &::-webkit-slider-thumb {
-        box-shadow: 
+        box-shadow:
           0 0 0 4px rgba(0, 120, 212, 0.15),
           0 2px 6px rgba(0, 120, 212, 0.3),
           0 1px 3px rgba(0, 0, 0, 0.12),
@@ -200,7 +196,7 @@ export default defineComponent({
       }
 
       &::-moz-range-thumb {
-        box-shadow: 
+        box-shadow:
           0 0 0 4px rgba(0, 120, 212, 0.15),
           0 2px 6px rgba(0, 120, 212, 0.3),
           0 1px 3px rgba(0, 0, 0, 0.12),
@@ -220,27 +216,27 @@ export default defineComponent({
   right: 9px;
   box-sizing: border-box;
   pointer-events: none;
-  
+
   .tick {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 0;
     overflow: visible;
-    
+
     .tick-mark {
       width: 1px;
       height: 6px;
       background: var(--border, #d0d0d0);
     }
-    
+
     .tick-label {
       font-size: 9px;
       color: var(--text-secondary, #666);
       margin-top: 2px;
       white-space: nowrap;
     }
-    
+
     &.major {
       .tick-mark {
         height: 8px;

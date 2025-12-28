@@ -18,9 +18,9 @@ export default {
     settings: '設定',
     theme: 'テーマ',
     to: 'から',
-    selectDate: '日付を選択'
+    selectDate: '日付を選択',
   },
-  
+
   // Date & Time
   date: {
     year: '年',
@@ -47,17 +47,17 @@ export default {
     september: '9月',
     october: '10月',
     november: '11月',
-    december: '12月'
+    december: '12月',
   },
-  
+
   // Date Format
   dateFormat: {
     full: 'YYYY年MM月DD日',
     short: 'YYYY/MM/DD',
     monthDay: 'MM月DD日',
-    yearMonth: 'YYYY年MM月'
+    yearMonth: 'YYYY年MM月',
   },
-  
+
   // View Mode
   viewMode: {
     quarter: '四半期',
@@ -69,9 +69,9 @@ export default {
     fullDay: '終日',
     halfDay: '半日',
     '15min': '15分',
-    '30min': '30分'
+    '30min': '30分',
   },
-  
+
   // Duration Unit
   durationUnit: {
     quarters: '四半期',
@@ -80,9 +80,9 @@ export default {
     days: '日',
     hours: '時間',
     minutes: '分',
-    hoursAndMinutes: '{hours}時間{minutes}分'
+    hoursAndMinutes: '{hours}時間{minutes}分',
   },
-  
+
   // Task
   task: {
     addRoot: 'ルートタスクを追加',
@@ -99,9 +99,9 @@ export default {
     type: 'タイプ',
     taskType: 'タスク',
     projectType: 'プロジェクト',
-    milestoneType: 'マイルストーン'
+    milestoneType: 'マイルストーン',
   },
-  
+
   // Link Legend
   link: {
     legend: 'リンク凡例',
@@ -114,9 +114,9 @@ export default {
     ss: 'SS',
     ff: 'FF',
     sf: 'SF',
-    pc: 'PC'
+    pc: 'PC',
   },
-  
+
   // Config Panel
   configPanel: {
     title: 'ガントチャート設定',
@@ -127,7 +127,7 @@ export default {
     previewTheme: 'プレビュー',
     exportConfig: '設定をエクスポート',
     importConfig: '設定をインポート',
-    
+
     // Link Configuration
     linkConfig: {
       info: 'タスク依存関係リンク（終了-開始、開始-開始など）を設定',
@@ -158,10 +158,10 @@ export default {
       fontSize: 'フォントサイズ',
       typeColors: '依存関係タイプの色',
       parentChildStyle: '親子リンクスタイル',
-      parentChildInfo: '親タスクと子タスクの階層関係を表示'
-    }
+      parentChildInfo: '親タスクと子タスクの階層関係を表示',
+    },
   },
-  
+
   // Theme
   theme: {
     metro: 'メトロ',
@@ -179,30 +179,30 @@ export default {
     oceanDesc: '落ち着いた快適なオーシャンスタイル',
     appleDesc: 'ミニマルでエレガントなmacOSスタイル',
     classicDesc: '伝統的で安定感のあるビジネススタイル',
-    liquidGlassDesc: 'iOS 26 リキッドグラス効果、半透明で流動的な質感'
+    liquidGlassDesc: 'iOS 26 リキッドグラス効果、半透明で流動的な質感',
   },
-  
+
   // Date Picker
   datePicker: {
     selectDate: '日付を選択',
-    clearDate: '日付をクリア'
+    clearDate: '日付をクリア',
   },
-  
+
   // Column Settings
   columnSettings: {
     title: '列表示設定',
     desc: '表示する列を選択',
     showAll: 'すべて表示',
     hideAll: 'すべて非表示',
-    reset: 'デフォルトに戻す'
+    reset: 'デフォルトに戻す',
   },
-  
+
   // Tooltip
   tooltip: {
     addSubTask: 'サブタスクを追加',
     removeTask: '現在のタスクを削除',
     syncArrowColor: '線の色と同期',
     close: '閉じる',
-    columnSettings: '列表示設定'
-  }
-};
+    columnSettings: '列表示設定',
+  },
+}

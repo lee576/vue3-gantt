@@ -18,9 +18,9 @@ export default {
     settings: 'Einstellungen',
     theme: 'Thema',
     to: 'bis',
-    selectDate: 'Datum auswählen'
+    selectDate: 'Datum auswählen',
   },
-  
+
   // Date & Time
   date: {
     year: 'Jahr',
@@ -47,17 +47,17 @@ export default {
     september: 'September',
     october: 'Oktober',
     november: 'November',
-    december: 'Dezember'
+    december: 'Dezember',
   },
-  
+
   // Date Format
   dateFormat: {
     full: 'DD. MMMM YYYY',
     short: 'DD.MM.YYYY',
     monthDay: 'DD. MMM',
-    yearMonth: 'MMMM YYYY'
+    yearMonth: 'MMMM YYYY',
   },
-  
+
   // View Mode
   viewMode: {
     quarter: 'Quartal',
@@ -69,9 +69,9 @@ export default {
     fullDay: 'Ganzer Tag',
     halfDay: 'Halber Tag',
     '15min': '15 Minuten',
-    '30min': '30 Minuten'
+    '30min': '30 Minuten',
   },
-  
+
   // Duration Unit
   durationUnit: {
     quarters: 'Quartale',
@@ -80,9 +80,9 @@ export default {
     days: 'Tage',
     hours: 'Stunden',
     minutes: 'Minuten',
-    hoursAndMinutes: '{hours}Std {minutes}Min'
+    hoursAndMinutes: '{hours}Std {minutes}Min',
   },
-  
+
   // Task
   task: {
     addRoot: 'Hauptaufgabe hinzufügen',
@@ -99,9 +99,9 @@ export default {
     type: 'Typ',
     taskType: 'Aufgabe',
     projectType: 'Projekt',
-    milestoneType: 'Meilenstein'
+    milestoneType: 'Meilenstein',
   },
-  
+
   // Link Legend
   link: {
     legend: 'Verknüpfungslegende',
@@ -114,9 +114,9 @@ export default {
     ss: 'AA',
     ff: 'EE',
     sf: 'AE',
-    pc: 'ÜU'
+    pc: 'ÜU',
   },
-  
+
   // Config Panel
   configPanel: {
     title: 'Gantt-Konfiguration',
@@ -127,7 +127,7 @@ export default {
     previewTheme: 'Vorschau',
     exportConfig: 'Konfiguration exportieren',
     importConfig: 'Konfiguration importieren',
-    
+
     // Link Configuration
     linkConfig: {
       info: 'Aufgabenabhängigkeitsverknüpfungen konfigurieren (Ende-Anfang, Anfang-Anfang usw.)',
@@ -158,10 +158,11 @@ export default {
       fontSize: 'Schriftgröße',
       typeColors: 'Abhängigkeitstypfarben',
       parentChildStyle: 'Übergeordnet-Untergeordnet-Verknüpfungsstil',
-      parentChildInfo: 'Hierarchische Beziehung zwischen übergeordneten und untergeordneten Aufgaben anzeigen'
-    }
+      parentChildInfo:
+        'Hierarchische Beziehung zwischen übergeordneten und untergeordneten Aufgaben anzeigen',
+    },
   },
-  
+
   // Theme
   theme: {
     metro: 'Metro',
@@ -179,30 +180,30 @@ export default {
     oceanDesc: 'Ruhiger und komfortabler Ozean-Stil',
     appleDesc: 'Minimalistischer und eleganter macOS-Stil',
     classicDesc: 'Traditioneller und stabiler Geschäftsstil',
-    liquidGlassDesc: 'iOS 26 Flüssigglas-Effekt mit durchscheinender Fließfähigkeit'
+    liquidGlassDesc: 'iOS 26 Flüssigglas-Effekt mit durchscheinender Fließfähigkeit',
   },
-  
+
   // Date Picker
   datePicker: {
     selectDate: 'Datum auswählen',
-    clearDate: 'Datum löschen'
+    clearDate: 'Datum löschen',
   },
-  
+
   // Column Settings
   columnSettings: {
     title: 'Spalteneinstellungen',
     desc: 'Anzuzeigende Spalten auswählen',
     showAll: 'Alle anzeigen',
     hideAll: 'Alle ausblenden',
-    reset: 'Standard wiederherstellen'
+    reset: 'Standard wiederherstellen',
   },
-  
+
   // Tooltip
   tooltip: {
     addSubTask: 'Unteraufgabe hinzufügen',
     removeTask: 'Aktuelle Aufgabe löschen',
     syncArrowColor: 'Mit Linienfarbe synchronisieren',
     close: 'Schließen',
-    columnSettings: 'Spalteneinstellungen'
-  }
-};
+    columnSettings: 'Spalteneinstellungen',
+  },
+}

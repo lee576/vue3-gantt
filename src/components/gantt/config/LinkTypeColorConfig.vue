@@ -3,66 +3,66 @@
     <div class="color-item">
       <div class="color-preview">
         <svg width="20" height="10" viewBox="0 0 20 10">
-          <line x1="0" y1="5" x2="14" y2="5" :stroke="colors.finishToStart" stroke-width="2"/>
-          <polygon :points="'20,5 14,2 14,8'" :fill="colors.finishToStart"/>
+          <line x1="0" y1="5" x2="14" y2="5" :stroke="colors.finishToStart" stroke-width="2" />
+          <polygon :points="'20,5 14,2 14,8'" :fill="colors.finishToStart" />
         </svg>
       </div>
       <span class="color-label">{{ t('link.fs') }}</span>
       <span class="color-desc">{{ t('link.finishToStart') }}</span>
-      <input 
-        type="color" 
-        :value="colors.finishToStart" 
+      <input
+        type="color"
+        :value="colors.finishToStart"
         @input="updateColor('finishToStart', $event)"
         class="color-input-small"
       />
     </div>
-    
+
     <div class="color-item">
       <div class="color-preview">
         <svg width="20" height="10" viewBox="0 0 20 10">
-          <line x1="0" y1="5" x2="14" y2="5" :stroke="colors.startToStart" stroke-width="2"/>
-          <polygon :points="'20,5 14,2 14,8'" :fill="colors.startToStart"/>
+          <line x1="0" y1="5" x2="14" y2="5" :stroke="colors.startToStart" stroke-width="2" />
+          <polygon :points="'20,5 14,2 14,8'" :fill="colors.startToStart" />
         </svg>
       </div>
       <span class="color-label">{{ t('link.ss') }}</span>
       <span class="color-desc">{{ t('link.startToStart') }}</span>
-      <input 
-        type="color" 
-        :value="colors.startToStart" 
+      <input
+        type="color"
+        :value="colors.startToStart"
         @input="updateColor('startToStart', $event)"
         class="color-input-small"
       />
     </div>
-    
+
     <div class="color-item">
       <div class="color-preview">
         <svg width="20" height="10" viewBox="0 0 20 10">
-          <line x1="0" y1="5" x2="14" y2="5" :stroke="colors.finishToFinish" stroke-width="2"/>
-          <polygon :points="'20,5 14,2 14,8'" :fill="colors.finishToFinish"/>
+          <line x1="0" y1="5" x2="14" y2="5" :stroke="colors.finishToFinish" stroke-width="2" />
+          <polygon :points="'20,5 14,2 14,8'" :fill="colors.finishToFinish" />
         </svg>
       </div>
       <span class="color-label">{{ t('link.ff') }}</span>
       <span class="color-desc">{{ t('link.finishToFinish') }}</span>
-      <input 
-        type="color" 
-        :value="colors.finishToFinish" 
+      <input
+        type="color"
+        :value="colors.finishToFinish"
         @input="updateColor('finishToFinish', $event)"
         class="color-input-small"
       />
     </div>
-    
+
     <div class="color-item">
       <div class="color-preview">
         <svg width="20" height="10" viewBox="0 0 20 10">
-          <line x1="0" y1="5" x2="14" y2="5" :stroke="colors.startToFinish" stroke-width="2"/>
-          <polygon :points="'20,5 14,2 14,8'" :fill="colors.startToFinish"/>
+          <line x1="0" y1="5" x2="14" y2="5" :stroke="colors.startToFinish" stroke-width="2" />
+          <polygon :points="'20,5 14,2 14,8'" :fill="colors.startToFinish" />
         </svg>
       </div>
       <span class="color-label">{{ t('link.sf') }}</span>
       <span class="color-desc">{{ t('link.startToFinish') }}</span>
-      <input 
-        type="color" 
-        :value="colors.startToFinish" 
+      <input
+        type="color"
+        :value="colors.startToFinish"
         @input="updateColor('startToFinish', $event)"
         class="color-input-small"
       />
@@ -71,14 +71,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, type PropType } from 'vue';
-import { useI18n } from '../i18n';
+import { defineComponent, type PropType } from 'vue'
+import { useI18n } from '../i18n'
 
 export interface LinkTypeColors {
-  finishToStart: string;
-  startToStart: string;
-  finishToFinish: string;
-  startToFinish: string;
+  finishToStart: string
+  startToStart: string
+  finishToFinish: string
+  startToFinish: string
 }
 
 export default defineComponent({
@@ -86,23 +86,23 @@ export default defineComponent({
   props: {
     colors: {
       type: Object as PropType<LinkTypeColors>,
-      required: true
-    }
+      required: true,
+    },
   },
   emits: ['update:colors', 'change'],
   setup(props, { emit }) {
-    const { t } = useI18n();
-    
-    const updateColor = (key: keyof LinkTypeColors, event: Event) => {
-      const target = event.target as HTMLInputElement;
-      const newColors = { ...props.colors, [key]: target.value };
-      emit('update:colors', newColors);
-      emit('change');
-    };
+    const { t } = useI18n()
 
-    return { t, updateColor };
-  }
-});
+    const updateColor = (key: keyof LinkTypeColors, event: Event) => {
+      const target = event.target as HTMLInputElement
+      const newColors = { ...props.colors, [key]: target.value }
+      emit('update:colors', newColors)
+      emit('change')
+    }
+
+    return { t, updateColor }
+  },
+})
 </script>
 
 <style lang="scss" scoped>

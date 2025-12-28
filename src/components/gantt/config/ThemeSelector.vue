@@ -14,7 +14,7 @@
       </div>
       <div v-if="modelValue === theme.id" class="theme-check">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
         </svg>
       </div>
     </div>
@@ -22,28 +22,28 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, type PropType } from 'vue';
-import { useI18n } from '../i18n';
-import type { GanttTheme } from '../themes/GanttThemes';
+import { defineComponent, type PropType } from 'vue'
+import { useI18n } from '../i18n'
+import type { GanttTheme } from '../themes/GanttThemes'
 
 export default defineComponent({
   name: 'ThemeSelector',
   props: {
     modelValue: {
       type: String,
-      required: true
+      required: true,
     },
     themes: {
       type: Array as PropType<GanttTheme[]>,
-      required: true
-    }
+      required: true,
+    },
   },
   emits: ['update:modelValue'],
   setup() {
-    const { t } = useI18n();
-    return { t };
-  }
-});
+    const { t } = useI18n()
+    return { t }
+  },
+})
 </script>
 
 <style lang="scss" scoped>
@@ -73,13 +73,15 @@ export default defineComponent({
   &.active {
     border-color: var(--primary, #0078d4);
     background: var(--bg-content, #ffffff);
-    box-shadow: 0 0 0 2px var(--primary, #0078d4), 0 2px 8px rgba(0, 120, 212, 0.15);
-    
+    box-shadow:
+      0 0 0 2px var(--primary, #0078d4),
+      0 2px 8px rgba(0, 120, 212, 0.15);
+
     .theme-info {
       .theme-name {
         color: var(--primary, #0078d4);
       }
-      
+
       .theme-desc {
         color: var(--text-primary, #333333);
       }

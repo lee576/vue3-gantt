@@ -1,7 +1,7 @@
 <template>
   <div class="config-panel-wrapper">
-    <button 
-      class="config-btn" 
+    <button
+      class="config-btn"
       @click="togglePanel"
       :class="{ active: isOpen }"
       :title="t('configPanel.title')"
@@ -9,7 +9,9 @@
       <div class="btn-content">
         <div class="btn-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+            <path
+              d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"
+            />
           </svg>
         </div>
         <span class="btn-text">{{ t('common.config') }}</span>
@@ -20,13 +22,15 @@
     <Teleport to="body">
       <!-- 遮罩层不响应点击，只能通过关闭按钮关闭对话框 -->
       <div v-if="isOpen" class="panel-overlay" :data-gantt-theme="currentTheme"></div>
-      
+
       <div v-if="isOpen" class="config-panel" ref="configPanelRef" :data-gantt-theme="currentTheme">
         <div class="panel-header">
           <h3>{{ t('configPanel.title') }}</h3>
           <button class="close-btn" @click="closePanel" :title="t('common.close')">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+              />
             </svg>
           </button>
         </div>
@@ -34,12 +38,20 @@
         <div class="panel-content">
           <!-- 语言配置区域 -->
           <ConfigSection :title="t('configPanel.languageSettings')" icon="language">
-            <LanguageSelector v-model="currentLocale" :locales="locales" @update:modelValue="selectLocale" />
+            <LanguageSelector
+              v-model="currentLocale"
+              :locales="locales"
+              @update:modelValue="selectLocale"
+            />
           </ConfigSection>
 
           <!-- 主题配置区域 -->
           <ConfigSection :title="t('configPanel.themeSettings')" icon="theme">
-            <ThemeSelector v-model="currentTheme" :themes="themes" @update:modelValue="selectTheme" />
+            <ThemeSelector
+              v-model="currentTheme"
+              :themes="themes"
+              @update:modelValue="selectTheme"
+            />
           </ConfigSection>
 
           <!-- 连线配置区域 -->
@@ -47,8 +59,16 @@
             <div class="link-config-content">
               <!-- 说明文字 -->
               <div class="config-info-box">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink: 0;">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  style="flex-shrink: 0"
+                >
+                  <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+                  />
                 </svg>
                 <span>{{ t('configPanel.linkConfig.info') }}</span>
               </div>
@@ -56,7 +76,10 @@
               <!-- 路径类型选择 -->
               <div class="config-group">
                 <label class="config-label">{{ t('configPanel.linkConfig.pathType') }}</label>
-                <PathTypeSelector v-model="linkConfig.pathType" @update:modelValue="updateLinkConfig" />
+                <PathTypeSelector
+                  v-model="linkConfig.pathType"
+                  @update:modelValue="updateLinkConfig"
+                />
               </div>
 
               <!-- 基础样式配置 -->
@@ -66,7 +89,9 @@
               </div>
 
               <div class="config-group">
-                <label class="config-label">{{ t('configPanel.linkConfig.width') }}: {{ linkConfig.width }}px</label>
+                <label class="config-label"
+                  >{{ t('configPanel.linkConfig.width') }}: {{ linkConfig.width }}px</label
+                >
                 <SliderInput
                   v-model="linkConfig.width"
                   :min="1"
@@ -79,7 +104,11 @@
 
               <div class="config-group">
                 <label class="config-label">{{ t('configPanel.linkConfig.dashStyle') }}</label>
-                <select v-model="linkConfig.dashArray" @change="updateLinkConfig" class="select-input">
+                <select
+                  v-model="linkConfig.dashArray"
+                  @change="updateLinkConfig"
+                  class="select-input"
+                >
                   <option :value="undefined">{{ t('configPanel.linkConfig.solid') }}</option>
                   <option value="3,3">{{ t('configPanel.linkConfig.shortDash') }}</option>
                   <option value="5,5">{{ t('configPanel.linkConfig.mediumDash') }}</option>
@@ -90,7 +119,10 @@
 
               <!-- 贝塞尔曲线配置 -->
               <div v-if="linkConfig.pathType === 'bezier'" class="config-group">
-                <label class="config-label">{{ t('configPanel.linkConfig.curvature') }}: {{ linkConfig.bezierCurvature }}</label>
+                <label class="config-label"
+                  >{{ t('configPanel.linkConfig.curvature') }}:
+                  {{ linkConfig.bezierCurvature }}</label
+                >
                 <SliderInput
                   v-model="linkConfig.bezierCurvature"
                   :min="0.1"
@@ -104,7 +136,10 @@
               <!-- 直角连线配置 -->
               <template v-if="linkConfig.pathType === 'right-angle'">
                 <div class="config-group">
-                  <label class="config-label">{{ t('configPanel.linkConfig.offset') }}: {{ linkConfig.rightAngleOffset }}px</label>
+                  <label class="config-label"
+                    >{{ t('configPanel.linkConfig.offset') }}:
+                    {{ linkConfig.rightAngleOffset }}px</label
+                  >
                   <SliderInput
                     v-model="linkConfig.rightAngleOffset"
                     :min="10"
@@ -122,7 +157,10 @@
                 />
 
                 <div v-if="linkConfig.smoothCorners" class="config-group">
-                  <label class="config-label">{{ t('configPanel.linkConfig.cornerRadius') }}: {{ linkConfig.cornerRadius }}px</label>
+                  <label class="config-label"
+                    >{{ t('configPanel.linkConfig.cornerRadius') }}:
+                    {{ linkConfig.cornerRadius }}px</label
+                  >
                   <SliderInput
                     v-model="linkConfig.cornerRadius"
                     :min="0"
@@ -143,7 +181,10 @@
 
               <template v-if="linkConfig.showArrow">
                 <div class="config-group">
-                  <label class="config-label">{{ t('configPanel.linkConfig.arrowSize') }}: {{ linkConfig.arrowSize }}px</label>
+                  <label class="config-label"
+                    >{{ t('configPanel.linkConfig.arrowSize') }}:
+                    {{ linkConfig.arrowSize }}px</label
+                  >
                   <SliderInput
                     v-model="linkConfig.arrowSize"
                     :min="4"
@@ -162,7 +203,7 @@
                     :sync-label="t('configPanel.linkConfig.syncColor')"
                     :sync-title="t('tooltip.syncArrowColor')"
                     @change="updateLinkConfig"
-                    @sync="linkConfig.arrowColor = linkConfig.color; updateLinkConfig()"
+                    @sync="syncArrowColor"
                   />
                 </div>
               </template>
@@ -175,7 +216,10 @@
               />
 
               <div v-if="linkConfig.enableDashAnimation" class="config-group">
-                <label class="config-label">{{ t('configPanel.linkConfig.animationSpeed') }}: {{ linkConfig.dashAnimationSpeed }}s</label>
+                <label class="config-label"
+                  >{{ t('configPanel.linkConfig.animationSpeed') }}:
+                  {{ linkConfig.dashAnimationSpeed }}s</label
+                >
                 <SliderInput
                   v-model="linkConfig.dashAnimationSpeed"
                   :min="0.2"
@@ -200,7 +244,10 @@
                 </div>
 
                 <div class="config-group">
-                  <label class="config-label">{{ t('configPanel.linkConfig.fontSize') }}: {{ linkConfig.labelFontSize }}px</label>
+                  <label class="config-label"
+                    >{{ t('configPanel.linkConfig.fontSize') }}:
+                    {{ linkConfig.labelFontSize }}px</label
+                  >
                   <SliderInput
                     v-model="linkConfig.labelFontSize"
                     :min="8"
@@ -215,12 +262,18 @@
               <!-- 连线类型颜色配置 -->
               <div class="config-subsection">
                 <h5 class="subsection-title">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;">
-                    <path d="M19 15l-6 6-1.42-1.42L15.17 16H4V4h2v10h9.17l-3.59-3.58L13 9l6 6z"/>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    style="margin-right: 4px"
+                  >
+                    <path d="M19 15l-6 6-1.42-1.42L15.17 16H4V4h2v10h9.17l-3.59-3.58L13 9l6 6z" />
                   </svg>
                   {{ t('configPanel.linkConfig.typeColors') }}
                 </h5>
-                
+
                 <LinkTypeColorConfig
                   :colors="linkConfig.linkTypeColors"
                   @update:colors="linkConfig.linkTypeColors = $event"
@@ -231,22 +284,38 @@
               <!-- 父子关系样式 -->
               <div class="config-subsection">
                 <h5 class="subsection-title">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    style="margin-right: 4px"
+                  >
+                    <path
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+                    />
                   </svg>
                   {{ t('configPanel.linkConfig.parentChildStyle') }}
                 </h5>
-                <div class="config-info-box" style="margin-bottom: 12px;">
-                  <span style="font-size: 11px;">{{ t('configPanel.linkConfig.parentChildInfo') }}</span>
-                </div>
-                
-                <div class="config-group">
-                  <label class="config-label">{{ t('configPanel.linkConfig.color') }}</label>
-                  <ColorInput v-model="linkConfig.parentChildStyle.color" @change="updateLinkConfig" />
+                <div class="config-info-box" style="margin-bottom: 12px">
+                  <span style="font-size: 11px">{{
+                    t('configPanel.linkConfig.parentChildInfo')
+                  }}</span>
                 </div>
 
                 <div class="config-group">
-                  <label class="config-label">{{ t('configPanel.linkConfig.width') }}: {{ linkConfig.parentChildStyle.width }}px</label>
+                  <label class="config-label">{{ t('configPanel.linkConfig.color') }}</label>
+                  <ColorInput
+                    v-model="linkConfig.parentChildStyle.color"
+                    @change="updateLinkConfig"
+                  />
+                </div>
+
+                <div class="config-group">
+                  <label class="config-label"
+                    >{{ t('configPanel.linkConfig.width') }}:
+                    {{ linkConfig.parentChildStyle.width }}px</label
+                  >
                   <SliderInput
                     v-model="linkConfig.parentChildStyle.width"
                     :min="1"
@@ -259,7 +328,11 @@
 
                 <div class="config-group">
                   <label class="config-label">{{ t('configPanel.linkConfig.dashStyle') }}</label>
-                  <select v-model="linkConfig.parentChildStyle.dashArray" @change="updateLinkConfig" class="select-input">
+                  <select
+                    v-model="linkConfig.parentChildStyle.dashArray"
+                    @change="updateLinkConfig"
+                    class="select-input"
+                  >
                     <option :value="undefined">{{ t('configPanel.linkConfig.solid') }}</option>
                     <option value="3,3">{{ t('configPanel.linkConfig.shortDash') }}</option>
                     <option value="5,5">{{ t('configPanel.linkConfig.mediumDash') }}</option>
@@ -276,18 +349,18 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, inject, computed, type Ref } from 'vue';
-import { ganttThemes, ganttThemeManager, type GanttTheme } from '../themes/GanttThemes';
-import { useLinkConfig, LinkPathType } from '../composables/LinkConfig';
-import { useI18n, type Locale } from '../i18n';
-import SliderInput from './SliderInput.vue';
-import ConfigSection from './ConfigSection.vue';
-import PathTypeSelector from './PathTypeSelector.vue';
-import LinkTypeColorConfig from './LinkTypeColorConfig.vue';
-import ThemeSelector from './ThemeSelector.vue';
-import LanguageSelector from './LanguageSelector.vue';
-import ColorInput from './ColorInput.vue';
-import CheckboxConfig from './CheckboxConfig.vue';
+import { defineComponent, ref, onMounted, inject, computed, type Ref } from 'vue'
+import { ganttThemes, ganttThemeManager, type GanttTheme } from '../themes/GanttThemes'
+import { useLinkConfig, LinkPathType } from '../composables/LinkConfig'
+import { useI18n, type Locale } from '../i18n'
+import SliderInput from './SliderInput.vue'
+import ConfigSection from './ConfigSection.vue'
+import PathTypeSelector from './PathTypeSelector.vue'
+import LinkTypeColorConfig from './LinkTypeColorConfig.vue'
+import ThemeSelector from './ThemeSelector.vue'
+import LanguageSelector from './LanguageSelector.vue'
+import ColorInput from './ColorInput.vue'
+import CheckboxConfig from './CheckboxConfig.vue'
 
 export default defineComponent({
   name: 'GanttConfigPanel',
@@ -299,28 +372,28 @@ export default defineComponent({
     ThemeSelector,
     LanguageSelector,
     ColorInput,
-    CheckboxConfig
+    CheckboxConfig,
   },
   setup() {
-    const { t, locale, setLocale, getLocales } = useI18n();
-    const isOpen = ref(false);
-    const themes = ref<GanttTheme[]>(ganttThemes);
-    const currentTheme = ref<string>('metro');
-    const configPanelRef = ref<HTMLDivElement | null>(null);
-    
+    const { t, locale, setLocale, getLocales } = useI18n()
+    const isOpen = ref(false)
+    const themes = ref<GanttTheme[]>(ganttThemes)
+    const currentTheme = ref<string>('metro')
+    const configPanelRef = ref<HTMLDivElement | null>(null)
+
     // 语言选择器相关
-    const currentLocale = computed(() => locale.value);
-    const locales = computed(() => getLocales());
-    
+    const currentLocale = computed(() => locale.value)
+    const locales = computed(() => getLocales())
+
     const selectLocale = (localeValue: Locale) => {
-      setLocale(localeValue);
-    };
-    
+      setLocale(localeValue)
+    }
+
     // 注入甘特图容器引用
-    const ganttContainer = inject<Ref<HTMLElement | undefined>>('ganttContainer');
+    const ganttContainer = inject<Ref<HTMLElement | undefined>>('ganttContainer')
 
     // 使用连线配置管理器
-    const { config: linkConfigManager, updateConfig: updateLinkConfigManager } = useLinkConfig();
+    const { config: linkConfigManager, updateConfig: updateLinkConfigManager } = useLinkConfig()
 
     // 连线配置 - 从管理器初始化
     const linkConfig = ref({
@@ -343,75 +416,80 @@ export default defineComponent({
       parentChildStyle: {
         color: linkConfigManager.parentChildStyle?.color || '#999999',
         width: linkConfigManager.parentChildStyle?.width || 1.5,
-        dashArray: linkConfigManager.parentChildStyle?.dashArray || '3,3'
+        dashArray: linkConfigManager.parentChildStyle?.dashArray || '3,3',
       },
       linkTypeColors: {
         finishToStart: linkConfigManager.linkTypeColors?.finishToStart || '#3498db',
         startToStart: linkConfigManager.linkTypeColors?.startToStart || '#2ecc71',
         finishToFinish: linkConfigManager.linkTypeColors?.finishToFinish || '#e74c3c',
-        startToFinish: linkConfigManager.linkTypeColors?.startToFinish || '#f39c12'
+        startToFinish: linkConfigManager.linkTypeColors?.startToFinish || '#f39c12',
       },
       linkTypeVisibility: {
         finishToStart: linkConfigManager.linkTypeVisibility?.finishToStart ?? true,
         startToStart: linkConfigManager.linkTypeVisibility?.startToStart ?? true,
         finishToFinish: linkConfigManager.linkTypeVisibility?.finishToFinish ?? true,
         startToFinish: linkConfigManager.linkTypeVisibility?.startToFinish ?? true,
-        parentChild: linkConfigManager.linkTypeVisibility?.parentChild ?? true
-      }
-    });
+        parentChild: linkConfigManager.linkTypeVisibility?.parentChild ?? true,
+      },
+    })
 
     const togglePanel = () => {
-      isOpen.value = !isOpen.value;
+      isOpen.value = !isOpen.value
       // 打开面板时设置主题属性和CSS变量
       if (isOpen.value) {
         setTimeout(() => {
-          applyThemeToPanel(currentTheme.value);
-        }, 0);
+          applyThemeToPanel(currentTheme.value)
+        }, 0)
       }
-    };
+    }
 
     const closePanel = () => {
-      isOpen.value = false;
-    };
+      isOpen.value = false
+    }
 
     // 将主题CSS变量应用到配置面板
     const applyThemeToPanel = (themeId: string) => {
-      if (!configPanelRef.value) return;
-      
-      const theme = ganttThemeManager.getThemeInfo(themeId);
-      if (!theme) return;
-      
+      if (!configPanelRef.value) return
+
+      const theme = ganttThemeManager.getThemeInfo(themeId)
+      if (!theme) return
+
       // 设置主题属性
-      configPanelRef.value.setAttribute('data-gantt-theme', themeId);
-      
+      configPanelRef.value.setAttribute('data-gantt-theme', themeId)
+
       // 应用CSS变量到配置面板
       Object.entries(theme.cssVariables).forEach(([property, value]) => {
-        configPanelRef.value!.style.setProperty(property, value);
-      });
-    };
+        configPanelRef.value!.style.setProperty(property, value)
+      })
+    }
 
     const selectTheme = (themeId: string) => {
-      currentTheme.value = themeId;
-      ganttThemeManager.setTheme(themeId);
+      currentTheme.value = themeId
+      ganttThemeManager.setTheme(themeId)
       // 立即更新配置面板的主题属性和CSS变量
-      applyThemeToPanel(themeId);
-    };
+      applyThemeToPanel(themeId)
+    }
 
     const updateLinkConfig = () => {
       // 更新到连线配置管理器
-      updateLinkConfigManager(linkConfig.value);
-    };
+      updateLinkConfigManager(linkConfig.value)
+    }
+
+    const syncArrowColor = () => {
+      linkConfig.value.arrowColor = linkConfig.value.color
+      updateLinkConfig()
+    }
 
     onMounted(() => {
       // 设置甘特图容器到主题管理器
       if (ganttContainer?.value) {
-        ganttThemeManager.setGanttContainer(ganttContainer.value);
+        ganttThemeManager.setGanttContainer(ganttContainer.value)
       } else {
-        console.warn('GanttConfigPanel: ganttContainer not available');
+        console.warn('GanttConfigPanel: ganttContainer not available')
       }
-      
-      currentTheme.value = ganttThemeManager.getCurrentTheme();
-    });
+
+      currentTheme.value = ganttThemeManager.getCurrentTheme()
+    })
 
     // 注意：移除了 linkConfig 的 deep watch，改用显式调用 updateLinkConfig
 
@@ -428,10 +506,11 @@ export default defineComponent({
       selectTheme,
       selectLocale,
       updateLinkConfig,
-      configPanelRef
-    };
-  }
-});
+      syncArrowColor,
+      configPanelRef,
+    }
+  },
+})
 </script>
 
 <style lang="scss" scoped>
@@ -455,10 +534,12 @@ export default defineComponent({
     background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
   }
 
-  &:active, &.active {
+  &:active,
+  &.active {
     background: var(--bg-active, linear-gradient(145deg, #0078d4, #106ebe));
-    
-    .btn-icon, .btn-text {
+
+    .btn-icon,
+    .btn-text {
       color: var(--text-white, #ffffff);
     }
   }
@@ -547,7 +628,7 @@ export default defineComponent({
   flex: 1;
   overflow-y: auto;
   padding: 24px;
-  
+
   /* 使用多列布局实现瀑布流效果 */
   column-count: 2;
   column-gap: 24px;
@@ -645,7 +726,7 @@ export default defineComponent({
 /* 注意：LiquidGlass 主题的样式在 LiquidGlass.css 中定义 */
 
 /* 遮罩层 - 非 LiquidGlass 主题 */
-.panel-overlay:not([data-gantt-theme="liquidGlass"]) {
+.panel-overlay:not([data-gantt-theme='liquidGlass']) {
   position: fixed;
   top: 0;
   left: 0;
@@ -656,7 +737,7 @@ export default defineComponent({
 }
 
 /* 配置面板 - 非 LiquidGlass 主题，使用CSS变量支持主题切换 */
-.config-panel:not([data-gantt-theme="liquidGlass"]) {
+.config-panel:not([data-gantt-theme='liquidGlass']) {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -675,7 +756,7 @@ export default defineComponent({
 }
 
 /* 配置面板头部 - 非 LiquidGlass 主题 */
-.config-panel:not([data-gantt-theme="liquidGlass"]) .panel-header {
+.config-panel:not([data-gantt-theme='liquidGlass']) .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -685,14 +766,14 @@ export default defineComponent({
   border-radius: 8px 8px 0 0;
 }
 
-.config-panel:not([data-gantt-theme="liquidGlass"]) .panel-header h3 {
+.config-panel:not([data-gantt-theme='liquidGlass']) .panel-header h3 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
   color: var(--text-primary, #333333);
 }
 
-.config-panel:not([data-gantt-theme="liquidGlass"]) .panel-header .close-btn {
+.config-panel:not([data-gantt-theme='liquidGlass']) .panel-header .close-btn {
   background: transparent;
   border: none;
   cursor: pointer;
@@ -703,13 +784,13 @@ export default defineComponent({
   align-items: center;
 }
 
-.config-panel:not([data-gantt-theme="liquidGlass"]) .panel-header .close-btn:hover {
+.config-panel:not([data-gantt-theme='liquidGlass']) .panel-header .close-btn:hover {
   color: var(--primary, #0078d4);
   transform: scale(1.1);
 }
 
 /* 配置面板内容 - 非 LiquidGlass 主题 */
-.config-panel:not([data-gantt-theme="liquidGlass"]) .panel-content {
+.config-panel:not([data-gantt-theme='liquidGlass']) .panel-content {
   background: var(--bg-content, #ffffff); /* 使用CSS变量支持主题切换 */
 }
 </style>

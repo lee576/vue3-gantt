@@ -1,53 +1,48 @@
 <template>
   <div class="color-input-wrapper" :class="{ 'with-sync': showSync }">
-    <input 
-      type="color" 
+    <input
+      type="color"
       :value="modelValue"
       @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
       @change="$emit('change')"
       class="color-input"
       :class="inputClass"
     />
-    <button 
-      v-if="showSync"
-      @click="$emit('sync')" 
-      class="sync-btn"
-      :title="syncTitle"
-    >
+    <button v-if="showSync" @click="$emit('sync')" class="sync-btn" :title="syncTitle">
       {{ syncLabel }}
     </button>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'ColorInput',
   props: {
     modelValue: {
       type: String,
-      required: true
+      required: true,
     },
     showSync: {
       type: Boolean,
-      default: false
+      default: false,
     },
     syncLabel: {
       type: String,
-      default: ''
+      default: '',
     },
     syncTitle: {
       type: String,
-      default: ''
+      default: '',
     },
     inputClass: {
       type: String,
-      default: ''
-    }
+      default: '',
+    },
   },
-  emits: ['update:modelValue', 'change', 'sync']
-});
+  emits: ['update:modelValue', 'change', 'sync'],
+})
 </script>
 
 <style lang="scss" scoped>

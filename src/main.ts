@@ -1,12 +1,10 @@
 import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
-import dayjs from 'dayjs'; 
-import 'dayjs/locale/zh-cn'; 
+import DateUtils from './components/gantt/utils/dateUtils'
 
- 
-dayjs.locale('zh-cn');  
- 
-const app = createApp(App); 
-app.provide('dayjs', dayjs);
-app.mount('#app');  
+DateUtils.setLocale('zh-CN')
+
+const app = createApp(App)
+app.provide('DateUtils', DateUtils)
+app.mount('#app')

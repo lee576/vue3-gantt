@@ -18,9 +18,9 @@ export default {
     settings: '설정',
     theme: '테마',
     to: '에서',
-    selectDate: '날짜 선택'
+    selectDate: '날짜 선택',
   },
-  
+
   // Date & Time
   date: {
     year: '년',
@@ -47,17 +47,17 @@ export default {
     september: '9월',
     october: '10월',
     november: '11월',
-    december: '12월'
+    december: '12월',
   },
-  
+
   // Date Format
   dateFormat: {
     full: 'YYYY년 MM월 DD일',
     short: 'YYYY-MM-DD',
     monthDay: 'MM월 DD일',
-    yearMonth: 'YYYY년 MM월'
+    yearMonth: 'YYYY년 MM월',
   },
-  
+
   // View Mode
   viewMode: {
     quarter: '분기',
@@ -69,9 +69,9 @@ export default {
     fullDay: '하루 종일',
     halfDay: '반나절',
     '15min': '15분',
-    '30min': '30분'
+    '30min': '30분',
   },
-  
+
   // Duration Unit
   durationUnit: {
     quarters: '분기',
@@ -80,9 +80,9 @@ export default {
     days: '일',
     hours: '시간',
     minutes: '분',
-    hoursAndMinutes: '{hours}시간 {minutes}분'
+    hoursAndMinutes: '{hours}시간 {minutes}분',
   },
-  
+
   // Task
   task: {
     addRoot: '루트 작업 추가',
@@ -99,9 +99,9 @@ export default {
     type: '유형',
     taskType: '작업',
     projectType: '프로젝트',
-    milestoneType: '마일스톤'
+    milestoneType: '마일스톤',
   },
-  
+
   // Link Legend
   link: {
     legend: '링크 범례',
@@ -114,9 +114,9 @@ export default {
     ss: 'SS',
     ff: 'FF',
     sf: 'SF',
-    pc: 'PC'
+    pc: 'PC',
   },
-  
+
   // Config Panel
   configPanel: {
     title: '간트 차트 설정',
@@ -127,7 +127,7 @@ export default {
     previewTheme: '미리보기',
     exportConfig: '설정 내보내기',
     importConfig: '설정 가져오기',
-    
+
     // Link Configuration
     linkConfig: {
       info: '작업 종속성 링크 설정 (종료-시작, 시작-시작 등)',
@@ -158,10 +158,10 @@ export default {
       fontSize: '글꼴 크기',
       typeColors: '종속성 유형 색상',
       parentChildStyle: '부모-자식 링크 스타일',
-      parentChildInfo: '부모 작업과 자식 작업의 계층 관계 표시'
-    }
+      parentChildInfo: '부모 작업과 자식 작업의 계층 관계 표시',
+    },
   },
-  
+
   // Theme
   theme: {
     metro: '메트로',
@@ -179,30 +179,30 @@ export default {
     oceanDesc: '차분하고 편안한 오션 스타일',
     appleDesc: '미니멀하고 우아한 macOS 스타일',
     classicDesc: '전통적이고 안정적인 비즈니스 스타일',
-    liquidGlassDesc: 'iOS 26 반투명 유동성을 지닌 리퀴드 글래스 효과'
+    liquidGlassDesc: 'iOS 26 반투명 유동성을 지닌 리퀴드 글래스 효과',
   },
-  
+
   // Date Picker
   datePicker: {
     selectDate: '날짜 선택',
-    clearDate: '날짜 지우기'
+    clearDate: '날짜 지우기',
   },
-  
+
   // Column Settings
   columnSettings: {
     title: '열 표시 설정',
     desc: '표시할 열 선택',
     showAll: '모두 표시',
     hideAll: '모두 숨기기',
-    reset: '기본값 복원'
+    reset: '기본값 복원',
   },
-  
+
   // Tooltip
   tooltip: {
     addSubTask: '하위 작업 추가',
     removeTask: '현재 작업 삭제',
     syncArrowColor: '선 색상과 동기화',
     close: '닫기',
-    columnSettings: '열 표시 설정'
-  }
-};
+    columnSettings: '열 표시 설정',
+  },
+}

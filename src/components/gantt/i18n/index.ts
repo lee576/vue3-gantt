@@ -3,22 +3,31 @@
  * 支持中文、英文等多语言切换
  */
 
-import { ref, computed } from 'vue';
-import zhCN from './locales/zh-CN';
-import zhTW from './locales/zh-TW';
-import enUS from './locales/en-US';
-import jaJP from './locales/ja-JP';
-import koKR from './locales/ko-KR';
-import frFR from './locales/fr-FR';
-import deDE from './locales/de-DE';
-import esES from './locales/es-ES';
-import ruRU from './locales/ru-RU';
+import { ref, computed } from 'vue'
+import zhCN from './locales/zh-CN'
+import zhTW from './locales/zh-TW'
+import enUS from './locales/en-US'
+import jaJP from './locales/ja-JP'
+import koKR from './locales/ko-KR'
+import frFR from './locales/fr-FR'
+import deDE from './locales/de-DE'
+import esES from './locales/es-ES'
+import ruRU from './locales/ru-RU'
 
 // 支持的语言类型
-export type Locale = 'zh-CN' | 'zh-TW' | 'en-US' | 'ja-JP' | 'ko-KR' | 'fr-FR' | 'de-DE' | 'es-ES' | 'ru-RU';
+export type Locale =
+  | 'zh-CN'
+  | 'zh-TW'
+  | 'en-US'
+  | 'ja-JP'
+  | 'ko-KR'
+  | 'fr-FR'
+  | 'de-DE'
+  | 'es-ES'
+  | 'ru-RU'
 
 // 语言包类型
-export type Messages = typeof zhCN;
+export type Messages = typeof zhCN
 
 // 所有语言包
 const messages: Record<Locale, Messages> = {
@@ -30,8 +39,8 @@ const messages: Record<Locale, Messages> = {
   'fr-FR': frFR,
   'de-DE': deDE,
   'es-ES': esES,
-  'ru-RU': ruRU
-};
+  'ru-RU': ruRU,
+}
 
 /**
  * 检测浏览器语言并映射到支持的语言
@@ -39,11 +48,11 @@ const messages: Record<Locale, Messages> = {
  */
 export function detectBrowserLocale(): Locale {
   // 获取浏览器语言设置
-  const browserLang = navigator.language || (navigator as any).userLanguage;
-  
+  const browserLang = navigator.language || (navigator as any).userLanguage
+
   // 浏览器语言到系统支持语言的映射
   const localeMap: Record<string, Locale> = {
-    'zh': 'zh-CN',
+    zh: 'zh-CN',
     'zh-CN': 'zh-CN',
     'zh-Hans': 'zh-CN',
     'zh-Hans-CN': 'zh-CN',
@@ -51,49 +60,49 @@ export function detectBrowserLocale(): Locale {
     'zh-Hant': 'zh-TW',
     'zh-Hant-TW': 'zh-TW',
     'zh-HK': 'zh-TW',
-    'en': 'en-US',
+    en: 'en-US',
     'en-US': 'en-US',
     'en-GB': 'en-US',
-    'ja': 'ja-JP',
+    ja: 'ja-JP',
     'ja-JP': 'ja-JP',
-    'ko': 'ko-KR',
+    ko: 'ko-KR',
     'ko-KR': 'ko-KR',
-    'fr': 'fr-FR',
+    fr: 'fr-FR',
     'fr-FR': 'fr-FR',
-    'de': 'de-DE',
+    de: 'de-DE',
     'de-DE': 'de-DE',
-    'es': 'es-ES',
+    es: 'es-ES',
     'es-ES': 'es-ES',
-    'ru': 'ru-RU',
-    'ru-RU': 'ru-RU'
-  };
-  
+    ru: 'ru-RU',
+    'ru-RU': 'ru-RU',
+  }
+
   // 精确匹配
   if (localeMap[browserLang]) {
-    return localeMap[browserLang];
+    return localeMap[browserLang]
   }
-  
+
   // 尝试匹配语言前缀（例如 en-AU -> en）
-  const langPrefix = browserLang.split('-')[0];
+  const langPrefix = browserLang.split('-')[0]
   if (localeMap[langPrefix]) {
-    return localeMap[langPrefix];
+    return localeMap[langPrefix]
   }
-  
+
   // 默认返回英文
-  return 'en-US';
+  return 'en-US'
 }
 
 // 当前语言
-const currentLocale = ref<Locale>('zh-CN');
+const currentLocale = ref<Locale>('zh-CN')
 
 // 初始化语言设置：优先使用localStorage，其次使用浏览器语言，最后默认英文
-const savedLocale = localStorage.getItem('gantt-locale') as Locale;
+const savedLocale = localStorage.getItem('gantt-locale') as Locale
 if (savedLocale && messages[savedLocale]) {
   // 使用已保存的语言设置
-  currentLocale.value = savedLocale;
+  currentLocale.value = savedLocale
 } else {
   // 根据浏览器语言自动设置
-  currentLocale.value = detectBrowserLocale();
+  currentLocale.value = detectBrowserLocale()
 }
 
 /**
@@ -103,28 +112,28 @@ if (savedLocale && messages[savedLocale]) {
  * @returns 翻译后的文本
  */
 export function t(key: string, params?: Record<string, any>): string {
-  const keys = key.split('.');
-  let value: any = messages[currentLocale.value];
-  
+  const keys = key.split('.')
+  let value: any = messages[currentLocale.value]
+
   for (const k of keys) {
     if (value && typeof value === 'object') {
-      value = value[k];
+      value = value[k]
     } else {
-      return key; // 如果找不到，返回原key
+      return key // 如果找不到，返回原key
     }
   }
-  
-  let result = typeof value === 'string' ? value : key;
-  
+
+  let result = typeof value === 'string' ? value : key
+
   // 如果有参数，进行模板替换
   if (params && typeof result === 'string') {
     Object.keys(params).forEach(paramKey => {
-      const placeholder = `{${paramKey}}`;
-      result = result.replace(new RegExp(placeholder, 'g'), String(params[paramKey]));
-    });
+      const placeholder = `{${paramKey}}`
+      result = result.replace(new RegExp(placeholder, 'g'), String(params[paramKey]))
+    })
   }
-  
-  return result;
+
+  return result
 }
 
 /**
@@ -133,8 +142,8 @@ export function t(key: string, params?: Record<string, any>): string {
  */
 export function setLocale(locale: Locale) {
   if (messages[locale]) {
-    currentLocale.value = locale;
-    localStorage.setItem('gantt-locale', locale);
+    currentLocale.value = locale
+    localStorage.setItem('gantt-locale', locale)
   }
 }
 
@@ -142,7 +151,7 @@ export function setLocale(locale: Locale) {
  * 获取当前语言
  */
 export function getLocale(): Locale {
-  return currentLocale.value;
+  return currentLocale.value
 }
 
 /**
@@ -158,24 +167,24 @@ export function getLocales(): { value: Locale; label: string }[] {
     { value: 'fr-FR', label: '🇫🇷 Français' },
     { value: 'de-DE', label: '🇩🇪 Deutsch' },
     { value: 'es-ES', label: '🇪🇸 Español' },
-    { value: 'ru-RU', label: '🇷🇺 Русский' }
-  ];
+    { value: 'ru-RU', label: '🇷🇺 Русский' },
+  ]
 }
 
 /**
  * 创建响应式i18n hook
  */
 export function useI18n() {
-  const locale = computed(() => currentLocale.value);
-  
+  const locale = computed(() => currentLocale.value)
+
   return {
     locale,
     t,
     setLocale,
     getLocale,
     getLocales,
-    detectBrowserLocale
-  };
+    detectBrowserLocale,
+  }
 }
 
 export default {
@@ -184,5 +193,5 @@ export default {
   getLocale,
   getLocales,
   useI18n,
-  detectBrowserLocale
-};
+  detectBrowserLocale,
+}
