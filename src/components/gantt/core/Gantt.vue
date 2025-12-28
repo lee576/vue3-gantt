@@ -1328,6 +1328,16 @@ export default defineComponent({
         if (mode.value) {
           setTimeLineHeaders(mode.value)
         }
+        
+        // 确保所有值同步到 store，避免初始化时渲染不一致
+        nextTick(() => {
+          mutations.setScale(scale.value)
+          mutations.setTimelineCellCount(timelineCellCount.value)
+          mutations.setMonthHeaders(monthHeaders.value)
+          mutations.setWeekHeaders(weekHeaders.value)
+          mutations.setDayHeaders(dayHeaders.value)
+          mutations.setHourHeaders(hourHeaders.value)
+        })
       })
 
       // 监听进度更新事件
