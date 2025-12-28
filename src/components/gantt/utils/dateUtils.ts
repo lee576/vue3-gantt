@@ -3,6 +3,15 @@ import customParseFormat from 'dayjs/plugin/customParseFormat'
 import quarterOfYear from 'dayjs/plugin/quarterOfYear'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import isBetween from 'dayjs/plugin/isBetween'
+import 'dayjs/locale/zh-cn'
+import 'dayjs/locale/zh-tw'
+import 'dayjs/locale/en'
+import 'dayjs/locale/ja'
+import 'dayjs/locale/ko'
+import 'dayjs/locale/fr'
+import 'dayjs/locale/de'
+import 'dayjs/locale/es'
+import 'dayjs/locale/ru'
 
 dayjs.extend(customParseFormat)
 dayjs.extend(quarterOfYear)
@@ -74,24 +83,24 @@ export class DateUtils {
     return dayjs(date).locale(this.getDayjsLocale()).format(formatStr)
   }
 
-  static diff(date1: string | Date, date2: string | Date, unit: dayjs.ManipulateType): number {
-    return dayjs(date1).diff(dayjs(date2), unit)
+  static diff(date1: string | Date, date2: string | Date, unit: dayjs.ManipulateType | 'quarter' | 'isoWeek'): number {
+    return dayjs(date1).diff(dayjs(date2), unit as dayjs.ManipulateType)
   }
 
-  static add(date: string | Date, amount: number, unit: dayjs.ManipulateType): dayjs.Dayjs {
-    return dayjs(date).add(amount, unit)
+  static add(date: string | Date, amount: number, unit: dayjs.ManipulateType | 'quarter' | 'isoWeek'): dayjs.Dayjs {
+    return dayjs(date).add(amount, unit as dayjs.ManipulateType)
   }
 
-  static subtract(date: string | Date, amount: number, unit: dayjs.ManipulateType): dayjs.Dayjs {
-    return dayjs(date).subtract(amount, unit)
+  static subtract(date: string | Date, amount: number, unit: dayjs.ManipulateType | 'quarter' | 'isoWeek'): dayjs.Dayjs {
+    return dayjs(date).subtract(amount, unit as dayjs.ManipulateType)
   }
 
-  static startOf(date: string | Date, unit: dayjs.OpUnitType): dayjs.Dayjs {
-    return dayjs(date).startOf(unit)
+  static startOf(date: string | Date, unit: dayjs.OpUnitType | 'quarter' | 'isoWeek'): dayjs.Dayjs {
+    return dayjs(date).startOf(unit as dayjs.OpUnitType)
   }
 
-  static endOf(date: string | Date, unit: dayjs.OpUnitType): dayjs.Dayjs {
-    return dayjs(date).endOf(unit)
+  static endOf(date: string | Date, unit: dayjs.OpUnitType | 'quarter' | 'isoWeek'): dayjs.Dayjs {
+    return dayjs(date).endOf(unit as dayjs.OpUnitType)
   }
 
   static isBetween(date: string | Date, date1: string | Date, date2: string | Date): boolean {
@@ -106,8 +115,8 @@ export class DateUtils {
     return dayjs(date1).isAfter(date2)
   }
 
-  static isSame(date1: string | Date, date2: string | Date, unit?: dayjs.OpUnitType): boolean {
-    return dayjs(date1).isSame(date2, unit)
+  static isSame(date1: string | Date, date2: string | Date, unit?: dayjs.OpUnitType | 'quarter' | 'isoWeek'): boolean {
+    return dayjs(date1).isSame(date2, unit as dayjs.OpUnitType)
   }
 
   static year(date: string | Date | dayjs.Dayjs): number {

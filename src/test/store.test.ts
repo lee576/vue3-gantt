@@ -104,8 +104,8 @@ describe('状态管理', () => {
     describe('setTaskHeaders', () => {
       it('应该设置任务表格列配置', () => {
         const headers: GanttTaskHeader[] = [
-          { title: '任务名称', key: 'name', width: 200, align: 'left' },
-          { title: '开始日期', key: 'start_date', width: 120, align: 'center' },
+          { title: '任务名称', property: 'name', width: 200, align: 'left' },
+          { title: '开始日期', property: 'start_date', width: 120, align: 'center' },
         ]
         mutations.setTaskHeaders(headers)
         expect(store.taskHeaders).toEqual(headers)

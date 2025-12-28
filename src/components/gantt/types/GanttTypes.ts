@@ -31,8 +31,10 @@ export interface GanttTask {
 export interface GanttTaskHeader {
   /** 列标题 */
   title: string;
-  /** 列键名 */
-  key: string;
+  /** 列属性名 */
+  property: string;
+  /** 列键名（可选，向后兼容） */
+  key?: string;
   /** 列宽度 */
   width?: number;
   /** 对齐方式 */

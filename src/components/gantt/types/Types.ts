@@ -131,7 +131,7 @@ export interface EventConfig {
 // 任务表头接口
 export interface TaskHeader {
   title: string
-  key: string
+  property: string
   width?: number
   align?: 'left' | 'center' | 'right'
 }

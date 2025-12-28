@@ -183,6 +183,7 @@ export default defineComponent({
 
     // 星期名称
     const getWeekNames = computed(() => {
+      void locale.value
       return DateUtils.getWeekNames()
     })
 
@@ -244,11 +245,14 @@ export default defineComponent({
     const keepDoubleDigit = (n: number) => (n > 9 ? String(n) : `0${n}`)
 
     // 计算属性
-    const showDate = computed(() => ({
-      year: displayYear.value,
-      month: displayMonth.value,
-      monthStr: getMonthName(displayMonth.value),
-    }))
+    const showDate = computed(() => {
+      void locale.value
+      return {
+        year: displayYear.value,
+        month: displayMonth.value,
+        monthStr: getMonthName(displayMonth.value),
+      }
+    })
 
     const selectDate = computed(() => ({
       year: selectedYear.value,

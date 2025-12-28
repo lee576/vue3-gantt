@@ -17,13 +17,13 @@ import type {
  */
 interface StoreType {
   /** 季度视图的表头数据 */
-  monthHeaders: GanttHeader[]
+  monthHeaders: any[]
   /** 周视图的表头数据 */
-  weekHeaders: GanttHeader[]
+  weekHeaders: any[]
   /** 日视图的表头数据 */
-  dayHeaders: GanttHeader[]
+  dayHeaders: any[]
   /** 时视图的表头数据 */
-  hourHeaders: GanttHeader[]
+  hourHeaders: any[]
   /** 任务列表数据 */
   tasks: GanttTask[]
   /** 任务表格列配置 */
@@ -63,7 +63,7 @@ interface StoreType {
   /** 当前正在删除的任务 */
   removeTask: Partial<GanttTask>
   /** 是否允许修改任务日期 */
-  allowChangeTaskDate: Partial<GanttTask>
+  allowChangeTaskDate: boolean
   /** 任务日期变更数据 */
   barDate: GanttBarDate
 }
@@ -158,17 +158,17 @@ const updateAllCollapsedTaskIds = () => {
  */
 interface MutationsType {
   /** 设置季度视图表头 */
-  setMonthHeaders: (monthHeaders: GanttHeader[]) => void
+  setMonthHeaders: (monthHeaders: any[]) => void
   /** 设置日视图表头 */
-  setDayHeaders: (dayHeaders: GanttHeader[]) => void
+  setDayHeaders: (dayHeaders: any[]) => void
   /** 设置任务列表 */
   setTasks: (tasks: GanttTask[]) => void
   /** 设置任务表格列配置 */
   setTaskHeaders: (taskHeaders: GanttTaskHeader[]) => void
   /** 设置周视图表头 */
-  setWeekHeaders: (weekHeaders: GanttHeader[]) => void
+  setWeekHeaders: (weekHeaders: any[]) => void
   /** 设置时视图表头 */
-  setHourHeaders: (hourHeaders: GanttHeader[]) => void
+  setHourHeaders: (hourHeaders: any[]) => void
   /** 设置时间轴缩放比例 */
   setScale: (scale: number) => void
   /** 设置字段映射配置 */
@@ -211,10 +211,10 @@ interface MutationsType {
 
 // 定义 Mutations
 export let mutations: MutationsType = {
-  setMonthHeaders(monthHeaders: GanttHeader[]): void {
+  setMonthHeaders(monthHeaders: any[]): void {
     store.monthHeaders = monthHeaders
   },
-  setDayHeaders(dayHeaders: GanttHeader[]): void {
+  setDayHeaders(dayHeaders: any[]): void {
     store.dayHeaders = dayHeaders
   },
   setTasks(tasks: GanttTask[]): void {
@@ -223,10 +223,10 @@ export let mutations: MutationsType = {
   setTaskHeaders(taskHeaders: GanttTaskHeader[]): void {
     store.taskHeaders = taskHeaders
   },
-  setWeekHeaders(weekHeaders: GanttHeader[]): void {
+  setWeekHeaders(weekHeaders: any[]): void {
     store.weekHeaders = weekHeaders
   },
-  setHourHeaders(hourHeaders: GanttHeader[]): void {
+  setHourHeaders(hourHeaders: any[]): void {
     store.hourHeaders = hourHeaders
   },
   setScale(scale: number): void {
@@ -315,7 +315,7 @@ export let mutations: MutationsType = {
   setBarDate(barDate: GanttBarDate): void {
     store.barDate = barDate
   },
-  setAllowChangeTaskDate(task: Partial<GanttTask>): void {
-    store.allowChangeTaskDate = task
+  setAllowChangeTaskDate(allow: boolean): void {
+    store.allowChangeTaskDate = allow
   },
 }

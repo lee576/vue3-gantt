@@ -101,6 +101,7 @@ import Gantt, {
   type StyleConfig,
   type EventConfig,
 } from './components/gantt/core/Gantt.vue'
+import type { GanttTask } from './components/gantt/types/GanttTypes'
 import TaskDialog from './components/TaskDialog.vue'
 import DeleteConfirmDialog from './components/DeleteConfirmDialog.vue'
 import CustomFieldsDialog from './components/CustomFieldsDialog.vue'
@@ -162,7 +163,7 @@ const availableParentTasks = computed(() => {
 const styleConfig = ref<StyleConfig>({
   headersHeight: 100,
   rowHeight: 60,
-  setBarColor: (row: Record<string, any>) => {
+  setBarColor: (row: GanttTask) => {
     const colorMap = {
       紧急: 'red',
       重要: 'blue',
@@ -262,9 +263,9 @@ const handleSaveCustomFields = () => {
 const refreshData = async () => {
   try {
     const startDate =
-      dataConfig.value.queryStartDate || DateUtils.startOf(DateUtils.now(), 'month').format('YYYY-MM-DD')
-    const endDate = dataConfig.value.queryEndDate || DateUtils.endOf(DateUtils.now(), 'month').format('YYYY-MM-DD')
-    await eventConfig.value.queryTask(startDate, endDate)
+      dataConfig.value.queryStartDate || DateUtils.startOf(DateUtils.now().toDate(), 'month').format('YYYY-MM-DD')
+    const endDate = dataConfig.value.queryEndDate || DateUtils.endOf(DateUtils.now().toDate(), 'month').format('YYYY-MM-DD')
+    await eventConfig.value.queryTask(startDate, endDate, '日')
     messageToast.showMessage('数据刷新成功', 'success')
   } catch (error) {
     console.error('刷新数据失败:', error)
@@ -276,9 +277,9 @@ const togglePerformanceTest = async () => {
   isPerformanceTest.value = !isPerformanceTest.value
   try {
     const startDate =
-      dataConfig.value.queryStartDate || DateUtils.startOf(DateUtils.now(), 'month').format('YYYY-MM-DD')
-    const endDate = dataConfig.value.queryEndDate || DateUtils.endOf(DateUtils.now(), 'month').format('YYYY-MM-DD')
-    await eventConfig.value.queryTask(startDate, endDate)
+      dataConfig.value.queryStartDate || DateUtils.startOf(DateUtils.now().toDate(), 'month').format('YYYY-MM-DD')
+    const endDate = dataConfig.value.queryEndDate || DateUtils.endOf(DateUtils.now().toDate(), 'month').format('YYYY-MM-DD')
+    await eventConfig.value.queryTask(startDate, endDate, '日')
     const modeText = isPerformanceTest.value ? '性能测试模式' : '正常数据模式'
     messageToast.showMessage(`已切换到${modeText}`, 'success')
   } catch (error) {
@@ -292,14 +293,14 @@ const eventConfig = ref<EventConfig>({
   addRootTask: () => {
     taskManagement.openAddRootTaskDialog()
   },
-  addSubTask: (row: { id: string }) => {
-    taskManagement.openAddSubTaskDialog(row.id)
+  addSubTask: (task: Partial<GanttTask>) => {
+    taskManagement.openAddSubTaskDialog(String(task.id))
   },
-  removeTask: (row: { id: string }) => {
-    taskManagement.openDeleteDialog(row.id)
+  removeTask: (task: Partial<GanttTask>) => {
+    taskManagement.openDeleteDialog(String(task.id))
   },
-  editTask: (row: { id: string }) => {
-    taskManagement.openEditTaskDialog(row.id)
+  editTask: (task: Partial<GanttTask>) => {
+    taskManagement.openEditTaskDialog(String(task.id))
   },
   updateProgress: async detail => {
     try {
@@ -313,7 +314,7 @@ const eventConfig = ref<EventConfig>({
       messageToast.showMessage('进度更新失败', 'error')
     }
   },
-  queryTask: async (queryStart: string, queryEnd: string) => {
+  queryTask: async (queryStart: string, queryEnd: string, mode: string) => {
     dataConfig.value.queryStartDate = queryStart
     dataConfig.value.queryEndDate = queryEnd
 
@@ -324,9 +325,9 @@ const eventConfig = ref<EventConfig>({
     )
     dataConfig.value.dependencies = mockResponse.dependencies
   },
-  barDate: async (id: string, startDate: string, endDate: string) => {
+  barDate: async (id: string | number, startDate: string, endDate: string) => {
     try {
-      const response = await taskApi.updateTaskDate(id, startDate, endDate)
+      const response = await taskApi.updateTaskDate(String(id), startDate, endDate)
       if (response.code === 200) {
         const task = dataConfig.value.dataSource.find((t: any) => t.id === id)
         if (task) {
@@ -350,11 +351,11 @@ onMounted(() => {
   customFieldsManagement.loadCustomFields()
   updateTaskHeaders()
 
-  const startDate = DateUtils.startOf(DateUtils.now(), 'month').format('YYYY-MM-DD')
-  const endDate = DateUtils.endOf(DateUtils.now(), 'month').format('YYYY-MM-DD')
+  const startDate = DateUtils.startOf(DateUtils.now().toDate(), 'month').format('YYYY-MM-DD')
+  const endDate = DateUtils.endOf(DateUtils.now().toDate(), 'month').format('YYYY-MM-DD')
   dataConfig.value.queryStartDate = startDate
   dataConfig.value.queryEndDate = endDate
-  eventConfig.value.queryTask(startDate, endDate)
+  eventConfig.value.queryTask(startDate, endDate, '日')
 })
 </script>
 

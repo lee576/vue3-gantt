@@ -119,10 +119,7 @@
             <input
               type="checkbox"
               :checked="linkTypeVisibility.parentChild"
-              @change="
-                (e: Event) =>
-                  updateLinkVisibility('parentChild', (e.target as HTMLInputElement).checked)
-              "
+              @change="handleLinkVisibilityChange('parentChild', $event)"
             />
             <svg width="24" height="12" viewBox="0 0 24 12">
               <line
@@ -147,10 +144,7 @@
             <input
               type="checkbox"
               :checked="linkTypeVisibility.finishToStart"
-              @change="
-                (e: Event) =>
-                  updateLinkVisibility('finishToStart', (e.target as HTMLInputElement).checked)
-              "
+              @change="handleLinkVisibilityChange('finishToStart', $event)"
             />
             <svg width="24" height="12" viewBox="0 0 24 12">
               <line
@@ -174,10 +168,7 @@
             <input
               type="checkbox"
               :checked="linkTypeVisibility.startToStart"
-              @change="
-                (e: Event) =>
-                  updateLinkVisibility('startToStart', (e.target as HTMLInputElement).checked)
-              "
+              @change="handleLinkVisibilityChange('startToStart', $event)"
             />
             <svg width="24" height="12" viewBox="0 0 24 12">
               <line
@@ -201,10 +192,7 @@
             <input
               type="checkbox"
               :checked="linkTypeVisibility.finishToFinish"
-              @change="
-                (e: Event) =>
-                  updateLinkVisibility('finishToFinish', (e.target as HTMLInputElement).checked)
-              "
+              @change="handleLinkVisibilityChange('finishToFinish', $event)"
             />
             <svg width="24" height="12" viewBox="0 0 24 12">
               <line
@@ -228,10 +216,7 @@
             <input
               type="checkbox"
               :checked="linkTypeVisibility.startToFinish"
-              @change="
-                (e: Event) =>
-                  updateLinkVisibility('startToFinish', (e.target as HTMLInputElement).checked)
-              "
+              @change="handleLinkVisibilityChange('startToFinish', $event)"
             />
             <svg width="24" height="12" viewBox="0 0 24 12">
               <line
@@ -357,6 +342,7 @@ import { linkDataManager, useLinkConfig } from '../composables/LinkConfig'
 import { useI18n } from '../i18n'
 import { PerformanceConfig } from '../composables/PerformanceConfig'
 import { getWorkerManager, destroyWorkerManager } from '../workers/WorkerManager'
+import type { GanttViewMode, GanttMapFields } from '../types/GanttTypes'
 // 导入日期选择器组件
 import DatePicker from '../config/DatePicker.vue'
 // 导入分割面板组件
@@ -435,7 +421,7 @@ export default defineComponent({
       type: Object as () => {
         dataSource: any[]
         taskHeaders: any[]
-        mapFields: Record<string, any>
+        mapFields: GanttMapFields
         queryStartDate: string
         queryEndDate: string
         dependencies?: Omit<import('../types/Types').TaskDependency, 'id'>[]
@@ -444,12 +430,12 @@ export default defineComponent({
       default: () => ({
         dataSource: [],
         taskHeaders: [],
-        mapFields: {},
+        mapFields: {} as GanttMapFields,
       }),
       validator: (value: {
         dataSource: any[]
         taskHeaders: any[]
-        mapFields: Record<string, any>
+        mapFields: GanttMapFields
       }) => {
         return (
           Array.isArray(value.dataSource) &&
@@ -502,42 +488,15 @@ export default defineComponent({
     const { t, locale } = useI18n()
 
     // 缓存 mapFields 的结果
-    const mapFields = computed(() => props.dataConfig.mapFields)
+    const mapFields = computed<GanttMapFields>(() => props.dataConfig.mapFields)
     // 缓存 dataSource 的结果
     const dataSource = computed(() => props.dataConfig.dataSource)
-
-    // 初始化 DateUtils locale
-    watch(locale, (newLocale) => {
-      DateUtils.setLocale(newLocale as any)
-    }, { immediate: true })
-
-    // 连线配置
-    const { config: linkConfig, updateConfig: updateLinkConfig } = useLinkConfig()
-
-    // 直接使用全局配置的连线类型显示控制，保持响应式同步
-    const linkTypeVisibility = computed(
-      () =>
-        linkConfig.linkTypeVisibility || {
-          finishToStart: true,
-          startToStart: true,
-          finishToFinish: true,
-          startToFinish: true,
-          parentChild: true,
-        }
-    )
-
-    // 更新连线类型显示配置
-    const updateLinkVisibility = (type: keyof typeof linkTypeVisibility.value, value: boolean) => {
-      updateLinkConfig({
-        linkTypeVisibility: { [type]: value } as any,
-      })
-    }
 
     // 定义响应式数据
     const initData = ref<any[]>([])
     const paneLengthPercent = ref(35)
     const buttonClass = ref(['button', 'button', 'button', 'button is-active', 'button'])
-    const mode = ref('日')
+    const mode = ref<GanttViewMode>('日')
     // 日模式的子模式：全天或半天
     const daySubMode = ref<'full' | 'half'>(store.daySubMode)
     // 时模式的子模式：60分钟、30分钟或15分钟
@@ -584,16 +543,6 @@ export default defineComponent({
     const endGanttDate = ref<string | null>(endDate.value + ' 23:59:59')
     const result = ref('')
 
-    // 甘特图容器引用
-    const ganttContainer = ref<HTMLElement>()
-
-    // 计算属性
-    const subTask = computed(() => store.subTask)
-    const editTask = computed(() => store.editTask)
-    const removeTask = computed(() => store.removeTask)
-    const rootTask = computed(() => store.rootTask)
-    const allowChangeTaskDate = computed(() => store.allowChangeTaskDate)
-
     const setTimeLineHeaders = (newVal: string) => {
       const start = DateUtils.create(selectedStartDate.value)
       const end = DateUtils.create(selectedEndDate.value)
@@ -624,11 +573,11 @@ export default defineComponent({
           let quarterCurrent = DateUtils.startOf(start.toDate(), 'quarter')
           const endQuarter = DateUtils.endOf(end.toDate(), 'quarter')
           while (
-            DateUtils.isBefore(quarterCurrent, endQuarter) ||
-            DateUtils.isSame(quarterCurrent, endQuarter, 'quarter')
+            DateUtils.isBefore(quarterCurrent.toDate(), endQuarter.toDate()) ||
+            DateUtils.isSame(quarterCurrent.toDate(), endQuarter.toDate(), 'quarter')
           ) {
             quarters.push(quarterCurrent)
-            quarterCurrent = DateUtils.add(quarterCurrent, 1, 'quarter')
+            quarterCurrent = DateUtils.add(quarterCurrent.toDate(), 1, 'quarter')
           }
 
           const years = [...new Set(quarters.map(q => DateUtils.year(q)))]
@@ -661,29 +610,26 @@ export default defineComponent({
           const endMonth = DateUtils.endOf(end.toDate(), 'month')
 
           const years: number[] = []
-          let yearCurrent = DateUtils.startOf(currentDate, 'year')
+          let yearCurrent = DateUtils.startOf(currentDate.toDate(), 'year')
           while (
-            DateUtils.isBefore(yearCurrent, endMonth) ||
-            DateUtils.isSame(yearCurrent, endMonth, 'year')
+            DateUtils.isBefore(yearCurrent.toDate(), endMonth.toDate()) ||
+            DateUtils.isSame(yearCurrent.toDate(), endMonth.toDate(), 'year')
           ) {
             years.push(DateUtils.year(yearCurrent))
-            yearCurrent = DateUtils.add(yearCurrent, 1, 'year')
+            yearCurrent = DateUtils.add(yearCurrent.toDate(), 1, 'year')
           }
 
           years.forEach(year => {
-            const yearStart = DateUtils.create().year(year).startOf('year')
-            const yearEnd = DateUtils.endOf(yearStart, 'year')
-
             let monthCount = 0
             let monthCurrent = DateUtils.clone(currentDate)
             while (
-              DateUtils.isBefore(monthCurrent, endMonth) ||
-              DateUtils.isSame(monthCurrent, endMonth, 'month')
+              DateUtils.isBefore(monthCurrent.toDate(), endMonth.toDate()) ||
+              DateUtils.isSame(monthCurrent.toDate(), endMonth.toDate(), 'month')
             ) {
               if (DateUtils.year(monthCurrent) === year) {
                 monthCount++
               }
-              monthCurrent = DateUtils.add(monthCurrent, 1, 'month')
+              monthCurrent = DateUtils.add(monthCurrent.toDate(), 1, 'month')
             }
 
             if (monthCount > 0) {
@@ -698,20 +644,18 @@ export default defineComponent({
 
           currentDate = DateUtils.startOf(start.toDate(), 'month')
           while (
-            DateUtils.isBefore(currentDate, endMonth) ||
-            DateUtils.isSame(currentDate, endMonth, 'month')
+            DateUtils.isBefore(currentDate.toDate(), endMonth.toDate()) ||
+            DateUtils.isSame(currentDate.toDate(), endMonth.toDate(), 'month')
           ) {
-            const monthTitle = DateUtils.format(
-              DateUtils.locale(currentDate, DateUtils.getDayjsLocale()),
-              'MMM'
-            )
+            const monthNum = DateUtils.month(currentDate.toDate())
+            const monthTitle = DateUtils.getMonthName(monthNum + 1)
             weekHeaders.value.push({
               title: monthTitle,
               width: scale.value,
-              fulldate: DateUtils.format(currentDate, 'YYYY-MM-DD'),
+              fulldate: DateUtils.format(currentDate.toDate(), 'YYYY-MM-DD'),
             })
 
-            currentDate = DateUtils.add(currentDate, 1, 'month')
+            currentDate = DateUtils.add(currentDate.toDate(), 1, 'month')
           }
 
           timelineCellCount.value = weekHeaders.value.length
@@ -723,43 +667,45 @@ export default defineComponent({
           const endWeek = DateUtils.endOf(end.toDate(), 'isoWeek')
 
           const months: string[] = []
-          let monthCurrent = DateUtils.startOf(currentDate, 'month')
+          let monthCurrent = DateUtils.startOf(currentDate.toDate(), 'month')
           while (
-            DateUtils.isBefore(monthCurrent, endWeek) ||
-            DateUtils.isSame(monthCurrent, endWeek, 'month')
+            DateUtils.isBefore(monthCurrent.toDate(), endWeek.toDate()) ||
+            DateUtils.isSame(monthCurrent.toDate(), endWeek.toDate(), 'month')
           ) {
-            months.push(DateUtils.format(monthCurrent, 'YYYY-MM-DD'))
-            monthCurrent = DateUtils.add(monthCurrent, 1, 'month')
+            months.push(DateUtils.format(monthCurrent.toDate(), 'YYYY-MM-DD'))
+            monthCurrent = DateUtils.add(monthCurrent.toDate(), 1, 'month')
           }
 
           months.forEach((month, _index) => {
             const monthStart = DateUtils.create(month)
-            const monthEnd = DateUtils.endOf(monthStart, 'month')
+            const monthEnd = DateUtils.endOf(monthStart.toDate(), 'month')
 
             let weekCount = 0
             let weekCurrent = DateUtils.clone(currentDate)
             while (
-              DateUtils.isBefore(weekCurrent, endWeek) ||
-              DateUtils.isSame(weekCurrent, endWeek, 'week')
+              DateUtils.isBefore(weekCurrent.toDate(), endWeek.toDate()) ||
+              DateUtils.isSame(weekCurrent.toDate(), endWeek.toDate(), 'week')
             ) {
-              const weekStart = DateUtils.startOf(weekCurrent, 'isoWeek')
-              const weekEnd = DateUtils.endOf(weekCurrent, 'isoWeek')
+              const weekStart = DateUtils.startOf(weekCurrent.toDate(), 'isoWeek')
+              const weekEnd = DateUtils.endOf(weekCurrent.toDate(), 'isoWeek')
 
               if (
-                DateUtils.isSame(weekStart, monthStart, 'month') ||
-                DateUtils.isSame(weekEnd, monthStart, 'month') ||
-                (DateUtils.isBefore(weekStart, monthEnd) && DateUtils.isAfter(weekEnd, monthStart))
+                DateUtils.isSame(weekStart.toDate(), monthStart.toDate(), 'month') ||
+                DateUtils.isSame(weekEnd.toDate(), monthStart.toDate(), 'month') ||
+                (DateUtils.isBefore(weekStart.toDate(), monthEnd.toDate()) && DateUtils.isAfter(weekEnd.toDate(), monthStart.toDate()))
               ) {
                 weekCount++
               }
-              weekCurrent = DateUtils.add(weekCurrent, 1, 'week')
+              weekCurrent = DateUtils.add(weekCurrent.toDate(), 1, 'week')
             }
 
             if (weekCount > 0) {
               const isAsian = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value)
+              const monthNum = DateUtils.month(monthStart.toDate())
+              const monthName = DateUtils.getMonthName(monthNum + 1)
               const monthTitle = isAsian
-                ? DateUtils.format(monthStart, 'YYYY年MM月')
-                : DateUtils.format(monthStart.toDate(), 'MMMM YYYY')
+                ? DateUtils.format(monthStart.toDate(), 'YYYY年MM月')
+                : `${monthName} ${DateUtils.year(monthStart.toDate())}`
               monthHeaders.value.push({
                 title: monthTitle,
                 width: weekCount * scale.value,
@@ -768,23 +714,23 @@ export default defineComponent({
           })
 
           while (
-            DateUtils.isBefore(currentDate, endWeek) ||
-            DateUtils.isSame(currentDate, endWeek, 'week')
+            DateUtils.isBefore(currentDate.toDate(), endWeek.toDate()) ||
+            DateUtils.isSame(currentDate.toDate(), endWeek.toDate(), 'week')
           ) {
-            const weekStart = DateUtils.startOf(currentDate, 'isoWeek')
-            const weekEnd = DateUtils.endOf(currentDate, 'isoWeek')
+            const weekStart = DateUtils.startOf(currentDate.toDate(), 'isoWeek')
+            const weekEnd = DateUtils.endOf(currentDate.toDate(), 'isoWeek')
 
             const isAsian = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value)
             const weekTitle = isAsian
-              ? `第${DateUtils.day(currentDate)}周 (${DateUtils.format(weekStart, 'MM/DD')}-${DateUtils.format(weekEnd, 'MM/DD')})`
-              : `Week ${DateUtils.day(currentDate)} (${DateUtils.format(weekStart, 'MM/DD')}-${DateUtils.format(weekEnd, 'MM/DD')})`
+              ? `第${DateUtils.day(currentDate)}周 (${DateUtils.format(weekStart.toDate(), 'MM/DD')}-${DateUtils.format(weekEnd.toDate(), 'MM/DD')})`
+              : `Week ${DateUtils.day(currentDate)} (${DateUtils.format(weekStart.toDate(), 'MM/DD')}-${DateUtils.format(weekEnd.toDate(), 'MM/DD')})`
             weekHeaders.value.push({
               title: weekTitle,
               width: scale.value,
-              fulldate: DateUtils.format(weekStart, 'YYYY-MM-DD'),
+              fulldate: DateUtils.format(weekStart.toDate(), 'YYYY-MM-DD'),
             })
 
-            currentDate = DateUtils.add(currentDate, 1, 'week')
+            currentDate = DateUtils.add(currentDate.toDate(), 1, 'week')
           }
 
           timelineCellCount.value = weekHeaders.value.length
@@ -797,11 +743,11 @@ export default defineComponent({
 
           const dates: any[] = []
           while (
-            DateUtils.isBefore(currentDate, end) ||
-            DateUtils.isSame(currentDate, end, 'day')
+            DateUtils.isBefore(currentDate.toDate(), end.toDate()) ||
+            DateUtils.isSame(currentDate.toDate(), end.toDate(), 'day')
           ) {
             dates.push(currentDate)
-            currentDate = DateUtils.add(currentDate, 1, 'day')
+            currentDate = DateUtils.add(currentDate.toDate(), 1, 'day')
           }
 
           const years = [...new Set(dates.map(d => DateUtils.year(d)))]
@@ -824,7 +770,8 @@ export default defineComponent({
             months.get(key)!.push(d)
           })
           months.forEach((monthDates, _key) => {
-            const monthTitle = DateUtils.format(monthDates[0], 'MMM')
+            const monthNum = DateUtils.month(monthDates[0])
+            const monthTitle = DateUtils.getMonthName(monthNum + 1)
             const cellWidth = isHalfDay
               ? monthDates.length * 2 * scale.value
               : monthDates.length * scale.value
@@ -894,24 +841,21 @@ export default defineComponent({
           break
         }
         case '时': {
-          // 根据子模式调整scale和分钟间隔
-          const minuteInterval = parseInt(hourSubMode.value) // 60, 30, 或 15
+          const minuteInterval = parseInt(hourSubMode.value)
           const intervalsPerHour = 60 / minuteInterval
-          // 保持每个单元格有足够的宽度显示时间
-          // 60分钟: 30px, 30分钟: 40px, 15分钟: 50px
           scale.value = minuteInterval === 60 ? 30 : minuteInterval === 30 ? 40 : 50
           let currentDate = start
-          // 预先计算结束日期
           const endOfEndDay = end.endOf('day')
           while (currentDate.isBefore(endOfEndDay)) {
-            // 中日韩语言需要添加"日"后缀
             const needsDaySuffix = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value)
+            const monthNum = DateUtils.month(currentDate.toDate())
+            const monthName = DateUtils.getMonthName(monthNum + 1)
+            const dayNum = DateUtils.date(currentDate.toDate())
             const caption = needsDaySuffix
-              ? DateUtils.format(currentDate.toDate(), 'MMMM DD') + '日'
-              : DateUtils.format(currentDate.toDate(), 'MMMM DD')
+              ? `${monthName}${dayNum}日`
+              : `${monthName} ${dayNum}`
             const fullDate = currentDate.format('YYYY-MM-DD')
             const week = DateUtils.format(currentDate.toDate(), 'dddd')
-            // 每天的总宽度 = 间隔数 * scale
             const dayWidth = intervalsPerHour * 24 * scale.value
 
             weekHeaders.value.push({
@@ -924,21 +868,16 @@ export default defineComponent({
               width: dayWidth,
               fulldate: fullDate,
             })
-            // 生成时间间隔表头
             for (let hour = 0; hour <= 23; hour++) {
               for (let intervalIndex = 0; intervalIndex < intervalsPerHour; intervalIndex++) {
                 const minutes = intervalIndex * minuteInterval
 
-                // 根据子模式和语言生成标题
                 let title: string
-                // 中日韩语言使用“点”，其他语言使用 :00 格式
                 const needsHourSuffix = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value)
 
                 if (minuteInterval === 60) {
-                  // 60分钟模式：显示小时
                   title = needsHourSuffix ? hour + '点' : `${hour}:00`
                 } else {
-                  // 30分钟或15分钟模式：显示小时:分钟
                   const minuteStr = minutes.toString().padStart(2, '0')
                   title = `${hour}:${minuteStr}`
                 }
@@ -950,7 +889,6 @@ export default defineComponent({
                 })
               }
             }
-            // 优化代码：更新 currentDate
             currentDate = currentDate.add(1, 'day')
           }
           timelineCellCount.value = hourHeaders.value.length
@@ -958,6 +896,53 @@ export default defineComponent({
         }
       }
     }
+
+    // 初始化 DateUtils locale
+    watch(locale, (newLocale) => {
+      DateUtils.setLocale(newLocale as any)
+      // 语言切换后重新生成时间轴表头，以更新月份、星期等显示
+      if (mode.value) {
+        setTimeLineHeaders(mode.value)
+      }
+    }, { immediate: true })
+
+    // 连线配置
+    const { config: linkConfig, updateConfig: updateLinkConfig } = useLinkConfig()
+
+    // 直接使用全局配置的连线类型显示控制，保持响应式同步
+    const linkTypeVisibility = computed(
+      () =>
+        linkConfig.linkTypeVisibility || {
+          finishToStart: true,
+          startToStart: true,
+          finishToFinish: true,
+          startToFinish: true,
+          parentChild: true,
+        }
+    )
+
+    // 更新连线类型显示配置
+    const updateLinkVisibility = (type: keyof typeof linkTypeVisibility.value, value: boolean) => {
+      updateLinkConfig({
+        linkTypeVisibility: { [type]: value } as any,
+      })
+    }
+
+    // 辅助方法：处理 checkbox change 事件
+    const handleLinkVisibilityChange = (type: keyof typeof linkTypeVisibility.value, event: Event) => {
+      const target = event.target as HTMLInputElement
+      updateLinkVisibility(type, target.checked)
+    }
+
+    // 甘特图容器引用
+    const ganttContainer = ref<HTMLElement>()
+
+    // 计算属性
+    const subTask = computed(() => store.subTask)
+    const editTask = computed(() => store.editTask)
+    const removeTask = computed(() => store.removeTask)
+    const rootTask = computed(() => store.rootTask)
+    const allowChangeTaskDate = computed(() => store.allowChangeTaskDate)
 
     const FindAllParent = (targetData: any[], pid: any) => {
       let parent = targetData.filter(obj => obj[mapFields.value['id']] === pid)
@@ -1008,7 +993,7 @@ export default defineComponent({
           '0',
           tasks,
           0,
-          mapFields.value
+          mapFields.value as unknown as Record<string, string>
         )
         return processedData
       } catch (error) {
@@ -1021,7 +1006,8 @@ export default defineComponent({
       }
     }
 
-    const timeMode = (_mode: string) => {
+    const timeMode = (_mode: GanttViewMode) => {
+      if (!_mode) return
       // 更新按钮状态
       for (let i = 0; i < buttonClass.value.length; i++) {
         buttonClass.value[i] = 'button'
@@ -1180,10 +1166,14 @@ export default defineComponent({
       [mode, selectedStartDate, selectedEndDate],
       ([newMode, newStartDate, newEndDate], [oldMode, oldStartDate, oldEndDate]) => {
         if (newMode !== oldMode || newStartDate !== oldStartDate || newEndDate !== oldEndDate) {
-          setTimeLineHeaders(newMode)
+          if (newMode) {
+            setTimeLineHeaders(newMode)
+          }
           // 只在日期范围变化时调用 queryTask，模式变化不触发
           if (newStartDate !== oldStartDate || newEndDate !== oldEndDate) {
-            props.eventConfig.queryTask(selectedStartDate.value, selectedEndDate.value, mode.value)
+            if (selectedStartDate.value && selectedEndDate.value && mode.value) {
+              props.eventConfig.queryTask(selectedStartDate.value, selectedEndDate.value, mode.value)
+            }
           }
         }
       }
@@ -1191,7 +1181,9 @@ export default defineComponent({
 
     // 监听语言变化，重新生成时间轴表头
     watch(locale, () => {
-      setTimeLineHeaders(mode.value)
+      if (mode.value) {
+        setTimeLineHeaders(mode.value)
+      }
     })
 
     watch(rootTask, newVal => {
@@ -1333,7 +1325,9 @@ export default defineComponent({
         // mode.value 已在初始化时设置为 '日'，不再在这里覆盖
         mutations.setMode(mode.value)
         // 初始化时生成时间轴表头
-        setTimeLineHeaders(mode.value)
+        if (mode.value) {
+          setTimeLineHeaders(mode.value)
+        }
       })
 
       // 监听进度更新事件
@@ -1477,6 +1471,7 @@ export default defineComponent({
       linkTypeColors,
       linkTypeVisibility,
       updateLinkVisibility,
+      handleLinkVisibilityChange,
     }
   },
 })
