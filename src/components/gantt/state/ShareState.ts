@@ -1,4 +1,4 @@
-import { reactive, ref } from 'vue'
+import { reactive, shallowRef, triggerRef } from 'vue'
 
 const sharedState = reactive({
   shouldScrollToToday: false,
@@ -18,24 +18,21 @@ const sharedState = reactive({
 })
 export default sharedState
 
-// 创建一个 ref 来存储滚动位置
-const scrollTop = ref(0)
-// 创建一个 ref 来存储滚动标志
-const scrollFlag = ref(false)
+const scrollTop = shallowRef(0)
+const scrollFlag = shallowRef(false)
 
-// 定义设置滚动位置的函数
-// 为了避免隐式的 'any' 类型错误，明确指定参数 'value' 的类型为 'number'
 const setScrollTop = (value: number) => {
-  scrollTop.value = value
+  if (scrollTop.value !== value) {
+    scrollTop.value = value
+  }
 }
 
-// 定义设置滚动标志的函数
-// 为了避免隐式的 'any' 类型错误，明确指定参数 'value' 的类型为 'boolean'
 const setScrollFlag = (value: boolean) => {
-  scrollFlag.value = value
+  if (scrollFlag.value !== value) {
+    scrollFlag.value = value
+  }
 }
 
-// 导出共享状态和方法
 export const useScrollState = () => {
   return {
     scrollTop,

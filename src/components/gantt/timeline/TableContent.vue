@@ -1,7 +1,6 @@
 <template>
   <div
     ref="barContent"
-    @scroll="scroll()"
     @mousemove="handleMouseMove"
     @mouseleave="handleMouseLeave"
     v-if="tasks"
@@ -29,13 +28,12 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, ref, watch, computed, onMounted } from 'vue'
+import { defineComponent, ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { store } from '../state/Store'
 import { useScrollState } from '../state/ShareState'
 import { useLinkConfig } from '../composables/LinkConfig'
 import BarRecursionRow from './BarRecursionRow.vue'
 import TaskLinks from '../links/TaskLinks.vue'
-import { debounce } from '../composables/PerformanceConfig'
 
 export default defineComponent({
   props: {
@@ -65,10 +63,8 @@ export default defineComponent({
     const endGanttDate = computed(() => store.endGanttDate)
     const mapFields = computed(() => store.mapFields)
 
-    // 计算容器尺寸
     const containerWidth = computed(() => {
       const baseWidth = timelineCellCount.value * scale.value
-      // 获取父容器宽度，确保至少填满可用空间
       if (barContent.value) {
         const parentContainer = barContent.value.parentElement
         if (parentContainer) {
@@ -83,17 +79,52 @@ export default defineComponent({
       return tasks.value.length * props.rowHeight
     })
 
-    // 监听共享的滚动位置变化
-    watch(scrollTop, newValue => {
-      if (scrollFlag.value && barContent.value) {
-        barContent.value.scrollTop = newValue
+    let isScrollingFromWatcher = false
+    let scrollEndTimer: ReturnType<typeof setTimeout> | null = null
+
+    const syncScrollFromWatcher = () => {
+      if (barContent.value && scrollFlag.value && scrollTop.value !== undefined) {
+        isScrollingFromWatcher = true
+        barContent.value.scrollTop = scrollTop.value
+        isScrollingFromWatcher = false
       }
-    })
+    }
+
+    watch(
+      () => scrollTop.value,
+      () => {
+        syncScrollFromWatcher()
+      }
+    )
+
+    const handleScrollEvent = () => {
+      if (!barContent.value || isScrollingFromWatcher) return
+
+      const currentScrollTop = barContent.value.scrollTop
+      setScrollFlag(false)
+      setScrollTop(currentScrollTop)
+
+      if (scrollEndTimer) {
+        clearTimeout(scrollEndTimer)
+      }
+      scrollEndTimer = setTimeout(() => {
+        setScrollFlag(true)
+      }, 150)
+    }
 
     onMounted(() => {
       if (barContent.value) {
-        // 初始化时同步滚动位置
-        barContent.value.scrollTop = scrollTop.value
+        barContent.value.addEventListener('scroll', handleScrollEvent, { passive: true })
+        barContent.value.scrollTop = scrollTop.value || 0
+      }
+    })
+
+    onUnmounted(() => {
+      if (barContent.value) {
+        barContent.value.removeEventListener('scroll', handleScrollEvent)
+      }
+      if (scrollEndTimer) {
+        clearTimeout(scrollEndTimer)
       }
     })
 
@@ -101,29 +132,6 @@ export default defineComponent({
       return tasks.value.filter(obj => obj[mapFields.value['parentId']] === '0')
     }
 
-    // 优化：使用requestAnimationFrame优化滚动性能
-    let rafId: number | null = null
-    const scroll = () => {
-      if (!barContent.value) return
-
-      if (rafId) {
-        cancelAnimationFrame(rafId)
-      }
-
-      rafId = requestAnimationFrame(() => {
-        if (barContent.value) {
-          setScrollFlag(false) // 标记当前面板为主动滚动
-          setScrollTop(barContent.value.scrollTop)
-        }
-        rafId = null
-      })
-    }
-
-    const mouseover = () => {
-      // 鼠标悬停时不改变滚动标志，让滚动事件处理
-    }
-
-    // 竖线基准线相关
     const showGuideLine = ref(false)
     const guideLineX = ref(0)
 
@@ -132,7 +140,6 @@ export default defineComponent({
     const handleMouseMove = (e: MouseEvent) => {
       if (!barContent.value) return
 
-      // 取消之前的requestAnimationFrame
       if (mouseMoveRafId) {
         cancelAnimationFrame(mouseMoveRafId)
       }
@@ -142,7 +149,6 @@ export default defineComponent({
         const rect = barContent.value.getBoundingClientRect()
         const mouseX = e.clientX - rect.left + barContent.value.scrollLeft
 
-        // 计算当前鼠标所在的列中心位置
         const cellWidth = scale.value
         const columnIndex = Math.floor(mouseX / cellWidth)
         const columnCenterX = columnIndex * cellWidth + cellWidth / 2
@@ -150,7 +156,7 @@ export default defineComponent({
         guideLineX.value = columnCenterX
         showGuideLine.value = true
       })
-    } // 使用requestAnimationFrame优化性能
+    }
 
     const handleMouseLeave = () => {
       showGuideLine.value = false
@@ -167,8 +173,7 @@ export default defineComponent({
       endGanttDate,
       mapFields,
       getRootNode,
-      scroll,
-      mouseover,
+      handleScrollEvent,
       setScrollFlag,
       containerWidth,
       containerHeight,

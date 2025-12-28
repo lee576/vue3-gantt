@@ -151,7 +151,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, toRefs, ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { defineComponent, toRefs, ref, shallowRef, computed, watch, onMounted, onUnmounted } from 'vue'
 import DateUtils from '../utils/dateUtils'
 import { useI18n } from '../i18n'
 import { store } from '../state/Store'
@@ -193,7 +193,7 @@ export default defineComponent({
     const { locale } = useI18n()
 
     const headerContainerRef = ref<HTMLElement | null>(null)
-    const scrollLeft = ref(0)
+    const scrollLeft = shallowRef(0)
 
     // 计算总单元格数（使用最细粒度的表头）
     const totalCellCount = computed(() => {
