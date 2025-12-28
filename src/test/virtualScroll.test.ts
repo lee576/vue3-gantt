@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { ref } from 'vue'
 import { useVirtualScroll, shouldEnableVirtualScroll } from '../components/gantt/composables/useVirtualScroll'
 import { PerformanceConfig } from '../components/gantt/composables/PerformanceConfig'
@@ -172,8 +172,6 @@ describe('虚拟滚动功能', () => {
       })
 
       result.onScroll()
-
-      const initialEndIndex = result.endIndex.value
 
       totalItems.value = 200
 

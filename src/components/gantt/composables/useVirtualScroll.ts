@@ -60,27 +60,53 @@ export function useVirtualScroll(options: VirtualScrollOptions): VirtualScrollRe
     scrollTop.value = scrollY
     containerHeight.value = viewHeight
 
-    // 计算可见范围（带缓冲区）
-    const start = Math.max(0, Math.floor(scrollY / itemHeight) - buffer)
+    // 动态缓冲区：快速滚动时增加缓冲区
+    const scrollDelta = Math.abs(lastScrollY - scrollY)
+    const isFastScroll = scrollDelta > itemHeight * 5
+    const effectiveBuffer = isFastScroll
+      ? PerformanceConfig.VIRTUAL_SCROLL_FAST_SCROLL_BUFFER
+      : buffer
+
+    const start = Math.max(0, Math.floor(scrollY / itemHeight) - effectiveBuffer)
     const visibleCount = Math.ceil(viewHeight / itemHeight)
-    const end = Math.min(totalItems.value - 1, start + visibleCount + buffer * 2)
+    const end = Math.min(totalItems.value - 1, start + visibleCount + effectiveBuffer * 2)
 
     startIndex.value = start
     endIndex.value = end
     offsetY.value = start * itemHeight
+
+    lastScrollY = scrollY
   }
 
-  // 滚动处理（使用 RAF 节流）
-  // 简化节流逻辑，确保每一帧都能及时更新
+  // 滚动处理（改进的RAF逻辑，避免丢失帧）
   let rafId: number | null = null
+  let lastScrollY = 0
+  let pendingUpdate = false
 
   const onScroll = () => {
-    // 如果RAF已经在等待，直接返回（避免重复调度）
-    if (rafId !== null) return
+    if (!containerRef.value) return
+
+    const scrollY = containerRef.value.scrollTop
+
+    if (rafId !== null) {
+      pendingUpdate = true
+      lastScrollY = scrollY
+      return
+    }
+
+    pendingUpdate = false
+    lastScrollY = scrollY
 
     rafId = requestAnimationFrame(() => {
       updateVisibleRange()
       rafId = null
+
+      if (pendingUpdate) {
+        rafId = requestAnimationFrame(() => {
+          updateVisibleRange()
+          rafId = null
+        })
+      }
     })
   }
 

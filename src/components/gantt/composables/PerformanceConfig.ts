@@ -48,8 +48,11 @@ export const PerformanceConfig = {
   // 防抖延迟时间（毫秒）
   DEBOUNCE_DELAY: 300,
 
-  // 虚拟滚动：上下缓冲区的行数 - 保持足够缓冲避免白屏
-  VIRTUAL_SCROLL_BUFFER: 10,
+  // 虚拟滚动：上下缓冲区的行数 - 快速滚动时增加缓冲区避免白屏
+  VIRTUAL_SCROLL_BUFFER: 30,
+
+  // 虚拟滚动：快速滚动时的额外缓冲区行数
+  VIRTUAL_SCROLL_FAST_SCROLL_BUFFER: 60,
 
   // 是否启用虚拟滚动
   ENABLE_VIRTUAL_SCROLL: true,

@@ -73,6 +73,7 @@ export default defineComponent({
     const containerHeight = ref(0)
     const startIndex = ref(0)
     const endIndex = ref(0)
+    let lastScrollY = 0
 
     // 注入自定义任务类型判断函数
     const setTaskType = inject(Symbols.SetTaskTypeSymbol) as ((row: any) => TaskType) | undefined
@@ -124,34 +125,61 @@ export default defineComponent({
 
       const scrollY = scrollContainer.scrollTop
       const viewHeight = scrollContainer.clientHeight || 500 // 默认高度
-      const buffer = PerformanceConfig.VIRTUAL_SCROLL_BUFFER
+      const rowH = props.rowHeight || 40 // 默认行高
+
+      // 动态缓冲区：快速滚动时增加缓冲区
+      const scrollDelta = Math.abs(lastScrollY - scrollY)
+      const isFastScroll = scrollDelta > rowH * 5
+      const buffer = isFastScroll
+        ? PerformanceConfig.VIRTUAL_SCROLL_FAST_SCROLL_BUFFER
+        : PerformanceConfig.VIRTUAL_SCROLL_BUFFER
 
       scrollTop.value = scrollY
       containerHeight.value = viewHeight
 
-      const rowH = props.rowHeight || 40 // 默认行高
       const start = Math.max(0, Math.floor(scrollY / rowH) - buffer)
       const visibleCount = Math.ceil(viewHeight / rowH)
       const end = Math.min(filterTask.value.length - 1, start + visibleCount + buffer * 2)
 
       startIndex.value = start
       endIndex.value = Math.max(end, start) // 确保 end >= start
+
+      lastScrollY = scrollY
     }
 
-    // 滚动处理
+    // 滚动处理（改进的RAF逻辑，避免丢失帧）
     let rafId: number | null = null
+    let pendingUpdate = false
     let batchUpdateTimer: number | null = null
 
     const onScroll = () => {
       if (PerformanceConfig.USE_RAF) {
-        // 使用 requestAnimationFrame 优化
-        if (rafId) return
+        if (!containerRef.value) return
+        const scrollContainer = containerRef.value.closest('.content') as HTMLElement
+        if (!scrollContainer) return
+        const scrollY = scrollContainer.scrollTop
+
+        if (rafId !== null) {
+          pendingUpdate = true
+          lastScrollY = scrollY
+          return
+        }
+
+        pendingUpdate = false
+        lastScrollY = scrollY
+
         rafId = requestAnimationFrame(() => {
           updateVisibleRange()
           rafId = null
+
+          if (pendingUpdate) {
+            rafId = requestAnimationFrame(() => {
+              updateVisibleRange()
+              rafId = null
+            })
+          }
         })
       } else {
-        // 使用批量更新延迟
         if (batchUpdateTimer) {
           clearTimeout(batchUpdateTimer)
         }

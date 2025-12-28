@@ -154,6 +154,7 @@ export default defineComponent({
     // 虚拟滚动状态
     const scrollTop = ref(0)
     const containerHeight = ref(0)
+    let lastScrollY = 0
 
     // 判断是否启用虚拟滚动
     const useVirtualScroll = computed(() => {
@@ -163,11 +164,23 @@ export default defineComponent({
       )
     })
 
+    // 更新滚动状态（供外部调用）
+    const updateScrollState = (scrollY: number, viewHeight: number) => {
+      scrollTop.value = scrollY
+      containerHeight.value = viewHeight
+      lastScrollY = scrollY
+    }
+
     // 计算可见区域的连线
     const visibleLinks = computed(() => {
       if (!useVirtualScroll.value) return links.value
 
-      const buffer = PerformanceConfig.VIRTUAL_SCROLL_BUFFER * 60 // 缓冲区像素高度
+      // 动态缓冲区：快速滚动时增加缓冲区
+      const scrollDelta = Math.abs(lastScrollY - scrollTop.value)
+      const isFastScroll = scrollDelta > 200 // 快速滚动阈值（像素）
+      const baseBuffer = PerformanceConfig.VIRTUAL_SCROLL_BUFFER * 60
+      const buffer = isFastScroll ? baseBuffer * 2 : baseBuffer
+
       const viewStart = scrollTop.value - buffer
       const viewEnd = scrollTop.value + containerHeight.value + buffer
 
