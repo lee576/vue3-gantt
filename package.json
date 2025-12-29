@@ -1,6 +1,6 @@
 {
   "name": "@lee576/vue3-gantt",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A powerful Vue3 Gantt chart component with rich features: task dependencies, multiple view modes, themes, i18n support",
   "type": "module",
   "main": "./dist/vue3-gantt.umd.js",

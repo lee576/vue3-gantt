@@ -157,10 +157,7 @@
               :placeholder="config.color"
             />
             <button
-              @click="
-                config.arrowColor = config.color
-                updateConfig()
-              "
+              @click="() => { config.arrowColor = config.color; updateConfig() }"
               class="sync-btn"
               title="与线条颜色同步"
             >
