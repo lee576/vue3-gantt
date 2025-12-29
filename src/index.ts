@@ -56,4 +56,4 @@ export const install = (app: App) => {
 }
 
 // 版本信息
-export const version = '1.1.1'
+export const version = '1.1.2'
