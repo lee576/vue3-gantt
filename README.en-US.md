@@ -44,6 +44,7 @@ A feature-rich, highly customizable Vue 3 Gantt chart component that supports ta
 - 🌍 **Internationalization** - Built-in 8 languages, easily extensible
 - ⚡ **High Performance** - Virtual scrolling, handles massive task data effortlessly
 - 💎 **Milestones** - Diamond markers for key nodes with dependency support
+- 🎯 **Project Analysis** - Critical path analysis, dependency validation, constraint validation and more
 
 ## ✨ Core Features
 
@@ -122,6 +123,36 @@ Five time granularities for different scenarios:
 - **Connection Lines** - Visual connection lines showing hierarchy relationships
 - **Quick Operations** - Inline buttons for quickly adding/deleting subtasks
 - **Hover Highlight** - Mouse hover highlights current task row
+
+### 🎯 Project Analysis Features
+Powerful project analysis tools to help you monitor project progress and identify potential issues.
+
+#### Critical Path Analysis
+- **Automatic Critical Path Detection** - Accurately calculate project critical path and critical tasks
+- **Float Time Calculation** - Calculate total float and free float for each task
+- **Project Duration Prediction** - Accurately predict total project duration and end date
+- **Detailed Time Analysis** - Display early start, early finish, late start, late finish times for each task
+- **Visual Presentation** - Critical path displayed clearly in flowchart format
+- **Data Export** - Support exporting analysis results to CSV files
+
+#### Dependency Validation
+- **Circular Dependency Detection** - Automatically detect and alert circular dependencies between tasks
+- **Invalid Link Identification** - Identify missing tasks or invalid dependency relationships
+- **Date Conflict Check** - Verify consistency between dependency relationships and task dates
+- **Dependency Type Display** - Clearly show the type of each dependency (FS/SS/FF/SF)
+- **Error Classification** - Distinguish between critical errors and general errors for priority handling
+- **Resolution Suggestions** - Provide specific solutions for each error
+- **Redundant Dependency Alerts** - Identify potentially redundant dependencies and provide optimization suggestions
+- **Detailed Report Export** - Support exporting complete validation reports
+
+#### Task Constraint Validation
+- **Multiple Constraint Types** - Support SNET, SNLT, FNET, FNLT, MSO, MFO, ASAP, ALAP and other constraints
+- **Constraint Conflict Detection** - Automatically detect whether tasks violate time constraints
+- **Detailed Conflict Information** - Display comparison between current dates and constraint dates
+- **Filtering and Sorting** - Support filtering and sorting tasks by conflict type
+- **Constraint Type Explanation** - Built-in constraint type descriptions to help understand various constraint meanings
+- **Warning Alerts** - Provide warnings and suggestions for potentially problematic constraints
+- **Report Export** - Support exporting constraint validation reports
 
 ## 🚀 Installation
 
