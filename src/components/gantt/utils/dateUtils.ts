@@ -332,11 +332,11 @@ export class DateUtils {
       try {
         switch (op.type) {
           case 'add':
-            return this.add(op.date, op.amount || 0, op.unit).format('YYYY-MM-DD HH:mm:ss')
+            return this.add(op.date, op.amount || 0, op.unit || 'day').format('YYYY-MM-DD HH:mm:ss')
           case 'subtract':
-            return this.subtract(op.date, op.amount || 0, op.unit).format('YYYY-MM-DD HH:mm:ss')
+            return this.subtract(op.date, op.amount || 0, op.unit || 'day').format('YYYY-MM-DD HH:mm:ss')
           case 'diff':
-            return this.diff(op.date, op.date2 || '', op.unit)
+            return this.diff(op.date, op.date2 || '', op.unit || 'day')
           default:
             return null
         }
@@ -345,6 +345,54 @@ export class DateUtils {
       }
     })
   }
+
+  /**
+   * 计算两个日期之间的天数差
+   * @param date1 结束日期
+   * @param date2 开始日期
+   * @returns 天数差
+   */
+  static differenceInDays(date1: string, date2: string): number {
+    const d1 = dayjs(date1);
+    const d2 = dayjs(date2);
+    return d1.diff(d2, 'day');
+  }
+
+  /**
+   * 给日期添加天数
+   * @param date 日期字符串
+   * @param days 要添加的天数
+   * @returns 添加天数后的日期字符串
+   */
+  static addDays(date: string, days: number): string {
+    return dayjs(date).add(days, 'day').format('YYYY-MM-DD');
+  }
+
+  /**
+   * 解析ISO格式的日期字符串
+   * @param dateString ISO格式的日期字符串
+   * @returns dayjs对象
+   */
+  static parseISO(dateString: string): dayjs.Dayjs {
+    return dayjs(dateString);
+  }
+
+  /**
+   * 格式化日期
+   * @param date 日期字符串或dayjs对象
+   * @param pattern 格式化模式
+   * @returns 格式化后的日期字符串
+   */
+  static formatDate(date: string | dayjs.Dayjs, pattern: string): string {
+    return dayjs(date).format(pattern);
+  }
 }
+
+// 导出类的静态方法作为独立函数
+export const differenceInDays = DateUtils.differenceInDays;
+export const addDays = DateUtils.addDays;
+export const parseISO = DateUtils.parseISO;
+export const formatDate = DateUtils.formatDate;
+export const diff = DateUtils.diff;
 
 export default DateUtils

@@ -23,10 +23,218 @@ export interface MockDependency {
 export interface MockResponse {
   tasks: MockTask[]
   dependencies: MockDependency[]
+  baseline?: {
+    name: string
+    description: string
+    createdAt: string
+    taskBaselines: Array<{
+      taskId: string
+      plannedStartDate: string
+      plannedEndDate: string
+      plannedProgress: number
+    }>
+  }
 }
 
 export const getMockResponse = (): MockResponse => {
   const currentMonth = DateUtils.format(DateUtils.now(), 'YYYY-MM')
+
+  // 生成基线数据：为每个任务创建计划开始日期、结束日期和进度
+  const baselineTasks = [
+    // 为每个任务创建基线数据，模拟初始计划
+    {
+      taskId: '1',
+      plannedStartDate: `${currentMonth}-01 08:00:00`,
+      plannedEndDate: `${currentMonth}-05 18:00:00`,
+      plannedProgress: 0.85,
+    },
+    {
+      taskId: '2',
+      plannedStartDate: `${currentMonth}-01 08:00:00`,
+      plannedEndDate: `${currentMonth}-02 18:00:00`,
+      plannedProgress: 1.0,
+    },
+    {
+      taskId: '3',
+      plannedStartDate: `${currentMonth}-03 08:00:00`,
+      plannedEndDate: `${currentMonth}-04 18:00:00`,
+      plannedProgress: 0.9,
+    },
+    {
+      taskId: '4',
+      plannedStartDate: `${currentMonth}-05 08:00:00`,
+      plannedEndDate: `${currentMonth}-06 18:00:00`,
+      plannedProgress: 0.7,
+    },
+    {
+      taskId: '5',
+      plannedStartDate: `${currentMonth}-07 08:00:00`,
+      plannedEndDate: `${currentMonth}-18 18:00:00`,
+      plannedProgress: 0.5,
+    },
+    {
+      taskId: '6',
+      plannedStartDate: `${currentMonth}-07 08:00:00`,
+      plannedEndDate: `${currentMonth}-15 18:00:00`,
+      plannedProgress: 0.6,
+    },
+    {
+      taskId: '7',
+      plannedStartDate: `${currentMonth}-07 08:00:00`,
+      plannedEndDate: `${currentMonth}-09 18:00:00`,
+      plannedProgress: 1.0,
+    },
+    {
+      taskId: '8',
+      plannedStartDate: `${currentMonth}-10 08:00:00`,
+      plannedEndDate: `${currentMonth}-13 18:00:00`,
+      plannedProgress: 0.7,
+    },
+    {
+      taskId: '9',
+      plannedStartDate: `${currentMonth}-10 08:00:00`,
+      plannedEndDate: `${currentMonth}-15 18:00:00`,
+      plannedProgress: 0.4,
+    },
+    {
+      taskId: '10',
+      plannedStartDate: `${currentMonth}-07 08:00:00`,
+      plannedEndDate: `${currentMonth}-18 18:00:00`,
+      plannedProgress: 0.5,
+    },
+    {
+      taskId: '11',
+      plannedStartDate: `${currentMonth}-07 08:00:00`,
+      plannedEndDate: `${currentMonth}-09 18:00:00`,
+      plannedProgress: 1.0,
+    },
+    {
+      taskId: '12',
+      plannedStartDate: `${currentMonth}-10 08:00:00`,
+      plannedEndDate: `${currentMonth}-12 18:00:00`,
+      plannedProgress: 0.8,
+    },
+    {
+      taskId: '13',
+      plannedStartDate: `${currentMonth}-13 08:00:00`,
+      plannedEndDate: `${currentMonth}-18 18:00:00`,
+      plannedProgress: 0.3,
+    },
+    {
+      taskId: '14',
+      plannedStartDate: `${currentMonth}-19 08:00:00`,
+      plannedEndDate: `${currentMonth}-24 18:00:00`,
+      plannedProgress: 0.3,
+    },
+    {
+      taskId: '15',
+      plannedStartDate: `${currentMonth}-19 08:00:00`,
+      plannedEndDate: `${currentMonth}-20 18:00:00`,
+      plannedProgress: 0.8,
+    },
+    {
+      taskId: '16',
+      plannedStartDate: `${currentMonth}-21 08:00:00`,
+      plannedEndDate: `${currentMonth}-22 18:00:00`,
+      plannedProgress: 0.4,
+    },
+    {
+      taskId: '17',
+      plannedStartDate: `${currentMonth}-23 08:00:00`,
+      plannedEndDate: `${currentMonth}-24 12:00:00`,
+      plannedProgress: 0.2,
+    },
+    {
+      taskId: '18',
+      plannedStartDate: `${currentMonth}-23 08:00:00`,
+      plannedEndDate: `${currentMonth}-24 18:00:00`,
+      plannedProgress: 0.1,
+    },
+    {
+      taskId: '19',
+      plannedStartDate: `${currentMonth}-25 08:00:00`,
+      plannedEndDate: `${currentMonth}-27 18:00:00`,
+      plannedProgress: 0.0,
+    },
+    {
+      taskId: '20',
+      plannedStartDate: `${currentMonth}-25 08:00:00`,
+      plannedEndDate: `${currentMonth}-25 18:00:00`,
+      plannedProgress: 0.0,
+    },
+    {
+      taskId: '21',
+      plannedStartDate: `${currentMonth}-26 08:00:00`,
+      plannedEndDate: `${currentMonth}-26 18:00:00`,
+      plannedProgress: 0.0,
+    },
+    {
+      taskId: '22',
+      plannedStartDate: `${currentMonth}-27 08:00:00`,
+      plannedEndDate: `${currentMonth}-27 18:00:00`,
+      plannedProgress: 0.0,
+    },
+    {
+      taskId: '23',
+      plannedStartDate: `${currentMonth}-28 08:00:00`,
+      plannedEndDate: `${currentMonth}-30 18:00:00`,
+      plannedProgress: 0.0,
+    },
+    {
+      taskId: '24',
+      plannedStartDate: `${currentMonth}-28 08:00:00`,
+      plannedEndDate: `${currentMonth}-30 12:00:00`,
+      plannedProgress: 0.0,
+    },
+    {
+      taskId: '25',
+      plannedStartDate: `${currentMonth}-28 08:00:00`,
+      plannedEndDate: `${currentMonth}-30 12:00:00`,
+      plannedProgress: 0.0,
+    },
+    {
+      taskId: '26',
+      plannedStartDate: `${currentMonth}-01 08:00:00`,
+      plannedEndDate: `${currentMonth}-25 18:00:00`,
+      plannedProgress: 0.5,
+    },
+    {
+      taskId: '27',
+      plannedStartDate: `${currentMonth}-01 08:00:00`,
+      plannedEndDate: `${currentMonth}-15 18:00:00`,
+      plannedProgress: 0.7,
+    },
+    {
+      taskId: '28',
+      plannedStartDate: `${currentMonth}-01 08:00:00`,
+      plannedEndDate: `${currentMonth}-20 18:00:00`,
+      plannedProgress: 0.4,
+    },
+    {
+      taskId: '29',
+      plannedStartDate: `${currentMonth}-15 08:00:00`,
+      plannedEndDate: `${currentMonth}-25 18:00:00`,
+      plannedProgress: 0.3,
+    },
+    {
+      taskId: '30',
+      plannedStartDate: `${currentMonth}-26 08:00:00`,
+      plannedEndDate: `${currentMonth}-30 18:00:00`,
+      plannedProgress: 0.0,
+    },
+    {
+      taskId: '31',
+      plannedStartDate: `${currentMonth}-26 08:00:00`,
+      plannedEndDate: `${currentMonth}-28 18:00:00`,
+      plannedProgress: 0.0,
+    },
+    {
+      taskId: '32',
+      plannedStartDate: `${currentMonth}-26 08:00:00`,
+      plannedEndDate: `${currentMonth}-30 18:00:00`,
+      plannedProgress: 0.0,
+    },
+  ]
 
   return {
     tasks: [
@@ -436,6 +644,12 @@ export const getMockResponse = (): MockResponse => {
         spend_time: null,
       },
     ],
+    baseline: {
+      name: '初始基线',
+      description: '项目初始基线，基于项目计划创建',
+      createdAt: new Date().toISOString(),
+      taskBaselines: baselineTasks,
+    },
     dependencies: [
       // ===== 里程碑依赖关系 =====
       { sourceTaskId: '2', targetTaskId: 'milestone-1', type: LinkType.FINISH_TO_START },

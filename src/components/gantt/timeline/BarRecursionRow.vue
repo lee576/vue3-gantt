@@ -7,40 +7,64 @@
         :style="{ height: totalHeight + 'px', paddingTop: offsetY + 'px', boxSizing: 'border-box' }"
       >
         <template v-for="item in visibleTasks" :key="item.task[mapFields.id]">
-          <Milestone
-            v-if="getTaskType(item.task) === TaskType.MILESTONE"
-            :startGanttDate="startGanttDate"
-            :endGanttDate="endGanttDate"
-            :row="item.task"
-            :rowHeight="rowHeight"
-          />
-          <Bar
-            v-else
-            :startGanttDate="startGanttDate"
-            :endGanttDate="endGanttDate"
-            :row="item.task"
-            :rowHeight="rowHeight"
-          />
+          <div style="position: relative">
+            <Milestone
+              v-if="getTaskType(item.task) === TaskType.MILESTONE"
+              :startGanttDate="startGanttDate"
+              :endGanttDate="endGanttDate"
+              :row="item.task"
+              :rowHeight="rowHeight"
+            />
+            <Bar
+              v-else
+              :startGanttDate="startGanttDate"
+              :endGanttDate="endGanttDate"
+              :row="item.task"
+              :rowHeight="rowHeight"
+            />
+            <!-- 基线显示 -->
+            <BaselineBar
+              v-if="baselineDisplayConfig.enabled"
+              :startGanttDate="startGanttDate"
+              :endGanttDate="endGanttDate"
+              :row="item.task"
+              :rowHeight="rowHeight"
+              :baselineData="getBaselineDataForTask(item.task[mapFields.id])"
+              :baselineColor="baselineDisplayConfig.color"
+            />
+          </div>
         </template>
       </div>
     </template>
     <!-- 普通模式 -->
     <template v-else>
       <template v-for="item in filterTask" :key="item[mapFields.id]">
-        <Milestone
-          v-if="getTaskType(item) === TaskType.MILESTONE"
-          :startGanttDate="startGanttDate"
-          :endGanttDate="endGanttDate"
-          :row="item"
-          :rowHeight="rowHeight"
-        />
-        <Bar
-          v-else
-          :startGanttDate="startGanttDate"
-          :endGanttDate="endGanttDate"
-          :row="item"
-          :rowHeight="rowHeight"
-        />
+        <div style="position: relative">
+          <Milestone
+            v-if="getTaskType(item) === TaskType.MILESTONE"
+            :startGanttDate="startGanttDate"
+            :endGanttDate="endGanttDate"
+            :row="item"
+            :rowHeight="rowHeight"
+          />
+          <Bar
+            v-else
+            :startGanttDate="startGanttDate"
+            :endGanttDate="endGanttDate"
+            :row="item"
+            :rowHeight="rowHeight"
+          />
+          <!-- 基线显示 -->
+          <BaselineBar
+            v-if="baselineDisplayConfig.enabled"
+            :startGanttDate="startGanttDate"
+            :endGanttDate="endGanttDate"
+            :row="item"
+            :rowHeight="rowHeight"
+            :baselineData="getBaselineDataForTask(item[mapFields.id])"
+            :baselineColor="baselineDisplayConfig.color"
+          />
+        </div>
       </template>
     </template>
   </div>
@@ -50,10 +74,12 @@
 import { defineComponent, ref, computed, watch, inject, onMounted, onUnmounted } from 'vue'
 import { store, mutations } from '../state/Store'
 import Bar from './Bar.vue'
+import BaselineBar from './BaselineBar.vue'
 import Milestone from './Milestone.vue'
 import { TaskType } from '../types/Types'
 import { Symbols } from '../state/Symbols'
 import { PerformanceConfig } from '../composables/PerformanceConfig'
+import { useBaseline } from '../composables/useBaseline'
 
 export default defineComponent({
   name: 'BarRecursionRow',
@@ -77,6 +103,9 @@ export default defineComponent({
 
     // 注入自定义任务类型判断函数
     const setTaskType = inject(Symbols.SetTaskTypeSymbol) as ((row: any) => TaskType) | undefined
+
+    // 基线功能
+    const { getBaselineDataForTask, baselineDisplayConfig } = useBaseline()
 
     const allTask = computed(() => store.tasks)
     const timelineCellCount = computed(() => store.timelineCellCount)
@@ -325,9 +354,12 @@ export default defineComponent({
       visibleTasks,
       startIndex,
       endIndex,
+      // 基线相关
+      getBaselineDataForTask,
+      baselineDisplayConfig,
     }
   },
-  components: { Bar, Milestone },
+  components: { Bar, BaselineBar, Milestone },
   mounted() {
     this.$nextTick(() => {
       // 可以在这里添加挂载后的逻辑
