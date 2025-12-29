@@ -47,6 +47,8 @@
     "build:lib": "vite build --mode lib",
     "preview": "vite preview",
     "prepublishOnly": "npm run build:lib",
+    "postversion": "node scripts/sync-version.js && git add src/index.ts && git commit --amend --no-edit",
+    "sync-version": "node scripts/sync-version.js",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
     "format": "prettier --write src/",
     "typecheck": "vue-tsc --noEmit",

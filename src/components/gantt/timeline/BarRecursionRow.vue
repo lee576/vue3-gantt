@@ -226,19 +226,20 @@ export default defineComponent({
         return setTaskType(row)
       }
 
-      // 默认逻辑：检查任务数据中是否有 type 字段
+      // 默认逻辑：优先检查任务数据中的 type 字段
+      // 只有明确设置为 milestone 的任务才显示为里程碑
+      if (row.type === TaskType.MILESTONE || row.type === 'milestone') {
+        return TaskType.MILESTONE
+      }
+
+      // 如果有明确的 type 字段且不是 milestone，则使用该类型
       if (row.type) {
         return row.type
       }
 
-      // 检查开始日期和结束日期是否相同（里程碑的特征）
-      const startDate = row[mapFields.value.startdate]
-      const endDate = row[mapFields.value.enddate]
-      if (startDate && endDate && startDate === endDate) {
-        return TaskType.MILESTONE
-      }
-
-      // 默认为普通任务
+      // 如果没有 type 字段，默认为普通任务
+      // 注意：不再根据开始日期和结束日期是否相同来判断是否为里程碑
+      // 因为这会导致非里程碑任务被调整为一个单元格长度时错误地显示为里程碑
       return TaskType.TASK
     }
 

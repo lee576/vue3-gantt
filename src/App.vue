@@ -484,6 +484,9 @@ const eventConfig = ref<EventConfig>({
         }
         console.log('任务日期更新成功:', id, startDate, endDate)
         messageToast.showMessage('任务日期更新成功', 'success')
+
+        // 实时更新分析结果
+        updateAnalysisResults()
       }
     } catch (error) {
       console.error('更新任务日期失败:', error)
@@ -777,6 +780,60 @@ const validateConstraints = () => {
   } catch (error) {
     console.error('约束验证失败:', error)
     messageToast.showMessage('约束验证失败，请检查数据', 'error')
+  }
+}
+
+// 实时更新所有分析结果
+const updateAnalysisResults = () => {
+  if (dataConfig.value.dataSource.length === 0) {
+    return
+  }
+
+  try {
+    // 确保依赖关系有 id 字段
+    const dependencies = (dataConfig.value.dependencies || []).map((dep: any, index: number) => ({
+      id: dep.id || `dep-${dep.sourceTaskId}-${dep.targetTaskId}-${index}`,
+      sourceTaskId: dep.sourceTaskId,
+      targetTaskId: dep.targetTaskId,
+      type: dep.type,
+      lag: dep.lag,
+      label: dep.label,
+    }))
+
+    // 更新关键路径分析（如果对话框是打开的）
+    if (showCriticalPathDialog.value) {
+      const result = criticalPathAnalyzer.analyze(
+        dataConfig.value.dataSource,
+        dependencies
+      )
+      criticalPathResult.value = result
+      console.log('🔄 关键路径分析已更新')
+    }
+
+    // 更新依赖验证（如果对话框是打开的）
+    if (showDependencyDialog.value) {
+      const result = dependencyValidator.validateDependencies(
+        dataConfig.value.dataSource,
+        dependencies
+      )
+      dependencyValidationResult.value = result
+
+      const cycles = dependencyValidator.detectCycles()
+      dependencyCycles.value = cycles
+      console.log('🔄 依赖验证已更新')
+    }
+
+    // 更新约束验证（如果对话框是打开的）
+    if (showConstraintDialog.value) {
+      const results = constraintManager.validateConstraints(
+        dataConfig.value.dataSource,
+        dependencies
+      )
+      constraintValidationResults.value = results
+      console.log('🔄 约束验证已更新')
+    }
+  } catch (error) {
+    console.error('更新分析结果失败:', error)
   }
 }
 
