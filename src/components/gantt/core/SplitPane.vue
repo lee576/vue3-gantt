@@ -7,8 +7,8 @@
       ref="trigger"
       class="pane-trigger"
       v-if="triggerDefaultColor && triggerMoveColor"
-      :class="{ 'is-dragging': isDragging }"
-      :style="`${lengthType}: ${triggerLengthValue}; ${triggerBackGroud}`"
+      :class="{ 'is-dragging': isDragging, 'is-hovering': isHovering }"
+      :style="`${lengthType}: ${triggerLengthValue}`"
     >
       <div class="drag-handle" @click="handleMouseOver" @mouseover="handleMouseOver" @mouseleave="handleMouseLeave" @mousedown="handleMouseDown">
         <div class="drag-indicator">
@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, nextTick, onUnmounted } from 'vue'
+import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue'
 import { ganttThemeManager } from '../themes/GanttThemes'
 
 export default defineComponent({
@@ -59,9 +59,12 @@ export default defineComponent({
     let splitPane = ref<HTMLElement | null>(null)
     let trigger = ref<HTMLElement | null>(null)
     let triggerLeftOffset = ref(0)
-    let triggerBackGroud = ref('')
+    let isHovering = ref(false)
     let isDragging = ref(false)
     const currentTheme = ref(ganttThemeManager.getCurrentTheme())
+
+    let splitPaneRect: DOMRect | null = null
+    let animationFrameId: number | null = null
 
     // 计算属性
     const lengthType = computed(() => (props.direction === 'row' ? 'width' : 'height'))
@@ -242,20 +245,16 @@ export default defineComponent({
     })
 
     // 生命周期钩子
-    onMounted(async () => {
-      await nextTick()
-      triggerBackGroud.value = `background: ${triggerDefaultColor.value}`
+    onMounted(() => {
     })
 
     // 方法
-    const handleMouseLeave = async () => {
-      await nextTick()
-      triggerBackGroud.value = `background: ${triggerDefaultColor.value}`
+    const handleMouseLeave = () => {
+      isHovering.value = false
     }
 
-    const handleMouseOver = async () => {
-      await nextTick()
-      triggerBackGroud.value = `background: ${triggerMoveColor.value}`
+    const handleMouseOver = () => {
+      isHovering.value = true
     }
 
     // 按下滑动器
@@ -269,39 +268,54 @@ export default defineComponent({
       } else {
         triggerLeftOffset.value = e.pageY - (e.target as HTMLElement).getBoundingClientRect().top
       }
-    }
 
-    // 按下滑动器后移动鼠标
-    const handleMouseMove = async (e: MouseEvent) => {
-      await nextTick()
-      triggerBackGroud.value = `background: ${triggerMoveColor.value}`
       if (splitPane.value) {
-        const clientRect = splitPane.value.getBoundingClientRect()
-        let paneLengthPercent = 0
-        if (props.direction === 'row') {
-          const offset =
-            e.pageX - clientRect.left - triggerLeftOffset.value + props.triggerLength / 2
-          paneLengthPercent = (offset / clientRect.width) * 100
-        } else {
-          const offset =
-            e.pageY - clientRect.top - triggerLeftOffset.value + props.triggerLength / 2
-          paneLengthPercent = (offset / clientRect.height) * 100
-        }
-        if (paneLengthPercent < props.min) {
-          paneLengthPercent = props.min
-        }
-        if (paneLengthPercent > props.max) {
-          paneLengthPercent = props.max
-        }
-        emit('update:paneLengthPercent', paneLengthPercent)
+        splitPaneRect = splitPane.value.getBoundingClientRect()
       }
     }
 
+    let lastEmitTime = 0
+    const emitThrottleMs = 16
+
+    const updatePaneLength = (e: MouseEvent) => {
+      if (!splitPane.value || !splitPaneRect) return
+
+      let paneLengthPercent = 0
+      if (props.direction === 'row') {
+        const offset = e.pageX - splitPaneRect.left - triggerLeftOffset.value + props.triggerLength / 2
+        paneLengthPercent = (offset / splitPaneRect.width) * 100
+      } else {
+        const offset = e.pageY - splitPaneRect.top - triggerLeftOffset.value + props.triggerLength / 2
+        paneLengthPercent = (offset / splitPaneRect.height) * 100
+      }
+
+      paneLengthPercent = Math.max(props.min, Math.min(props.max, paneLengthPercent))
+
+      const now = performance.now()
+      if (now - lastEmitTime >= emitThrottleMs) {
+        emit('update:paneLengthPercent', paneLengthPercent)
+        lastEmitTime = now
+      }
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId)
+      }
+
+      animationFrameId = requestAnimationFrame(() => {
+        updatePaneLength(e)
+      })
+    }
+
     // 松开滑动器
-    const handleMouseUp = async () => {
+    const handleMouseUp = () => {
       isDragging.value = false
-      await nextTick()
-      triggerBackGroud.value = `background: ${triggerDefaultColor.value}`
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId)
+        animationFrameId = null
+      }
+      splitPaneRect = null
       document.removeEventListener('mousemove', handleMouseMove)
     }
 
@@ -310,7 +324,6 @@ export default defineComponent({
       const newTheme = ganttThemeManager.getCurrentTheme()
       if (newTheme !== currentTheme.value) {
         currentTheme.value = newTheme
-        triggerBackGroud.value = `background: ${triggerDefaultColor.value}`
       }
     }, 100)
 
@@ -327,10 +340,10 @@ export default defineComponent({
       triggerMoveColor,
       paneLengthValue,
       triggerLengthValue,
-      triggerBackGroud,
       iconStyle,
       iconHoverStyle,
       isDragging,
+      isHovering,
       handleMouseLeave,
       handleMouseOver,
       handleMouseDown,
@@ -370,6 +383,13 @@ export default defineComponent({
         }
       }
     }
+
+    &.is-hovering:not(.is-dragging) {
+      .drag-handle {
+        background: rgba(180, 180, 180, 0.4);
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+      }
+    }
   }
 
   .pane-two {
@@ -399,11 +419,6 @@ export default defineComponent({
         justify-content: center;
         transition: all 0.2s ease;
         background: rgba(180, 180, 180, 0.25);
-
-        &:hover {
-          background: rgba(180, 180, 180, 0.4);
-          box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
-        }
       }
 
       .drag-indicator {
@@ -435,7 +450,7 @@ export default defineComponent({
         }
       }
 
-      &:hover {
+      &.is-hovering:not(.is-dragging) {
         .drag-handle {
           .drag-indicator .dot {
             background: #60a5fa;
@@ -474,12 +489,6 @@ export default defineComponent({
         transition: all 0.2s ease;
         background: rgba(180, 180, 180, 0.25);
         border: 1px solid rgba(180, 180, 180, 0.5);
-
-        &:hover {
-          background: rgba(180, 180, 180, 0.4);
-          border-color: rgba(180, 180, 180, 0.7);
-          box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
-        }
       }
 
       .drag-indicator {
@@ -511,8 +520,11 @@ export default defineComponent({
         }
       }
 
-      &:hover {
+      &.is-hovering:not(.is-dragging) {
         .drag-handle {
+          background: rgba(180, 180, 180, 0.4);
+          border-color: rgba(180, 180, 180, 0.7);
+
           .drag-indicator .dot {
             background: #60a5fa;
             opacity: 1;
