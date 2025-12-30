@@ -8,49 +8,112 @@
 
       <div class="dialog-body" v-if="results && results.length > 0">
         <!-- 验证概览 -->
-        <div class="summary-section" :class="{ 'summary-error': totalViolations > 0, 'summary-success': totalViolations === 0 }">
-          <div class="summary-header">
-            <span class="status-icon">{{ totalViolations === 0 ? '✅' : '⚠️' }}</span>
-            <h3>{{ totalViolations === 0 ? '约束验证通过' : '发现约束冲突' }}</h3>
+        <div class="overview-card" :class="totalViolations > 0 ? 'card-warning' : 'card-success'">
+          <div class="overview-card-header">
+            <div class="overview-title">
+              <h3>{{ totalViolations === 0 ? '✅ 约束验证通过' : '⚠️ 发现约束冲突' }}</h3>
+              <p class="overview-subtitle">{{ totalViolations === 0 ? '所有约束条件均已满足' : `共发现 ${totalViolations} 个冲突和 ${totalWarnings} 个警告` }}</p>
+            </div>
           </div>
-          <div class="summary-grid">
-            <div class="summary-item">
-              <span class="label">总任务数：</span>
-              <span class="value">{{ results.length }} 个</span>
-            </div>
-            <div class="summary-item">
-              <span class="label">通过验证：</span>
-              <span class="value success">{{ validTasksCount }} 个</span>
-            </div>
-            <div class="summary-item">
-              <span class="label">约束冲突：</span>
-              <span class="value" :class="{ 'error': totalViolations > 0 }">
-                {{ totalViolations }} 个
-              </span>
-            </div>
-            <div class="summary-item">
-              <span class="label">警告数量：</span>
-              <span class="value" :class="{ 'warning': totalWarnings > 0 }">
-                {{ totalWarnings }} 个
-              </span>
-            </div>
+          <div class="overview-stats">
+            <StatCard
+              :value="results.length"
+              label="总任务数"
+              type="primary"
+              unit="个"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                </svg>
+              </template>
+            </StatCard>
+            <StatCard
+              :value="validTasksCount"
+              label="通过验证"
+              type="success"
+              unit="个"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </template>
+            </StatCard>
+            <StatCard
+              :value="totalViolations"
+              label="约束冲突"
+              type="error"
+              unit="个"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
+                </svg>
+              </template>
+            </StatCard>
+            <StatCard
+              v-if="totalWarnings > 0"
+              :value="totalWarnings"
+              label="警告数量"
+              type="warning"
+              unit="个"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                </svg>
+              </template>
+            </StatCard>
           </div>
         </div>
 
-        <!-- 筛选选项 -->
+        <!-- 筛选器 -->
         <div class="filter-section">
-          <label>
-            <input type="checkbox" v-model="showOnlyViolations" />
-            仅显示有冲突的任务
-          </label>
-          <label>
-            <input type="checkbox" v-model="showOnlyWarnings" />
-            仅显示有警告的任务
-          </label>
-          <label>
-            <input type="checkbox" v-model="showOnlyValid" />
-            仅显示通过验证的任务
-          </label>
+          <div class="filter-tabs">
+            <button 
+              class="filter-tab" 
+              :class="{ active: filterType === 'all' }"
+              @click="filterType = 'all'"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+              </svg>
+              全部 ({{ results.length }})
+            </button>
+            <button 
+              v-if="totalViolations > 0"
+              class="filter-tab" 
+              :class="{ active: filterType === 'violations' }"
+              @click="filterType = 'violations'"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
+              </svg>
+              冲突 ({{ totalViolations > 0 ? results.filter(r => r.violations.length > 0).length : 0 }})
+            </button>
+            <button 
+              v-if="totalWarnings > 0"
+              class="filter-tab" 
+              :class="{ active: filterType === 'warnings' }"
+              @click="filterType = 'warnings'"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+              </svg>
+              警告 ({{ results.filter(r => r.warnings.length > 0 && r.violations.length === 0).length }})
+            </button>
+            <button 
+              class="filter-tab" 
+              :class="{ active: filterType === 'valid' }"
+              @click="filterType = 'valid'"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+              通过 ({{ validTasksCount }})
+            </button>
+          </div>
         </div>
 
         <!-- 任务约束详情 -->
@@ -206,9 +269,13 @@
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue'
 import type { ConstraintValidationResult } from '../components/gantt/features/TaskConstraintManager'
+import StatCard from './StatCard.vue'
 
 export default defineComponent({
   name: 'ConstraintValidationDialog',
+  components: {
+    StatCard
+  },
   props: {
     show: {
       type: Boolean,
@@ -225,9 +292,7 @@ export default defineComponent({
   },
   emits: ['close'],
   setup(props, { emit }) {
-    const showOnlyViolations = ref(false)
-    const showOnlyWarnings = ref(false)
-    const showOnlyValid = ref(false)
+    const filterType = ref<'all' | 'violations' | 'warnings' | 'valid'>('all')
 
     // 创建任务ID到任务对象的映射
     const taskMap = computed(() => {
@@ -262,11 +327,11 @@ export default defineComponent({
     const filteredResults = computed(() => {
       let filtered = [...props.results]
 
-      if (showOnlyViolations.value) {
+      if (filterType.value === 'violations') {
         filtered = filtered.filter(r => r.violations.length > 0)
-      } else if (showOnlyWarnings.value) {
+      } else if (filterType.value === 'warnings') {
         filtered = filtered.filter(r => r.warnings.length > 0 && r.violations.length === 0)
-      } else if (showOnlyValid.value) {
+      } else if (filterType.value === 'valid') {
         filtered = filtered.filter(r => r.isValid && r.warnings.length === 0)
       }
 
@@ -343,9 +408,7 @@ export default defineComponent({
     }
 
     return {
-      showOnlyViolations,
-      showOnlyWarnings,
-      showOnlyValid,
+      filterType,
       totalViolations,
       totalWarnings,
       validTasksCount,
@@ -427,97 +490,184 @@ export default defineComponent({
   padding: 24px;
 }
 
-.summary-section {
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 24px;
-  border: 2px solid;
-}
-
-.summary-section.summary-error {
-  background: #fff8e1;
-  border-color: #ffc107;
-}
-
-.summary-section.summary-success {
-  background: #f0fff4;
-  border-color: #28a745;
-}
-
-.summary-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.status-icon {
-  font-size: 32px;
-}
-
-.summary-header h3 {
-  margin: 0;
-  font-size: 18px;
-  color: #212529;
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
-}
-
-.summary-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.summary-item .label {
-  font-size: 12px;
-  color: #6c757d;
-  font-weight: 500;
-}
-
-.summary-item .value {
-  font-size: 18px;
-  font-weight: 600;
-  color: #212529;
-}
-
-.summary-item .value.success {
-  color: #28a745;
-}
-
-.summary-item .value.error {
-  color: #dc3545;
-}
-
-.summary-item .value.warning {
-  color: #ffc107;
-}
-
 .filter-section {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 20px;
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 4px;
+  margin-bottom: 24px;
 }
 
-.filter-section label {
+.filter-tabs {
   display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-tab {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #d0d0d0;
+  background: linear-gradient(145deg, #f5f5f5, #e8e8e8);
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666666;
   cursor: pointer;
-  font-size: 14px;
-  color: #495057;
+  transition: all 0.2s;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.filter-section input[type="checkbox"] {
-  cursor: pointer;
+.filter-tab:hover {
+  background: linear-gradient(145deg, #ffffff, #f5f5f5);
+  color: #333333;
 }
+
+.filter-tab.active {
+  background: linear-gradient(145deg, #0078d4, #106ebe) !important;
+  color: #ffffff !important;
+  border-color: #005a9e;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+
+.filter-tab svg {
+  flex-shrink: 0;
+}
+
+.overview-card {
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.overview-card.card-warning {
+  background: linear-gradient(145deg, #fffbeb, #fff);
+  border: 2px solid #fbbf24;
+}
+
+.overview-card.card-success {
+  background: linear-gradient(145deg, #f0fff4, #fff);
+  border: 2px solid #51cf66;
+}
+
+.overview-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.overview-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.overview-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.overview-icon.icon-warning {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: white;
+}
+
+.overview-icon.icon-success {
+  background: linear-gradient(135deg, #51cf66, #37b24d);
+  color: white;
+}
+
+.overview-title h3 {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #212529;
+}
+
+.overview-subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.overview-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.overview-stats .stat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  flex: 1;
+  min-width: 100px;
+}
+
+.stat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.stat-icon.stat-total {
+  background: linear-gradient(135deg, #74c0fc, #339af0);
+  color: white;
+}
+
+.stat-icon.stat-success {
+  background: linear-gradient(135deg, #69db7c, #40c057);
+  color: white;
+}
+
+.stat-icon.stat-error {
+  background: linear-gradient(135deg, #ff8787, #fa5252);
+  color: white;
+}
+
+.stat-icon.stat-warning {
+  background: linear-gradient(135deg, #ffd43b, #fab005);
+  color: white;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-number {
+  font-size: 20px;
+  font-weight: 700;
+  color: #212529;
+  line-height: 1.2;
+}
+
+.stat-content .stat-label {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.text-error { color: #dc3545 !important; }
+.text-warning { color: #fd7e14 !important; }
+.text-info { color: #6f42c1 !important; }
 
 .section {
   margin-bottom: 32px;

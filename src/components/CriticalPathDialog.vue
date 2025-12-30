@@ -7,33 +7,84 @@
       </div>
 
       <div class="dialog-body" v-if="result">
-        <!-- 概览信息 -->
+        <!-- 依赖关系统计概览 -->
         <div class="summary-section">
-          <h3>📊 项目概览</h3>
-          <div class="summary-grid">
-            <div class="summary-item">
-              <span class="label">项目工期：</span>
-              <span class="value highlight">{{ result.projectDuration }} 天</span>
-            </div>
-            <div class="summary-item">
-              <span class="label">关键任务数：</span>
-              <span class="value critical">{{ result.criticalTaskIds.length }} 个</span>
-            </div>
-            <div class="summary-item">
-              <span class="label">关键路径时长：</span>
-              <span class="value highlight">{{ result.criticalPathDuration }} 天</span>
-            </div>
-            <div class="summary-item">
-              <span class="label">项目开始：</span>
-              <span class="value">{{ formatDate(result.projectStartDate) }}</span>
-            </div>
-            <div class="summary-item">
-              <span class="label">项目结束：</span>
-              <span class="value">{{ formatDate(result.projectEndDate) }}</span>
-            </div>
-            <div class="summary-item">
-              <span class="label">总任务数：</span>
-              <span class="value">{{ result.taskAnalysis.size }} 个</span>
+          <h3>📊 依赖关系统计</h3>
+          <div class="stats-cards">
+            <StatCard
+              :value="result.projectDuration"
+              label="项目工期"
+              unit="天"
+              type="primary"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                </svg>
+              </template>
+            </StatCard>
+
+            <StatCard
+              :value="result.criticalTaskIds.length"
+              label="关键任务"
+              unit="个"
+              type="error"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </template>
+            </StatCard>
+
+            <StatCard
+              :value="result.criticalPathDuration"
+              label="关键路径时长"
+              unit="天"
+              type="warning"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                </svg>
+              </template>
+            </StatCard>
+
+            <StatCard
+              :value="formatDate(result.projectStartDate)"
+              label="项目起止日期"
+              type="info"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/>
+                </svg>
+              </template>
+            </StatCard>
+
+            <StatCard
+              :value="result.taskAnalysis.size"
+              label="总任务数"
+              unit="个"
+              type="success"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                </svg>
+              </template>
+            </StatCard>
+          </div>
+
+          <div class="stats-progress">
+            <div class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">关键任务占比</span>
+                <span class="progress-value">{{ ((result.criticalTaskIds.length / result.taskAnalysis.size) * 100).toFixed(1) }}%</span>
+              </div>
+              <div class="progress-bar-wrapper">
+                <div class="progress-bar" :style="{ width: (result.criticalTaskIds.length / result.taskAnalysis.size) * 100 + '%' }"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -60,18 +111,83 @@
         <!-- 关键任务列表 -->
         <div class="section">
           <h3>⚠️ 关键任务列表（浮动时间 = 0）</h3>
+          
+          <!-- 术语解释（可折叠） -->
+          <div class="collapsible-section">
+            <div class="collapsible-header" @click="showTerminology = !showTerminology">
+              <div class="header-left">
+                <span class="icon">📖</span>
+                <span class="title">术语说明</span>
+              </div>
+              <div class="header-right">
+                <button class="toggle-btn" :class="{ expanded: showTerminology }">
+                  <svg class="toggle-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                  </svg>
+                  <span class="toggle-text">{{ showTerminology ? '收起说明' : '展开说明' }}</span>
+                </button>
+              </div>
+            </div>
+            <div class="collapsible-content" v-show="showTerminology">
+              <div class="terminology-grid">
+                <div class="term-card">
+                  <div class="term-icon early">⏰</div>
+                  <div class="term-content">
+                    <div class="term-name">最早开始 (ES)</div>
+                    <div class="term-desc">在所有前置任务完成后，该任务可以开始的最早时间</div>
+                  </div>
+                </div>
+                <div class="term-card">
+                  <div class="term-icon finish">✅</div>
+                  <div class="term-content">
+                    <div class="term-name">最早完成 (EF)</div>
+                    <div class="term-desc">基于最早开始时间加上任务工期，得到的最早完成时间</div>
+                  </div>
+                </div>
+                <div class="term-card">
+                  <div class="term-icon late">🕐</div>
+                  <div class="term-content">
+                    <div class="term-name">最晚开始 (LS)</div>
+                    <div class="term-desc">在不延误项目整体进度的前提下，该任务可以开始的最晚时间</div>
+                  </div>
+                </div>
+                <div class="term-card">
+                  <div class="term-icon late-finish">🏁</div>
+                  <div class="term-content">
+                    <div class="term-name">最晚完成 (LF)</div>
+                    <div class="term-desc">基于最晚开始时间加上任务工期，得到的最晚完成时间</div>
+                  </div>
+                </div>
+                <div class="term-card">
+                  <div class="term-icon total-float">📊</div>
+                  <div class="term-content">
+                    <div class="term-name">总浮动 (TF)</div>
+                    <div class="term-desc">任务可以延迟而不影响项目完成日期的总时间，关键任务 TF = 0</div>
+                  </div>
+                </div>
+                <div class="term-card">
+                  <div class="term-icon free-float">🔓</div>
+                  <div class="term-content">
+                    <div class="term-name">自由浮动 (FF)</div>
+                    <div class="term-desc">任务可以延迟而不影响后续任务最早开始时间的最大时间</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <div class="table-container">
             <table class="data-table">
               <thead>
                 <tr>
                   <th>任务ID</th>
                   <th>任务名称</th>
-                  <th>最早开始</th>
-                  <th>最早完成</th>
-                  <th>最晚开始</th>
-                  <th>最晚完成</th>
-                  <th>总浮动</th>
-                  <th>自由浮动</th>
+                  <th><span class="th-icon">⏰</span> 最早开始</th>
+                  <th><span class="th-icon">✅</span> 最早完成</th>
+                  <th><span class="th-icon">🕐</span> 最晚开始</th>
+                  <th><span class="th-icon">🏁</span> 最晚完成</th>
+                  <th><span class="th-icon">📊</span> 总浮动</th>
+                  <th><span class="th-icon">🔓</span> 自由浮动</th>
                 </tr>
               </thead>
               <tbody>
@@ -97,6 +213,85 @@
         <!-- 所有任务详细信息 -->
         <div class="section">
           <h3>📋 所有任务浮动时间分析</h3>
+          
+          <!-- 术语说明（可折叠） -->
+          <div class="collapsible-section">
+            <div class="collapsible-header" @click="showAllTasksTerminology = !showAllTasksTerminology">
+              <div class="header-left">
+                <span class="icon">📖</span>
+                <span class="title">术语说明</span>
+              </div>
+              <div class="header-right">
+                <button class="toggle-btn" :class="{ expanded: showAllTasksTerminology }">
+                  <svg class="toggle-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                  </svg>
+                  <span class="toggle-text">{{ showAllTasksTerminology ? '收起说明' : '展开说明' }}</span>
+                </button>
+              </div>
+            </div>
+            <div class="collapsible-content" v-show="showAllTasksTerminology">
+              <div class="terminology-grid">
+                <div class="term-card">
+                  <div class="term-icon total-float">📊</div>
+                  <div class="term-content">
+                    <div class="term-name">总浮动 (TF)</div>
+                    <div class="term-desc">任务可以延迟而不影响项目完成日期的总时间，关键任务 TF = 0</div>
+                  </div>
+                </div>
+                <div class="term-card">
+                  <div class="term-icon free-float">🔓</div>
+                  <div class="term-content">
+                    <div class="term-name">自由浮动 (FF)</div>
+                    <div class="term-desc">任务可以延迟而不影响后续任务最早开始时间的最大时间</div>
+                  </div>
+                </div>
+                <div class="term-card">
+                  <div class="term-icon early">⏰</div>
+                  <div class="term-content">
+                    <div class="term-name">最早开始 (ES)</div>
+                    <div class="term-desc">在所有前置任务完成后，该任务可以开始的最早时间</div>
+                  </div>
+                </div>
+                <div class="term-card">
+                  <div class="term-icon finish">✅</div>
+                  <div class="term-content">
+                    <div class="term-name">最早完成 (EF)</div>
+                    <div class="term-desc">基于最早开始时间加上任务工期，得到的最早完成时间</div>
+                  </div>
+                </div>
+                <div class="term-card">
+                  <div class="term-icon late">�</div>
+                  <div class="term-content">
+                    <div class="term-name">最晚开始 (LS)</div>
+                    <div class="term-desc">在不延误项目整体进度的前提下，该任务可以开始的最晚时间</div>
+                  </div>
+                </div>
+                <div class="term-card">
+                  <div class="term-icon late-finish">🏁</div>
+                  <div class="term-content">
+                    <div class="term-name">最晚完成 (LF)</div>
+                    <div class="term-desc">基于最晚开始时间加上任务工期，得到的最晚完成时间</div>
+                  </div>
+                </div>
+                <div class="term-card">
+                  <div class="term-icon predecessor">🔗</div>
+                  <div class="term-content">
+                    <div class="term-name">前置任务</div>
+                    <div class="term-desc">必须在该任务之前完成的任务，用于确定任务间的依赖关系</div>
+                  </div>
+                </div>
+                <div class="term-card">
+                  <div class="term-icon successor">📌</div>
+                  <div class="term-content">
+                    <div class="term-name">后续任务</div>
+                    <div class="term-desc">必须在该任务完成后才能开始的任务，表示任务的执行顺序</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <div class="filter-section">
             <label>
               <input type="checkbox" v-model="showOnlyCritical" />
@@ -114,12 +309,12 @@
                   <th>任务ID</th>
                   <th>任务名称</th>
                   <th>是否关键</th>
-                  <th>总浮动时间</th>
-                  <th>自由浮动时间</th>
-                  <th>最早开始</th>
-                  <th>最早完成</th>
-                  <th>最晚开始</th>
-                  <th>最晚完成</th>
+                  <th><span class="th-icon">📊</span> 总浮动时间</th>
+                  <th><span class="th-icon">🔓</span> 自由浮动时间</th>
+                  <th><span class="th-icon">⏰</span> 最早开始</th>
+                  <th><span class="th-icon">✅</span> 最早完成</th>
+                  <th><span class="th-icon">🕐</span> 最晚开始</th>
+                  <th><span class="th-icon">🏁</span> 最晚完成</th>
                   <th>前置任务</th>
                   <th>后续任务</th>
                 </tr>
@@ -176,9 +371,13 @@
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue'
 import type { CriticalPathResult, TaskAnalysis } from '../components/gantt/features/CriticalPathAnalyzer'
+import StatCard from './StatCard.vue'
 
 export default defineComponent({
   name: 'CriticalPathDialog',
+  components: {
+    StatCard
+  },
   props: {
     show: {
       type: Boolean,
@@ -197,6 +396,8 @@ export default defineComponent({
   setup(props, { emit }) {
     const showOnlyCritical = ref(false)
     const showOnlyNonCritical = ref(false)
+    const showTerminology = ref(true)
+    const showAllTasksTerminology = ref(true)
 
     // 创建任务ID到任务对象的映射
     const taskMap = computed(() => {
@@ -284,6 +485,8 @@ export default defineComponent({
     return {
       showOnlyCritical,
       showOnlyNonCritical,
+      showTerminology,
+      showAllTasksTerminology,
       formatDate,
       getTaskAnalysis,
       getTaskName,
@@ -364,49 +567,284 @@ export default defineComponent({
 }
 
 .summary-section {
-  background: linear-gradient(145deg, #f8f9fa, #e9ecef);
-  border-radius: 8px;
-  padding: 20px;
+  background: linear-gradient(145deg, #ffffff, #f8f9fa);
+  border-radius: 12px;
+  padding: 24px;
   margin-bottom: 24px;
-  border: 1px solid #dee2e6;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  position: relative;
+}
+
+.summary-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #0078d4, #00a3ff, #0078d4);
+  border-radius: 12px 12px 0 0;
 }
 
 .summary-section h3 {
-  margin: 0 0 16px 0;
-  font-size: 16px;
-  color: #495057;
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-}
-
-.summary-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.summary-item .label {
-  font-size: 12px;
-  color: #6c757d;
-  font-weight: 500;
-}
-
-.summary-item .value {
+  margin: 0 0 20px 0;
   font-size: 18px;
   font-weight: 600;
-  color: #212529;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.summary-item .value.highlight {
+.summary-section h3::before {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(180deg, #0078d4, #00a3ff);
+  border-radius: 2px;
+}
+
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  background: linear-gradient(145deg, #fafbfc, #f0f2f5);
+  border-radius: 12px;
+  border: 1px solid #e8e8e8;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-item::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 120, 212, 0.03), rgba(0, 163, 255, 0.03));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stat-item:hover {
+  background: #fff;
+  border-color: #d0d0d0;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
+}
+
+.stat-item:hover::after {
+  opacity: 1;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.stat-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.stat-icon-primary {
+  background: linear-gradient(145deg, #e3f2fd, #bbdefb);
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.15);
+}
+
+.stat-icon-primary svg {
   color: #0078d4;
 }
 
-.summary-item .value.critical {
+.stat-icon-danger {
+  background: linear-gradient(145deg, #ffebee, #ffcdd2);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.15);
+}
+
+.stat-icon-danger svg {
   color: #dc3545;
+}
+
+.stat-icon-warning {
+  background: linear-gradient(145deg, #fff8e1, #ffecb3);
+  box-shadow: 0 4px 12px rgba(245, 166, 35, 0.15);
+}
+
+.stat-icon-warning svg {
+  color: #f5a623;
+}
+
+.stat-icon-info {
+  background: linear-gradient(145deg, #e0f7fa, #b2ebf2);
+  box-shadow: 0 4px 12px rgba(23, 162, 184, 0.15);
+}
+
+.stat-icon-info svg {
+  color: #17a2b8;
+}
+
+.stat-icon-success {
+  background: linear-gradient(145deg, #e8f5e9, #c8e6c9);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.15);
+}
+
+.stat-icon-success svg {
+  color: #28a745;
+}
+
+.stat-info {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.2;
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover .stat-value {
+  transform: scale(1.05);
+}
+
+.stat-value.primary {
+  color: #0078d4;
+}
+
+.stat-value.danger {
+  color: #dc3545;
+}
+
+.stat-value.warning {
+  color: #f5a623;
+}
+
+.stat-value.success {
+  color: #28a745;
+}
+
+.stat-unit {
+  font-size: 13px;
+  font-weight: 500;
+  color: #999;
+  margin-left: 2px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #666;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.stat-sublabel {
+  font-size: 12px;
+  color: #999;
+  margin-top: 3px;
+}
+
+.stats-progress {
+  background: linear-gradient(145deg, #f8f9fa, #fff);
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid #e8e8e8;
+}
+
+.progress-item {
+  margin-bottom: 16px;
+}
+
+.progress-item:last-child {
+  margin-bottom: 0;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.progress-label {
+  font-size: 14px;
+  color: #555;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.progress-label::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: #0078d4;
+  border-radius: 50%;
+}
+
+.progress-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  background: #e8f4fd;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.progress-bar-wrapper {
+  height: 10px;
+  background: #e8e8e8;
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #0078d4, #00a3ff);
+  border-radius: 5px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: progressShine 2s infinite;
+}
+
+@keyframes progressShine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 .section {
@@ -507,6 +945,12 @@ export default defineComponent({
   white-space: nowrap;
 }
 
+.th-icon {
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 14px;
+}
+
 .data-table td {
   padding: 10px 8px;
   border-bottom: 1px solid #e9ecef;
@@ -603,5 +1047,181 @@ export default defineComponent({
 
 .metro-btn-primary:hover {
   background: linear-gradient(145deg, #106ebe, #005a9e) !important;
+}
+
+.collapsible-section {
+  margin-bottom: 16px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(145deg, #e3f2fd, #bbdefb);
+  border-bottom: 1px solid #90caf9;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.collapsible-header:hover {
+  background: linear-gradient(145deg, #bbdefb, #90caf9);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-left .icon {
+  font-size: 18px;
+}
+
+.header-left .title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1565c0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: linear-gradient(145deg, #ffffff, #f5f5f5);
+  border: 1px solid #b0c4de;
+  border-radius: 16px;
+  cursor: pointer;
+  color: #1565c0;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-btn:hover {
+  background: linear-gradient(145deg, #e3f2fd, #bbdefb);
+  border-color: #1565c0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 6px rgba(21, 101, 192, 0.2);
+}
+
+.toggle-btn:active {
+  transform: scale(0.98);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-btn .toggle-icon {
+  width: 16px;
+  height: 16px;
+  color: #1565c0;
+  transition: transform 0.3s ease;
+}
+
+.toggle-btn.expanded .toggle-icon {
+  transform: rotate(180deg);
+}
+
+.toggle-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: #1565c0;
+}
+
+.collapsible-content {
+  padding: 16px;
+}
+
+.terminology-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.term-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.term-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.term-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.term-icon.early {
+  background: linear-gradient(145deg, #e3f2fd, #bbdefb);
+}
+
+.term-icon.finish {
+  background: linear-gradient(145deg, #e8f5e9, #c8e6c9);
+}
+
+.term-icon.late {
+  background: linear-gradient(145deg, #fff3e0, #ffe0b2);
+}
+
+.term-icon.late-finish {
+  background: linear-gradient(145deg, #fce4ec, #f8bbd9);
+}
+
+.term-icon.total-float {
+  background: linear-gradient(145deg, #e1f5fe, #b3e5fc);
+}
+
+.term-icon.free-float {
+  background: linear-gradient(145deg, #f3e5f5, #e1bee7);
+}
+
+.term-icon.predecessor {
+  background: linear-gradient(145deg, #e0f2f1, #b2dfdb);
+}
+
+.term-icon.successor {
+  background: linear-gradient(145deg, #fff8e1, #ffecb3);
+}
+
+.term-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.term-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.term-desc {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
 }
 </style>

@@ -8,35 +8,114 @@
 
       <div class="dialog-body" v-if="result">
         <!-- 验证概览 -->
-        <div class="summary-section" :class="{ 'summary-error': !result.isValid, 'summary-success': result.isValid }">
-          <div class="summary-header">
-            <span class="status-icon">{{ result.isValid ? '✅' : '❌' }}</span>
-            <h3>{{ result.isValid ? '验证通过' : '验证失败' }}</h3>
+        <div class="summary-section">
+          <h3>{{ result.isValid ? '✅ 验证通过' : '❌ 验证失败' }}</h3>
+          <p class="summary-subtitle">{{ result.isValid ? '所有依赖关系正常' : '发现以下问题需要处理' }}</p>
+          <div class="stats-cards">
+            <StatCard
+              :value="totalDependencies"
+              label="总依赖"
+              type="primary"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                </svg>
+              </template>
+            </StatCard>
+
+            <StatCard
+              v-if="result.errors.length > 0"
+              :value="result.errors.length"
+              label="错误"
+              type="error"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </template>
+            </StatCard>
+
+            <StatCard
+              v-if="result.warnings.length > 0"
+              :value="result.warnings.length"
+              label="警告"
+              type="warning"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                </svg>
+              </template>
+            </StatCard>
+
+            <StatCard
+              v-if="cycles && cycles.length > 0"
+              :value="cycles.length"
+              label="循环依赖"
+              type="info"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+                </svg>
+              </template>
+            </StatCard>
           </div>
-          <div class="summary-grid">
-            <div class="summary-item">
-              <span class="label">验证状态：</span>
-              <span :class="['value', result.isValid ? 'success' : 'error']">
-                {{ result.isValid ? '通过' : '失败' }}
-              </span>
-            </div>
-            <div class="summary-item">
-              <span class="label">错误数量：</span>
-              <span class="value" :class="{ 'error': result.errors.length > 0 }">
-                {{ result.errors.length }} 个
-              </span>
-            </div>
-            <div class="summary-item">
-              <span class="label">警告数量：</span>
-              <span class="value" :class="{ 'warning': result.warnings.length > 0 }">
-                {{ result.warnings.length }} 个
-              </span>
-            </div>
+        </div>
+
+        <!-- 筛选器 -->
+        <div class="filter-section">
+          <div class="filter-tabs">
+            <button 
+              class="filter-tab" 
+              :class="{ active: filterType === 'all' }"
+              @click="filterType = 'all'"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+              </svg>
+              全部 ({{ (result.errors.length || 0) + (result.warnings.length || 0) + (cycles?.length || 0) }})
+            </button>
+            <button 
+              v-if="result.errors.length > 0"
+              class="filter-tab" 
+              :class="{ active: filterType === 'errors' }"
+              @click="filterType = 'errors'"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+              错误 ({{ result.errors.length }})
+            </button>
+            <button 
+              v-if="result.warnings.length > 0"
+              class="filter-tab" 
+              :class="{ active: filterType === 'warnings' }"
+              @click="filterType = 'warnings'"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+              </svg>
+              警告 ({{ result.warnings.length }})
+            </button>
+            <button 
+              v-if="cycles && cycles.length > 0"
+              class="filter-tab" 
+              :class="{ active: filterType === 'cycles' }"
+              @click="filterType = 'cycles'"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+              </svg>
+              循环依赖 ({{ cycles.length }})
+            </button>
           </div>
         </div>
 
         <!-- 错误列表 -->
-        <div class="section" v-if="result.errors.length > 0">
+        <div class="section" v-if="result.errors.length > 0 && (filterType === 'all' || filterType === 'errors')">
           <h3>❌ 错误列表 ({{ result.errors.length }})</h3>
           <div class="issue-list">
             <div
@@ -74,7 +153,7 @@
         </div>
 
         <!-- 警告列表 -->
-        <div class="section" v-if="result.warnings.length > 0">
+        <div class="section" v-if="result.warnings.length > 0 && (filterType === 'all' || filterType === 'warnings')">
           <h3>⚠️ 警告列表 ({{ result.warnings.length }})</h3>
           <div class="issue-list">
             <div
@@ -111,7 +190,7 @@
         </div>
 
         <!-- 循环依赖检测 -->
-        <div class="section" v-if="cycles && cycles.length > 0">
+        <div class="section" v-if="cycles && cycles.length > 0 && (filterType === 'all' || filterType === 'cycles')">
           <h3>🔄 循环依赖 ({{ cycles.length }})</h3>
           <div class="cycle-list">
             <div v-for="(cycle, index) in cycles" :key="index" class="cycle-card">
@@ -144,29 +223,6 @@
             </div>
           </div>
         </div>
-
-        <!-- 统计信息 -->
-        <div class="section">
-          <h3>📊 依赖关系统计</h3>
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-label">总依赖数</div>
-              <div class="stat-value">{{ totalDependencies }}</div>
-            </div>
-            <div class="stat-card error">
-              <div class="stat-label">错误数</div>
-              <div class="stat-value">{{ result.errors.length }}</div>
-            </div>
-            <div class="stat-card warning">
-              <div class="stat-label">警告数</div>
-              <div class="stat-value">{{ result.warnings.length }}</div>
-            </div>
-            <div class="stat-card" v-if="cycles">
-              <div class="stat-label">循环依赖</div>
-              <div class="stat-value">{{ cycles.length }}</div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div class="dialog-footer">
@@ -183,12 +239,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, ref } from 'vue'
 import type { DependencyValidationResult, DependencyCycle } from '../components/gantt/features/DependencyValidator'
 import { LinkType } from '../components/gantt/types/Types'
+import StatCard from './StatCard.vue'
 
 export default defineComponent({
   name: 'DependencyValidationDialog',
+  components: {
+    StatCard
+  },
   props: {
     show: {
       type: Boolean,
@@ -213,6 +273,8 @@ export default defineComponent({
   },
   emits: ['close'],
   setup(props, { emit }) {
+    const filterType = ref<'all' | 'errors' | 'warnings' | 'cycles'>('all')
+
     // 创建任务ID到任务对象的映射（响应式）
     const taskMap = computed(() => {
       const map = new Map()
@@ -271,6 +333,7 @@ export default defineComponent({
       lines.push('依赖关系验证报告')
       lines.push('=' .repeat(50))
       lines.push(`生成时间: ${new Date().toLocaleString('zh-CN')}`)
+      lines.push(`筛选类型: ${filterType.value}`)
       lines.push(`验证状态: ${props.result.isValid ? '通过' : '失败'}`)
       lines.push(`错误数量: ${props.result.errors.length}`)
       lines.push(`警告数量: ${props.result.warnings.length}`)
@@ -319,6 +382,7 @@ export default defineComponent({
     }
 
     return {
+      filterType,
       getErrorTypeLabel,
       getWarningTypeLabel,
       exportReport,
@@ -404,56 +468,184 @@ export default defineComponent({
   border: 2px solid;
 }
 
-.summary-section.summary-error {
-  background: #fff5f5;
-  border-color: #dc3545;
+.filter-section {
+  margin-bottom: 24px;
 }
 
-.summary-section.summary-success {
-  background: #f0fff4;
-  border-color: #28a745;
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.summary-header {
+.filter-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #d0d0d0;
+  background: linear-gradient(145deg, #f5f5f5, #e8e8e8);
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666666;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-tab:hover {
+  background: linear-gradient(145deg, #ffffff, #f5f5f5);
+  color: #333333;
+}
+
+.filter-tab.active {
+  background: linear-gradient(145deg, #0078d4, #106ebe) !important;
+  color: #ffffff !important;
+  border-color: #005a9e;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+
+.filter-tab svg {
+  flex-shrink: 0;
+}
+
+.overview-card {
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.overview-card.card-error {
+  background: linear-gradient(145deg, #fff5f5, #fff);
+  border: 2px solid #ff6b6b;
+}
+
+.overview-card.card-success {
+  background: linear-gradient(145deg, #f0fff4, #fff);
+  border: 2px solid #51cf66;
+}
+
+.overview-card-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
-.status-icon {
-  font-size: 32px;
+.overview-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.summary-header h3 {
-  margin: 0;
-  font-size: 18px;
+.overview-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.overview-icon.icon-error {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+}
+
+.overview-icon.icon-success {
+  background: linear-gradient(135deg, #51cf66, #37b24d);
+  color: white;
+}
+
+.overview-title h3 {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  font-weight: 700;
   color: #212529;
 }
 
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
+.overview-subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #6c757d;
 }
 
-.summary-item {
+.overview-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.overview-stats .stat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  flex: 1;
+  min-width: 100px;
+}
+
+.stat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.stat-icon.stat-total {
+  background: linear-gradient(135deg, #74c0fc, #339af0);
+  color: white;
+}
+
+.stat-icon.stat-error {
+  background: linear-gradient(135deg, #ff8787, #fa5252);
+  color: white;
+}
+
+.stat-icon.stat-warning {
+  background: linear-gradient(135deg, #ffd43b, #fab005);
+  color: white;
+}
+
+.stat-icon.stat-cycle {
+  background: linear-gradient(135deg, #da77f2, #be4bdb);
+  color: white;
+}
+
+.stat-content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
 }
 
-.summary-item .label {
+.stat-number {
+  font-size: 20px;
+  font-weight: 700;
+  color: #212529;
+  line-height: 1.2;
+}
+
+.stat-content .stat-label {
   font-size: 12px;
   color: #6c757d;
-  font-weight: 500;
 }
 
-.summary-item .value {
-  font-size: 18px;
-  font-weight: 600;
-  color: #212529;
-}
+.text-error { color: #dc3545 !important; }
+.text-warning { color: #fd7e14 !important; }
+.text-info { color: #6f42c1 !important; }
 
 .summary-item .value.success {
   color: #28a745;
@@ -725,6 +917,18 @@ export default defineComponent({
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 16px;
+}
+
+.stats-cards {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.stats-cards .stat-item {
+  flex: 1;
+  min-width: 0;
 }
 
 .stat-card {
