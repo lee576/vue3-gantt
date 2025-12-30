@@ -304,7 +304,7 @@
         direction="row"
         :min="0"
         :max="100"
-        :triggerLength="10"
+        :triggerLength="13"
         v-model:paneLengthPercent="paneLengthPercent"
       >
         <template #one>

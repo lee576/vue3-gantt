@@ -7,16 +7,16 @@
       ref="trigger"
       class="pane-trigger"
       v-if="triggerDefaultColor && triggerMoveColor"
+      :class="{ 'is-dragging': isDragging }"
       :style="`${lengthType}: ${triggerLengthValue}; ${triggerBackGroud}`"
     >
-      <div
-        @click="handleMouseOver"
-        @mouseover="handleMouseOver"
-        @mouseleave="handleMouseLeave"
-        @mousedown="handleMouseDown"
-        class="icon"
-        :style="`${lengthType}: ${triggerLengthValue}; filter: ${iconStyle}`"
-      ></div>
+      <div class="drag-handle" @click="handleMouseOver" @mouseover="handleMouseOver" @mouseleave="handleMouseLeave" @mousedown="handleMouseDown">
+        <div class="drag-indicator">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
     </div>
     <div
       class="pane pane-two"
@@ -58,8 +58,9 @@ export default defineComponent({
   setup(props, { emit }) {
     let splitPane = ref<HTMLElement | null>(null)
     let trigger = ref<HTMLElement | null>(null)
-    let triggerLeftOffset = ref(0) // 鼠标距滑动器左(顶)侧偏移量
+    let triggerLeftOffset = ref(0)
     let triggerBackGroud = ref('')
+    let isDragging = ref(false)
     const currentTheme = ref(ganttThemeManager.getCurrentTheme())
 
     // 计算属性
@@ -259,6 +260,7 @@ export default defineComponent({
 
     // 按下滑动器
     const handleMouseDown = (e: MouseEvent) => {
+      isDragging.value = true
       document.addEventListener('mousemove', handleMouseMove)
       document.addEventListener('mouseup', handleMouseUp)
 
@@ -297,6 +299,7 @@ export default defineComponent({
 
     // 松开滑动器
     const handleMouseUp = async () => {
+      isDragging.value = false
       await nextTick()
       triggerBackGroud.value = `background: ${triggerDefaultColor.value}`
       document.removeEventListener('mousemove', handleMouseMove)
@@ -327,6 +330,7 @@ export default defineComponent({
       triggerBackGroud,
       iconStyle,
       iconHoverStyle,
+      isDragging,
       handleMouseLeave,
       handleMouseOver,
       handleMouseDown,
@@ -337,24 +341,35 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-$icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAPCAYAAAA71pVKAAAABHNCSVQICAgIfAhkiAAAAIJJREFUKFNjZMANBIBS64E4EIg/YFPGiEdzA1AuHogbgRjExgAgzQeA+D8WOQckMZAanJrxOAC3FD5nEzSQYs0gv2HzM1E2k6URZDLI2cihStA2ZAUU+5kk29BtxpVICBoKS2HYFNojCR7ElcJw2dAAlCCYtnFpBuWqDUAcAMRYcxUAYvURjNoDrtgAAAAASUVORK5CYII=';
-$background-size: 10px 10px;
-
 .split-pane {
   background: transparent;
   height: 100%;
-  min-height: 0; /* 允许 flex 布局正常工作 */
+  min-height: 0;
   display: flex;
 
   .pane-one {
     background: transparent;
   }
 
-  .pane-trigger {
-    border-radius: 25px;
+.pane-trigger {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
     user-select: none;
-    border-width: 0.1em;
     transition: all 0.2s ease;
+    z-index: 10;
+
+    &.is-dragging {
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+
+      .drag-handle {
+        transform: scale(1.1);
+
+        .drag-indicator .dot {
+          animation: dotPulse 0.6s ease-in-out infinite alternate;
+        }
+      }
+    }
   }
 
   .pane-two {
@@ -362,57 +377,162 @@ $background-size: 10px 10px;
     background: transparent;
   }
 
-  // 横向布局
   &.row {
     .pane {
       height: 100%;
     }
 
     .pane-trigger {
-      margin-left: 1px;
-      margin-right: 1px;
       height: 100%;
+      width: 30px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      cursor: col-resize;
 
-      .icon {
-        cursor: col-resize;
-        height: 10px;
+      .drag-handle {
+        height: 100%;
         width: 100%;
-        background-image: url(#{$icon});
-        background-repeat: no-repeat;
-        background-size: $background-size;
-        transform: rotate(90deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        background: rgba(180, 180, 180, 0.25);
+
+        &:hover {
+          background: rgba(180, 180, 180, 0.4);
+          box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+      }
+
+      .drag-indicator {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        gap: 5px;
+
+        .dot {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: #aaa;
+          opacity: 1;
+          transition: all 0.2s ease;
+          box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+
+          &:nth-child(1) {
+            opacity: 0.7;
+          }
+          &:nth-child(2) {
+            opacity: 1;
+          }
+          &:nth-child(3) {
+            opacity: 0.7;
+          }
+        }
+      }
+
+      &:hover {
+        .drag-handle {
+          .drag-indicator .dot {
+            background: #60a5fa;
+            opacity: 1;
+            transform: scale(1.3);
+            box-shadow: 0 0 6px rgba(59, 130, 246, 0.8);
+          }
+        }
       }
     }
   }
 
-  // 纵向布局
   &.column {
     .pane {
       width: 100%;
     }
 
     .pane-trigger {
-      margin-top: 1px;
-      margin-bottom: 1px;
+      margin-top: 2px;
+      margin-bottom: 2px;
       width: 100%;
+      height: 30px;
       display: flex;
       flex-direction: row;
       align-items: center;
       justify-content: center;
+      cursor: row-resize;
 
-      .icon {
-        cursor: row-resize;
+      .drag-handle {
+        width: 100%;
         height: 100%;
-        width: 10px;
-        background-image: url(#{$icon});
-        background-repeat: no-repeat;
-        background-size: $background-size;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 3px;
+        transition: all 0.2s ease;
+        background: rgba(180, 180, 180, 0.25);
+        border: 1px solid rgba(180, 180, 180, 0.5);
+
+        &:hover {
+          background: rgba(180, 180, 180, 0.4);
+          border-color: rgba(180, 180, 180, 0.7);
+          box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+      }
+
+      .drag-indicator {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        gap: 5px;
+
+        .dot {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: #aaa;
+          opacity: 1;
+          transition: all 0.2s ease;
+          box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+
+          &:nth-child(1) {
+            opacity: 0.7;
+          }
+          &:nth-child(2) {
+            opacity: 1;
+          }
+          &:nth-child(3) {
+            opacity: 0.7;
+          }
+        }
+      }
+
+      &:hover {
+        .drag-handle {
+          .drag-indicator .dot {
+            background: #60a5fa;
+            opacity: 1;
+            transform: scale(1.3);
+            box-shadow: 0 0 6px rgba(59, 130, 246, 0.8);
+          }
+        }
       }
     }
+  }
+}
+
+@keyframes dotPulse {
+  from {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.4);
   }
 }
 </style>
