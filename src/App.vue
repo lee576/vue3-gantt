@@ -7,14 +7,14 @@
             <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8v-10h-8v10zm0-18v6h8V3h-8z" />
           </svg>
         </div>
-        <h1>项目甘特图管理系统</h1>
+        <h1>{{ t('app.title') }}</h1>
       </div>
       <div class="metro-app-actions">
         <button class="metro-btn metro-btn-primary" @click="taskManagement.openAddRootTaskDialog()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
           </svg>
-          新建根任务
+          {{ t('app.newRootTask') }}
         </button>
         <button class="metro-btn" @click="customFieldsManagement.openCustomFieldsDialog()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -22,7 +22,7 @@
               d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"
             />
           </svg>
-          自定义字段
+          {{ t('app.customFields') }}
         </button>
         <button
           class="metro-btn"
@@ -32,13 +32,13 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z" />
           </svg>
-          {{ baselineDisplayConfig.enabled ? '隐藏基线' : '显示基线' }}
+          {{ baselineDisplayConfig.enabled ? t('app.hideBaseline') : t('app.showBaseline') }}
         </button>
         <button class="metro-btn" @click="handleCreateBaseline">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z" />
           </svg>
-          保存基线
+          {{ t('app.saveBaseline') }}
         </button>
         <button class="metro-btn" @click="togglePerformanceTest">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -46,7 +46,7 @@
               d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4h2v4zm0-6h-2V7h2v4z"
             />
           </svg>
-          {{ isPerformanceTest ? '切换正常数据' : '性能测试(1000条)' }}
+          {{ isPerformanceTest ? t('app.normalData') : t('app.performanceTest') }}
         </button>
         <button class="metro-btn" @click="refreshData">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -54,31 +54,36 @@
               d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
             />
           </svg>
-          刷新数据
+          {{ t('app.refreshData') }}
         </button>
         <button class="metro-btn" @click="analyzeCriticalPath">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M9 17l3-2.94c-.39-.04-.68-.06-1-.06-2.67 0-8 1.34-8 4v2h9l-3-3zm2-5c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4" />
             <path d="M15.47 20.5L12 17l1.4-1.41 2.07 2.08 5.13-5.17 1.4 1.41z" />
           </svg>
-          关键路径分析
+          {{ t('app.criticalPath') }}
         </button>
         <button class="metro-btn" @click="validateDependencies">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z" />
           </svg>
-          依赖验证
+          {{ t('app.dependencyValidation') }}
         </button>
         <button class="metro-btn" @click="validateConstraints">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
           </svg>
-          约束验证
+          {{ t('app.constraintValidation') }}
         </button>
       </div>
     </div>
     <div class="metro-app-content">
-      <gantt :styleConfig="styleConfig" :dataConfig="dataConfig" :eventConfig="eventConfig"></gantt>
+      <gantt
+        :styleConfig="styleConfig"
+        :dataConfig="dataConfig"
+        :eventConfig="eventConfig"
+        @locale-change="handleLocaleChange"
+      ></gantt>
     </div>
 
     <!-- 任务编辑/新建对话框 -->
@@ -163,6 +168,7 @@ import Gantt, {
   type EventConfig,
 } from './components/gantt/core/Gantt.vue'
 import type { GanttTask } from './components/gantt/types/GanttTypes'
+import { useI18n } from './locales'
 import TaskDialog from './components/TaskDialog.vue'
 import DeleteConfirmDialog from './components/DeleteConfirmDialog.vue'
 import CustomFieldsDialog from './components/CustomFieldsDialog.vue'
@@ -196,6 +202,7 @@ import {
 // 初始化 Composables
 const messageToast = useMessage()
 const customFieldsManagement = useCustomFields()
+const { t, locale, setLocale } = useI18n()
 
 // 初始化基线管理
 const {
@@ -342,7 +349,7 @@ const handleConfirmDelete = () => {
 const handleDeleteCustomField = (index: number) => {
   if (customFieldsManagement.deleteCustomField) {
     if (customFieldsManagement.deleteCustomField(index, dataConfig.value.dataSource)) {
-      messageToast.showMessage('字段删除成功', 'success')
+      messageToast.showMessage(t('app.fieldDeleteSuccess'), 'success')
     }
   }
 }
@@ -375,10 +382,10 @@ const refreshData = async () => {
       dataConfig.value.queryStartDate || DateUtils.startOf(DateUtils.now().toDate(), 'month').format('YYYY-MM-DD')
     const endDate = dataConfig.value.queryEndDate || DateUtils.endOf(DateUtils.now().toDate(), 'month').format('YYYY-MM-DD')
     await eventConfig.value.queryTask(startDate, endDate, '日')
-    messageToast.showMessage('数据刷新成功', 'success')
+    messageToast.showMessage(t('app.dataRefreshSuccess'), 'success')
   } catch (error) {
     console.error('刷新数据失败:', error)
-    messageToast.showMessage('刷新失败，请稍后重试', 'error')
+    messageToast.showMessage(t('app.dataRefreshFailed'), 'error')
   }
 }
 
@@ -389,11 +396,11 @@ const togglePerformanceTest = async () => {
       dataConfig.value.queryStartDate || DateUtils.startOf(DateUtils.now().toDate(), 'month').format('YYYY-MM-DD')
     const endDate = dataConfig.value.queryEndDate || DateUtils.endOf(DateUtils.now().toDate(), 'month').format('YYYY-MM-DD')
     await eventConfig.value.queryTask(startDate, endDate, '日')
-    const modeText = isPerformanceTest.value ? '性能测试模式' : '正常数据模式'
-    messageToast.showMessage(`已切换到${modeText}`, 'success')
+    const modeText = isPerformanceTest.value ? t('app.performanceMode') : t('app.normalMode')
+    messageToast.showMessage(t('app.switchModeSuccess') + ': ' + modeText, 'success')
   } catch (error) {
     console.error('切换模式失败:', error)
-    messageToast.showMessage('切换失败，请稍后重试', 'error')
+    messageToast.showMessage(t('app.switchModeFailed'), 'error')
   }
 }
 
@@ -416,11 +423,11 @@ const eventConfig = ref<EventConfig>({
       const response = await taskApi.updateProgress(detail.taskId, detail.newProgress)
       if (response.code === 200) {
         console.log('进度更新成功:', detail)
-        messageToast.showMessage('进度更新成功', 'success')
+        messageToast.showMessage(t('app.progressUpdateSuccess'), 'success')
       }
     } catch (error) {
       console.error('更新进度失败:', error)
-      messageToast.showMessage('进度更新失败', 'error')
+      messageToast.showMessage(t('app.progressUpdateFailed'), 'error')
     }
   },
   queryTask: async (queryStart: string, queryEnd: string, mode: string) => {
@@ -469,7 +476,7 @@ const eventConfig = ref<EventConfig>({
       if (baseline) {
         setCurrentBaseline(baseline.id)
         console.log('✅ 基线已加载，ID:', baseline.id)
-        messageToast.showMessage('已加载初始基线', 'success')
+        messageToast.showMessage(t('app.baselineLoaded'), 'success')
       }
     }
   },
@@ -482,14 +489,13 @@ const eventConfig = ref<EventConfig>({
           task.start_date = startDate
           task.end_date = endDate
         }
-        messageToast.showMessage('任务日期更新成功', 'success')
+        messageToast.showMessage(t('app.taskDateUpdateSuccess'), 'success')
 
-        // 实时更新分析结果
         updateAnalysisResults()
       }
     } catch (error) {
       console.error('更新任务日期失败:', error)
-      messageToast.showMessage('日期更新失败', 'error')
+      messageToast.showMessage(t('app.taskDateUpdateFailed'), 'error')
     }
   },
   allowChangeTaskDate: (allow: boolean) => {
@@ -500,21 +506,25 @@ const eventConfig = ref<EventConfig>({
 // 基线相关函数
 const toggleBaseline = () => {
   if (!currentBaseline.value) {
-    messageToast.showMessage('请先保存基线', 'warning')
+    messageToast.showMessage(t('app.pleaseSaveBaseline'), 'warning')
     return
   }
   enableBaselineDisplay(!baselineDisplayConfig.value.enabled)
-  const statusText = baselineDisplayConfig.value.enabled ? '已显示' : '已隐藏'
-  messageToast.showMessage(`基线${statusText}`, 'success')
+  const statusText = baselineDisplayConfig.value.enabled ? t('app.baselineShown') : t('app.baselineHidden')
+  messageToast.showMessage(statusText, 'success')
+}
+
+const handleLocaleChange = (locale: string) => {
+  setLocale(locale)
+  messageToast.showMessage(`${t('app.currentLanguage')}: ${t(`app.locale.${locale}`)}`, 'success')
 }
 
 const handleCreateBaseline = () => {
   if (dataConfig.value.dataSource.length === 0) {
-    messageToast.showMessage('没有可用的任务数据', 'warning')
+    messageToast.showMessage(t('app.noData'), 'warning')
     return
   }
 
-  // 确保依赖关系有 id 字段
   const dependencies = (dataConfig.value.dependencies || []).map((dep, index) => ({
     id: `dep-${dep.sourceTaskId}-${dep.targetTaskId}-${index}`,
     ...dep,
@@ -533,18 +543,17 @@ const handleCreateBaseline = () => {
 
   setCurrentBaseline(baseline.id)
   enableBaselineDisplay(true)
-  messageToast.showMessage('基线保存成功', 'success')
+  messageToast.showMessage(t('app.baselineSaved'), 'success')
 }
 
 // 关键路径分析
 const analyzeCriticalPath = () => {
   if (dataConfig.value.dataSource.length === 0) {
-    messageToast.showMessage('没有可用的任务数据', 'warning')
+    messageToast.showMessage(t('app.noData'), 'warning')
     return
   }
 
   try {
-    // 确保依赖关系有 id 字段
     const dependencies = (dataConfig.value.dependencies || []).map((dep: any, index: number) => ({
       id: dep.id || `dep-${dep.sourceTaskId}-${dep.targetTaskId}-${index}`,
       sourceTaskId: dep.sourceTaskId,
@@ -570,7 +579,6 @@ const analyzeCriticalPath = () => {
       项目结束: result.projectEndDate
     })
 
-    // 输出每个任务的浮动时间
     console.table(
       Array.from(result.taskAnalysis.values()).map(task => ({
         任务ID: task.taskId,
@@ -584,22 +592,21 @@ const analyzeCriticalPath = () => {
     )
 
     messageToast.showMessage(
-      `关键路径分析完成！找到 ${result.criticalTaskIds.length} 个关键任务，项目总工期 ${result.projectDuration} 天`,
+      t('app.criticalPathComplete') + `! ${t('app.criticalTaskCount', { count: result.criticalTaskIds.length })}, ${t('app.projectDuration')}: ${result.projectDuration} ${t('app.days')}`,
       'success'
     )
 
-    // 打开对话框显示详细结果
     showCriticalPathDialog.value = true
   } catch (error) {
     console.error('关键路径分析失败:', error)
-    messageToast.showMessage('关键路径分析失败，请检查任务数据', 'error')
+    messageToast.showMessage(t('app.criticalPathFailed'), 'error')
   }
 }
 
 // 依赖验证
 const validateDependencies = () => {
   if (dataConfig.value.dataSource.length === 0) {
-    messageToast.showMessage('没有可用的任务数据', 'warning')
+    messageToast.showMessage(t('app.noData'), 'warning')
     return
   }
 
@@ -666,8 +673,8 @@ const validateDependencies = () => {
     }
 
     const summaryMsg = result.isValid
-      ? `依赖验证通过！共 ${result.warnings.length} 个警告`
-      : `发现 ${result.errors.length} 个错误，${result.warnings.length} 个警告`
+      ? `${t('app.dependencyValid')}! ${t('app.dependencyWarningCount', { count: result.warnings.length })}`
+      : t('app.dependencyHasErrors', { errors: result.errors.length, warnings: result.warnings.length })
 
     messageToast.showMessage(summaryMsg, result.isValid ? 'success' : 'error')
 

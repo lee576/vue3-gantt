@@ -476,6 +476,7 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: ['localeChange'],
   components: {
     DatePicker,
     SplitPane,
@@ -483,9 +484,17 @@ export default defineComponent({
     RightTable,
     GanttConfigPanel,
   },
-  setup(props) {
+  setup(props, { emit }) {
     // 国际化
     const { t, locale } = useI18n()
+
+    // 监听语言变化事件
+    watch(
+      () => locale.value,
+      (newLocale) => {
+        emit('localeChange', newLocale)
+      }
+    )
 
     // 缓存 mapFields 的结果
     const mapFields = computed<GanttMapFields>(() => props.dataConfig.mapFields)
