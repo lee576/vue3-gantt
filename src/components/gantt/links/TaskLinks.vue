@@ -1,6 +1,7 @@
 <template>
   <svg
     class="task-links-layer"
+    :class="{ 'is-scrolling': isScrolling }"
     :width="containerWidth"
     :height="containerHeight"
     :style="{
@@ -155,6 +156,8 @@ export default defineComponent({
     const scrollTop = ref(0)
     const containerHeight = ref(0)
     let lastScrollY = 0
+    const isScrolling = ref(false)
+    let scrollEndTimer: number | null = null
 
     // 判断是否启用虚拟滚动
     const useVirtualScroll = computed(() => {
@@ -171,21 +174,21 @@ export default defineComponent({
       lastScrollY = scrollY
     }
 
-    // 计算可见区域的连线
     const visibleLinks = computed(() => {
       if (!useVirtualScroll.value) return links.value
 
-      // 动态缓冲区：快速滚动时增加缓冲区
       const scrollDelta = Math.abs(lastScrollY - scrollTop.value)
-      const isFastScroll = scrollDelta > 200 // 快速滚动阈值（像素）
-      const baseBuffer = PerformanceConfig.VIRTUAL_SCROLL_BUFFER * 60
-      const buffer = isFastScroll ? baseBuffer * 2 : baseBuffer
+      const isFastScroll = scrollDelta > 200
+
+      const rowHeight = getRowHeight()
+      const baseBufferRows = 10
+      const fastScrollBufferRows = 30
+      const buffer = isFastScroll ? fastScrollBufferRows * rowHeight : baseBufferRows * rowHeight
 
       const viewStart = scrollTop.value - buffer
       const viewEnd = scrollTop.value + containerHeight.value + buffer
 
       return links.value.filter(link => {
-        // 检查连线是否在可见区域内
         const sourceY = link.sourceY || 0
         const targetY = link.targetY || 0
         const minY = Math.min(sourceY, targetY)
@@ -1229,19 +1232,38 @@ export default defineComponent({
     let resizeObserver: ResizeObserver | null = null
     let mutationObserver: MutationObserver | null = null
     let scrollRafId: number | null = null
+    let lastScrollPosition = 0
+    const SCROLL_UPDATE_THRESHOLD = 50
 
-    // 优化滚动处理函数，使用 requestAnimationFrame
     const handleScroll = () => {
+      const tableContent = document.querySelector('.table .content') as HTMLElement
+      if (!tableContent) return
+
+      const currentScrollTop = tableContent.scrollTop
+      const scrollDelta = Math.abs(currentScrollTop - lastScrollPosition)
+
+      scrollTop.value = currentScrollTop
+      containerHeight.value = tableContent.clientHeight
+
+      isScrolling.value = true
+      if (scrollEndTimer) {
+        clearTimeout(scrollEndTimer)
+      }
+      scrollEndTimer = window.setTimeout(() => {
+        isScrolling.value = false
+        scrollEndTimer = null
+      }, 150)
+
+      if (scrollDelta < SCROLL_UPDATE_THRESHOLD) {
+        return
+      }
+
+      lastScrollPosition = currentScrollTop
+
       if (scrollRafId) {
         cancelAnimationFrame(scrollRafId)
       }
       scrollRafId = requestAnimationFrame(() => {
-        // 更新虚拟滚动状态
-        const tableContent = document.querySelector('.table .content') as HTMLElement
-        if (tableContent) {
-          scrollTop.value = tableContent.scrollTop
-          containerHeight.value = tableContent.clientHeight
-        }
         updateLinks()
         scrollRafId = null
       })
@@ -1373,6 +1395,7 @@ export default defineComponent({
       getLinkStyle,
       isDashedLine,
       getDashAnimationStyle,
+      isScrolling,
     }
   },
 })
@@ -1400,6 +1423,12 @@ export default defineComponent({
     // 虚线流动动画
     &.dash-animated {
       animation: dashFlow var(--animation-duration, 3s) linear infinite;
+    }
+  }
+
+  &.is-scrolling {
+    .task-link.dash-animated {
+      animation-play-state: paused;
     }
   }
 
