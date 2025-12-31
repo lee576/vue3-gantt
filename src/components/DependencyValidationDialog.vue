@@ -2,19 +2,19 @@
   <div v-if="show" class="dialog-overlay" @click.self="$emit('close')">
     <div class="dialog-container">
       <div class="dialog-header">
-        <h2>🔍 依赖关系验证结果</h2>
+        <h2>🔍 {{ t('app.dependencyValidationResult') }}</h2>
         <button class="close-btn" @click="$emit('close')">✕</button>
       </div>
 
       <div class="dialog-body" v-if="result">
         <!-- 验证概览 -->
         <div class="summary-section">
-          <h3>{{ result.isValid ? '✅ 验证通过' : '❌ 验证失败' }}</h3>
-          <p class="summary-subtitle">{{ result.isValid ? '所有依赖关系正常' : '发现以下问题需要处理' }}</p>
+          <h3>{{ result.isValid ? '✅ ' + t('app.validationPassed') : '❌ ' + t('app.validationFailed') }}</h3>
+          <p class="summary-subtitle">{{ result.isValid ? t('app.allDependenciesNormal') : t('app.issuesFoundToHandle') }}</p>
           <div class="stats-cards">
             <StatCard
               :value="totalDependencies"
-              label="总依赖"
+              :label="t('app.totalDependencies')"
               type="primary"
             >
               <template #icon>
@@ -27,7 +27,7 @@
             <StatCard
               v-if="result.errors.length > 0"
               :value="result.errors.length"
-              label="错误"
+              :label="t('app.errors')"
               type="error"
             >
               <template #icon>
@@ -40,7 +40,7 @@
             <StatCard
               v-if="result.warnings.length > 0"
               :value="result.warnings.length"
-              label="警告"
+              :label="t('app.warnings')"
               type="warning"
             >
               <template #icon>
@@ -53,7 +53,7 @@
             <StatCard
               v-if="cycles && cycles.length > 0"
               :value="cycles.length"
-              label="循环依赖"
+              :label="t('app.cyclicDependencies')"
               type="info"
             >
               <template #icon>
@@ -76,7 +76,7 @@
               <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                 <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
               </svg>
-              全部 ({{ (result.errors.length || 0) + (result.warnings.length || 0) + (cycles?.length || 0) }})
+              {{ t('app.all') }} ({{ (result.errors.length || 0) + (result.warnings.length || 0) + (cycles?.length || 0) }})
             </button>
             <button 
               v-if="result.errors.length > 0"
@@ -87,7 +87,7 @@
               <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
               </svg>
-              错误 ({{ result.errors.length }})
+              {{ t('app.errors') }} ({{ result.errors.length }})
             </button>
             <button 
               v-if="result.warnings.length > 0"
@@ -98,7 +98,7 @@
               <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                 <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
               </svg>
-              警告 ({{ result.warnings.length }})
+              {{ t('app.warnings') }} ({{ result.warnings.length }})
             </button>
             <button 
               v-if="cycles && cycles.length > 0"
@@ -109,14 +109,14 @@
               <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                 <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
               </svg>
-              循环依赖 ({{ cycles.length }})
+              {{ t('app.cyclicDependencies') }} ({{ cycles.length }})
             </button>
           </div>
         </div>
 
         <!-- 错误列表 -->
         <div class="section" v-if="result.errors.length > 0 && (filterType === 'all' || filterType === 'errors')">
-          <h3>❌ 错误列表 ({{ result.errors.length }})</h3>
+          <h3>❌ {{ t('app.errorList') }} ({{ result.errors.length }})</h3>
           <div class="issue-list">
             <div
               v-for="(error, index) in result.errors"
@@ -126,26 +126,26 @@
               <div class="issue-header">
                 <span class="issue-number">{{ index + 1 }}</span>
                 <span class="issue-type-badge error">{{ getErrorTypeLabel(error.type) }}</span>
-                <span class="severity-badge" :class="error.severity">{{ error.severity === 'critical' ? '严重' : '错误' }}</span>
+                <span class="severity-badge" :class="error.severity">{{ error.severity === 'critical' ? t('app.severe') : t('app.errors') }}</span>
               </div>
               <div class="issue-body">
                 <div class="issue-message">{{ error.message }}</div>
                 <div class="issue-details">
                   <div v-if="error.sourceTaskId" class="detail-item">
-                    <span class="detail-label">前置任务：</span>
-                    <span class="detail-value">{{ getTaskName(error.sourceTaskId) }} (ID: {{ error.sourceTaskId }})</span>
+                    <span class="detail-label">{{ t('app.predecessorTaskColon') }}</span>
+                    <span class="detail-value">{{ getTaskName(error.sourceTaskId) }} {{ t('app.idPrefix') }}{{ error.sourceTaskId }}{{ t('app.idSuffix') }}</span>
                   </div>
                   <div v-if="error.targetTaskId" class="detail-item">
-                    <span class="detail-label">后续任务：</span>
-                    <span class="detail-value">{{ getTaskName(error.targetTaskId) }} (ID: {{ error.targetTaskId }})</span>
+                    <span class="detail-label">{{ t('app.successorTaskColon') }}</span>
+                    <span class="detail-value">{{ getTaskName(error.targetTaskId) }} {{ t('app.idPrefix') }}{{ error.targetTaskId }}{{ t('app.idSuffix') }}</span>
                   </div>
                   <div v-if="error.linkType" class="detail-item">
-                    <span class="detail-label">依赖类型：</span>
+                    <span class="detail-label">{{ t('app.dependencyTypeColon') }}</span>
                     <span class="detail-value link-type">{{ getLinkTypeLabel(error.linkType) }}</span>
                   </div>
                 </div>
                 <div v-if="error.resolution" class="issue-resolution">
-                  <strong>💡 解决方案：</strong> {{ error.resolution }}
+                  <strong>💡 {{ t('app.solution') }}</strong>{{ t('app.colon') }} {{ error.resolution }}
                 </div>
               </div>
             </div>
@@ -154,7 +154,7 @@
 
         <!-- 警告列表 -->
         <div class="section" v-if="result.warnings.length > 0 && (filterType === 'all' || filterType === 'warnings')">
-          <h3>⚠️ 警告列表 ({{ result.warnings.length }})</h3>
+          <h3>⚠️ {{ t('app.warningList') }} ({{ result.warnings.length }})</h3>
           <div class="issue-list">
             <div
               v-for="(warning, index) in result.warnings"
@@ -169,20 +169,20 @@
                 <div class="issue-message">{{ warning.message }}</div>
                 <div class="issue-details">
                   <div v-if="warning.sourceTaskId" class="detail-item">
-                    <span class="detail-label">前置任务：</span>
-                    <span class="detail-value">{{ getTaskName(warning.sourceTaskId) }} (ID: {{ warning.sourceTaskId }})</span>
+                    <span class="detail-label">{{ t('app.predecessorTaskColon') }}</span>
+                    <span class="detail-value">{{ getTaskName(warning.sourceTaskId) }} {{ t('app.idPrefix') }}{{ warning.sourceTaskId }}{{ t('app.idSuffix') }}</span>
                   </div>
                   <div v-if="warning.targetTaskId" class="detail-item">
-                    <span class="detail-label">后续任务：</span>
-                    <span class="detail-value">{{ getTaskName(warning.targetTaskId) }} (ID: {{ warning.targetTaskId }})</span>
+                    <span class="detail-label">{{ t('app.successorTaskColon') }}</span>
+                    <span class="detail-value">{{ getTaskName(warning.targetTaskId) }} {{ t('app.idPrefix') }}{{ warning.targetTaskId }}{{ t('app.idSuffix') }}</span>
                   </div>
                   <div v-if="warning.linkType" class="detail-item">
-                    <span class="detail-label">依赖类型：</span>
+                    <span class="detail-label">{{ t('app.dependencyTypeColon') }}</span>
                     <span class="detail-value link-type">{{ getLinkTypeLabel(warning.linkType) }}</span>
                   </div>
                 </div>
                 <div v-if="warning.suggestion" class="issue-suggestion">
-                  <strong>💭 建议：</strong> {{ warning.suggestion }}
+                  <strong>💭 {{ t('app.suggestion') }}</strong>{{ t('app.colon') }} {{ warning.suggestion }}
                 </div>
               </div>
             </div>
@@ -191,12 +191,12 @@
 
         <!-- 循环依赖检测 -->
         <div class="section" v-if="cycles && cycles.length > 0 && (filterType === 'all' || filterType === 'cycles')">
-          <h3>🔄 循环依赖 ({{ cycles.length }})</h3>
+          <h3>🔄 {{ t('app.cyclicDependency') }} ({{ cycles.length }})</h3>
           <div class="cycle-list">
             <div v-for="(cycle, index) in cycles" :key="index" class="cycle-card">
               <div class="cycle-header">
-                <span class="cycle-number">循环 {{ index + 1 }}</span>
-                <span class="cycle-length">长度: {{ cycle.length }} 个任务</span>
+                <span class="cycle-number">{{ t('app.cycle') }} {{ index + 1 }}</span>
+                <span class="cycle-length">{{ t('app.length') }}: {{ cycle.length }} {{ t('app.tasks') }}</span>
               </div>
               <div class="cycle-description">
                 {{ cycle.description }}
@@ -218,8 +218,8 @@
           <div class="success-message">
             <div class="success-icon">✅</div>
             <div class="success-text">
-              <h3>所有依赖关系验证通过！</h3>
-              <p>未发现任何错误或循环依赖</p>
+              <h3>{{ t('app.allDependenciesValidated') }}</h3>
+              <p>{{ t('app.noErrorsOrCyclesFound') }}</p>
             </div>
           </div>
         </div>
@@ -230,9 +230,9 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
           </svg>
-          导出报告
+          {{ t('app.exportReport') }}
         </button>
-        <button class="metro-btn metro-btn-primary" @click="$emit('close')">关闭</button>
+        <button class="metro-btn metro-btn-primary" @click="$emit('close')">{{ t('app.close') }}</button>
       </div>
     </div>
   </div>
@@ -243,6 +243,7 @@ import { defineComponent, computed, ref } from 'vue'
 import type { DependencyValidationResult, DependencyCycle } from '../components/gantt/features/DependencyValidator'
 import { LinkType } from '../components/gantt/types/Types'
 import StatCard from './StatCard.vue'
+import { i18n } from '../locales'
 
 export default defineComponent({
   name: 'DependencyValidationDialog',
@@ -274,6 +275,7 @@ export default defineComponent({
   emits: ['close'],
   setup(props, { emit }) {
     const filterType = ref<'all' | 'errors' | 'warnings' | 'cycles'>('all')
+    const t = i18n.global.t
 
     // 创建任务ID到任务对象的映射（响应式）
     const taskMap = computed(() => {
@@ -296,79 +298,60 @@ export default defineComponent({
     // 获取依赖关系类型的中文标签
     const getLinkTypeLabel = (linkType?: string): string => {
       if (!linkType) return ''
-      const labels: Record<string, string> = {
-        [LinkType.FINISH_TO_START]: 'FS (完成-开始)',
-        [LinkType.START_TO_START]: 'SS (开始-开始)',
-        [LinkType.FINISH_TO_FINISH]: 'FF (完成-完成)',
-        [LinkType.START_TO_FINISH]: 'SF (开始-完成)'
-      }
-      return labels[linkType] || linkType
+      return t(`app.linkTypeLabel.${linkType}`) || linkType
     }
 
     const getErrorTypeLabel = (type: string): string => {
-      const labels: Record<string, string> = {
-        'cycle': '循环依赖',
-        'self-reference': '自引用',
-        'invalid-link': '无效连接',
-        'date-conflict': '日期冲突',
-        'missing-task': '任务缺失'
-      }
-      return labels[type] || type
+      return t(`app.dependencyErrorType.${type}`) || type
     }
 
     const getWarningTypeLabel = (type: string): string => {
-      const labels: Record<string, string> = {
-        'redundant': '冗余依赖',
-        'long-lag': '长延迟',
-        'cross-project': '跨项目',
-        'potential-issue': '潜在问题'
-      }
-      return labels[type] || type
+      return t(`app.dependencyWarningType.${type}`) || type
     }
 
     const exportReport = () => {
       if (!props.result) return
 
       const lines: string[] = []
-      lines.push('依赖关系验证报告')
-      lines.push('=' .repeat(50))
-      lines.push(`生成时间: ${new Date().toLocaleString('zh-CN')}`)
-      lines.push(`筛选类型: ${filterType.value}`)
-      lines.push(`验证状态: ${props.result.isValid ? '通过' : '失败'}`)
-      lines.push(`错误数量: ${props.result.errors.length}`)
-      lines.push(`警告数量: ${props.result.warnings.length}`)
+      lines.push(t('app.dependencyReportGenerated'))
+      lines.push('='.repeat(50))
+      lines.push(`${t('app.dependencyReportGeneratedTime')}: ${new Date().toLocaleString()}`)
+      lines.push(`${t('app.dependencyReportFilterType')}: ${filterType.value}`)
+      lines.push(`${t('app.dependencyReportStatus')}: ${props.result.isValid ? t('app.dependencyReportPassed') : t('app.dependencyReportFailed')}`)
+      lines.push(`${t('app.dependencyReportErrorCount')}: ${props.result.errors.length}`)
+      lines.push(`${t('app.dependencyReportWarningCount')}: ${props.result.warnings.length}`)
       lines.push('')
 
       if (props.result.errors.length > 0) {
-        lines.push('错误列表:')
+        lines.push(t('app.dependencyReportErrorListTitle'))
         lines.push('-'.repeat(50))
         props.result.errors.forEach((error, index) => {
           lines.push(`${index + 1}. [${getErrorTypeLabel(error.type)}] ${error.message}`)
-          if (error.sourceTaskId) lines.push(`   前置任务: ${error.sourceTaskId}`)
-          if (error.targetTaskId) lines.push(`   后续任务: ${error.targetTaskId}`)
-          if (error.resolution) lines.push(`   解决方案: ${error.resolution}`)
+          if (error.sourceTaskId) lines.push(`   ${t('app.predecessorTaskColon')}${error.sourceTaskId}`)
+          if (error.targetTaskId) lines.push(`   ${t('app.successorTaskColon')}${error.targetTaskId}`)
+          if (error.resolution) lines.push(`   ${t('app.solution')}${t('app.colon')}${error.resolution}`)
           lines.push('')
         })
       }
 
       if (props.result.warnings.length > 0) {
-        lines.push('警告列表:')
+        lines.push(t('app.dependencyReportWarningListTitle'))
         lines.push('-'.repeat(50))
         props.result.warnings.forEach((warning, index) => {
           lines.push(`${index + 1}. [${getWarningTypeLabel(warning.type)}] ${warning.message}`)
-          if (warning.sourceTaskId) lines.push(`   前置任务: ${warning.sourceTaskId}`)
-          if (warning.targetTaskId) lines.push(`   后续任务: ${warning.targetTaskId}`)
-          if (warning.suggestion) lines.push(`   建议: ${warning.suggestion}`)
+          if (warning.sourceTaskId) lines.push(`   ${t('app.predecessorTaskColon')}${warning.sourceTaskId}`)
+          if (warning.targetTaskId) lines.push(`   ${t('app.successorTaskColon')}${warning.targetTaskId}`)
+          if (warning.suggestion) lines.push(`   ${t('app.suggestion')}${t('app.colon')}${warning.suggestion}`)
           lines.push('')
         })
       }
 
       if (props.cycles && props.cycles.length > 0) {
-        lines.push('循环依赖:')
+        lines.push(t('app.dependencyReportCycleListTitle'))
         lines.push('-'.repeat(50))
         props.cycles.forEach((cycle, index) => {
           lines.push(`${index + 1}. ${cycle.description}`)
-          lines.push(`   长度: ${cycle.length} 个任务`)
+          lines.push(`   ${t('app.length')}${t('app.colon')}${cycle.length} ${t('app.tasksUnit')}`)
           lines.push('')
         })
       }
@@ -377,7 +360,7 @@ export default defineComponent({
       const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
       const link = document.createElement('a')
       link.href = URL.createObjectURL(blob)
-      link.download = `依赖验证报告_${new Date().toISOString().split('T')[0]}.txt`
+      link.download = `${t('app.dependencyReportFileSuffix')}_${new Date().toISOString().split('T')[0]}.txt`
       link.click()
     }
 
@@ -387,7 +370,8 @@ export default defineComponent({
       getWarningTypeLabel,
       exportReport,
       getTaskName,
-      getLinkTypeLabel
+      getLinkTypeLabel,
+      t: i18n.global.t
     }
   }
 })

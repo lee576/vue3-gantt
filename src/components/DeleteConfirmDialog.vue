@@ -2,22 +2,24 @@
   <div v-if="show" class="modal-overlay" @click.self="$emit('close')">
     <div class="confirm-dialog">
       <div class="dialog-header">
-        <h2>确认删除</h2>
+        <h2>{{ t('app.deleteConfirmTitle') }}</h2>
         <button class="close-btn" @click="$emit('close')">×</button>
       </div>
       <div class="dialog-body">
-        <p>确定要删除任务 "{{ taskName }}" 吗？</p>
-        <p class="warning-text">此操作将同时删除所有子任务，且不可恢复！</p>
+        <p>{{ t('app.deleteConfirmMessage', { taskName }) }}</p>
+        <p class="warning-text">{{ t('app.deleteConfirmWarning') }}</p>
       </div>
       <div class="dialog-footer">
-        <button class="metro-btn" @click="$emit('close')">取消</button>
-        <button class="metro-btn metro-btn-danger" @click="$emit('confirm')">确认删除</button>
+        <button class="metro-btn" @click="$emit('close')">{{ t('app.cancel') }}</button>
+        <button class="metro-btn metro-btn-danger" @click="$emit('confirm')">{{ t('app.confirmDelete') }}</button>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import { t } from '../locales'
+
 defineProps<{
   show: boolean
   taskName: string

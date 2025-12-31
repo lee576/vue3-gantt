@@ -2,19 +2,18 @@
   <div v-if="show" class="dialog-overlay" @click.self="$emit('close')">
     <div class="dialog-container">
       <div class="dialog-header">
-        <h2>🎯 关键路径分析结果</h2>
+        <h2>🎯 {{ t('app.criticalPathTitle') }}</h2>
         <button class="close-btn" @click="$emit('close')">✕</button>
       </div>
 
       <div class="dialog-body" v-if="result">
-        <!-- 依赖关系统计概览 -->
         <div class="summary-section">
-          <h3>📊 依赖关系统计</h3>
+          <h3>📊 {{ t('app.dependencyStats') }}</h3>
           <div class="stats-cards">
             <StatCard
               :value="result.projectDuration"
-              label="项目工期"
-              unit="天"
+              :label="t('app.projectDuration')"
+              :unit="t('app.unit.day')"
               type="primary"
             >
               <template #icon>
@@ -26,8 +25,8 @@
 
             <StatCard
               :value="result.criticalTaskIds.length"
-              label="关键任务"
-              unit="个"
+              :label="t('app.criticalTasks')"
+              :unit="t('app.unit.count')"
               type="error"
             >
               <template #icon>
@@ -39,8 +38,8 @@
 
             <StatCard
               :value="result.criticalPathDuration"
-              label="关键路径时长"
-              unit="天"
+              :label="t('app.criticalPathDuration')"
+              :unit="t('app.unit.day')"
               type="warning"
             >
               <template #icon>
@@ -52,7 +51,7 @@
 
             <StatCard
               :value="formatDate(result.projectStartDate)"
-              label="项目起止日期"
+              :label="t('app.projectDateRange')"
               type="info"
             >
               <template #icon>
@@ -64,8 +63,8 @@
 
             <StatCard
               :value="result.taskAnalysis.size"
-              label="总任务数"
-              unit="个"
+              :label="t('app.totalTasks')"
+              :unit="t('app.unit.count')"
               type="success"
             >
               <template #icon>
@@ -79,7 +78,7 @@
           <div class="stats-progress">
             <div class="progress-item">
               <div class="progress-header">
-                <span class="progress-label">关键任务占比</span>
+                <span class="progress-label">{{ t('app.criticalTaskRatio') }}</span>
                 <span class="progress-value">{{ ((result.criticalTaskIds.length / result.taskAnalysis.size) * 100).toFixed(1) }}%</span>
               </div>
               <div class="progress-bar-wrapper">
@@ -89,9 +88,8 @@
           </div>
         </div>
 
-        <!-- 关键路径 -->
         <div class="section">
-          <h3>🔴 关键路径</h3>
+          <h3>🔴 {{ t('app.criticalPath') }}</h3>
           <div class="critical-path">
             <div class="path-flow">
               <span
@@ -110,21 +108,20 @@
 
         <!-- 关键任务列表 -->
         <div class="section">
-          <h3>⚠️ 关键任务列表（浮动时间 = 0）</h3>
+          <h3>⚠️ {{ t('app.criticalTaskListWithFloat') }}</h3>
           
-          <!-- 术语解释（可折叠） -->
           <div class="collapsible-section">
             <div class="collapsible-header" @click="showTerminology = !showTerminology">
               <div class="header-left">
                 <span class="icon">📖</span>
-                <span class="title">术语说明</span>
+                <span class="title">{{ t('app.terminology') }}</span>
               </div>
               <div class="header-right">
                 <button class="toggle-btn" :class="{ expanded: showTerminology }">
                   <svg class="toggle-icon" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
                   </svg>
-                  <span class="toggle-text">{{ showTerminology ? '收起说明' : '展开说明' }}</span>
+                  <span class="toggle-text">{{ showTerminology ? t('app.collapse') : t('app.expand') }}</span>
                 </button>
               </div>
             </div>
@@ -133,43 +130,43 @@
                 <div class="term-card">
                   <div class="term-icon early">⏰</div>
                   <div class="term-content">
-                    <div class="term-name">最早开始 (ES)</div>
-                    <div class="term-desc">在所有前置任务完成后，该任务可以开始的最早时间</div>
+                    <div class="term-name">{{ t('app.earlyStart') }}</div>
+                    <div class="term-desc">{{ t('app.esDesc') }}</div>
                   </div>
                 </div>
                 <div class="term-card">
                   <div class="term-icon finish">✅</div>
                   <div class="term-content">
-                    <div class="term-name">最早完成 (EF)</div>
-                    <div class="term-desc">基于最早开始时间加上任务工期，得到的最早完成时间</div>
+                    <div class="term-name">{{ t('app.earlyFinish') }}</div>
+                    <div class="term-desc">{{ t('app.efDesc') }}</div>
                   </div>
                 </div>
                 <div class="term-card">
                   <div class="term-icon late">🕐</div>
                   <div class="term-content">
-                    <div class="term-name">最晚开始 (LS)</div>
-                    <div class="term-desc">在不延误项目整体进度的前提下，该任务可以开始的最晚时间</div>
+                    <div class="term-name">{{ t('app.lateStart') }}</div>
+                    <div class="term-desc">{{ t('app.lsDesc') }}</div>
                   </div>
                 </div>
                 <div class="term-card">
                   <div class="term-icon late-finish">🏁</div>
                   <div class="term-content">
-                    <div class="term-name">最晚完成 (LF)</div>
-                    <div class="term-desc">基于最晚开始时间加上任务工期，得到的最晚完成时间</div>
+                    <div class="term-name">{{ t('app.lateFinish') }}</div>
+                    <div class="term-desc">{{ t('app.lfDesc') }}</div>
                   </div>
                 </div>
                 <div class="term-card">
                   <div class="term-icon total-float">📊</div>
                   <div class="term-content">
-                    <div class="term-name">总浮动 (TF)</div>
-                    <div class="term-desc">任务可以延迟而不影响项目完成日期的总时间，关键任务 TF = 0</div>
+                    <div class="term-name">{{ t('app.totalFloat') }}</div>
+                    <div class="term-desc">{{ t('app.tfDesc') }}</div>
                   </div>
                 </div>
                 <div class="term-card">
                   <div class="term-icon free-float">🔓</div>
                   <div class="term-content">
-                    <div class="term-name">自由浮动 (FF)</div>
-                    <div class="term-desc">任务可以延迟而不影响后续任务最早开始时间的最大时间</div>
+                    <div class="term-name">{{ t('app.freeFloat') }}</div>
+                    <div class="term-desc">{{ t('app.ffDesc') }}</div>
                   </div>
                 </div>
               </div>
@@ -180,14 +177,14 @@
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>任务ID</th>
-                  <th>任务名称</th>
-                  <th><span class="th-icon">⏰</span> 最早开始</th>
-                  <th><span class="th-icon">✅</span> 最早完成</th>
-                  <th><span class="th-icon">🕐</span> 最晚开始</th>
-                  <th><span class="th-icon">🏁</span> 最晚完成</th>
-                  <th><span class="th-icon">📊</span> 总浮动</th>
-                  <th><span class="th-icon">🔓</span> 自由浮动</th>
+                  <th>{{ t('app.taskId') }}</th>
+                  <th>{{ t('app.taskName') }}</th>
+                  <th><span class="th-icon">⏰</span> {{ t('app.earlyStart') }}</th>
+                  <th><span class="th-icon">✅</span> {{ t('app.earlyFinish') }}</th>
+                  <th><span class="th-icon">🕐</span> {{ t('app.lateStart') }}</th>
+                  <th><span class="th-icon">🏁</span> {{ t('app.lateFinish') }}</th>
+                  <th><span class="th-icon">📊</span> {{ t('app.totalFloat') }}</th>
+                  <th><span class="th-icon">🔓</span> {{ t('app.freeFloat') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -210,23 +207,21 @@
           </div>
         </div>
 
-        <!-- 所有任务详细信息 -->
         <div class="section">
-          <h3>📋 所有任务浮动时间分析</h3>
+          <h3>📋 {{ t('app.allTasksFloatAnalysis') }}</h3>
           
-          <!-- 术语说明（可折叠） -->
           <div class="collapsible-section">
             <div class="collapsible-header" @click="showAllTasksTerminology = !showAllTasksTerminology">
               <div class="header-left">
                 <span class="icon">📖</span>
-                <span class="title">术语说明</span>
+                <span class="title">{{ t('app.terminology') }}</span>
               </div>
               <div class="header-right">
                 <button class="toggle-btn" :class="{ expanded: showAllTasksTerminology }">
                   <svg class="toggle-icon" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
                   </svg>
-                  <span class="toggle-text">{{ showAllTasksTerminology ? '收起说明' : '展开说明' }}</span>
+                  <span class="toggle-text">{{ showAllTasksTerminology ? t('app.collapse') : t('app.expand') }}</span>
                 </button>
               </div>
             </div>
@@ -235,57 +230,57 @@
                 <div class="term-card">
                   <div class="term-icon total-float">📊</div>
                   <div class="term-content">
-                    <div class="term-name">总浮动 (TF)</div>
-                    <div class="term-desc">任务可以延迟而不影响项目完成日期的总时间，关键任务 TF = 0</div>
+                    <div class="term-name">{{ t('app.totalFloat') }}</div>
+                    <div class="term-desc">{{ t('app.tfDesc') }}</div>
                   </div>
                 </div>
                 <div class="term-card">
                   <div class="term-icon free-float">🔓</div>
                   <div class="term-content">
-                    <div class="term-name">自由浮动 (FF)</div>
-                    <div class="term-desc">任务可以延迟而不影响后续任务最早开始时间的最大时间</div>
+                    <div class="term-name">{{ t('app.freeFloat') }}</div>
+                    <div class="term-desc">{{ t('app.ffDesc') }}</div>
                   </div>
                 </div>
                 <div class="term-card">
                   <div class="term-icon early">⏰</div>
                   <div class="term-content">
-                    <div class="term-name">最早开始 (ES)</div>
-                    <div class="term-desc">在所有前置任务完成后，该任务可以开始的最早时间</div>
+                    <div class="term-name">{{ t('app.earlyStart') }}</div>
+                    <div class="term-desc">{{ t('app.esDesc') }}</div>
                   </div>
                 </div>
                 <div class="term-card">
                   <div class="term-icon finish">✅</div>
                   <div class="term-content">
-                    <div class="term-name">最早完成 (EF)</div>
-                    <div class="term-desc">基于最早开始时间加上任务工期，得到的最早完成时间</div>
+                    <div class="term-name">{{ t('app.earlyFinish') }}</div>
+                    <div class="term-desc">{{ t('app.efDesc') }}</div>
                   </div>
                 </div>
                 <div class="term-card">
-                  <div class="term-icon late">�</div>
+                  <div class="term-icon late">🕐</div>
                   <div class="term-content">
-                    <div class="term-name">最晚开始 (LS)</div>
-                    <div class="term-desc">在不延误项目整体进度的前提下，该任务可以开始的最晚时间</div>
+                    <div class="term-name">{{ t('app.lateStart') }}</div>
+                    <div class="term-desc">{{ t('app.lsDesc') }}</div>
                   </div>
                 </div>
                 <div class="term-card">
                   <div class="term-icon late-finish">🏁</div>
                   <div class="term-content">
-                    <div class="term-name">最晚完成 (LF)</div>
-                    <div class="term-desc">基于最晚开始时间加上任务工期，得到的最晚完成时间</div>
+                    <div class="term-name">{{ t('app.lateFinish') }}</div>
+                    <div class="term-desc">{{ t('app.lfDesc') }}</div>
                   </div>
                 </div>
                 <div class="term-card">
                   <div class="term-icon predecessor">🔗</div>
                   <div class="term-content">
-                    <div class="term-name">前置任务</div>
-                    <div class="term-desc">必须在该任务之前完成的任务，用于确定任务间的依赖关系</div>
+                    <div class="term-name">{{ t('app.predecessor') }}</div>
+                    <div class="term-desc">{{ t('app.predecessorDesc') }}</div>
                   </div>
                 </div>
                 <div class="term-card">
                   <div class="term-icon successor">📌</div>
                   <div class="term-content">
-                    <div class="term-name">后续任务</div>
-                    <div class="term-desc">必须在该任务完成后才能开始的任务，表示任务的执行顺序</div>
+                    <div class="term-name">{{ t('app.successor') }}</div>
+                    <div class="term-desc">{{ t('app.successorDesc') }}</div>
                   </div>
                 </div>
               </div>
@@ -295,28 +290,28 @@
           <div class="filter-section">
             <label>
               <input type="checkbox" v-model="showOnlyCritical" />
-              仅显示关键任务
+              {{ t('app.showOnlyCritical') }}
             </label>
             <label>
               <input type="checkbox" v-model="showOnlyNonCritical" />
-              仅显示非关键任务
+              {{ t('app.showOnlyNonCritical') }}
             </label>
           </div>
           <div class="table-container">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>任务ID</th>
-                  <th>任务名称</th>
-                  <th>是否关键</th>
-                  <th><span class="th-icon">📊</span> 总浮动时间</th>
-                  <th><span class="th-icon">🔓</span> 自由浮动时间</th>
-                  <th><span class="th-icon">⏰</span> 最早开始</th>
-                  <th><span class="th-icon">✅</span> 最早完成</th>
-                  <th><span class="th-icon">🕐</span> 最晚开始</th>
-                  <th><span class="th-icon">🏁</span> 最晚完成</th>
-                  <th>前置任务</th>
-                  <th>后续任务</th>
+                  <th>{{ t('app.taskId') }}</th>
+                  <th>{{ t('app.taskName') }}</th>
+                  <th>{{ t('app.isCritical') }}</th>
+                  <th><span class="th-icon">📊</span> {{ t('app.totalFloatTime') }}</th>
+                  <th><span class="th-icon">🔓</span> {{ t('app.freeFloatTime') }}</th>
+                  <th><span class="th-icon">⏰</span> {{ t('app.earlyStart') }}</th>
+                  <th><span class="th-icon">✅</span> {{ t('app.earlyFinish') }}</th>
+                  <th><span class="th-icon">🕐</span> {{ t('app.lateStart') }}</th>
+                  <th><span class="th-icon">🏁</span> {{ t('app.lateFinish') }}</th>
+                  <th>{{ t('app.predecessor') }}</th>
+                  <th>{{ t('app.successor') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -329,14 +324,14 @@
                   <td class="task-name">{{ task.taskName }}</td>
                   <td>
                     <span :class="['badge', task.isCritical ? 'badge-critical' : 'badge-normal']">
-                      {{ task.isCritical ? '是' : '否' }}
+                      {{ task.isCritical ? t('app.yes') : t('app.no') }}
                     </span>
                   </td>
                   <td :class="{ 'critical-value': task.totalFloat === 0 }">
-                    {{ task.totalFloat }} 天
+                    {{ task.totalFloat }} {{ t('app.days') }}
                   </td>
                   <td :class="{ 'critical-value': task.freeFloat === 0 }">
-                    {{ task.freeFloat }} 天
+                    {{ task.freeFloat }} {{ t('app.days') }}
                   </td>
                   <td>{{ task.earlyStart }}</td>
                   <td>{{ task.earlyFinish }}</td>
@@ -360,9 +355,9 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
           </svg>
-          导出数据
+          {{ t('app.exportData') }}
         </button>
-        <button class="metro-btn metro-btn-primary" @click="$emit('close')">关闭</button>
+        <button class="metro-btn metro-btn-primary" @click="$emit('close')">{{ t('app.close') }}</button>
       </div>
     </div>
   </div>
@@ -372,6 +367,7 @@
 import { defineComponent, ref, computed } from 'vue'
 import type { CriticalPathResult, TaskAnalysis } from '../components/gantt/features/CriticalPathAnalyzer'
 import StatCard from './StatCard.vue'
+import { t } from '../locales'
 
 export default defineComponent({
   name: 'CriticalPathDialog',
@@ -456,15 +452,27 @@ export default defineComponent({
       if (!props.result) return
 
       const rows: string[] = []
-      rows.push('任务ID,任务名称,是否关键,总浮动时间,自由浮动时间,最早开始,最早完成,最晚开始,最晚完成,前置任务,后续任务')
+      rows.push([
+        t('app.csvTaskId'),
+        t('app.csvTaskName'),
+        t('app.csvIsCritical'),
+        t('app.csvTotalFloat'),
+        t('app.csvFreeFloat'),
+        t('app.csvEarlyStart'),
+        t('app.csvEarlyFinish'),
+        t('app.csvLateStart'),
+        t('app.csvLateFinish'),
+        t('app.csvPredecessor'),
+        t('app.csvSuccessor')
+      ].join(','))
 
       Array.from(props.result.taskAnalysis.values()).forEach(task => {
         rows.push([
-          task.taskId,
+          String(task.taskId),
           task.taskName,
-          task.isCritical ? '是' : '否',
-          task.totalFloat,
-          task.freeFloat,
+          task.isCritical ? t('app.csvYes') : t('app.csvNo'),
+          String(task.totalFloat),
+          String(task.freeFloat),
           task.earlyStart,
           task.earlyFinish,
           task.lateStart,
@@ -478,7 +486,7 @@ export default defineComponent({
       const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
       const link = document.createElement('a')
       link.href = URL.createObjectURL(blob)
-      link.download = `关键路径分析_${new Date().toISOString().split('T')[0]}.csv`
+      link.download = `${t('app.csvCriticalPathFilename')}_${new Date().toISOString().split('T')[0]}.csv`
       link.click()
     }
 
@@ -492,7 +500,8 @@ export default defineComponent({
       getTaskName,
       formatTaskList,
       filteredTasks,
-      exportToCSV
+      exportToCSV,
+      t
     }
   }
 })

@@ -2,25 +2,24 @@
   <div v-if="show" class="dialog-overlay" @click.self="$emit('close')">
     <div class="dialog-container">
       <div class="dialog-header">
-        <h2>⏰ 任务约束验证结果</h2>
+        <h2>⏰ {{ t('app.constraintValidationResult') }}</h2>
         <button class="close-btn" @click="$emit('close')">✕</button>
       </div>
 
       <div class="dialog-body" v-if="results && results.length > 0">
-        <!-- 验证概览 -->
         <div class="overview-card" :class="totalViolations > 0 ? 'card-warning' : 'card-success'">
           <div class="overview-card-header">
             <div class="overview-title">
-              <h3>{{ totalViolations === 0 ? '✅ 约束验证通过' : '⚠️ 发现约束冲突' }}</h3>
-              <p class="overview-subtitle">{{ totalViolations === 0 ? '所有约束条件均已满足' : `共发现 ${totalViolations} 个冲突和 ${totalWarnings} 个警告` }}</p>
+              <h3>{{ totalViolations === 0 ? '✅ ' + t('app.constraintValidationPassed') : '⚠️ ' + t('app.constraintValidationFailed') }}</h3>
+              <p class="overview-subtitle">{{ totalViolations === 0 ? t('app.allConstraintsSatisfied') : t('app.conflictsFound', { conflicts: totalViolations, warnings: totalWarnings }) }}</p>
             </div>
           </div>
           <div class="overview-stats">
             <StatCard
               :value="results.length"
-              label="总任务数"
+              :label="t('app.totalTasksCount')"
               type="primary"
-              unit="个"
+              :unit="t('app.tasksUnit')"
             >
               <template #icon>
                 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -30,9 +29,9 @@
             </StatCard>
             <StatCard
               :value="validTasksCount"
-              label="通过验证"
+              :label="t('app.validTasksCount')"
               type="success"
-              unit="个"
+              :unit="t('app.tasksUnit')"
             >
               <template #icon>
                 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -42,9 +41,9 @@
             </StatCard>
             <StatCard
               :value="totalViolations"
-              label="约束冲突"
+              :label="t('app.constraintViolations')"
               type="error"
-              unit="个"
+              :unit="t('app.tasksUnit')"
             >
               <template #icon>
                 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -55,9 +54,9 @@
             <StatCard
               v-if="totalWarnings > 0"
               :value="totalWarnings"
-              label="警告数量"
+              :label="t('app.warningCount')"
               type="warning"
-              unit="个"
+              :unit="t('app.tasksUnit')"
             >
               <template #icon>
                 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -68,7 +67,6 @@
           </div>
         </div>
 
-        <!-- 筛选器 -->
         <div class="filter-section">
           <div class="filter-tabs">
             <button 
@@ -79,7 +77,7 @@
               <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                 <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
               </svg>
-              全部 ({{ results.length }})
+              {{ t('app.all') }} ({{ results.length }})
             </button>
             <button 
               v-if="totalViolations > 0"
@@ -90,7 +88,7 @@
               <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                 <path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
               </svg>
-              冲突 ({{ totalViolations > 0 ? results.filter(r => r.violations.length > 0).length : 0 }})
+              {{ t('app.constraintViolationsLabel') }} ({{ totalViolations > 0 ? results.filter(r => r.violations.length > 0).length : 0 }})
             </button>
             <button 
               v-if="totalWarnings > 0"
@@ -101,7 +99,7 @@
               <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                 <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
               </svg>
-              警告 ({{ results.filter(r => r.warnings.length > 0 && r.violations.length === 0).length }})
+              {{ t('app.warningsLabel') }} ({{ results.filter(r => r.warnings.length > 0 && r.violations.length === 0).length }})
             </button>
             <button 
               class="filter-tab" 
@@ -111,14 +109,13 @@
               <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
               </svg>
-              通过 ({{ validTasksCount }})
+              {{ t('app.validTasksLabel') }} ({{ validTasksCount }})
             </button>
           </div>
         </div>
 
-        <!-- 任务约束详情 -->
         <div class="section">
-          <h3>📋 任务约束详情 ({{ filteredResults.length }} / {{ results.length }})</h3>
+          <h3>📋 {{ t('app.taskConstraintDetails') }} ({{ t('app.taskFilteredCount', { count: filteredResults.length, total: results.length }) }})</h3>
           <div class="task-list">
             <div
               v-for="task in filteredResults"
@@ -136,24 +133,23 @@
                     {{ task.violations.length > 0 ? '❌' : task.warnings.length > 0 ? '⚠️' : '✅' }}
                   </span>
                   <span class="task-name">{{ getTaskName(task.taskId) }}</span>
-                  <span class="task-id">ID: {{ task.taskId }}</span>
+                  <span class="task-id">{{ t('app.taskId') }}: {{ task.taskId }}</span>
                 </div>
                 <div class="task-badges">
                   <span v-if="task.violations.length > 0" class="badge badge-error">
-                    {{ task.violations.length }} 个冲突
+                    {{ task.violations.length }} {{ t('app.violationsCount') }}
                   </span>
                   <span v-if="task.warnings.length > 0" class="badge badge-warning">
-                    {{ task.warnings.length }} 个警告
+                    {{ task.warnings.length }} {{ t('app.warningsCount') }}
                   </span>
                   <span v-if="task.isValid && task.warnings.length === 0" class="badge badge-success">
-                    验证通过
+                    {{ t('app.validationPassed') }}
                   </span>
                 </div>
               </div>
 
-              <!-- 约束冲突 -->
               <div v-if="task.violations.length > 0" class="violations-section">
-                <h4>约束冲突：</h4>
+                <h4>{{ t('app.constraintViolations') }}:</h4>
                 <div class="violation-list">
                   <div
                     v-for="(violation, index) in task.violations"
@@ -164,17 +160,17 @@
                       <span class="violation-number">{{ index + 1 }}</span>
                       <span class="constraint-type">{{ getConstraintTypeLabel(violation.constraintType) }}</span>
                       <span class="severity-badge" :class="violation.severity">
-                        {{ violation.severity === 'error' ? '错误' : '警告' }}
+                        {{ violation.severity === 'error' ? t('app.severityError') : t('app.severityWarning') }}
                       </span>
                     </div>
                     <div class="violation-message">{{ violation.message }}</div>
                     <div class="violation-details" v-if="violation.currentDate || violation.constraintDate">
                       <div class="detail-row">
-                        <span class="detail-label">当前日期：</span>
+                        <span class="detail-label">{{ t('app.currentDate') }}:</span>
                         <span class="detail-value">{{ formatDate(violation.currentDate) }}</span>
                       </div>
                       <div class="detail-row">
-                        <span class="detail-label">约束日期：</span>
+                        <span class="detail-label">{{ t('app.constraintDate') }}:</span>
                         <span class="detail-value highlight">{{ formatDate(violation.constraintDate) }}</span>
                       </div>
                     </div>
@@ -182,9 +178,8 @@
                 </div>
               </div>
 
-              <!-- 警告信息 -->
               <div v-if="task.warnings.length > 0" class="warnings-section">
-                <h4>警告信息：</h4>
+                <h4>{{ t('app.warningInfo') }}:</h4>
                 <div class="warning-list">
                   <div
                     v-for="(warning, index) in task.warnings"
@@ -196,7 +191,7 @@
                       {{ warning.message }}
                     </div>
                     <div v-if="warning.suggestion" class="warning-suggestion">
-                      💡 建议：{{ warning.suggestion }}
+                      💡 {{ t('app.suggestion') }}: {{ warning.suggestion }}
                     </div>
                   </div>
                 </div>
@@ -205,49 +200,48 @@
           </div>
         </div>
 
-        <!-- 约束类型说明 -->
         <div class="section">
-          <h3>📖 约束类型说明</h3>
+          <h3>📖 {{ t('app.constraintTypeDescription') }}</h3>
           <div class="constraint-types-grid">
             <div class="constraint-type-card">
               <div class="type-code">SNET</div>
-              <div class="type-name">Start No Earlier Than</div>
-              <div class="type-desc">不早于指定日期开始</div>
+              <div class="type-name">{{ t('app.constraintType.SNET') }}</div>
+              <div class="type-desc">{{ t('app.constraintType.SNET') }}</div>
             </div>
             <div class="constraint-type-card">
               <div class="type-code">SNLT</div>
-              <div class="type-name">Start No Later Than</div>
-              <div class="type-desc">不晚于指定日期开始</div>
+              <div class="type-name">{{ t('app.constraintType.SNLT') }}</div>
+              <div class="type-desc">{{ t('app.constraintType.SNLT') }}</div>
             </div>
             <div class="constraint-type-card">
               <div class="type-code">FNET</div>
-              <div class="type-name">Finish No Earlier Than</div>
-              <div class="type-desc">不早于指定日期完成</div>
+              <div class="type-name">{{ t('app.constraintType.FNET') }}</div>
+              <div class="type-desc">{{ t('app.constraintType.FNET') }}</div>
             </div>
             <div class="constraint-type-card">
               <div class="type-code">FNLT</div>
-              <div class="type-name">Finish No Later Than</div>
-              <div class="type-desc">不晚于指定日期完成</div>
+              <div class="type-name">{{ t('app.constraintType.FNLT') }}</div>
+              <div class="type-desc">{{ t('app.constraintType.FNLT') }}</div>
             </div>
             <div class="constraint-type-card">
               <div class="type-code">MSO</div>
-              <div class="type-name">Must Start On</div>
-              <div class="type-desc">必须在指定日期开始</div>
+              <div class="type-name">{{ t('app.constraintType.MSO') }}</div>
+              <div class="type-desc">{{ t('app.constraintType.MSO') }}</div>
             </div>
             <div class="constraint-type-card">
               <div class="type-code">MFO</div>
-              <div class="type-name">Must Finish On</div>
-              <div class="type-desc">必须在指定日期完成</div>
+              <div class="type-name">{{ t('app.constraintType.MFO') }}</div>
+              <div class="type-desc">{{ t('app.constraintType.MFO') }}</div>
             </div>
             <div class="constraint-type-card">
               <div class="type-code">ASAP</div>
-              <div class="type-name">As Soon As Possible</div>
-              <div class="type-desc">尽快开始</div>
+              <div class="type-name">{{ t('app.constraintType.ASAP') }}</div>
+              <div class="type-desc">{{ t('app.constraintType.ASAP') }}</div>
             </div>
             <div class="constraint-type-card">
               <div class="type-code">ALAP</div>
-              <div class="type-name">As Late As Possible</div>
-              <div class="type-desc">尽可能晚开始</div>
+              <div class="type-name">{{ t('app.constraintType.ALAP') }}</div>
+              <div class="type-desc">{{ t('app.constraintType.ALAP') }}</div>
             </div>
           </div>
         </div>
@@ -258,9 +252,9 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
           </svg>
-          导出报告
+          {{ t('app.exportReport') }}
         </button>
-        <button class="metro-btn metro-btn-primary" @click="$emit('close')">关闭</button>
+        <button class="metro-btn metro-btn-primary" @click="$emit('close')">{{ t('app.close') }}</button>
       </div>
     </div>
   </div>
@@ -270,6 +264,9 @@
 import { defineComponent, ref, computed } from 'vue'
 import type { ConstraintValidationResult } from '../components/gantt/features/TaskConstraintManager'
 import StatCard from './StatCard.vue'
+import { useI18n } from '../locales'
+
+const { t } = useI18n()
 
 export default defineComponent({
   name: 'ConstraintValidationDialog',
@@ -343,17 +340,7 @@ export default defineComponent({
     })
 
     const getConstraintTypeLabel = (type: string): string => {
-      const labels: Record<string, string> = {
-        'SNET': '不早于...开始',
-        'SNLT': '不晚于...开始',
-        'FNET': '不早于...完成',
-        'FNLT': '不晚于...完成',
-        'MSO': '必须在...开始',
-        'MFO': '必须在...完成',
-        'ASAP': '尽快开始',
-        'ALAP': '尽可能晚开始'
-      }
-      return labels[type] || type
+      return t(`app.constraintType.${type}`)
     }
 
     const formatDate = (date?: string): string => {
@@ -363,37 +350,37 @@ export default defineComponent({
 
     const exportReport = () => {
       const lines: string[] = []
-      lines.push('任务约束验证报告')
+      lines.push(t('app.constraintReportTitle'))
       lines.push('='.repeat(50))
-      lines.push(`生成时间: ${new Date().toLocaleString('zh-CN')}`)
-      lines.push(`总任务数: ${props.results.length}`)
-      lines.push(`通过验证: ${validTasksCount.value}`)
-      lines.push(`约束冲突: ${totalViolations.value}`)
-      lines.push(`警告数量: ${totalWarnings.value}`)
+      lines.push(`${t('app.constraintReportGenerationTime')}: ${new Date().toLocaleString(t('app.localeKey') || 'zh-CN')}`)
+      lines.push(`${t('app.constraintReportTotalTasks')}: ${props.results.length}`)
+      lines.push(`${t('app.constraintReportPassedValidation')}: ${validTasksCount.value}`)
+      lines.push(`${t('app.constraintReportConflicts')}: ${totalViolations.value}`)
+      lines.push(`${t('app.constraintReportWarnings')}: ${totalWarnings.value}`)
       lines.push('')
 
       const problematicTasks = props.results.filter(r => !r.isValid || r.warnings.length > 0)
       if (problematicTasks.length > 0) {
-        lines.push('任务详情:')
+        lines.push(t('app.constraintReportTaskDetails') + ':')
         lines.push('-'.repeat(50))
 
         problematicTasks.forEach(task => {
-          lines.push(`\n任务: ${task.taskName} (ID: ${task.taskId})`)
+          lines.push(`\n${t('app.constraintReportTask')}: ${task.taskName} ${t('app.constraintReportTaskIdPrefix')}${task.taskId}${t('app.constraintReportTaskIdSuffix')}`)
 
           if (task.violations.length > 0) {
-            lines.push('  约束冲突:')
+            lines.push(`  ${t('app.constraintReportViolations')}:`)
             task.violations.forEach((v, idx) => {
               lines.push(`    ${idx + 1}. [${getConstraintTypeLabel(v.constraintType)}] ${v.message}`)
-              if (v.currentDate) lines.push(`       当前日期: ${formatDate(v.currentDate)}`)
-              if (v.constraintDate) lines.push(`       约束日期: ${formatDate(v.constraintDate)}`)
+              if (v.currentDate) lines.push(`       ${t('app.constraintReportCurrentDate')}: ${formatDate(v.currentDate)}`)
+              if (v.constraintDate) lines.push(`       ${t('app.constraintReportConstraintDate')}: ${formatDate(v.constraintDate)}`)
             })
           }
 
           if (task.warnings.length > 0) {
-            lines.push('  警告:')
+            lines.push(`  ${t('app.constraintReportWarning')}:`)
             task.warnings.forEach((w, idx) => {
               lines.push(`    ${idx + 1}. ${w.message}`)
-              if (w.suggestion) lines.push(`       建议: ${w.suggestion}`)
+              if (w.suggestion) lines.push(`       ${t('app.constraintReportSuggestion')}: ${w.suggestion}`)
             })
           }
         })
@@ -403,7 +390,7 @@ export default defineComponent({
       const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
       const link = document.createElement('a')
       link.href = URL.createObjectURL(blob)
-      link.download = `约束验证报告_${new Date().toISOString().split('T')[0]}.txt`
+      link.download = `${t('app.constraintReportFilename')}_${new Date().toISOString().split('T')[0]}.txt`
       link.click()
     }
 
@@ -416,7 +403,8 @@ export default defineComponent({
       getConstraintTypeLabel,
       formatDate,
       exportReport,
-      getTaskName
+      getTaskName,
+      t
     }
   }
 })

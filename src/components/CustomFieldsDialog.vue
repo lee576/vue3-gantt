@@ -2,15 +2,14 @@
   <div v-if="show" class="modal-overlay" @click.self="$emit('close')">
     <div class="custom-fields-dialog">
       <div class="dialog-header">
-        <h2>自定义字段管理</h2>
+        <h2>{{ t('app.customFieldsTitle') }}</h2>
         <button class="close-btn" @click="$emit('close')">×</button>
       </div>
       <div class="dialog-body">
-        <!-- 已有字段列表 -->
         <div class="fields-list">
-          <h3>已添加的字段</h3>
+          <h3>{{ t('app.addedFields') }}</h3>
           <div v-if="customFields.length === 0" class="empty-state">
-            <p>暂无自定义字段，点击下方按钮添加</p>
+            <p>{{ t('app.noFieldsAdd') }}</p>
           </div>
           <div v-else class="field-items">
             <div v-for="(field, index) in customFields" :key="field.id" class="field-item">
@@ -18,24 +17,24 @@
                 <div class="field-name">
                   <strong>{{ field.label }}</strong>
                   <span class="field-type-badge">{{ getFieldTypeLabel(field.type) }}</span>
-                  <span v-if="field.required" class="required-badge">必填</span>
+                  <span v-if="field.required" class="required-badge">{{ t('app.required') }}</span>
                 </div>
                 <div class="field-meta">
-                  <span v-if="field.placeholder">占位符: {{ field.placeholder }}</span>
+                  <span v-if="field.placeholder">{{ t('app.placeholderColon') }} {{ field.placeholder }}</span>
                   <span v-if="field.options && field.options.length > 0">
-                    选项: {{ field.options.join(', ') }}
+                    {{ t('app.optionsColon') }} {{ field.options.join(', ') }}
                   </span>
                 </div>
               </div>
               <div class="field-actions">
-                <button class="icon-btn" @click="$emit('edit-field', index)" title="编辑">
+                <button class="icon-btn" @click="$emit('edit-field', index)" :title="t('app.edit')">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                     <path
                       d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
                     />
                   </svg>
                 </button>
-                <button class="icon-btn delete" @click="$emit('delete-field', index)" title="删除">
+                <button class="icon-btn delete" @click="$emit('delete-field', index)" :title="t('app.delete')">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                     <path
                       d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
@@ -47,15 +46,14 @@
           </div>
         </div>
 
-        <!-- 添加/编辑字段表单 -->
         <div class="add-field-section">
-          <h3>{{ editingFieldIndex !== null ? '编辑字段' : '添加新字段' }}</h3>
+          <h3>{{ editingFieldIndex !== null ? t('app.editField') : t('app.addNewField') }}</h3>
           <div class="form-group">
-            <label>字段名称 <span class="required-mark">*</span></label>
+            <label>{{ t('app.fieldName') }} <span class="required-mark">*</span></label>
             <input
               v-model="newField.label"
               type="text"
-              placeholder="例如: 负责人"
+              :placeholder="t('app.enterFieldName')"
               :class="{ error: customFieldFormErrors.label }"
             />
             <div v-if="customFieldFormErrors.label" class="error-message">
@@ -64,15 +62,15 @@
           </div>
 
           <div class="form-group">
-            <label>字段类型 <span class="required-mark">*</span></label>
+            <label>{{ t('app.fieldType') }} <span class="required-mark">*</span></label>
             <select v-model="newField.type" :class="{ error: customFieldFormErrors.type }">
-              <option value="text">文本</option>
-              <option value="number">数字</option>
-              <option value="date">日期</option>
-              <option value="datetime">日期时间</option>
-              <option value="select">下拉选择</option>
-              <option value="textarea">多行文本</option>
-              <option value="checkbox">复选框</option>
+              <option value="text">{{ t('app.typeText') }}</option>
+              <option value="number">{{ t('app.typeNumber') }}</option>
+              <option value="date">{{ t('app.typeDate') }}</option>
+              <option value="datetime">{{ t('app.typeDatetime') }}</option>
+              <option value="select">{{ t('app.typeSelect') }}</option>
+              <option value="textarea">{{ t('app.typeTextarea') }}</option>
+              <option value="checkbox">{{ t('app.typeCheckbox') }}</option>
             </select>
             <div v-if="customFieldFormErrors.type" class="error-message">
               {{ customFieldFormErrors.type }}
@@ -80,25 +78,25 @@
           </div>
 
           <div class="form-group">
-            <label>占位符/提示文本</label>
+            <label>{{ t('app.placeholderText') }}</label>
             <input
               v-model="newField.placeholder"
               type="text"
-              placeholder="例如: 请输入负责人姓名"
+              :placeholder="t('app.enterPlaceholder')"
             />
           </div>
 
           <div v-if="newField.type === 'select'" class="form-group">
-            <label>下拉选项 <span class="required-mark">*</span></label>
+            <label>{{ t('app.selectOptions') }} <span class="required-mark">*</span></label>
             <div class="options-input">
               <input
                 :value="newOptionText"
                 @input="$emit('update:newOptionText', $event.target.value)"
                 type="text"
-                placeholder="输入选项后按回车添加"
+                :placeholder="t('app.enterOptionAdd')"
                 @keypress.enter.prevent="$emit('add-option')"
               />
-              <button class="metro-btn metro-btn-sm" @click="$emit('add-option')">添加</button>
+              <button class="metro-btn metro-btn-sm" @click="$emit('add-option')">{{ t('app.add') }}</button>
             </div>
             <div v-if="newField.options.length > 0" class="options-list">
               <div v-for="(option, idx) in newField.options" :key="idx" class="option-item">
@@ -114,7 +112,7 @@
           <div class="form-group">
             <label class="checkbox-label-inline">
               <input type="checkbox" v-model="newField.required" />
-              <span>必填字段</span>
+              <span>{{ t('app.requiredField') }}</span>
             </label>
           </div>
 
@@ -124,7 +122,7 @@
               class="metro-btn"
               @click="$emit('cancel-edit')"
             >
-              取消编辑
+              {{ t('app.cancelEdit') }}
             </button>
             <button
               class="metro-btn metro-btn-primary"
@@ -135,13 +133,13 @@
                 (newField.type === 'select' && newField.options.length === 0)
               "
             >
-              {{ editingFieldIndex !== null ? '更新字段' : '添加字段' }}
+              {{ editingFieldIndex !== null ? t('app.updateField') : t('app.addField') }}
             </button>
           </div>
         </div>
       </div>
       <div class="dialog-footer">
-        <button class="metro-btn metro-btn-primary" @click="$emit('save')">保存并关闭</button>
+        <button class="metro-btn metro-btn-primary" @click="$emit('save')">{{ t('app.saveAndClose') }}</button>
       </div>
     </div>
   </div>
@@ -149,6 +147,7 @@
 
 <script lang="ts" setup>
 import type { CustomField } from '../types/task'
+import { t } from '../locales'
 
 defineProps<{
   show: boolean
