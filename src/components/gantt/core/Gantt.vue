@@ -996,9 +996,7 @@ export default defineComponent({
           mapFields.value as unknown as Record<string, string>
         )
         return processedData
-      } catch (error) {
-        console.warn('Worker processing failed, falling back to main thread:', error)
-        // Worker 失败时回退到主线程处理
+      } catch {
         initData.value = []
         let level: number = 0
         RecursionData('0', tasks, level)

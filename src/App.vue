@@ -482,7 +482,6 @@ const eventConfig = ref<EventConfig>({
           task.start_date = startDate
           task.end_date = endDate
         }
-        console.log('任务日期更新成功:', id, startDate, endDate)
         messageToast.showMessage('任务日期更新成功', 'success')
 
         // 实时更新分析结果

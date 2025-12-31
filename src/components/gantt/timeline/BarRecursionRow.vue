@@ -102,7 +102,7 @@ export default defineComponent({
     let lastScrollY = 0
 
     // 注入自定义任务类型判断函数
-    const setTaskType = inject(Symbols.SetTaskTypeSymbol) as ((row: any) => TaskType) | undefined
+    const setTaskType = inject<((row: any) => any) | undefined>(Symbols.SetTaskTypeSymbol, undefined)
 
     // 基线功能
     const { getBaselineDataForTask, baselineDisplayConfig } = useBaseline()

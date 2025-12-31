@@ -77,6 +77,18 @@ export const PerformanceConfig = {
 
   // 启用 Worker 的任务数量阈值(任务数超过此值时使用 Worker)
   WORKER_THRESHOLD: 50,
+
+  // 是否启用基于视口的自动折叠功能
+  ENABLE_VIEWPORT_COLLAPSE: true,
+
+  // 启用自动折叠的任务数量阈值（任务数超过此值时才启用自动折叠）
+  VIEWPORT_COLLAPSE_THRESHOLD: 100,
+
+  // 自动折叠的视口缓冲区（行数），超出此范围的任务会被自动折叠
+  VIEWPORT_COLLAPSE_BUFFER: 20,
+
+  // 自动折叠状态更新的防抖延迟（毫秒）
+  VIEWPORT_COLLAPSE_DEBOUNCE_DELAY: 500,
 }
 
 // 全局 SVG 缓存实例

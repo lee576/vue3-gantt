@@ -51,6 +51,7 @@ export default defineComponent({
 
     const mapFields = computed(() => store.mapFields)
     const collapsedTasks = computed(() => store.collapsedTasks)
+    const autoCollapsedTasks = computed(() => store.autoCollapsedTasks)
 
     // 判断是否启用虚拟滚动
     const useVirtualScroll = computed(() => {
@@ -195,6 +196,81 @@ export default defineComponent({
         }
       },
       { immediate: true }
+    )
+
+    // ========== 视口自动折叠功能 ==========
+    let lastAutoCollapsedIds: Set<string | number> = new Set()
+
+    const updateAutoCollapseState = (): void => {
+      if (
+        !PerformanceConfig.ENABLE_VIEWPORT_COLLAPSE ||
+        filterTask.value.length < PerformanceConfig.VIEWPORT_COLLAPSE_THRESHOLD
+      ) {
+        return
+      }
+
+      const buffer = PerformanceConfig.VIEWPORT_COLLAPSE_BUFFER
+      const visibleStart = startIndex.value
+      const visibleEnd = endIndex.value
+
+      const autoCollapseStart = Math.max(0, visibleStart - buffer)
+      const autoCollapseEnd = Math.min(filterTask.value.length - 1, visibleEnd + buffer)
+
+      const tasksToCollapse = new Set<string | number>()
+
+      for (let i = 0; i < filterTask.value.length; i++) {
+        if (i >= autoCollapseStart && i <= autoCollapseEnd) {
+          continue
+        }
+
+        const task = filterTask.value[i]
+        const taskId = task[mapFields.value['id']]
+
+        const hasChildren = filterTask.value.some(
+          t => t[mapFields.value['parentId']] === taskId
+        )
+
+        if (hasChildren && !collapsedTasks.value.has(taskId)) {
+          tasksToCollapse.add(taskId)
+        }
+      }
+
+      const hasChanged =
+        tasksToCollapse.size !== lastAutoCollapsedIds.size ||
+        ![...tasksToCollapse].every(id => lastAutoCollapsedIds.has(id))
+
+      if (hasChanged) {
+        lastAutoCollapsedIds = new Set(tasksToCollapse)
+        mutations.updateAutoCollapsedTasks(tasksToCollapse)
+      }
+    }
+
+    let autoCollapseTimer: number | null = null
+    const debouncedUpdateAutoCollapse = () => {
+      if (autoCollapseTimer) {
+        clearTimeout(autoCollapseTimer)
+      }
+      autoCollapseTimer = window.setTimeout(() => {
+        updateAutoCollapseState()
+        autoCollapseTimer = null
+      }, PerformanceConfig.VIEWPORT_COLLAPSE_DEBOUNCE_DELAY)
+    }
+
+    // 监听可见范围变化，更新自动折叠状态
+    watch(
+      [startIndex, endIndex],
+      () => {
+        debouncedUpdateAutoCollapse()
+      }
+    )
+
+    // 监听任务变化时清除自动折叠状态
+    watch(
+      () => filterTask.value.length,
+      () => {
+        mutations.clearAutoCollapsedTasks()
+        lastAutoCollapsedIds = new Set()
+      }
     )
 
     const recursionRow = (id: any) => {

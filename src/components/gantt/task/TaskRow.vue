@@ -159,9 +159,10 @@ export default defineComponent({
     const mapFields = computed(() => store.mapFields)
     const subTask = computed(() => store.subTask)
     const collapsedTasks = computed(() => store.collapsedTasks)
+    const autoCollapsedTasks = computed(() => store.autoCollapsedTasks)
 
-    void inject('barHover') // barHover 预留
-    const addRootTask = inject('addRootTask') as ((row: any) => void) | undefined
+    inject('barHover', null)
+    const addRootTask = inject<((row: any) => void) | undefined>('addRootTask', undefined)
 
     // 判断当前任务是否有子任务
     const hasChildren = computed(() => {
@@ -169,10 +170,10 @@ export default defineComponent({
       return store.tasks.some(task => task[mapFields.value['parentId']] === currentId)
     })
 
-    // 判断当前任务是否已折叠
+    // 判断当前任务是否已折叠（包括手动折叠和自动折叠）
     const isCollapsed = computed(() => {
       const currentId = props.row[mapFields.value['id']]
-      return collapsedTasks.value.has(currentId)
+      return collapsedTasks.value.has(currentId) || autoCollapsedTasks.value.has(currentId)
     })
 
     // 判断是否是最后一个子节点

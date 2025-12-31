@@ -66,7 +66,6 @@ export const taskApi = {
   // 更新任务日期
   async updateTaskDate(taskId: string, startDate: string, endDate: string): Promise<ApiResponse> {
     await this.delay(200)
-    console.log('更新日期请求:', taskId, startDate, endDate)
     return {
       code: 200,
       message: '日期更新成功',

@@ -48,8 +48,10 @@ interface StoreType {
   hourSubMode: GanttHourSubMode
   /** 当前展开/折叠的行状态 */
   expandRow: GanttExpandRow
-  /** 记录已折叠的任务ID集合 */
+  /** 记录已折叠的任务ID集合（手动折叠） */
   collapsedTasks: Set<string | number>
+  /** 记录自动折叠的任务ID集合（基于视口自动折叠） */
+  autoCollapsedTasks: Set<string | number>
   /** 全局折叠状态：true表示所有节点都折叠，false表示所有节点都展开 */
   allCollapsed: boolean
   /** 缓存所有被折叠的任务ID（包括子孙任务） */
@@ -90,6 +92,7 @@ const initialStore: StoreType = {
     expand: true,
   },
   collapsedTasks: new Set(),
+  autoCollapsedTasks: new Set(),
   allCollapsed: false, // 默认全部展开
   allCollapsedTaskIds: new Set(), // 缓存所有被折叠的任务ID（包括子孙任务）
   rootTask: {},
@@ -207,6 +210,10 @@ interface MutationsType {
   setBarDate: (barDate: GanttBarDate) => void
   /** 设置是否允许修改任务日期 */
   setAllowChangeTaskDate: (task: Partial<GanttTask>) => void
+  /** 更新自动折叠的任务ID集合 */
+  updateAutoCollapsedTasks: (taskIds: Set<string | number>) => void
+  /** 清除所有自动折叠状态 */
+  clearAutoCollapsedTasks: () => void
 }
 
 // 定义 Mutations
@@ -317,5 +324,11 @@ export let mutations: MutationsType = {
   },
   setAllowChangeTaskDate(allow: boolean): void {
     store.allowChangeTaskDate = allow
+  },
+  updateAutoCollapsedTasks(taskIds: Set<string | number>): void {
+    store.autoCollapsedTasks = new Set(taskIds)
+  },
+  clearAutoCollapsedTasks(): void {
+    store.autoCollapsedTasks = new Set()
   },
 }
