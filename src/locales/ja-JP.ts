@@ -117,7 +117,6 @@ export default {
   'app.optional': 'オプション',
   'app.criticalPathTitle': 'クリティカルパス分析結果',
   'app.dependencyStats': '依存関係統計',
-  'app.projectDuration': 'プロジェクト工期',
   'app.criticalTasks': 'クリティカルタスク',
   'app.criticalPathDuration': 'クリティカルパス期間',
   'app.projectDateRange': 'プロジェクト開始終了日',

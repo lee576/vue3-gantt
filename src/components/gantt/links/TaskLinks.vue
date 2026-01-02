@@ -167,13 +167,6 @@ export default defineComponent({
       )
     })
 
-    // 更新滚动状态（供外部调用）
-    const updateScrollState = (scrollY: number, viewHeight: number) => {
-      scrollTop.value = scrollY
-      containerHeight.value = viewHeight
-      lastScrollY = scrollY
-    }
-
     const visibleLinks = computed(() => {
       if (!useVirtualScroll.value) return links.value
 

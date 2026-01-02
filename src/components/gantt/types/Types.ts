@@ -78,6 +78,8 @@ export interface TaskLink {
   arrowPoints: string
   labelX: number
   labelY: number
+  sourceY: number
+  targetY: number
 }
 
 // 任务依赖关系接口

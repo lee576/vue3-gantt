@@ -7,7 +7,6 @@ import './components/gantt/themes/LiquidGlass.css'
 
 // 导出组件
 export { default as Gantt } from './components/gantt/core/Gantt.vue'
-export { default } from './components/gantt/core/Gantt.vue'
 
 // 导出辅助组件
 export { default as DatePicker } from './components/gantt/config/DatePicker.vue'

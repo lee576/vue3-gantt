@@ -1,4 +1,4 @@
-import { reactive, shallowRef, triggerRef } from 'vue'
+import { reactive, shallowRef } from 'vue'
 
 const sharedState = reactive({
   shouldScrollToToday: false,

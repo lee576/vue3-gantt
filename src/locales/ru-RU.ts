@@ -161,7 +161,6 @@ export default {
   'app.criticalPathDuration': 'Длительность Критического Пути',
   'app.projectDateRange': 'Диапазон Дат Проекта',
   'app.criticalTaskRatio': 'Доля Критических Задач',
-  'app.criticalPath': 'Критический Путь',
   'app.criticalTaskList': 'Список Критических Задач (Общий Резерв = 0)',
   'app.criticalTaskListWithFloat': 'Список Критических Задач (Общий Резерв > 0, Почти Критический Путь)',
   'app.terminology': 'Терминология',
