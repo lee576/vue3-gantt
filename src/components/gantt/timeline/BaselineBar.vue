@@ -20,10 +20,10 @@ import {
   computed,
   watch,
   onMounted,
-  inject,
+  type StyleValue,
 } from 'vue'
 import { store } from '../state/Store'
-import { diff, addDays, parseISO } from '../utils/dateUtils'
+import { diff, parseISO } from '../utils/dateUtils'
 
 export default defineComponent({
   name: 'BaselineBar',
@@ -54,14 +54,14 @@ export default defineComponent({
     const mode = computed(() => store.mode)
     const mapFields = computed(() => store.mapFields)
 
-    const baselineRowStyle = computed(() => ({
+    const baselineRowStyle = computed<StyleValue>(() => ({
       position: 'absolute',
-      top: `${props.rowHeight * 0.15}px`,  // 调整到任务条上方
+      top: `${props.rowHeight * 0.15}px`,
       left: '0',
       width: '100%',
-      height: `${barHeight.value}px`,  // 只占用基线条自身的高度
+      height: `${barHeight.value}px`,
       zIndex: 100,
-      pointerEvents: 'none' as const,
+      pointerEvents: 'none',
     }))
 
     const calculateBaselinePosition = computed(() => {

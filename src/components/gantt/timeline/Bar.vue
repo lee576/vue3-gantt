@@ -30,6 +30,7 @@ import {
   onDeactivated,
   onBeforeUnmount,
   inject,
+  type PropType,
 } from 'vue'
 import interact from 'interactjs'
 import { store, mutations } from '../state/Store'
@@ -39,15 +40,16 @@ import { useBarTheme } from './composables/useBarTheme'
 import { useHover } from './composables/useHover'
 import { useProgress } from './composables/useProgress'
 import { useInteractions } from './composables/useInteractions'
+import type { GanttTask } from '../types/GanttTypes'
 
 export default defineComponent({
   name: 'Bar',
   emits: ['progress-update'],
   props: {
     rowHeight: { type: Number as () => number, default: 0 },
-    row: { type: Object as () => Record<string, any>, default: () => ({}) },
-    startGanttDate: { type: String as () => string },
-    endGanttDate: { type: String as () => string },
+    row: { type: Object as () => GanttTask, default: () => ({}) },
+    startGanttDate: { type: [String, Date] as PropType<string | Date>, required: true },
+    endGanttDate: { type: [String, Date] as PropType<string | Date>, required: true },
   },
   setup(props, { emit }) {
     const bar = ref<SVGSVGElement | null>(null)
@@ -78,7 +80,6 @@ export default defineComponent({
     const { hover: hoverFromComposable, hoverActive, hoverInactive } = useHover(props)
 
     const setBarDate = mutations.setBarDate
-    const setAllowChangeTaskDate = mutations.setAllowChangeTaskDate
 
     // 用于存储交互功能
     let drawBarFromComposable: ((barElement?: SVGSVGElement) => void) | null = null

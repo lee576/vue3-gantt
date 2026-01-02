@@ -118,7 +118,6 @@ export default defineComponent({
       store.endGanttDate ? store.endGanttDate.toISOString() : undefined
     )
     const mapFields = computed(() => store.mapFields)
-    const collapsedTasks = computed(() => store.collapsedTasks)
 
     // 判断是否启用虚拟滚动
     const useVirtualScroll = computed(() => {
