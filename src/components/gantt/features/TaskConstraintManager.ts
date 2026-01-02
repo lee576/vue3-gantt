@@ -2,8 +2,10 @@ import type { GanttTask } from '../types/GanttTypes'
 import type { TaskDependency } from '../types/Types'
 import { LinkType } from '../types/Types'
 import DateUtils from '../utils/dateUtils'
+import { i18n } from '../../../locales'
 
 const { differenceInDays, addDays, parseISO, formatDate: format } = DateUtils
+const t = i18n.global.t
 
 export type ConstraintType =
   | 'ASAP'
@@ -269,7 +271,7 @@ export class ConstraintManager {
               violations.push({
                 constraintId: constraint.id,
                 constraintType: constraint.constraintType,
-                message: `任务开始日期早于约束日期 (${constraint.constraintDate})`,
+                message: t('app.constraintMsg.startDateEarlier', { constraintDate: constraint.constraintDate }),
                 severity: 'error',
                 currentDate: task.start_date,
                 constraintDate: constraint.constraintDate,
@@ -284,7 +286,7 @@ export class ConstraintManager {
               violations.push({
                 constraintId: constraint.id,
                 constraintType: constraint.constraintType,
-                message: `任务开始日期晚于约束日期 (${constraint.constraintDate})`,
+                message: t('app.constraintMsg.startDateLater', { constraintDate: constraint.constraintDate }),
                 severity: 'error',
                 currentDate: task.start_date,
                 constraintDate: constraint.constraintDate,
@@ -299,7 +301,7 @@ export class ConstraintManager {
               violations.push({
                 constraintId: constraint.id,
                 constraintType: constraint.constraintType,
-                message: `任务结束日期早于约束日期 (${constraint.constraintDate})`,
+                message: t('app.constraintMsg.endDateEarlier', { constraintDate: constraint.constraintDate }),
                 severity: 'error',
                 currentDate: task.end_date,
                 constraintDate: constraint.constraintDate,
@@ -314,7 +316,7 @@ export class ConstraintManager {
               violations.push({
                 constraintId: constraint.id,
                 constraintType: constraint.constraintType,
-                message: `任务结束日期晚于约束日期 (${constraint.constraintDate})`,
+                message: t('app.constraintMsg.endDateLater', { constraintDate: constraint.constraintDate }),
                 severity: 'error',
                 currentDate: task.end_date,
                 constraintDate: constraint.constraintDate,
@@ -326,7 +328,7 @@ export class ConstraintManager {
               violations.push({
                 constraintId: constraint.id,
                 constraintType: constraint.constraintType,
-                message: `任务必须在 ${constraint.constraintDate} 开始，但实际开始日期为 ${task.start_date}`,
+                message: t('app.constraintMsg.msoViolation', { constraintDate: constraint.constraintDate, actualDate: task.start_date }),
                 severity: 'error',
                 currentDate: task.start_date,
                 constraintDate: constraint.constraintDate,
@@ -338,7 +340,7 @@ export class ConstraintManager {
               violations.push({
                 constraintId: constraint.id,
                 constraintType: constraint.constraintType,
-                message: `任务必须在 ${constraint.constraintDate} 结束，但实际结束日期为 ${task.end_date}`,
+                message: t('app.constraintMsg.mfoViolation', { constraintDate: constraint.constraintDate, actualDate: task.end_date }),
                 severity: 'error',
                 currentDate: task.end_date,
                 constraintDate: constraint.constraintDate,
@@ -357,15 +359,15 @@ export class ConstraintManager {
 
       if (analysis.totalFloat === 0 && activeConstraints.length > 0) {
         warnings.push({
-          message: '任务在关键路径上，任何延迟都会影响项目工期',
-          suggestion: '考虑为任务添加时间缓冲',
+          message: t('app.constraintMsg.criticalPathWarning'),
+          suggestion: t('app.constraintMsg.criticalPathSuggestion'),
         })
       }
 
       if (analysis.earliestStart > task.start_date) {
         warnings.push({
-          message: `根据依赖关系，任务最早可开始日期为 ${analysis.earliestStart}`,
-          suggestion: '可能需要调整前置任务的完成时间',
+          message: t('app.constraintMsg.dependencyWarning', { earliestDate: analysis.earliestStart }),
+          suggestion: t('app.constraintMsg.dependencySuggestion'),
         })
       }
 
@@ -402,7 +404,7 @@ export class ConstraintManager {
       if (snet && snlt && snet.constraintDate && snlt.constraintDate) {
         if (snet.constraintDate > snlt.constraintDate) {
           conflicts.push(
-            `任务 ${taskId}: SNET (${snet.constraintDate}) 晚于 SNLT (${snlt.constraintDate})`
+            t('app.constraintMsg.snetSnltConflict', { taskId, snetDate: snet.constraintDate, snltDate: snlt.constraintDate })
           )
         }
       }
@@ -410,7 +412,7 @@ export class ConstraintManager {
       if (fnet && fnlt && fnet.constraintDate && fnlt.constraintDate) {
         if (fnet.constraintDate > fnlt.constraintDate) {
           conflicts.push(
-            `任务 ${taskId}: FNET (${fnet.constraintDate}) 晚于 FNLT (${fnlt.constraintDate})`
+            t('app.constraintMsg.fnetFnltConflict', { taskId, fnetDate: fnet.constraintDate, fnltDate: fnlt.constraintDate })
           )
         }
       }
@@ -426,7 +428,7 @@ export class ConstraintManager {
           const mfoDate = parseISO(addDays(msoDate.format('YYYY-MM-DD'), duration - 1))
           if (mfoDate.format('YYYY-MM-DD') !== mfo.constraintDate) {
             conflicts.push(
-              `任务 ${taskId}: MSO 和 MFO 之间的天数与任务持续时间不匹配`
+              t('app.constraintMsg.msoMfoConflict', { taskId })
             )
           }
         }

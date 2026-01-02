@@ -252,14 +252,14 @@ const dataConfig = ref<DataConfig>({
     progress: 'job_progress',
   },
   taskHeaders: [
-    { title: 'id', width: 100, property: 'id', show: false },
-    { title: '父id', width: 100, property: 'parentId', show: false },
-    { title: '序号', width: 160, property: 'no', show: true, fixed: true },
-    { title: '任务名称', width: 190, property: 'task', show: true },
-    { title: '优先级', width: 90, property: 'priority', show: true },
-    { title: '开始时间', width: 150, property: 'startdate', show: true },
-    { title: '结束时间', width: 150, property: 'enddate', show: true },
-    { title: '耗时', width: 90, property: 'takestime', show: true },
+    { title: t('app.header.id'), width: 100, property: 'id', show: false },
+    { title: t('app.header.parentId'), width: 100, property: 'parentId', show: false },
+    { title: t('app.header.no'), width: 160, property: 'no', show: true, fixed: true },
+    { title: t('app.header.task'), width: 190, property: 'task', show: true },
+    { title: t('app.header.priority'), width: 90, property: 'priority', show: true },
+    { title: t('app.header.startdate'), width: 150, property: 'startdate', show: true },
+    { title: t('app.header.enddate'), width: 150, property: 'enddate', show: true },
+    { title: t('app.header.takestime'), width: 90, property: 'takestime', show: true },
   ],
 })
 
@@ -293,14 +293,14 @@ const styleConfig = ref<StyleConfig>({
 // 更新任务表头,将自定义字段添加到列显示中
 const updateTaskHeaders = () => {
   const baseHeaders = [
-    { title: 'id', width: 100, property: 'id', show: false },
-    { title: '父id', width: 100, property: 'parentId', show: false },
-    { title: '序号', width: 160, property: 'no', show: true, fixed: true },
-    { title: '任务名称', width: 190, property: 'task', show: true },
-    { title: '优先级', width: 90, property: 'priority', show: true },
-    { title: '开始时间', width: 150, property: 'startdate', show: true },
-    { title: '结束时间', width: 150, property: 'enddate', show: true },
-    { title: '耗时', width: 90, property: 'takestime', show: true },
+    { title: t('app.header.id'), width: 100, property: 'id', show: false },
+    { title: t('app.header.parentId'), width: 100, property: 'parentId', show: false },
+    { title: t('app.header.no'), width: 160, property: 'no', show: true, fixed: true },
+    { title: t('app.header.task'), width: 190, property: 'task', show: true },
+    { title: t('app.header.priority'), width: 90, property: 'priority', show: true },
+    { title: t('app.header.startdate'), width: 150, property: 'startdate', show: true },
+    { title: t('app.header.enddate'), width: 150, property: 'enddate', show: true },
+    { title: t('app.header.takestime'), width: 90, property: 'takestime', show: true },
   ]
 
   const customFieldHeaders = customFieldsManagement.customFields.value.map(field => ({

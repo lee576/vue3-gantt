@@ -2,8 +2,13 @@ import type { GanttTask } from '../types/GanttTypes'
 import type { TaskDependency } from '../types/Types'
 import { LinkType } from '../types/Types'
 import DateUtils from '../utils/dateUtils'
+import { i18n } from '../../../locales'
 
 const { differenceInDays, addDays, parseISO, formatDate } = DateUtils
+
+const t = (key: string, params?: Record<string, unknown>) => {
+  return i18n.global.t(key, params)
+}
 
 
 
@@ -151,9 +156,9 @@ export class DependencyValidator {
           targetTaskId: dep.targetTaskId,
           type: 'missing-task',
           linkType: dep.type,
-          message: `前置任务 ID ${dep.sourceTaskId} 不存在`,
+          message: t('app.dependencyError.predecessorNotFound', { taskId: String(dep.sourceTaskId) }),
           severity: 'error',
-          resolution: '请检查并移除或替换该依赖关系',
+          resolution: t('app.dependencyResolution.checkAndReplace'),
         })
         continue
       }
@@ -165,9 +170,9 @@ export class DependencyValidator {
           targetTaskId: dep.targetTaskId,
           type: 'missing-task',
           linkType: dep.type,
-          message: `后续任务 ID ${dep.targetTaskId} 不存在`,
+          message: t('app.dependencyError.successorNotFound', { taskId: String(dep.targetTaskId) }),
           severity: 'error',
-          resolution: '请检查并移除或替换该依赖关系',
+          resolution: t('app.dependencyResolution.checkAndReplace'),
         })
         continue
       }
@@ -179,9 +184,9 @@ export class DependencyValidator {
           targetTaskId: dep.targetTaskId,
           type: 'self-reference',
           linkType: dep.type,
-          message: '任务不能与自身建立依赖关系',
+          message: t('app.dependencyError.selfReference'),
           severity: 'error',
-          resolution: '请移除该依赖关系',
+          resolution: t('app.dependencyResolution.removeDependency'),
         })
         continue
       }
@@ -199,9 +204,9 @@ export class DependencyValidator {
           targetTaskId: dep.targetTaskId,
           type: 'invalid-link',
           linkType: dep.type,
-          message: `无效的依赖类型: ${dep.type}`,
+          message: t('app.dependencyError.invalidLinkType', { type: dep.type }),
           severity: 'error',
-          resolution: '请使用 finishToStart、startToStart、finishToFinish 或 startToFinish',
+          resolution: t('app.dependencyResolution.useValidTypes'),
         })
       }
 
@@ -217,9 +222,9 @@ export class DependencyValidator {
           targetTaskId: dep.targetTaskId,
           type: 'date-conflict',
           linkType: dep.type,
-          message: '任务日期与依赖关系冲突',
+          message: t('app.dependencyError.dateConflict'),
           severity: 'error',
-          resolution: '请调整任务日期或依赖关系的滞后时间',
+          resolution: t('app.dependencyResolution.adjustDates'),
         })
       }
 
@@ -230,8 +235,8 @@ export class DependencyValidator {
           targetTaskId: dep.targetTaskId,
           type: 'long-lag',
           linkType: dep.type,
-          message: `依赖关系滞后时间较长 (${dep.lag} 天)`,
-          suggestion: '考虑拆分为多个任务或调整项目计划',
+          message: t('app.dependencyError.longLag', { lag: dep.lag }),
+          suggestion: t('app.dependencySuggestion.considerSplit'),
         })
       }
 
@@ -255,9 +260,9 @@ export class DependencyValidator {
         type: 'cycle',
         sourceTaskId: '',
         targetTaskId: '',
-        message: `检测到循环依赖: ${cycle.description}`,
+        message: t('app.dependencyError.cycleDetected', { description: cycle.description }),
         severity: 'critical',
-        resolution: '请移除循环中的至少一条依赖关系',
+        resolution: t('app.dependencyResolution.removeCycleDependency'),
       })
     }
 
@@ -318,24 +323,27 @@ export class DependencyValidator {
 
     if (indirectPath) {
       redundant.push({
-        message: `存在从 ${sourceTask.taskNo || sourceTask.id} 到 ${targetTask.taskNo || targetTask.id} 的间接路径`,
-        suggestion: '直接依赖可能是冗余的，考虑移除',
+        message: t('app.dependencyError.indirectPath', { 
+          source: String(sourceTask.taskNo || sourceTask.id), 
+          target: String(targetTask.taskNo || targetTask.id) 
+        }),
+        suggestion: t('app.dependencySuggestion.removeRedundant'),
       })
     }
 
     if (
-      currentDep.type === LinkType.FINISH_TO_START &&
-      currentDep.lag === 0 &&
-      sourceTask.end_date <= targetTask.start_date
-    ) {
-      const duration = differenceInDays(targetTask.start_date, sourceTask.end_date)
-      if (duration === 0) {
-        redundant.push({
-          message: '任务结束时间与后续任务开始时间相同，可能存在紧密耦合',
-          suggestion: '确认这是否为预期的紧前关系',
-        })
+        currentDep.type === LinkType.FINISH_TO_START &&
+        currentDep.lag === 0 &&
+        sourceTask.end_date <= targetTask.start_date
+      ) {
+        const duration = differenceInDays(targetTask.start_date, sourceTask.end_date)
+        if (duration === 0) {
+          redundant.push({
+            message: t('app.dependencyError.tightCoupling'),
+            suggestion: t('app.dependencySuggestion.confirmPredecessor'),
+          })
+        }
       }
-    }
 
     return redundant
   }

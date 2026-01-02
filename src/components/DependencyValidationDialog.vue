@@ -296,9 +296,17 @@ export default defineComponent({
     }
 
     // 获取依赖关系类型的中文标签
+    const linkTypeMap: Record<string, string> = {
+      'finish-to-start': 'FS',
+      'start-to-start': 'SS',
+      'finish-to-finish': 'FF',
+      'start-to-finish': 'SF'
+    }
+
     const getLinkTypeLabel = (linkType?: string): string => {
       if (!linkType) return ''
-      return t(`app.linkTypeLabel.${linkType}`) || linkType
+      const key = linkTypeMap[linkType] || linkType
+      return t(`app.linkTypeLabel.${key}`) || linkType
     }
 
     const getErrorTypeLabel = (type: string): string => {

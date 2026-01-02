@@ -6,8 +6,13 @@
 import type { GanttTask } from '../types/GanttTypes'
 import type { TaskDependency } from '../types/Types'
 import DateUtils from '../utils/dateUtils'
+import { i18n } from '../../../locales'
 
 const { differenceInDays, addDays, parseISO, format } = DateUtils
+
+const t = (key: string, params?: Record<string, unknown>) => {
+  return i18n.global.t(key, params)
+}
 
 /**
  * 基线数据接口
@@ -196,24 +201,24 @@ export class BaselineManager {
 
       if (endVariance > 2) {
         status = 'behind'
-        message = `延迟 ${endVariance} 天`
+        message = t('app.baseline.delay', { days: endVariance })
       } else if (endVariance < -2) {
         status = 'ahead'
-        message = `提前 ${Math.abs(endVariance)} 天`
+        message = t('app.baseline.ahead', { days: Math.abs(endVariance) })
       } else if (startVariance > 2) {
         status = 'behind'
-        message = `开始延迟 ${startVariance} 天`
+        message = t('app.baseline.startDelay', { days: startVariance })
       } else if (progressVariance < -10) {
         status = 'behind'
-        message = `进度落后 ${Math.abs(progressVariance).toFixed(0)}%`
+        message = t('app.baseline.progressBehind', { percentage: Math.abs(progressVariance).toFixed(0) })
       } else {
         status = 'on-time'
-        message = '按计划进行'
+        message = t('app.baseline.onTime')
       }
 
       if (status === 'behind' && Math.abs(endVariance) > 5) {
         status = 'critical'
-        message = `严重延迟 ${endVariance} 天！`
+        message = t('app.baseline.severeDelay', { days: endVariance })
       }
 
       comparisons.push({
