@@ -50,7 +50,6 @@ export default {
   'app.dependencyValid': 'Validation des dépendances réussie',
   'app.dependencyValidationSummary': 'Validation des dépendances terminée',
   'app.dependencyValidationFailed': 'Échec de la validation des dépendances, vérifiez les données de dépendance',
-  'app.constraintValidated': 'Validation des contraintes réussie',
   'app.constraintValidationComplete': 'Validation des contraintes terminée',
   'app.totalTasks': '{count} tâches vérifiées',
   'app.violations': '{count} violations de contraintes',

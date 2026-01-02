@@ -50,7 +50,6 @@ export default {
   'app.dependencyValid': '依存関係検証合格',
   'app.dependencyValidationSummary': '依存関係検証完了',
   'app.dependencyValidationFailed': '依存関係検証失敗、依存関係データを確認してください',
-  'app.constraintValidated': '制約検証合格',
   'app.constraintValidationComplete': '制約検証完了',
   'app.totalTasks': '{count} タスクをチェック',
   'app.violations': '{count} 件の制約違反',

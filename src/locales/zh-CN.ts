@@ -50,7 +50,6 @@ export default {
   'app.dependencyValid': '依赖验证通过',
   'app.dependencyValidationSummary': '依赖验证完成',
   'app.dependencyValidationFailed': '依赖验证失败，请检查依赖数据',
-  'app.constraintValidated': '约束验证通过',
   'app.constraintValidationComplete': '约束验证完成',
   'app.totalTasks': '共检查 {count} 个任务',
   'app.violations': '{count} 个约束冲突',

@@ -50,7 +50,6 @@ export default {
   'app.dependencyValid': 'Abhängigkeitsvalidierung bestanden',
   'app.dependencyValidationSummary': 'Abhängigkeitsvalidierung abgeschlossen',
   'app.dependencyValidationFailed': 'Abhängigkeitsvalidierung fehlgeschlagen, bitte Abhängigkeitsdaten überprüfen',
-  'app.constraintValidated': 'Einschränkungsvalidierung bestanden',
   'app.constraintValidationComplete': 'Einschränkungsvalidierung abgeschlossen',
   'app.totalTasks': '{count} Aufgaben überprüft',
   'app.violations': '{count} Einschränkungsverstöße',
@@ -122,7 +121,6 @@ export default {
   'app.issuesFoundToHandle': 'Die folgenden Probleme müssen behoben werden',
   'app.totalDependencies': 'Gesamtabhängigkeiten',
   'app.errors': 'Fehler',
-  'app.warnings': 'Warnungen',
   'app.cyclicDependencies': 'Zyklische Abhängigkeiten',
   'app.all': 'Alle',
   'app.errorList': 'Fehlerliste',
@@ -236,7 +234,6 @@ export default {
   'app.csvSuccessor': 'Nachfolger',
   'app.csvCriticalPathFilename': 'Kritische-Pfad-Analyse',
   'app.dependencyValidationReport': 'Abhängigkeitsvalidierungsbericht',
-  'app.constraintReportTitle': 'Aufgabenbeschränkungsvalidierungsbericht',
   'app.baseline.onTime': 'Pünktlich',
   'app.baseline.severeDelay': 'Schwerwiegende Verspätung von {days} Tagen!',
 }

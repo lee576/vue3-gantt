@@ -50,7 +50,6 @@ export default {
   'app.dependencyValid': 'Проверка зависимостей пройдена',
   'app.dependencyValidationSummary': 'Проверка зависимостей завершена',
   'app.dependencyValidationFailed': 'Проверка зависимостей не удалась, проверьте данные зависимостей',
-  'app.constraintValidated': 'Проверка ограничений пройдена',
   'app.constraintValidationComplete': 'Проверка ограничений завершена',
   'app.totalTasks': 'Проверено задач: {count}',
   'app.violations': '{count} нарушений ограничений',

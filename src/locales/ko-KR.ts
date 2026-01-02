@@ -50,7 +50,6 @@ export default {
   'app.dependencyValid': '종속성 검증 통과',
   'app.dependencyValidationSummary': '종속성 검증 완료',
   'app.dependencyValidationFailed': '종속성 검증 실패, 종속성 데이터를 확인해주세요',
-  'app.constraintValidated': '제약 조건 검증 통과',
   'app.constraintValidationComplete': '제약 조건 검증 완료',
   'app.totalTasks': '{count}개 작업 확인함',
   'app.violations': '{count}개 제약 조건 위반',

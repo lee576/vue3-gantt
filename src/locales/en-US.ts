@@ -50,7 +50,6 @@ export default {
   'app.dependencyValid': 'Dependency validation passed',
   'app.dependencyValidationSummary': 'Dependency validation completed',
   'app.dependencyValidationFailed': 'Dependency validation failed, please check dependency data',
-  'app.constraintValidated': 'Constraint validation passed',
   'app.constraintValidationComplete': 'Constraint validation completed',
   'app.totalTasks': 'Checked {count} tasks',
   'app.violations': '{count} constraint violations',

@@ -50,7 +50,6 @@ export default {
   'app.dependencyValid': 'Validación de dependencias aprobada',
   'app.dependencyValidationSummary': 'Validación de dependencias completada',
   'app.dependencyValidationFailed': 'Validación de dependencias fallida, por favor verifique los datos de dependencias',
-  'app.constraintValidated': 'Validación de restricciones aprobada',
   'app.constraintValidationComplete': 'Validación de restricciones completada',
   'app.totalTasks': '{count} tareas verificadas',
   'app.violations': '{count} violaciones de restricciones',
