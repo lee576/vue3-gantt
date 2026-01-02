@@ -109,7 +109,7 @@ export default defineComponent({
       resizing.value = true
       resizingIndex.value = index
       startX.value = event.clientX
-      startWidth.value = props.headers[index].width
+      startWidth.value = props.headers[index].width ?? 100
 
       // 获取当前列的 DOM 元素
       const target = event.target as HTMLElement

@@ -241,7 +241,6 @@
 <script lang="ts">
 import { defineComponent, computed, ref } from 'vue'
 import type { DependencyValidationResult, DependencyCycle } from '../components/gantt/features/DependencyValidator'
-import { LinkType } from '../components/gantt/types/Types'
 import StatCard from './StatCard.vue'
 import { i18n } from '../locales'
 
@@ -273,7 +272,7 @@ export default defineComponent({
     }
   },
   emits: ['close'],
-  setup(props, { emit }) {
+  setup(props) {
     const filterType = ref<'all' | 'errors' | 'warnings' | 'cycles'>('all')
     const t = i18n.global.t
 

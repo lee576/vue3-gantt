@@ -4,7 +4,7 @@ import { LinkType } from '../types/Types'
 import DateUtils from '../utils/dateUtils'
 import { i18n } from '../../../locales'
 
-const { differenceInDays, addDays, parseISO, formatDate: format } = DateUtils
+const { differenceInDays, addDays, parseISO } = DateUtils
 const t = i18n.global.t
 
 export type ConstraintType =
@@ -59,6 +59,12 @@ export interface ConstraintAnalysis {
   totalFloat: number
   freeFloat: number
   applicableConstraints: TaskConstraint[]
+}
+
+export interface ProjectDateRange {
+  startDate: string
+  endDate: string
+  duration: number
 }
 
 export class ConstraintManager {
@@ -123,7 +129,7 @@ export class ConstraintManager {
     constraintId: string,
     updates: Partial<Omit<TaskConstraint, 'id' | 'taskId' | 'createdAt'>>
   ): TaskConstraint | null {
-    for (const [taskId, taskConstraints] of this.constraints) {
+    for (const [, taskConstraints] of this.constraints) {
       const constraint = taskConstraints.find(c => c.id === constraintId)
       if (constraint) {
         Object.assign(constraint, updates, { updatedAt: new Date().toISOString() })
@@ -149,15 +155,38 @@ export class ConstraintManager {
     return this.getTaskConstraints(taskId).filter(c => c.isActive)
   }
 
+  getProjectDateRange(tasks: GanttTask[]): ProjectDateRange {
+    if (tasks.length === 0) {
+      const today = new Date().toISOString().split('T')[0]
+      return { startDate: today, endDate: today, duration: 0 }
+    }
+    const startDate = tasks.reduce(
+      (min, t) => (t.start_date < min ? t.start_date : min),
+      tasks[0].start_date
+    )
+    const endDate = tasks.reduce(
+      (max, t) => (t.end_date > max ? t.end_date : max),
+      tasks[0].end_date
+    )
+    const duration = differenceInDays(endDate, startDate) + 1
+    return { startDate, endDate, duration }
+  }
+
+  isTaskWithinProjectRange(task: GanttTask, projectRange: ProjectDateRange): boolean {
+    return task.start_date >= projectRange.startDate && task.end_date <= projectRange.endDate
+  }
+
+  getTasksOutsideProjectRange(tasks: GanttTask[], projectRange: ProjectDateRange): GanttTask[] {
+    return tasks.filter(t => !this.isTaskWithinProjectRange(t, projectRange))
+  }
+
   setConstraintActive(constraintId: string, active: boolean): TaskConstraint | null {
     return this.updateConstraint(constraintId, { isActive: active })
   }
 
   analyzeConstraints(
     task: GanttTask,
-    dependencies: TaskDependency[],
-    projectStartDate: string,
-    projectEndDate: string
+    dependencies: TaskDependency[]
   ): ConstraintAnalysis {
     const activeConstraints = this.getActiveConstraints(task.id)
 
@@ -165,7 +194,6 @@ export class ConstraintManager {
     let latestStart = task.start_date
     let earliestFinish = task.end_date
     let latestFinish = task.end_date
-    const duration = differenceInDays(task.end_date, task.start_date) + 1
 
     for (const constraint of activeConstraints) {
       switch (constraint.constraintType) {
@@ -253,13 +281,27 @@ export class ConstraintManager {
     dependencies: TaskDependency[]
   ): ConstraintValidationResult[] {
     const results: ConstraintValidationResult[] = []
-    const projectStartDate = this.getProjectStartDate(tasks)
-    const projectEndDate = this.getProjectEndDate(tasks)
+    const projectRange = this.getProjectDateRange(tasks)
 
     for (const task of tasks) {
       const violations: ConstraintViolation[] = []
       const warnings: ConstraintWarning[] = []
       const activeConstraints = this.getActiveConstraints(task.id)
+
+      if (!this.isTaskWithinProjectRange(task, projectRange)) {
+        violations.push({
+          constraintId: '',
+          constraintType: 'FNET',
+          message: t('app.constraintMsg.taskOutsideProjectRange', {
+            taskName: task.taskNo || String(task.id),
+            startDate: projectRange.startDate,
+            endDate: projectRange.endDate,
+          }),
+          severity: 'error',
+          currentDate: `${task.start_date} - ${task.end_date}`,
+          constraintDate: `${projectRange.startDate} - ${projectRange.endDate}`,
+        })
+      }
 
       for (const constraint of activeConstraints) {
         switch (constraint.constraintType) {
@@ -352,9 +394,7 @@ export class ConstraintManager {
 
       const analysis = this.analyzeConstraints(
         task,
-        dependencies,
-        projectStartDate,
-        projectEndDate
+        dependencies
       )
 
       if (analysis.totalFloat === 0 && activeConstraints.length > 0) {
@@ -438,27 +478,27 @@ export class ConstraintManager {
     return conflicts
   }
 
-  private getProjectStartDate(tasks: GanttTask[]): string {
-    if (tasks.length === 0) return new Date().toISOString().split('T')[0]
-    return tasks.reduce(
-      (min, t) => (t.start_date < min ? t.start_date : min),
-      tasks[0].start_date
-    )
-  }
-
-  private getProjectEndDate(tasks: GanttTask[]): string {
-    if (tasks.length === 0) return new Date().toISOString().split('T')[0]
-    return tasks.reduce(
-      (max, t) => (t.end_date > max ? t.end_date : max),
-      tasks[0].end_date
-    )
-  }
-
-  exportConstraints(): string {
-    const exportData: Record<string, TaskConstraint[]> = {}
-    for (const [taskId, constraints] of this.constraints) {
-      exportData[String(taskId)] = constraints
+  exportConstraints(tasks?: GanttTask[]): string {
+    const exportData: Record<string, any> = {
+      constraints: {} as Record<string, TaskConstraint[]>,
     }
+    
+    if (tasks && tasks.length > 0) {
+      const projectRange = this.getProjectDateRange(tasks)
+      exportData.projectRange = projectRange
+      exportData.projectInfo = {
+        name: 'Project',
+        startDate: projectRange.startDate,
+        endDate: projectRange.endDate,
+        duration: projectRange.duration,
+        exportedAt: new Date().toISOString(),
+      }
+    }
+    
+    for (const [taskId, constraints] of this.constraints) {
+      exportData.constraints[String(taskId)] = constraints
+    }
+    
     return JSON.stringify(exportData, null, 2)
   }
 

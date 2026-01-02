@@ -3,7 +3,6 @@ import type {
   GanttTask,
   GanttTaskHeader,
   GanttMapFields,
-  GanttHeader,
   GanttExpandRow,
   GanttBarDate,
   GanttViewMode,
@@ -78,7 +77,16 @@ const initialStore: StoreType = {
   hourHeaders: [],
   tasks: [],
   taskHeaders: [],
-  mapFields: {},
+  mapFields: {
+    id: 'id',
+    parentId: 'pid',
+    task: 'taskNo',
+    priority: 'level',
+    startdate: 'start_date',
+    enddate: 'end_date',
+    takestime: 'spend_time',
+    progress: 'job_progress',
+  },
   scale: 90,
   timelineCellCount: 0,
   startGanttDate: null,
@@ -99,7 +107,7 @@ const initialStore: StoreType = {
   subTask: {},
   editTask: {},
   removeTask: {},
-  allowChangeTaskDate: {},
+  allowChangeTaskDate: false,
   barDate: {
     id: '',
     startDate: '',
@@ -209,7 +217,7 @@ interface MutationsType {
   /** 设置任务日期变更数据 */
   setBarDate: (barDate: GanttBarDate) => void
   /** 设置是否允许修改任务日期 */
-  setAllowChangeTaskDate: (task: Partial<GanttTask>) => void
+  setAllowChangeTaskDate: (allow: boolean) => void
   /** 更新自动折叠的任务ID集合 */
   updateAutoCollapsedTasks: (taskIds: Set<string | number>) => void
   /** 清除所有自动折叠状态 */

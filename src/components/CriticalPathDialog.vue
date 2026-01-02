@@ -389,7 +389,7 @@ export default defineComponent({
     }
   },
   emits: ['close'],
-  setup(props, { emit }) {
+  setup(props) {
     const showOnlyCritical = ref(false)
     const showOnlyNonCritical = ref(false)
     const showTerminology = ref(true)

@@ -239,4 +239,5 @@ export default {
   'app.constraintValidationPassedMsg': 'Einschränkungsvalidierung bestanden! {count} Aufgaben geprüft, {warnings} Warnungen',
   'app.constraintValidationFailedMsg': '{conflicts} Einschränkungskonflikte gefunden, {warnings} Warnungen',
   'app.constraintValidationFailedError': 'Einschränkungsvalidierung fehlgeschlagen, bitte Daten prüfen',
+  'app.constraintMsg.taskOutsideProjectRange': 'Aufgabe {taskName} liegt außerhalb des Projektzeitraums ({startDate} - {endDate})',
 }

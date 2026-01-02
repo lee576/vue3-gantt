@@ -16,7 +16,7 @@ import 'dayjs/locale/ru'
 dayjs.extend(customParseFormat)
 dayjs.extend(quarterOfYear)
 dayjs.extend(isoWeek)
-dayjs.extend(isoWeek)
+dayjs.extend(isBetween)
 
 export type LocaleType = 'zh-CN' | 'zh-TW' | 'en-US' | 'ja-JP' | 'ko-KR' | 'fr-FR' | 'de-DE' | 'es-ES' | 'ru-RU'
 
@@ -79,11 +79,11 @@ export class DateUtils {
     return dayjs().locale(this.getDayjsLocale())
   }
 
-  static format(date: string | Date, formatStr: string): string {
+  static format(date: string | Date | dayjs.Dayjs, formatStr: string): string {
     return dayjs(date).locale(this.getDayjsLocale()).format(formatStr)
   }
 
-  static diff(date1: string | Date, date2: string | Date, unit: dayjs.ManipulateType | 'quarter' | 'isoWeek'): number {
+  static diff(date1: string | Date | dayjs.Dayjs, date2: string | Date | dayjs.Dayjs, unit: dayjs.ManipulateType | 'quarter' | 'isoWeek'): number {
     return dayjs(date1).diff(dayjs(date2), unit as dayjs.ManipulateType)
   }
 
@@ -95,7 +95,7 @@ export class DateUtils {
     return dayjs(date).subtract(amount, unit as dayjs.ManipulateType)
   }
 
-  static startOf(date: string | Date, unit: dayjs.OpUnitType | 'quarter' | 'isoWeek'): dayjs.Dayjs {
+  static startOf(date: string | Date | dayjs.Dayjs, unit: dayjs.OpUnitType | 'quarter' | 'isoWeek'): dayjs.Dayjs {
     return dayjs(date).startOf(unit as dayjs.OpUnitType)
   }
 
@@ -149,6 +149,10 @@ export class DateUtils {
 
   static day(date: string | Date | dayjs.Dayjs): number {
     return dayjs(date).day()
+  }
+
+  static isoWeek(date: string | Date | dayjs.Dayjs): number {
+    return dayjs(date).isoWeek()
   }
 
   static getWeekNames(): string[] {
@@ -352,7 +356,7 @@ export class DateUtils {
    * @param date2 开始日期
    * @returns 天数差
    */
-  static differenceInDays(date1: string, date2: string): number {
+  static differenceInDays(date1: string | Date | dayjs.Dayjs, date2: string | Date | dayjs.Dayjs): number {
     const d1 = dayjs(date1);
     const d2 = dayjs(date2);
     return d1.diff(d2, 'day');

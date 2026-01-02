@@ -731,8 +731,8 @@ export default defineComponent({
 
             const isAsian = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value)
             const weekTitle = isAsian
-              ? `第${DateUtils.day(currentDate)}周 (${DateUtils.format(weekStart.toDate(), 'MM/DD')}-${DateUtils.format(weekEnd.toDate(), 'MM/DD')})`
-              : `Week ${DateUtils.day(currentDate)} (${DateUtils.format(weekStart.toDate(), 'MM/DD')}-${DateUtils.format(weekEnd.toDate(), 'MM/DD')})`
+              ? `第${DateUtils.isoWeek(currentDate)}周 (${DateUtils.format(weekStart.toDate(), 'MM/DD')}-${DateUtils.format(weekEnd.toDate(), 'MM/DD')})`
+              : `Week ${DateUtils.isoWeek(currentDate)} (${DateUtils.format(weekStart.toDate(), 'MM/DD')}-${DateUtils.format(weekEnd.toDate(), 'MM/DD')})`
             weekHeaders.value.push({
               title: weekTitle,
               width: scale.value,

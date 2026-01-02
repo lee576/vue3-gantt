@@ -58,6 +58,7 @@ export default defineComponent({
     const monthHeaders = computed(() => store.monthHeaders)
     const hourHeaders = computed(() => store.hourHeaders)
     const startGanttDate = computed(() => store.startGanttDate)
+    const startGanttDateStr = computed(() => startGanttDate.value ? DateUtils.format(startGanttDate.value, 'YYYY-MM-DD') : DateUtils.format(DateUtils.now(), 'YYYY-MM-DD'))
     const mode = computed(() => store.mode)
     const scale = computed(() => store.scale)
 
@@ -68,9 +69,10 @@ export default defineComponent({
     // 滚动到今天的方法
     const scrollToToday = () => {
       if (tableBar.value) {
+        const ganttStart = startGanttDateStr.value
         switch (mode.value) {
           case '季度':
-            const ganttStartMonth = DateUtils.startOf(startGanttDate.value, 'month')
+            const ganttStartMonth = DateUtils.startOf(ganttStart, 'month')
             const currentMonth = DateUtils.startOf(DateUtils.now(), 'month')
             const monthsDiff =
               (DateUtils.year(currentMonth) - DateUtils.year(ganttStartMonth)) * 12 +
@@ -78,7 +80,7 @@ export default defineComponent({
             tableBar.value.scrollLeft = monthsDiff * Number(scale.value)
             break
           case '月':
-            const ganttStartMonth2 = DateUtils.startOf(startGanttDate.value, 'month')
+            const ganttStartMonth2 = DateUtils.startOf(ganttStart, 'month')
             const currentMonth2 = DateUtils.startOf(DateUtils.now(), 'month')
             const monthsDiff2 =
               (DateUtils.year(currentMonth2) - DateUtils.year(ganttStartMonth2)) * 12 +
@@ -87,17 +89,17 @@ export default defineComponent({
             break
           case '日':
             tableBar.value.scrollLeft =
-              Number(DateUtils.diff(DateUtils.now(), startGanttDate.value, 'day')) * Number(scale.value)
+              Number(DateUtils.diff(DateUtils.now(), ganttStart, 'day')) * Number(scale.value)
             break
           case '周':
             const currentWeekStart = DateUtils.startOf(DateUtils.now(), 'isoWeek')
-            const ganttWeekStart = DateUtils.startOf(startGanttDate.value, 'isoWeek')
+            const ganttWeekStart = DateUtils.startOf(ganttStart, 'isoWeek')
             tableBar.value.scrollLeft =
               Number(DateUtils.diff(currentWeekStart, ganttWeekStart, 'week')) * Number(scale.value)
             break
           case '时':
             tableBar.value.scrollLeft =
-              Number(DateUtils.diff(DateUtils.now(), startGanttDate.value, 'hour')) * Number(scale.value)
+              Number(DateUtils.diff(DateUtils.now(), ganttStart, 'hour')) * Number(scale.value)
             break
         }
       }

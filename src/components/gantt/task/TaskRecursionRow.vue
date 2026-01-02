@@ -51,7 +51,6 @@ export default defineComponent({
 
     const mapFields = computed(() => store.mapFields)
     const collapsedTasks = computed(() => store.collapsedTasks)
-    const autoCollapsedTasks = computed(() => store.autoCollapsedTasks)
 
     // 判断是否启用虚拟滚动
     const useVirtualScroll = computed(() => {

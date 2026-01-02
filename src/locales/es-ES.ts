@@ -309,4 +309,5 @@ export default {
   'app.constraintValidationPassedMsg': '¡Validación de restricciones superada! {count} tareas verificadas, {warnings} advertencias',
   'app.constraintValidationFailedMsg': 'Se encontraron {conflicts} conflictos de restricciones, {warnings} advertencias',
   'app.constraintValidationFailedError': 'Validación de restricciones fallida, por favor verifique los datos',
+  'app.constraintMsg.taskOutsideProjectRange': 'La tarea {taskName} está fuera del rango de fechas del proyecto ({startDate} - {endDate})',
 }

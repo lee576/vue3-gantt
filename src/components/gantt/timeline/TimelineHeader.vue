@@ -153,7 +153,6 @@
 <script lang="ts">
 import { defineComponent, toRefs, ref, shallowRef, computed, watch, onMounted, onUnmounted } from 'vue'
 import DateUtils from '../utils/dateUtils'
-import { useI18n } from '../i18n'
 import { store } from '../state/Store'
 
 // 虚拟滚动阈值：超过此数量启用虚拟滚动
@@ -190,7 +189,6 @@ export default defineComponent({
   },
   setup(props) {
     const { weekHeaders, dayHeaders, monthHeaders, hourHeaders } = toRefs(props)
-    const { locale } = useI18n()
 
     const headerContainerRef = ref<HTMLElement | null>(null)
     const scrollLeft = shallowRef(0)

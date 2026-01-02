@@ -105,7 +105,6 @@ export function calcHourPosition(
   const result = DateUtils.calcHourPosition({ start, taskStart, taskEnd, scale, minuteInterval })
   
   if (minuteInterval < 60) {
-    const fromPlanStartMinutes = DateUtils.diff(taskStart, start, 'minutes')
     const spendMinutes = DateUtils.diff(taskEnd, taskStart, 'minutes') + minuteInterval
     const diffHours = Math.floor(spendMinutes / 60)
     const remainMinutes = spendMinutes % 60

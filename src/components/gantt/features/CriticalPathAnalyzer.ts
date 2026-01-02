@@ -4,10 +4,10 @@
  */
 
 import type { GanttTask } from '../types/GanttTypes'
-import type { TaskDependency, LinkType } from '../types/Types'
+import type { TaskDependency } from '../types/Types'
 import DateUtils from '../utils/dateUtils'
 
-const { differenceInDays, addDays, parseISO } = DateUtils
+const { differenceInDays } = DateUtils
 
 /**
  * 任务分析结果
@@ -241,36 +241,6 @@ export class CriticalPathAnalyzer {
   }
 
   /**
-   * 计算自由浮动时间
-   */
-  private calculateFreeFloat(
-    task: GanttTask,
-    analysis: Map<string | number, TaskAnalysis>,
-    earlyFinishDays: number
-  ): number {
-    if (!this.graph) return 0
-
-    const successors = this.graph!.successors.get(task.id) || []
-    if (successors.length === 0) {
-      const projectEnd = differenceInDays(
-        this.getProjectEndDate([task]),
-        this.getProjectStartDate([task])
-      ) + 1
-      return projectEnd - earlyFinishDays
-    }
-
-    let minEarlyStart = Infinity
-    for (const succ of successors) {
-      const succAnalysis = analysis.get(succ.targetTaskId)
-      if (succAnalysis && succAnalysis.earlyStart < minEarlyStart) {
-        minEarlyStart = succAnalysis.earlyStart
-      }
-    }
-
-    return minEarlyStart - earlyFinishDays
-  }
-
-  /**
    * 识别关键任务
    */
   private identifyCriticalTasks(analysis: Map<string | number, TaskAnalysis>): (string | number)[] {
@@ -398,25 +368,6 @@ export class CriticalPathAnalyzer {
     }
 
     return result
-  }
-
-  /**
-   * 计算任务深度
-   */
-  private calculateDepth(taskId: string | number): number {
-    if (!this.graph) return 0
-
-    let depth = 0
-    const predecessors = this.graph.predecessors.get(taskId) || []
-    
-    for (const pred of predecessors) {
-      const predDepth = this.calculateDepth(pred.sourceTaskId)
-      if (predDepth > depth) {
-        depth = predDepth + 1
-      }
-    }
-
-    return depth
   }
 
   /**

@@ -65,6 +65,8 @@ export interface GanttMapFields {
   takestime: string;
   /** 进度字段 */
   progress: string;
+  /** 允许使用字符串索引访问 */
+  [key: string]: string;
 }
 
 /**

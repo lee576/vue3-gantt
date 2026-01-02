@@ -24,6 +24,7 @@
 
 <script lang="ts">
 import { defineComponent, watch, ref, computed, onMounted, onBeforeUnmount, inject } from 'vue'
+import type { PropType } from 'vue'
 import SVG from 'svg.js'
 import interact from 'interactjs'
 import DateUtils from '../utils/dateUtils'
@@ -41,12 +42,12 @@ export default defineComponent({
   props: {
     rowHeight: { type: Number as () => number, default: 0 },
     row: { type: Object as () => Record<string, any>, default: () => ({}) },
-    startGanttDate: { type: String as () => string },
-    endGanttDate: { type: String as () => string },
+    startGanttDate: { type: [String, Number] as PropType<string | number>, required: true },
+    endGanttDate: { type: [String, Number] as PropType<string | number>, required: true },
   },
   setup(props) {
     const milestone = ref<SVGSVGElement | null>(null)
-    const diamondSize = ref(props.rowHeight * 0.6) // 菱形大小
+    const diamondSize = ref(props.rowHeight * 0.6)
     const showRow = ref(true)
     const hover = ref(false)
     const milestoneColor = ref('')
@@ -57,6 +58,8 @@ export default defineComponent({
     const scale = computed(() => store.scale)
     const mode = computed(() => store.mode)
     const mapFields = computed(() => store.mapFields)
+
+    const startGanttDateStr = ref(String(props.startGanttDate ?? ''))
 
     const setBarColor = inject(Symbols.SetBarColorSymbol) as ((row: any) => string) | undefined
 
@@ -85,11 +88,11 @@ export default defineComponent({
     // 计算周末列的索引（用于CSS背景）
     const getWeekendIndices = computed(() => {
       return getWeekendIndicesShared(
-        props.startGanttDate,
+        startGanttDateStr.value,
         timelineCellCount.value,
-        mode.value,
-        store.daySubMode,
-        store.hourSubMode
+        mode.value as string,
+        store.daySubMode!,
+        store.hourSubMode!
       )
     })
 
@@ -169,10 +172,10 @@ export default defineComponent({
       const { bgContent, bgSecondary } = themeColors.value
       return getWeekendColorShared(
         count,
-        props.startGanttDate,
-        mode.value,
-        store.daySubMode,
-        store.hourSubMode,
+        startGanttDateStr.value,
+        mode.value as string,
+        store.daySubMode!,
+        store.hourSubMode!,
         bgContent,
         bgSecondary
       )
@@ -185,38 +188,38 @@ export default defineComponent({
 
       switch (mode.value) {
         case '季度': {
-          const ganttStartQuarter = DateUtils.startOf(props.startGanttDate, 'quarter')
-          const taskStartQuarter = DateUtils.startOf(props.row[mapFields.value.startdate], 'quarter')
+          const ganttStartQuarter = DateUtils.startOf(startGanttDateStr.value, 'quarter')
+          const taskStartQuarter = DateUtils.startOf(props.row[mapFields.value.startdate ?? ''], 'quarter')
           let fromStartQuarters =
             (DateUtils.year(taskStartQuarter) - DateUtils.year(ganttStartQuarter)) * 4 +
             (DateUtils.quarter(taskStartQuarter) - DateUtils.quarter(ganttStartQuarter))
           dataX = scale.value * fromStartQuarters + scale.value / 2
           props.row[mapFields.value.takestime] = '0季度'
-          props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate]
+          props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
           break
         }
         case '月': {
-          const ganttStartMonth = DateUtils.startOf(props.startGanttDate, 'month')
-          const taskStartMonth = DateUtils.startOf(props.row[mapFields.value.startdate], 'month')
+          const ganttStartMonth = DateUtils.startOf(startGanttDateStr.value, 'month')
+          const taskStartMonth = DateUtils.startOf(props.row[mapFields.value.startdate ?? ''], 'month')
           let fromStartMonths =
             (DateUtils.year(taskStartMonth) - DateUtils.year(ganttStartMonth)) * 12 +
             (DateUtils.month(taskStartMonth) - DateUtils.month(ganttStartMonth))
           dataX = scale.value * fromStartMonths + scale.value / 2
-          props.row[mapFields.value.takestime] = '0月'
-          props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate]
+          props.row[mapFields.value.takestime ?? 'takestime'] = '0月'
+          props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
           break
         }
         case '日': {
           const isHalfDay = store.daySubMode === 'half'
 
           let fromPlanStartDays = DateUtils.diff(
-            props.row[mapFields.value.startdate],
-            props.startGanttDate,
+            props.row[mapFields.value.startdate ?? ''],
+            startGanttDateStr.value,
             'days'
           )
 
           if (isHalfDay) {
-            const startHour = DateUtils.hour(props.row[mapFields.value.startdate])
+            const startHour = DateUtils.hour(props.row[mapFields.value.startdate ?? ''])
             const startIsAM = startHour < 12
             const startCellOffset = startIsAM ? 0 : 1
 
@@ -225,28 +228,28 @@ export default defineComponent({
             dataX = scale.value * fromPlanStartDays + scale.value / 2
           }
 
-          props.row[mapFields.value.takestime] = '0' + t('durationUnit.days')
-          props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate]
+          props.row[mapFields.value.takestime ?? 'takestime'] = '0' + t('durationUnit.days')
+          props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
           break
         }
         case '周': {
-          const startGanttWeek = DateUtils.startOf(props.startGanttDate, 'isoWeek')
-          const taskStartWeek = DateUtils.startOf(props.row[mapFields.value.startdate], 'isoWeek')
+          const startGanttWeek = DateUtils.startOf(startGanttDateStr.value, 'isoWeek')
+          const taskStartWeek = DateUtils.startOf(props.row[mapFields.value.startdate ?? ''], 'isoWeek')
           let fromPlanStartWeeks = DateUtils.diff(taskStartWeek, startGanttWeek, 'week')
           dataX = scale.value * fromPlanStartWeeks + scale.value / 2
-          props.row[mapFields.value.takestime] = '0周'
-          props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate]
+          props.row[mapFields.value.takestime ?? 'takestime'] = '0周'
+          props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
           break
         }
         case '时': {
           let fromPlanStartHours = DateUtils.diff(
-            props.row[mapFields.value.startdate],
-            props.startGanttDate,
+            props.row[mapFields.value.startdate ?? ''],
+            startGanttDateStr.value,
             'hours'
           )
           dataX = scale.value * fromPlanStartHours + scale.value / 2
-          props.row[mapFields.value.takestime] = '0小时'
-          props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate]
+          props.row[mapFields.value.takestime ?? 'takestime'] = '0小时'
+          props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
           break
         }
       }
@@ -401,15 +404,15 @@ export default defineComponent({
               if (parentTask) {
                 let parentStartX = 0
                 if (mode.value === '季度') {
-                  const ganttStartQuarter = DateUtils.startOf(props.startGanttDate, 'quarter')
-                  const parentStartQuarter = DateUtils.startOf(parentTask[mapFields.value.startdate], 'quarter')
+                  const ganttStartQuarter = DateUtils.startOf(startGanttDateStr.value, 'quarter')
+                  const parentStartQuarter = DateUtils.startOf(parentTask[mapFields.value.startdate ?? ''], 'quarter')
                   const quartersDiff =
                     (DateUtils.year(parentStartQuarter) - DateUtils.year(ganttStartQuarter)) * 4 +
                     (DateUtils.quarter(parentStartQuarter) - DateUtils.quarter(ganttStartQuarter))
                   parentStartX = quartersDiff * scale.value + scale.value / 2
                 } else if (mode.value === '月') {
-                  const ganttStartMonth = DateUtils.startOf(props.startGanttDate, 'month')
-                  const parentStartMonth = DateUtils.startOf(parentTask[mapFields.value.startdate], 'month')
+                  const ganttStartMonth = DateUtils.startOf(startGanttDateStr.value, 'month')
+                  const parentStartMonth = DateUtils.startOf(parentTask[mapFields.value.startdate ?? ''], 'month')
                   const monthsDiff =
                     (DateUtils.year(parentStartMonth) - DateUtils.year(ganttStartMonth)) * 12 +
                     (DateUtils.month(parentStartMonth) - DateUtils.month(ganttStartMonth))
@@ -418,18 +421,18 @@ export default defineComponent({
                   const isHalfDay = store.daySubMode === 'half'
                   const cellsPerDay = isHalfDay ? 2 : 1
                   parentStartX =
-                    DateUtils.diff(parentTask[mapFields.value.startdate], props.startGanttDate, 'days') *
+                    DateUtils.diff(parentTask[mapFields.value.startdate ?? ''], startGanttDateStr.value, 'days') *
                       scale.value *
                       cellsPerDay +
                     scale.value / 2
                 } else if (mode.value === '周') {
-                  const ganttStartWeek = DateUtils.startOf(props.startGanttDate, 'isoWeek')
-                  const parentStartWeek = DateUtils.startOf(parentTask[mapFields.value.startdate], 'isoWeek')
+                  const ganttStartWeek = DateUtils.startOf(startGanttDateStr.value, 'isoWeek')
+                  const parentStartWeek = DateUtils.startOf(parentTask[mapFields.value.startdate ?? ''], 'isoWeek')
                   parentStartX =
                     DateUtils.diff(parentStartWeek, ganttStartWeek, 'week') * scale.value + scale.value / 2
                 } else if (mode.value === '时') {
                   parentStartX =
-                    DateUtils.diff(parentTask[mapFields.value.startdate], props.startGanttDate, 'hours') *
+                    DateUtils.diff(parentTask[mapFields.value.startdate ?? ''], startGanttDateStr.value, 'hours') *
                       scale.value +
                     scale.value / 2
                 }
@@ -455,13 +458,13 @@ export default defineComponent({
                 const isAM = newCellIndex % 2 === 0
                 const newHour = isAM ? 0 : 12
 
-                const newDate = DateUtils.create(props.startGanttDate)
+                const newDate = DateUtils.create(startGanttDateStr.value)
                   .add(newDays, 'days')
                   .hour(newHour)
                   .minute(0)
                   .second(0)
-                props.row[mapFields.value.startdate] = DateUtils.format(newDate, 'YYYY-MM-DD HH:mm:ss')
-                props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate]
+                props.row[mapFields.value.startdate ?? 'startdate'] = DateUtils.format(newDate, 'YYYY-MM-DD HH:mm:ss')
+                props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
               } else {
                 daysOffset = cellsMoved
               }
@@ -480,44 +483,42 @@ export default defineComponent({
                 const cellInDay = newCellIndex % cellsPerDay
                 const hour = Math.floor(cellInDay / cellsPerHour)
                 const minute = (cellInDay % cellsPerHour) * minuteInterval
-                const newDate = DateUtils.create(props.startGanttDate)
+                const newDate = DateUtils.create(startGanttDateStr.value)
                   .add(days, 'days')
                   .hour(hour)
                   .minute(minute)
                   .second(0)
 
-                props.row[mapFields.value.startdate] = DateUtils.format(newDate, 'YYYY-MM-DD HH:mm:ss')
-                props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate]
+                props.row[mapFields.value.startdate ?? 'startdate'] = DateUtils.format(newDate, 'YYYY-MM-DD HH:mm:ss')
+                props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
               } else {
                 hoursOffset = cellsMoved
               }
             }
 
             const isHalfDayMode = mode.value === '日' && store.daySubMode === 'half'
-            const isHourSubMode =
-              mode.value === '时' && (store.hourSubMode === '15' || store.hourSubMode === '30')
 
             if (mode.value === '季度') {
-              props.row[mapFields.value.startdate] = DateUtils.create(props.row[mapFields.value.startdate])
+              props.row[mapFields.value.startdate ?? 'startdate'] = DateUtils.create(props.row[mapFields.value.startdate ?? 'startdate'])
                 .add(quartersOffset, 'quarters')
                 .format('YYYY-MM-DD HH:mm:ss')
-              props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate]
+              props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
             } else if (mode.value === '月') {
-              props.row[mapFields.value.startdate] = DateUtils.create(props.row[mapFields.value.startdate])
+              props.row[mapFields.value.startdate ?? 'startdate'] = DateUtils.create(props.row[mapFields.value.startdate ?? 'startdate'])
                 .add(monthsOffset, 'months')
                 .format('YYYY-MM-DD HH:mm:ss')
-              props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate]
+              props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
             } else if (mode.value === '时') {
               const minutesOffset = Math.round(hoursOffset * 60)
-              props.row[mapFields.value.startdate] = DateUtils.create(props.row[mapFields.value.startdate])
+              props.row[mapFields.value.startdate ?? 'startdate'] = DateUtils.create(props.row[mapFields.value.startdate ?? 'startdate'])
                 .add(minutesOffset, 'minutes')
                 .format('YYYY-MM-DD HH:mm:ss')
-              props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate]
+              props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
             } else if (!isHalfDayMode) {
-              props.row[mapFields.value.startdate] = DateUtils.create(props.row[mapFields.value.startdate])
+              props.row[mapFields.value.startdate ?? 'startdate'] = DateUtils.create(props.row[mapFields.value.startdate ?? 'startdate'])
                 .add(daysOffset, 'days')
                 .format('YYYY-MM-DD HH:mm:ss')
-              props.row[mapFields.value.enddate] = props.row[mapFields.value.startdate]
+              props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
             }
 
             setBarDate({
@@ -531,7 +532,7 @@ export default defineComponent({
     }
 
     watch(
-      () => [props.row[mapFields.value.startdate]],
+      () => [props.row[mapFields.value.startdate ?? 'startdate']],
       () => {
         if (milestone.value) drawMilestone(milestone.value)
       },

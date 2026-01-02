@@ -333,7 +333,7 @@ function calcDates(
             'YYYY-MM-DD HH:mm:ss'
           )
         case 'diff':
-          return DateUtils.diff(op.date, op.date2, op.unit)
+          return DateUtils.diff(op.date, op.date2 || '', op.unit)
         default:
           return null
       }
@@ -405,6 +405,3 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
     self.postMessage(response)
   }
 }
-
-// 导出类型供主线程使用
-export type { WorkerResponse }

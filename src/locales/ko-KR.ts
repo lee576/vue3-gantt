@@ -291,4 +291,5 @@ export default {
   'app.constraintValidationPassedMsg': '제약 조건 검증 통과! {count}개 작업 검사, {warnings}개 경고',
   'app.constraintValidationFailedMsg': '{conflicts}개 제약 조건 충돌 발견, {warnings}개 경고',
   'app.constraintValidationFailedError': '제약 조건 검증 실패, 데이터를 확인하세요',
+  'app.constraintMsg.taskOutsideProjectRange': '작업 {taskName}이 프로젝트 날짜 범위를 벗어났습니다 ({startDate} - {endDate})',
 }

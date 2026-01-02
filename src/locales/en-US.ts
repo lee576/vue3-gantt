@@ -358,6 +358,7 @@ export default {
   'app.constraintMsg.snetSnltConflict': 'Task {taskId}: SNET ({snetDate}) is later than SNLT ({snltDate})',
   'app.constraintMsg.fnetFnltConflict': 'Task {taskId}: FNET ({fnetDate}) is later than FNLT ({fnltDate})',
   'app.constraintMsg.msoMfoConflict': 'Task {taskId}: Days between MSO and MFO do not match task duration',
+  'app.constraintMsg.taskOutsideProjectRange': 'Task {taskName} is outside the project date range ({startDate} - {endDate})',
   'app.dependencyError.predecessorNotFound': 'Predecessor task ID {taskId} does not exist',
   'app.dependencyError.successorNotFound': 'Successor task ID {taskId} does not exist',
   'app.dependencyError.selfReference': 'A task cannot have a dependency on itself',

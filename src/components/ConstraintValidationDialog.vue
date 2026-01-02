@@ -288,7 +288,7 @@ export default defineComponent({
     }
   },
   emits: ['close'],
-  setup(props, { emit }) {
+  setup(props) {
     const filterType = ref<'all' | 'violations' | 'warnings' | 'valid'>('all')
 
     // 创建任务ID到任务对象的映射

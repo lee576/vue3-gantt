@@ -1,9 +1,9 @@
-import { computed, ref, type EmitsFn } from 'vue'
+import { computed, ref } from 'vue'
 import type { GanttTask, GanttMapFields } from '../../types/GanttTypes'
 
 export function useProgress(
   props: { row: GanttTask },
-  emit: EmitsFn<(event: 'progress-update', detail: { taskId: string | number; oldProgress: number; newProgress: number; task: GanttTask }) => void>,
+  emit: any,
   mapFields: GanttMapFields
 ) {
   const isProgressDragging = ref(false)

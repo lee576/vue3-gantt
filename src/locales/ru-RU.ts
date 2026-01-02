@@ -236,4 +236,5 @@ export default {
   'app.constraintValidationPassedMsg': 'Проверка ограничений пройдена! Проверено {count} задач, {warnings} предупреждений',
   'app.constraintValidationFailedMsg': 'Обнаружено {conflicts} конфликтов ограничений, {warnings} предупреждений',
   'app.constraintValidationFailedError': 'Ошибка проверки ограничений, проверьте данные',
+  'app.constraintMsg.taskOutsideProjectRange': 'Задача {taskName} находится за пределами диапазона дат проекта ({startDate} - {endDate})',
 }

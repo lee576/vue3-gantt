@@ -91,7 +91,7 @@
             <div class="options-input">
               <input
                 :value="newOptionText"
-                @input="$emit('update:newOptionText', $event.target.value)"
+                @input="handleOptionTextInput"
                 type="text"
                 :placeholder="t('app.enterOptionAdd')"
                 @keypress.enter.prevent="$emit('add-option')"
@@ -176,6 +176,15 @@ defineEmits<{
 <script lang="ts">
 export default {
   name: 'CustomFieldsDialog',
+  emits: ['update:newOptionText'],
+  methods: {
+    handleOptionTextInput(event: Event) {
+      const target = event.target as HTMLInputElement
+      if (target?.value !== undefined) {
+        this.$emit('update:newOptionText', target.value)
+      }
+    }
+  }
 }
 </script>
 

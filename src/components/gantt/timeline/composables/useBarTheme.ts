@@ -30,11 +30,17 @@ const findThemeColors = (barEl: SVGSVGElement | null): ThemeColors => {
 export function useBarTheme(bar: Ref<SVGSVGElement | null>, props: { startGanttDate: string | Date; rowHeight: number }) {
   const themeVersion = ref(0)
 
+  const startGanttDateStr = computed(() => {
+    const date = props.startGanttDate
+    if (!date) return ''
+    return date instanceof Date ? date.toISOString().split('T')[0] : date
+  })
+
   const getWeekendIndices = computed(() => {
     return getWeekendIndicesShared(
-      props.startGanttDate,
+      startGanttDateStr.value,
       store.timelineCellCount,
-      store.mode,
+      store.mode || '日',
       store.daySubMode,
       store.hourSubMode
     )
@@ -121,8 +127,8 @@ export function useBarTheme(bar: Ref<SVGSVGElement | null>, props: { startGanttD
     const { bgContent, bgSecondary } = findThemeColors(bar.value)
     return getWeekendColorShared(
       count,
-      props.startGanttDate,
-      store.mode,
+      startGanttDateStr.value,
+      store.mode || '日',
       store.daySubMode,
       store.hourSubMode,
       bgContent,

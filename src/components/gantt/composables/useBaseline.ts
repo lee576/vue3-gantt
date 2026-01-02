@@ -1,4 +1,4 @@
-import { ref, computed, shallowRef, watch } from 'vue'
+import { ref, computed, shallowRef } from 'vue'
 import type { GanttTask } from '../types/GanttTypes'
 import type { TaskDependency } from '../types/Types'
 import {
@@ -59,11 +59,9 @@ export const baselineDisplayConfig = ref<BaselineDisplayConfig>({
 const baselineManager = shallowRef<BaselineManager>(getBaselineManager())
 
 let tasksData: GanttTask[] = []
-let dependenciesData: TaskDependency[] = []
 
-export function setBaselineData(tasks: GanttTask[], dependencies: TaskDependency[]) {
+export function setBaselineData(tasks: GanttTask[], _dependencies: TaskDependency[]) {
   tasksData = tasks
-  dependenciesData = dependencies
 }
 
 export const currentBaseline = computed(() => {

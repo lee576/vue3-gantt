@@ -53,13 +53,13 @@ export default defineComponent({
     const mode = computed(() => store.mode)
 
     const baselineRowStyle = computed(() => ({
-      position: 'absolute',
+      position: 'absolute' as const,
       top: `${props.rowHeight * 0.75}px`,
-      left: '0',
-      width: '100%',
+      left: '0' as const,
+      width: '100%' as const,
       height: `${props.rowHeight}px`,
       zIndex: 40,
-      pointerEvents: 'none',
+      pointerEvents: 'none' as const,
     }))
 
     const calculateBaselinePosition = computed(() => {

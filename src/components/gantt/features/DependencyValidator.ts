@@ -6,8 +6,8 @@ import { i18n } from '../../../locales'
 
 const { differenceInDays, addDays, parseISO, formatDate } = DateUtils
 
-const t = (key: string, params?: Record<string, unknown>) => {
-  return i18n.global.t(key, params)
+const t = (key: string, params?: Record<string, string | number>) => {
+  return i18n.global.t(key, params as Record<string, string | number>)
 }
 
 
@@ -146,8 +146,6 @@ export class DependencyValidator {
     const errors: DependencyError[] = []
     const warnings: DependencyWarning[] = []
 
-    const taskIds = new Set(tasks.map(t => t.id))
-
     for (const dep of dependencies) {
       if (!this.tasks.has(dep.sourceTaskId)) {
         errors.push({
@@ -279,8 +277,6 @@ export class DependencyValidator {
     linkType: LinkType,
     lag: number
   ): boolean {
-    const sourceStart = parseISO(sourceTask.start_date)
-    const sourceEnd = parseISO(sourceTask.end_date)
     const targetStart = parseISO(targetTask.start_date)
     const targetEnd = parseISO(targetTask.end_date)
 
@@ -420,22 +416,20 @@ export class DependencyValidator {
     linkType: LinkType,
     lag: number
   ): TaskDateConflict | null {
-    const sourceStart = parseISO(sourceTask.start_date)
-    const sourceEnd = parseISO(sourceTask.end_date)
     const targetStart = parseISO(targetTask.start_date)
     const targetEnd = parseISO(targetTask.end_date)
 
     switch (linkType) {
       case LinkType.FINISH_TO_START: {
         const expectedStart = parseISO(addDays(sourceTask.end_date, lag))
-        if (targetStart < expectedStart) {
+        if (targetStart.isBefore(expectedStart)) {
           return {
             conflictingTaskId: sourceTask.id,
             conflictingTaskName: sourceTask.taskNo || String(sourceTask.id),
             dependencyType: linkType,
             conflictType: 'start-before-predecessor-start',
             currentValue: targetTask.start_date,
-            expectedValue: formatDate(parseISO(expectedStart), 'yyyy-MM-dd'),
+            expectedValue: formatDate(expectedStart, 'yyyy-MM-dd'),
             lagAdjustment: lag,
           }
         }
@@ -444,14 +438,14 @@ export class DependencyValidator {
 
       case LinkType.START_TO_START: {
         const expectedStart = parseISO(addDays(sourceTask.start_date, lag))
-        if (targetStart < expectedStart) {
+        if (targetStart.isBefore(expectedStart)) {
           return {
             conflictingTaskId: sourceTask.id,
             conflictingTaskName: sourceTask.taskNo || String(sourceTask.id),
             dependencyType: linkType,
             conflictType: 'finish-before-predecessor-finish',
             currentValue: targetTask.start_date,
-            expectedValue: formatDate(parseISO(expectedStart), 'yyyy-MM-dd'),
+            expectedValue: formatDate(expectedStart, 'yyyy-MM-dd'),
             lagAdjustment: lag,
           }
         }
@@ -460,14 +454,14 @@ export class DependencyValidator {
 
       case LinkType.FINISH_TO_FINISH: {
         const expectedEnd = parseISO(addDays(sourceTask.end_date, lag))
-        if (targetEnd < expectedEnd) {
+        if (targetEnd.isBefore(expectedEnd)) {
           return {
             conflictingTaskId: sourceTask.id,
             conflictingTaskName: sourceTask.taskNo || String(sourceTask.id),
             dependencyType: linkType,
             conflictType: 'start-after-successor-finish',
             currentValue: targetTask.end_date,
-            expectedValue: formatDate(parseISO(expectedEnd), 'yyyy-MM-dd'),
+            expectedValue: formatDate(expectedEnd, 'yyyy-MM-dd'),
             lagAdjustment: lag,
           }
         }
@@ -476,14 +470,14 @@ export class DependencyValidator {
 
       case LinkType.START_TO_FINISH: {
         const expectedEnd = parseISO(addDays(sourceTask.start_date, lag))
-        if (targetEnd < expectedEnd) {
+        if (targetEnd.isBefore(expectedEnd)) {
           return {
             conflictingTaskId: sourceTask.id,
             conflictingTaskName: sourceTask.taskNo || String(sourceTask.id),
             dependencyType: linkType,
             conflictType: 'finish-after-successor-end',
             currentValue: targetTask.end_date,
-            expectedValue: formatDate(parseISO(expectedEnd), 'yyyy-MM-dd'),
+            expectedValue: formatDate(expectedEnd, 'yyyy-MM-dd'),
             lagAdjustment: lag,
           }
         }
@@ -580,7 +574,7 @@ export class DependencyValidator {
   private reconstructPath(
     endId: string | number,
     dist: Map<string | number, { duration: number; predecessors: string[] }>
-  ): (string | number)[] {
+  ): string[] {
     const path: (string | number)[] = [endId]
     let currentId: string | number | undefined = endId
 
@@ -594,7 +588,7 @@ export class DependencyValidator {
       currentId = prevId
     }
 
-    return path as string[]
+    return path.map(String)
   }
 
   hasCircularDependencies(tasks: GanttTask[], dependencies: TaskDependency[]): boolean {
@@ -614,8 +608,6 @@ export class DependencyValidator {
 
       const sourceTask = this.tasks.get(dep.sourceTaskId)!
       const targetTask = this.tasks.get(dep.targetTaskId)!
-      const sourceEnd = sourceTask.end_date
-      const targetStart = targetTask.start_date
       const daysDiff = differenceInDays(targetTask.start_date, sourceTask.end_date)
 
       if (daysDiff <= (dep.lag || 0)) {
@@ -715,14 +707,6 @@ export function getDependencyValidator(): DependencyValidator {
     validatorInstance = new DependencyValidator()
   }
   return validatorInstance
-}
-
-function format(date: Date, pattern: string): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-
-  return `${year}-${month}-${day}`
 }
 
 

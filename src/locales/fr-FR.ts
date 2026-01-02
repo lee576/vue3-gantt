@@ -291,4 +291,5 @@ export default {
   'app.constraintValidationPassedMsg': 'Validation des contraintes réussie! {count} tâches vérifiées, {warnings} avertissements',
   'app.constraintValidationFailedMsg': '{conflicts} conflits de contraintes trouvés, {warnings} avertissements',
   'app.constraintValidationFailedError': 'Échec de la validation des contraintes, veuillez vérifier les données',
+  'app.constraintMsg.taskOutsideProjectRange': 'La tâche {taskName} est en dehors de la plage de dates du projet ({startDate} - {endDate})',
 }

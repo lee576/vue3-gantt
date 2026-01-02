@@ -112,10 +112,10 @@ export default defineComponent({
     const scale = computed(() => store.scale)
     const mode = computed(() => store.mode)
     const startGanttDate = computed(() =>
-      store.startGanttDate ? store.startGanttDate.toISOString() : undefined
+      store.startGanttDate ? store.startGanttDate.toISOString() : new Date().toISOString()
     )
     const endGanttDate = computed(() =>
-      store.endGanttDate ? store.endGanttDate.toISOString() : undefined
+      store.endGanttDate ? store.endGanttDate.toISOString() : new Date().toISOString()
     )
     const mapFields = computed(() => store.mapFields)
 

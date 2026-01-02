@@ -358,6 +358,7 @@ export default {
   'app.constraintMsg.snetSnltConflict': '任務 {taskId}: SNET ({snetDate}) 晚於 SNLT ({snltDate})',
   'app.constraintMsg.fnetFnltConflict': '任務 {taskId}: FNET ({fnetDate}) 晚於 FNLT ({fnltDate})',
   'app.constraintMsg.msoMfoConflict': '任務 {taskId}: MSO 和 MFO 之間的天數與任務持續時間不相符',
+  'app.constraintMsg.taskOutsideProjectRange': '任務 {taskName} 超出專案日期範圍 ({startDate} - {endDate})',
   'app.dependencyError.predecessorNotFound': '前置任務 ID {taskId} 不存在',
   'app.dependencyError.successorNotFound': '後續任務 ID {taskId} 不存在',
   'app.dependencyError.selfReference': '任務不能與自身建立相依性',

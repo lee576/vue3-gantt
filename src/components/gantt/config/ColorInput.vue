@@ -3,7 +3,7 @@
     <input
       type="color"
       :value="modelValue"
-      @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+      @input="handleInput"
       @change="$emit('change')"
       class="color-input"
       :class="inputClass"
@@ -42,6 +42,13 @@ export default defineComponent({
     },
   },
   emits: ['update:modelValue', 'change', 'sync'],
+  setup(_props, { emit }) {
+    const handleInput = (event: Event) => {
+      const target = event.target as HTMLInputElement
+      emit('update:modelValue', target.value)
+    }
+    return { handleInput }
+  },
 })
 </script>
 

@@ -522,7 +522,6 @@ export function useInteractions(deps: InteractionDeps) {
 
             if (store.mode === '日' && store.daySubMode === 'half') {
               // 日模式下的半天模式：每个单元格代表半天（上午/下午）
-              const cellsPerDay = 2 // 上午和下午各一个单元格
               const cellWidth = store.scale
               alignedX = Math.round(currentX / cellWidth) * cellWidth
               alignedWidth = Math.round(currentWidth / cellWidth) * cellWidth
@@ -532,7 +531,6 @@ export function useInteractions(deps: InteractionDeps) {
               const minuteInterval = parseInt(hourSubMode)
               if (minuteInterval < 60) {
                 // 15分钟或30分钟模式
-                const cellsPerHour = 60 / minuteInterval
                 const cellWidth = store.scale
                 alignedX = Math.round(currentX / cellWidth) * cellWidth
                 alignedWidth = Math.round(currentWidth / cellWidth) * cellWidth
