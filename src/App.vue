@@ -162,13 +162,10 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed } from 'vue'
 import DateUtils from './components/gantt/utils/dateUtils'
-import Gantt, {
-  type DataConfig,
-  type StyleConfig,
-  type EventConfig,
-} from './components/gantt/core/Gantt.vue'
+import Gantt from './components/gantt/core/Gantt.vue'
 import type { GanttTask } from './components/gantt/types/GanttTypes'
-import { useI18n } from './locales'
+import { type DataConfig, type StyleConfig, type EventConfig, type ProgressUpdateDetail } from './components/gantt/types/Types'
+import { useI18n, getLocale, getClientLocale, setLocale as setI18nLocale } from './locales'
 import TaskDialog from './components/TaskDialog.vue'
 import DeleteConfirmDialog from './components/DeleteConfirmDialog.vue'
 import CustomFieldsDialog from './components/CustomFieldsDialog.vue'
@@ -184,7 +181,6 @@ import { getMockResponse, getPerformanceTestResponse } from './mock/mockData'
 import {
   useBaseline,
   setBaselineData,
-  type Baseline,
 } from './components/gantt/composables/useBaseline'
 import {
   getCriticalPathAnalyzer,
@@ -202,17 +198,23 @@ import {
 // 初始化 Composables
 const messageToast = useMessage()
 const customFieldsManagement = useCustomFields()
-const { t, locale, setLocale } = useI18n()
+const { t, setLocale } = useI18n()
+
+function initializeLocale() {
+  const detectedLocale = getClientLocale()
+  setI18nLocale(detectedLocale)
+  console.log(`[Locale] Auto-detected locale: ${detectedLocale}`)
+}
+
+initializeLocale()
 
 // 初始化基线管理
 const {
   baselineDisplayConfig,
   currentBaseline,
-  allBaselines,
   createBaseline,
   setCurrentBaseline,
   enableBaselineDisplay,
-  getBaselineDataForTask,
   importBaseline,
 } = useBaseline()
 
@@ -418,9 +420,9 @@ const eventConfig = ref<EventConfig>({
   editTask: (task: Partial<GanttTask>) => {
     taskManagement.openEditTaskDialog(String(task.id))
   },
-  updateProgress: async detail => {
+  updateProgress: async (detail: ProgressUpdateDetail) => {
     try {
-      const response = await taskApi.updateProgress(detail.taskId, detail.newProgress)
+      const response = await taskApi.updateProgress(String(detail.taskId), detail.newProgress)
       if (response.code === 200) {
         console.log('进度更新成功:', detail)
         messageToast.showMessage(t('app.progressUpdateSuccess'), 'success')
@@ -430,7 +432,7 @@ const eventConfig = ref<EventConfig>({
       messageToast.showMessage(t('app.progressUpdateFailed'), 'error')
     }
   },
-  queryTask: async (queryStart: string, queryEnd: string, mode: string) => {
+  queryTask: async (queryStart: string, queryEnd: string, _mode: string | number) => {
     dataConfig.value.queryStartDate = queryStart
     dataConfig.value.queryEndDate = queryEnd
 
@@ -515,7 +517,7 @@ const toggleBaseline = () => {
 }
 
 const handleLocaleChange = (locale: string) => {
-  setLocale(locale)
+  setLocale(locale as any)
   messageToast.showMessage(`${t('app.currentLanguage')}: ${t(`app.locale.${locale}`)}`, 'success')
 }
 
@@ -846,6 +848,14 @@ const updateAnalysisResults = () => {
 onMounted(() => {
   customFieldsManagement.loadCustomFields()
   updateTaskHeaders()
+
+  window.addEventListener('languagechange', () => {
+    const newLocale = getClientLocale()
+    if (getLocale() !== newLocale) {
+      setI18nLocale(newLocale)
+      console.log(`[Locale] Language changed to: ${newLocale}`)
+    }
+  })
 
   const startDate = DateUtils.startOf(DateUtils.now().toDate(), 'month').format('YYYY-MM-DD')
   const endDate = DateUtils.endOf(DateUtils.now().toDate(), 'month').format('YYYY-MM-DD')

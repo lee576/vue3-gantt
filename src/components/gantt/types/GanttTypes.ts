@@ -41,6 +41,8 @@ export interface GanttTaskHeader {
   align?: 'left' | 'center' | 'right';
   /** 是否显示 */
   show?: boolean;
+  /** 是否固定列 */
+  fixed?: boolean;
 }
 
 /**

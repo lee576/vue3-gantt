@@ -87,7 +87,7 @@ export class DateUtils {
     return dayjs(date1).diff(dayjs(date2), unit as dayjs.ManipulateType)
   }
 
-  static add(date: string | Date, amount: number, unit: dayjs.ManipulateType | 'quarter' | 'isoWeek'): dayjs.Dayjs {
+  static add(date: string | Date | dayjs.Dayjs, amount: number, unit: dayjs.ManipulateType | 'quarter' | 'isoWeek'): dayjs.Dayjs {
     return dayjs(date).add(amount, unit as dayjs.ManipulateType)
   }
 

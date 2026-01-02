@@ -342,7 +342,7 @@ import { linkDataManager, useLinkConfig } from '../composables/LinkConfig'
 import { useI18n } from '../i18n'
 import { PerformanceConfig } from '../composables/PerformanceConfig'
 import { getWorkerManager, destroyWorkerManager } from '../workers/WorkerManager'
-import type { GanttViewMode, GanttMapFields } from '../types/GanttTypes'
+import type { GanttViewMode, GanttMapFields, GanttTask } from '../types/GanttTypes'
 // 导入日期选择器组件
 import DatePicker from '../config/DatePicker.vue'
 // 导入分割面板组件
@@ -396,8 +396,8 @@ export default defineComponent({
       type: Object as () => {
         headersHeight: number
         rowHeight: number
-        setBarColor: (row: Record<string, any>) => string
-        setTaskType?: (row: Record<string, any>) => import('../types/Types').TaskType
+        setBarColor: (row: GanttTask) => string
+        setTaskType?: (row: GanttTask) => import('../types/Types').TaskType
       },
       required: true,
       default: () => ({
@@ -459,18 +459,18 @@ export default defineComponent({
      */
     eventConfig: {
       type: Object as () => {
-        addRootTask: (row: Record<string, any> | null) => void
-        addSubTask: (task: any) => void
-        removeTask: (task: any) => void
-        editTask: (task: any) => void
+        addRootTask: (row: Partial<GanttTask> | null) => void
+        addSubTask: (task: Partial<GanttTask>) => void
+        removeTask: (task: Partial<GanttTask>) => void
+        editTask: (task: Partial<GanttTask>) => void
         queryTask: (startDate: string, endDate: string, mode: string) => void
-        barDate: (id: any, startDate: string, endDate: string) => void
+        barDate: (id: string | number, startDate: string, endDate: string) => void
         allowChangeTaskDate: (allow: boolean) => void
         updateProgress?: (detail: {
-          taskId: any
+          taskId: string | number
           oldProgress: number
           newProgress: number
-          task: Record<string, any>
+          task: GanttTask
         }) => void
       },
       required: true,
@@ -1395,7 +1395,7 @@ export default defineComponent({
     })
 
     // 设置Bar的颜色,传递到子组件
-    provide(Symbols.SetBarColorSymbol, (row: Record<string, any>) => {
+    provide(Symbols.SetBarColorSymbol, (row: GanttTask) => {
       return props.styleConfig.setBarColor(row)
     })
 

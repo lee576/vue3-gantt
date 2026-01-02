@@ -20,6 +20,18 @@ export type Locale =
   | 'es-ES'
   | 'ru-RU'
 
+const localeMap: Record<string, Locale> = {
+  zh: 'zh-CN', 'zh-CN': 'zh-CN', 'zh-Hans': 'zh-CN',
+  'zh-TW': 'zh-TW', 'zh-Hant': 'zh-TW', 'zh-HK': 'zh-TW',
+  en: 'en-US', 'en-US': 'en-US', 'en-GB': 'en-US',
+  ja: 'ja-JP', 'ja-JP': 'ja-JP',
+  ko: 'ko-KR', 'ko-KR': 'ko-KR',
+  fr: 'fr-FR', 'fr-FR': 'fr-FR',
+  de: 'de-DE', 'de-DE': 'de-DE',
+  es: 'es-ES', 'es-ES': 'es-ES',
+  ru: 'ru-RU', 'ru-RU': 'ru-RU',
+}
+
 const messages: Record<Locale, Record<string, string>> = {
   'zh-CN': zhCN,
   'zh-TW': zhTW,
@@ -32,27 +44,24 @@ const messages: Record<Locale, Record<string, string>> = {
   'ru-RU': ruRU,
 }
 
-const currentLocale = ref<Locale>('zh-CN')
-
-const savedLocale = localStorage.getItem('app-locale') as Locale
-if (savedLocale && messages[savedLocale]) {
-  currentLocale.value = savedLocale
-} else {
-  const browserLang = navigator.language || (navigator as any).userLanguage
-  const localeMap: Record<string, Locale> = {
-    zh: 'zh-CN', 'zh-CN': 'zh-CN', 'zh-Hans': 'zh-CN',
-    'zh-TW': 'zh-TW', 'zh-Hant': 'zh-TW', 'zh-HK': 'zh-TW',
-    en: 'en-US', 'en-US': 'en-US', 'en-GB': 'en-US',
-    ja: 'ja-JP', 'ja-JP': 'ja-JP',
-    ko: 'ko-KR', 'ko-KR': 'ko-KR',
-    fr: 'fr-FR', 'fr-FR': 'fr-FR',
-    de: 'de-DE', 'de-DE': 'de-DE',
-    es: 'es-ES', 'es-ES': 'es-ES',
-    ru: 'ru-RU', 'ru-RU': 'ru-RU',
+export function getClientLocale(): Locale {
+  const envLocale = (import.meta.env.VITE_APP_LOCALE as Locale) ||
+    (import.meta.env.VUE_APP_LOCALE as Locale)
+  if (envLocale && localeMap[envLocale]) {
+    return envLocale
   }
-  const langPrefix = browserLang.split('-')[0]
-  currentLocale.value = localeMap[browserLang] || localeMap[langPrefix] || 'zh-CN'
+
+  const savedLocale = localStorage.getItem('app-locale') as Locale | null
+  if (savedLocale && localeMap[savedLocale]) {
+    return savedLocale
+  }
+
+  const browserLang = navigator.language || (navigator as any).userLanguage
+  const langPrefix = browserLang?.split('-')[0] || 'zh'
+  return localeMap[browserLang] || localeMap[langPrefix] || 'zh-CN'
 }
+
+const currentLocale = ref<Locale>(getClientLocale())
 
 export function t(key: string, params?: Record<string, string | number>): string {
   let message = messages[currentLocale.value]?.[key] || messages['zh-CN']?.[key] || key
