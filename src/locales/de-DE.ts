@@ -236,4 +236,7 @@ export default {
   'app.dependencyValidationReport': 'Abhängigkeitsvalidierungsbericht',
   'app.baseline.onTime': 'Pünktlich',
   'app.baseline.severeDelay': 'Schwerwiegende Verspätung von {days} Tagen!',
+  'app.constraintValidationPassedMsg': 'Einschränkungsvalidierung bestanden! {count} Aufgaben geprüft, {warnings} Warnungen',
+  'app.constraintValidationFailedMsg': '{conflicts} Einschränkungskonflikte gefunden, {warnings} Warnungen',
+  'app.constraintValidationFailedError': 'Einschränkungsvalidierung fehlgeschlagen, bitte Daten prüfen',
 }

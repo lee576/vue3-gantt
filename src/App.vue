@@ -776,8 +776,8 @@ const validateConstraints = () => {
     }
 
     const summaryMsg = totalViolations === 0
-      ? `约束验证通过！共检查 ${results.length} 个任务，${totalWarnings} 个警告`
-      : `发现 ${totalViolations} 个约束冲突，${totalWarnings} 个警告`
+      ? t('app.constraintValidationPassedMsg', { count: results.length, warnings: totalWarnings })
+      : t('app.constraintValidationFailedMsg', { conflicts: totalViolations, warnings: totalWarnings })
 
     messageToast.showMessage(summaryMsg, totalViolations === 0 ? 'success' : 'warning')
 
@@ -785,7 +785,7 @@ const validateConstraints = () => {
     showConstraintDialog.value = true
   } catch (error) {
     console.error('约束验证失败:', error)
-    messageToast.showMessage('约束验证失败，请检查数据', 'error')
+    messageToast.showMessage(t('app.constraintValidationFailedError'), 'error')
   }
 }
 

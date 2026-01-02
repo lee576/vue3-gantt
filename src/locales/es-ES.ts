@@ -306,4 +306,7 @@ export default {
   'app.constraintReportFilename': 'Informe de Validación de Restricciones',
   'app.baseline.onTime': 'A tiempo',
   'app.baseline.severeDelay': '¡Retraso severo de {days} días!',
+  'app.constraintValidationPassedMsg': '¡Validación de restricciones superada! {count} tareas verificadas, {warnings} advertencias',
+  'app.constraintValidationFailedMsg': 'Se encontraron {conflicts} conflictos de restricciones, {warnings} advertencias',
+  'app.constraintValidationFailedError': 'Validación de restricciones fallida, por favor verifique los datos',
 }

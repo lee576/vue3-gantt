@@ -288,4 +288,7 @@ export default {
   'app.dependencyReportPredecessorTask': 'Tâche Prédécesseur',
   'app.dependencyReportSuccessorTask': 'Tâche Successeur',
   'app.cyclicDependency': 'Dépendance Cyclique',
+  'app.constraintValidationPassedMsg': 'Validation des contraintes réussie! {count} tâches vérifiées, {warnings} avertissements',
+  'app.constraintValidationFailedMsg': '{conflicts} conflits de contraintes trouvés, {warnings} avertissements',
+  'app.constraintValidationFailedError': 'Échec de la validation des contraintes, veuillez vérifier les données',
 }

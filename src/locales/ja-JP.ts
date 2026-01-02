@@ -288,4 +288,7 @@ export default {
   'app.dependencyReportPredecessorTask': '先行タスク',
   'app.dependencyReportSuccessorTask': '後続タスク',
   'app.cyclicDependency': '循環依存',
+  'app.constraintValidationPassedMsg': '制約検証通過！{count} タスクをチェック、{warnings} 件の警告',
+  'app.constraintValidationFailedMsg': '{conflicts} 件の制約競合を発見、{warnings} 件の警告',
+  'app.constraintValidationFailedError': '制約検証に失敗しました、データを確認してください',
 }

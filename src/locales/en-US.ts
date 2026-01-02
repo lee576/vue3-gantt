@@ -381,4 +381,7 @@ export default {
   'app.baseline.progressBehind': 'Progress behind by {percentage}%',
   'app.baseline.onTime': 'On track',
   'app.baseline.severeDelay': 'Severely delayed by {days} days!',
+  'app.constraintValidationPassedMsg': 'Constraint validation passed! Checked {count} tasks, {warnings} warnings',
+  'app.constraintValidationFailedMsg': 'Found {conflicts} constraint conflicts, {warnings} warnings',
+  'app.constraintValidationFailedError': 'Constraint validation failed, please check data',
 }

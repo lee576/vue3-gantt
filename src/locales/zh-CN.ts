@@ -382,4 +382,7 @@ export default {
   'app.baseline.progressBehind': '进度落后 {percentage}%',
   'app.baseline.onTime': '按计划进行',
   'app.baseline.severeDelay': '严重延迟 {days} 天！',
+  'app.constraintValidationPassedMsg': '约束验证通过！共检查 {count} 个任务，{warnings} 个警告',
+  'app.constraintValidationFailedMsg': '发现 {conflicts} 个约束冲突，{warnings} 个警告',
+  'app.constraintValidationFailedError': '约束验证失败，请检查数据',
 }

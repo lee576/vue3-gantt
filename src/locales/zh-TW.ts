@@ -381,4 +381,7 @@ export default {
   'app.baseline.progressBehind': '進度落後 {percentage}%',
   'app.baseline.onTime': '按計劃進行',
   'app.baseline.severeDelay': '嚴重延遲 {days} 天！',
+  'app.constraintValidationPassedMsg': '約束驗證通過！共檢查 {count} 個任務，{warnings} 個警告',
+  'app.constraintValidationFailedMsg': '發現 {conflicts} 個約束衝突，{warnings} 個警告',
+  'app.constraintValidationFailedError': '約束驗證失敗，請檢查數據',
 }

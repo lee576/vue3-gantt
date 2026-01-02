@@ -288,4 +288,7 @@ export default {
   'app.dependencyReportPredecessorTask': '선행 작업',
   'app.dependencyReportSuccessorTask': '후속 작업',
   'app.cyclicDependency': '순환 의존성',
+  'app.constraintValidationPassedMsg': '제약 조건 검증 통과! {count}개 작업 검사, {warnings}개 경고',
+  'app.constraintValidationFailedMsg': '{conflicts}개 제약 조건 충돌 발견, {warnings}개 경고',
+  'app.constraintValidationFailedError': '제약 조건 검증 실패, 데이터를 확인하세요',
 }

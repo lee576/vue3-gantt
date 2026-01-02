@@ -233,4 +233,7 @@ export default {
   'app.cyclicDependencyLabel': 'Циклические Зависимости',
   'app.baseline.onTime': 'В срок',
   'app.baseline.severeDelay': 'Серьёзная задержка на {days} дней!',
+  'app.constraintValidationPassedMsg': 'Проверка ограничений пройдена! Проверено {count} задач, {warnings} предупреждений',
+  'app.constraintValidationFailedMsg': 'Обнаружено {conflicts} конфликтов ограничений, {warnings} предупреждений',
+  'app.constraintValidationFailedError': 'Ошибка проверки ограничений, проверьте данные',
 }
