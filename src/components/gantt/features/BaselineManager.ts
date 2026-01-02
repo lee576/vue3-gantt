@@ -8,9 +8,9 @@ import type { TaskDependency } from '../types/Types'
 import DateUtils from '../utils/dateUtils'
 import { i18n } from '../../../locales'
 
-const { differenceInDays, addDays, parseISO, format } = DateUtils
+const { differenceInDays } = DateUtils
 
-const t = (key: string, params?: Record<string, unknown>) => {
+const t = (key: string, params?: Record<string, string | number>) => {
   return i18n.global.t(key, params)
 }
 

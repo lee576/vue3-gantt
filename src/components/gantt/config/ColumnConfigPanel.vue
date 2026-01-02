@@ -78,14 +78,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, type PropType, type Ref, ref, watch } from 'vue'
+import { defineComponent, type PropType, ref, watch } from 'vue'
 import { useI18n } from '../i18n'
 import { ganttThemeManager } from '../themes/GanttThemes'
 
 interface TaskHeader {
   property: string
-  show: boolean
-  width: number
+  show?: boolean
+  width?: number
   title: string
 }
 

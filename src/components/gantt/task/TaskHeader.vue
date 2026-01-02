@@ -47,8 +47,8 @@ export default defineComponent({
     headers: {
       type: Array as () => {
         property: string
-        show: boolean
-        width: number
+        show?: boolean
+        width?: number
         title: string
       }[],
       required: true,
