@@ -281,25 +281,29 @@ export class DependencyValidator {
     const targetEnd = parseISO(targetTask.end_date)
 
     switch (linkType) {
-      case LinkType.FINISH_TO_START:
+      case LinkType.FINISH_TO_START: {
         const fsExpectedStart = addDays(sourceTask.end_date, lag)
         if (targetStart.isBefore(fsExpectedStart)) return true
         break
+      }
 
-      case LinkType.START_TO_START:
+      case LinkType.START_TO_START: {
         const ssExpectedStart = addDays(sourceTask.start_date, lag)
         if (targetStart.isBefore(ssExpectedStart)) return true
         break
+      }
 
-      case LinkType.FINISH_TO_FINISH:
+      case LinkType.FINISH_TO_FINISH: {
         const ffExpectedEnd = addDays(sourceTask.end_date, lag)
         if (targetEnd.isBefore(ffExpectedEnd)) return true
         break
+      }
 
-      case LinkType.START_TO_FINISH:
+      case LinkType.START_TO_FINISH: {
         const sfExpectedEnd = addDays(sourceTask.start_date, lag)
         if (targetEnd.isBefore(sfExpectedEnd)) return true
         break
+      }
     }
 
     return false

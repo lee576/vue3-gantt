@@ -43,7 +43,7 @@ import { useInteractions } from './composables/useInteractions'
 import type { GanttTask } from '../types/GanttTypes'
 
 export default defineComponent({
-  name: 'Bar',
+  name: 'GanttBar',
   emits: ['progress-update'],
   props: {
     rowHeight: { type: Number as () => number, default: 0 },
@@ -74,7 +74,7 @@ export default defineComponent({
       emitProgressUpdate: emitProgressUpdateFromComposable,
     } = useProgress(props, emit, store.mapFields)
 
-    const setBarColor = inject(Symbols.SetBarColorSymbol) as ((row: any) => string) | undefined
+    const setBarColor = inject(Symbols.SetBarColorSymbol) as (() => string) | undefined
 
     // 使用 useHover composables
     const { hover: hoverFromComposable, hoverActive, hoverInactive } = useHover(props)
@@ -82,13 +82,14 @@ export default defineComponent({
     const setBarDate = mutations.setBarDate
 
     // 用于存储交互功能
+    // eslint-disable-next-line no-unused-vars
     let drawBarFromComposable: ((barElement?: SVGSVGElement) => void) | null = null
     let destroyInteractions: (() => void) | null = null
 
     // 初始化交互功能
-    const initInteractions = (barElement: SVGSVGElement) => {
+    const initInteractions = (_barElement: SVGSVGElement) => {
       const interactions = useInteractions({
-        bar: barElement,
+        bar: _barElement,
         barHeight: barHeight.value,
         mapFields: store.mapFields,
         props,
@@ -104,28 +105,28 @@ export default defineComponent({
       destroyInteractions = interactions.destroy
     }
 
-    const drowBar = (barElement: SVGSVGElement) => {
+    const drowBar = (_barElement: SVGSVGElement) => {
       // 使用 useBarGeometry 的计算结果
       const { dataX, width } = computePosition()
       oldBarDataX.value = dataX
       oldBarWidth.value = width
 
       // 设置基本的 SVG 属性
-      const borderColor = getComputedStyle(barElement).getPropertyValue('--border') || '#cecece'
-      barElement.setAttribute('data-x', dataX.toString())
-      barElement.setAttribute('width', oldBarWidth.value.toString())
-      barElement.setAttribute('stroke', borderColor)
-      barElement.setAttribute('stroke-width', '1px')
-      barElement.style.transform = `translate(${dataX}px, 0px)`
+      const borderColor = getComputedStyle(_barElement).getPropertyValue('--border') || '#cecece'
+      _barElement.setAttribute('data-x', dataX.toString())
+      _barElement.setAttribute('width', oldBarWidth.value.toString())
+      _barElement.setAttribute('stroke', borderColor)
+      _barElement.setAttribute('stroke-width', '1px')
+      _barElement.style.transform = `translate(${dataX}px, 0px)`
 
       // 初始化交互功能（如果尚未初始化）
       if (!drawBarFromComposable) {
-        initInteractions(barElement)
+        initInteractions(_barElement)
       }
 
       // 调用交互绘制功能
       if (drawBarFromComposable) {
-        drawBarFromComposable(barElement)
+        drawBarFromComposable(_barElement)
       }
 
       setBarDate({

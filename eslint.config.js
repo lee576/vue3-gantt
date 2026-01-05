@@ -7,22 +7,34 @@ import skipFormatting from 'eslint-config-prettier';
 export default [
   {
     name: 'app/files-to-lint',
-    files: ['**/*.{ts,mts,tsx,vue}']
+    files: ['**/*.{ts,mts,tsx,vue,js,mjs}']
   },
   {
     name: 'app/files-to-ignore',
-    ignores: ['**/dist/**', '**/dist-ssr/**', '**/coverage/**', 'node_modules/**']
+    ignores: ['**/dist/**', '**/dist-ssr/**', '**/coverage/**', 'node_modules/**', 'scripts/**']
   },
   js.configs.recommended,
   {
-    files: ['**/*.ts', '**/*.tsx'],
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.mjs'],
     plugins: {
       '@typescript-eslint': pluginTs
     },
     languageOptions: {
       parser: parserTs,
       ecmaVersion: 'latest',
-      sourceType: 'module'
+      sourceType: 'module',
+      globals: {
+        module: 'readonly',
+        process: 'readonly',
+        require: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        console: 'readonly',
+        defineProps: 'readonly',
+        defineEmits: 'readonly',
+        defineExpose: 'readonly',
+        withDefaults: 'readonly'
+      }
     },
     rules: {
       ...pluginTs.configs.recommended.rules,

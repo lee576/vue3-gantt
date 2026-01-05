@@ -197,38 +197,44 @@ export class ConstraintManager {
 
     for (const constraint of activeConstraints) {
       switch (constraint.constraintType) {
-        case 'SNET':
+        case 'SNET': {
           if (constraint.constraintDate && task.start_date < constraint.constraintDate) {
             earliestStart = constraint.constraintDate
           }
           break
-        case 'SNLT':
+        }
+        case 'SNLT': {
           if (constraint.constraintDate && task.start_date > constraint.constraintDate) {
             latestStart = constraint.constraintDate
           }
           break
-        case 'FNET':
+        }
+        case 'FNET': {
           if (constraint.constraintDate && task.end_date < constraint.constraintDate) {
             earliestFinish = constraint.constraintDate
           }
           break
-        case 'FNLT':
+        }
+        case 'FNLT': {
           if (constraint.constraintDate && task.end_date > constraint.constraintDate) {
             latestFinish = constraint.constraintDate
           }
           break
-        case 'MSO':
+        }
+        case 'MSO': {
           if (constraint.constraintDate) {
             earliestStart = constraint.constraintDate
             latestStart = constraint.constraintDate
           }
           break
-        case 'MFO':
+        }
+        case 'MFO': {
           if (constraint.constraintDate) {
             earliestFinish = constraint.constraintDate
             latestFinish = constraint.constraintDate
           }
           break
+        }
       }
     }
 
@@ -238,26 +244,30 @@ export class ConstraintManager {
         const lag = dep.lag || 0
 
         switch (dep.type) {
-          case LinkType.FINISH_TO_START:
+          case LinkType.FINISH_TO_START: {
             const predEnd = predTask.end_date
             const fsStart = addDays(predEnd, lag)
             if (fsStart > earliestStart) earliestStart = fsStart
             break
-          case LinkType.START_TO_START:
+          }
+          case LinkType.START_TO_START: {
             const predStart = predTask.start_date
             const ssStart = addDays(predStart, lag)
             if (ssStart > earliestStart) earliestStart = ssStart
             break
-          case LinkType.FINISH_TO_FINISH:
+          }
+          case LinkType.FINISH_TO_FINISH: {
             const predEndFF = predTask.end_date
             const ffEnd = addDays(predEndFF, lag)
             if (ffEnd > earliestFinish) earliestFinish = ffEnd
             break
-          case LinkType.START_TO_FINISH:
+          }
+          case LinkType.START_TO_FINISH: {
             const predStartSF = predTask.start_date
             const sfEnd = addDays(predStartSF, lag)
             if (sfEnd > earliestFinish) earliestFinish = sfEnd
             break
+          }
         }
       }
     }
@@ -305,7 +315,7 @@ export class ConstraintManager {
 
       for (const constraint of activeConstraints) {
         switch (constraint.constraintType) {
-          case 'SNET':
+          case 'SNET': {
             if (
               constraint.constraintDate &&
               task.start_date < constraint.constraintDate
@@ -320,7 +330,8 @@ export class ConstraintManager {
               })
             }
             break
-          case 'SNLT':
+          }
+          case 'SNLT': {
             if (
               constraint.constraintDate &&
               task.start_date > constraint.constraintDate
@@ -335,7 +346,8 @@ export class ConstraintManager {
               })
             }
             break
-          case 'FNET':
+          }
+          case 'FNET': {
             if (
               constraint.constraintDate &&
               task.end_date < constraint.constraintDate
@@ -350,7 +362,8 @@ export class ConstraintManager {
               })
             }
             break
-          case 'FNLT':
+          }
+          case 'FNLT': {
             if (
               constraint.constraintDate &&
               task.end_date > constraint.constraintDate
@@ -365,7 +378,8 @@ export class ConstraintManager {
               })
             }
             break
-          case 'MSO':
+          }
+          case 'MSO': {
             if (constraint.constraintDate && task.start_date !== constraint.constraintDate) {
               violations.push({
                 constraintId: constraint.id,
@@ -377,7 +391,8 @@ export class ConstraintManager {
               })
             }
             break
-          case 'MFO':
+          }
+          case 'MFO': {
             if (constraint.constraintDate && task.end_date !== constraint.constraintDate) {
               violations.push({
                 constraintId: constraint.id,
@@ -389,6 +404,7 @@ export class ConstraintManager {
               })
             }
             break
+          }
         }
       }
 

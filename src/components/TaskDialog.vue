@@ -9,7 +9,7 @@
         <div class="form-group">
           <label>{{ t('app.taskName') }}</label>
           <input
-            v-model="taskForm.taskNo"
+            v-model="localTaskForm.taskNo"
             type="text"
             :placeholder="t('app.enterTaskName')"
             :class="{ error: taskFormErrors.taskNo }"
@@ -18,7 +18,7 @@
         </div>
         <div class="form-group">
           <label>{{ t('app.priority') }}</label>
-          <select v-model="taskForm.level">
+          <select v-model="localTaskForm.level">
             <option value="urgent">{{ t('app.urgent') }}</option>
             <option value="important">{{ t('app.important') }}</option>
             <option value="normal">{{ t('app.normal') }}</option>
@@ -29,7 +29,7 @@
           <div class="form-group">
             <label>{{ t('app.startTime') }}</label>
             <input
-              v-model="taskForm.start_date"
+              v-model="localTaskForm.start_date"
               type="datetime-local"
               :class="{ error: taskFormErrors.start_date || taskFormErrors.dateRange }"
             />
@@ -40,7 +40,7 @@
           <div class="form-group">
             <label>{{ t('app.endTime') }}</label>
             <input
-              v-model="taskForm.end_date"
+              v-model="localTaskForm.end_date"
               type="datetime-local"
               :class="{ error: taskFormErrors.end_date || taskFormErrors.dateRange }"
             />
@@ -55,7 +55,7 @@
         <div class="form-group">
           <label>{{ t('app.progress') }}</label>
           <input
-            v-model.number="taskForm.job_progress"
+            v-model.number="localTaskForm.job_progress"
             type="number"
             min="0"
             max="1"
@@ -68,7 +68,7 @@
         </div>
         <div class="form-group" v-if="!isEditMode && !isRootTask">
           <label>{{ t('app.parentTask') }}</label>
-          <select v-model="taskForm.pid">
+          <select v-model="localTaskForm.pid">
             <option value="0">{{ t('app.noRootTask') }}</option>
             <option v-for="task in availableParentTasks" :key="task.id" :value="task.id">
               {{ task.taskNo }}
@@ -89,7 +89,7 @@
 
             <input
               v-if="field.type === 'text'"
-              v-model="taskForm.customFieldValues[field.id]"
+              v-model="localTaskForm.customFieldValues[field.id]"
               type="text"
               :placeholder="field.placeholder || getEnterPlaceholder(field.label)"
               :required="field.required"
@@ -101,7 +101,7 @@
 
             <input
               v-else-if="field.type === 'number'"
-              v-model.number="taskForm.customFieldValues[field.id]"
+              v-model.number="localTaskForm.customFieldValues[field.id]"
               type="number"
               :placeholder="field.placeholder || getEnterPlaceholder(field.label)"
               :required="field.required"
@@ -113,7 +113,7 @@
 
             <input
               v-else-if="field.type === 'date'"
-              v-model="taskForm.customFieldValues[field.id]"
+              v-model="localTaskForm.customFieldValues[field.id]"
               type="date"
               :required="field.required"
               :class="{ error: taskFormErrors[`customField_${field.id}`] }"
@@ -124,7 +124,7 @@
 
             <input
               v-else-if="field.type === 'datetime'"
-              v-model="taskForm.customFieldValues[field.id]"
+              v-model="localTaskForm.customFieldValues[field.id]"
               type="datetime-local"
               :required="field.required"
               :class="{ error: taskFormErrors[`customField_${field.id}`] }"
@@ -135,7 +135,7 @@
 
             <select
               v-else-if="field.type === 'select'"
-              v-model="taskForm.customFieldValues[field.id]"
+              v-model="localTaskForm.customFieldValues[field.id]"
               :required="field.required"
               :class="{ error: taskFormErrors[`customField_${field.id}`] }"
             >
@@ -150,7 +150,7 @@
 
             <textarea
               v-else-if="field.type === 'textarea'"
-              v-model="taskForm.customFieldValues[field.id]"
+              v-model="localTaskForm.customFieldValues[field.id]"
               :placeholder="field.placeholder || getEnterPlaceholder(field.label)"
               :required="field.required"
               rows="3"
@@ -167,7 +167,7 @@
               <input
                 type="checkbox"
                 :id="`checkbox-${field.id}`"
-                v-model="taskForm.customFieldValues[field.id]"
+                v-model="localTaskForm.customFieldValues[field.id]"
                 :class="{ error: taskFormErrors[`customField_${field.id}`] }"
               />
               <label :for="`checkbox-${field.id}`" class="checkbox-label">
@@ -191,14 +191,15 @@
 </template>
 
 <script lang="ts" setup>
-import type { TaskForm, CustomField } from '../types/task'
+import { watch, reactive } from 'vue'
+import type { TaskForm as TaskFormType, CustomField } from '../types/task'
 import { t } from '../locales'
 
-defineProps<{
+const props = defineProps<{
   show: boolean
   isEditMode: boolean
   isRootTask: boolean
-  taskForm: TaskForm
+  taskForm: TaskFormType
   taskFormErrors: Record<string, string>
   customFields: CustomField[]
   availableParentTasks: any[]
@@ -208,6 +209,12 @@ defineEmits<{
   close: []
   save: []
 }>()
+
+const localTaskForm = reactive<TaskFormType>({ ...props.taskForm })
+
+watch(() => props.taskForm, (newVal) => {
+  Object.assign(localTaskForm, newVal)
+}, { deep: true })
 
 function getEnterPlaceholder(fieldLabel: string): string {
   return t('app.enterField', { fieldLabel })

@@ -54,7 +54,8 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props) {
+  emits: ['update:headerWidth'],
+  setup(props, { emit }) {
     const { t } = useI18n()
 
     // 全局折叠状态
@@ -169,10 +170,10 @@ export default defineComponent({
         rafId = null
       }
 
-      // 计算最终宽度并更新到 props
+      // 计算最终宽度并通过 emit 更新
       if (currentHeaderElement.value && resizingIndex.value >= 0) {
         const finalWidth = parseInt(currentHeaderElement.value.style.width)
-        props.headers[resizingIndex.value].width = finalWidth
+        emit('update:headerWidth', { index: resizingIndex.value, width: finalWidth })
       }
 
       resizing.value = false

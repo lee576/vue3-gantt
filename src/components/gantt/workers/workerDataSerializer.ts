@@ -100,6 +100,7 @@ function isCircularRef(parent: any, child: any): boolean {
     try {
       circularRefSet.delete(child)
     } catch {
+      // 忽略清理错误
     }
   }
 }

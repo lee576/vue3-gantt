@@ -395,8 +395,7 @@ export default defineComponent({
     const generateParentChildPath = (
       parent: any,
       child: any,
-      pathType: LinkPathType,
-      _linkId: string
+      pathType: LinkPathType
     ): string => {
       const parentId = parent.id || parent.taskId
       const childId = child.id || child.taskId
@@ -452,8 +451,7 @@ export default defineComponent({
       startX: number,
       startY: number,
       endX: number,
-      endY: number,
-      _childIndex: number
+      endY: number
     ): string => {
       const deltaX = endX - startX
       const { bezierCurvature } = props.linkConfig
@@ -654,7 +652,7 @@ export default defineComponent({
       const deltaY = endY - startY
 
       switch (connectionType) {
-        case 'horizontal':
+        case 'horizontal': {
           // 水平连接（完成-开始）
           if (deltaX > 20 && Math.abs(deltaY) < 10) {
             return `M ${startX} ${startY} L ${endX} ${endY}`
@@ -677,48 +675,55 @@ export default defineComponent({
           const cp2X = endX - curvatureOffset
 
           return `M ${startX} ${startY} C ${cp1X} ${startY} ${cp2X} ${endY} ${endX} ${endY}`
+        }
 
         case 'left-u':
-          // 左侧U型连接（开始-开始）
-          const leftGap = 25
-          const leftOffsetX = Math.min(startX, endX) - leftGap
-          const leftCurvature = leftGap * curvature
+          {
+            // 左侧U型连接（开始-开始）
+            const leftGap = 25
+            const leftOffsetX = Math.min(startX, endX) - leftGap
+            const leftCurvature = leftGap * curvature
 
-          if (Math.abs(deltaY) > getRowHeight()) {
-            const midY = alignToGridCenter((startY + endY) / 2)
-            return `M ${startX} ${startY} 
-                    C ${startX - leftCurvature} ${startY} ${leftOffsetX} ${startY + leftCurvature} ${leftOffsetX} ${midY}
-                    C ${leftOffsetX} ${endY - leftCurvature} ${endX - leftCurvature} ${endY} ${endX} ${endY}`
+            if (Math.abs(deltaY) > getRowHeight()) {
+              const midY = alignToGridCenter((startY + endY) / 2)
+              return `M ${startX} ${startY} 
+                      C ${startX - leftCurvature} ${startY} ${leftOffsetX} ${startY + leftCurvature} ${leftOffsetX} ${midY}
+                      C ${leftOffsetX} ${endY - leftCurvature} ${endX - leftCurvature} ${endY} ${endX} ${endY}`
+            }
+
+            return `M ${startX} ${startY} C ${leftOffsetX} ${startY} ${leftOffsetX} ${endY} ${endX} ${endY}`
           }
-
-          return `M ${startX} ${startY} C ${leftOffsetX} ${startY} ${leftOffsetX} ${endY} ${endX} ${endY}`
 
         case 'right-u':
-          // 右侧U型连接（完成-完成）
-          const rightGap = 25
-          const rightOffsetX = Math.max(startX, endX) + rightGap
-          const rightCurvature = rightGap * curvature
+          {
+            // 右侧U型连接（完成-完成）
+            const rightGap = 25
+            const rightOffsetX = Math.max(startX, endX) + rightGap
+            const rightCurvature = rightGap * curvature
 
-          if (Math.abs(deltaY) > getRowHeight()) {
-            const midY = alignToGridCenter((startY + endY) / 2)
-            return `M ${startX} ${startY} 
-                    C ${startX + rightCurvature} ${startY} ${rightOffsetX} ${startY + rightCurvature} ${rightOffsetX} ${midY}
-                    C ${rightOffsetX} ${endY - rightCurvature} ${endX + rightCurvature} ${endY} ${endX} ${endY}`
+            if (Math.abs(deltaY) > getRowHeight()) {
+              const midY = alignToGridCenter((startY + endY) / 2)
+              return `M ${startX} ${startY} 
+                      C ${startX + rightCurvature} ${startY} ${rightOffsetX} ${startY + rightCurvature} ${rightOffsetX} ${midY}
+                      C ${rightOffsetX} ${endY - rightCurvature} ${endX + rightCurvature} ${endY} ${endX} ${endY}`
+            }
+
+            return `M ${startX} ${startY} C ${rightOffsetX} ${startY} ${rightOffsetX} ${endY} ${endX} ${endY}`
           }
-
-          return `M ${startX} ${startY} C ${rightOffsetX} ${startY} ${rightOffsetX} ${endY} ${endX} ${endY}`
 
         case 'cross':
-          // 交叉连接（开始-完成）
-          if (deltaX > 20 && Math.abs(deltaY) < 10) {
-            return `M ${startX} ${startY} L ${endX} ${endY}`
+          {
+            // 交叉连接（开始-完成）
+            if (deltaX > 20 && Math.abs(deltaY) < 10) {
+              return `M ${startX} ${startY} L ${endX} ${endY}`
+            }
+
+            const crossCurvature = Math.min(Math.abs(deltaX) * curvature, 60)
+            const crossCp1X = startX - crossCurvature
+            const crossCp2X = endX + crossCurvature
+
+            return `M ${startX} ${startY} C ${crossCp1X} ${startY} ${crossCp2X} ${endY} ${endX} ${endY}`
           }
-
-          const crossCurvature = Math.min(Math.abs(deltaX) * curvature, 60)
-          const crossCp1X = startX - crossCurvature
-          const crossCp2X = endX + crossCurvature
-
-          return `M ${startX} ${startY} C ${crossCp1X} ${startY} ${crossCp2X} ${endY} ${endX} ${endY}`
 
         default:
           return `M ${startX} ${startY} L ${endX} ${endY}`
@@ -740,7 +745,7 @@ export default defineComponent({
       const deltaY = endY - startY
 
       switch (connectionType) {
-        case 'horizontal':
+        case 'horizontal': {
           // 水平连接（完成-开始）
           if (deltaX > 20 && Math.abs(deltaY) < 10) {
             return `M ${startX} ${startY} L ${endX} ${endY}`
@@ -798,69 +803,76 @@ export default defineComponent({
           }
 
           return `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`
+        }
 
         case 'left-u':
-          // 左侧U型连接（开始-开始）
-          const leftGap = offset
-          const leftOffsetX = Math.min(startX, endX) - leftGap
+          {
+            // 左侧U型连接（开始-开始）
+            const leftGap = offset
+            const leftOffsetX = Math.min(startX, endX) - leftGap
 
-          if (smoothCorners && cornerRadius > 0) {
-            const r = Math.min(cornerRadius, leftGap / 2, Math.abs(deltaY) / 4)
-            return `M ${startX} ${startY}
-                    L ${leftOffsetX + r} ${startY}
-                    Q ${leftOffsetX} ${startY} ${leftOffsetX} ${startY + (deltaY > 0 ? r : -r)}
-                    L ${leftOffsetX} ${endY - (deltaY > 0 ? r : -r)}
-                    Q ${leftOffsetX} ${endY} ${leftOffsetX + r} ${endY}
-                    L ${endX} ${endY}`
-          }
-
-          return `M ${startX} ${startY} L ${leftOffsetX} ${startY} L ${leftOffsetX} ${endY} L ${endX} ${endY}`
-
-        case 'right-u':
-          // 右侧U型连接（完成-完成）
-          const rightGap = offset
-          const rightOffsetX = Math.max(startX, endX) + rightGap
-
-          if (smoothCorners && cornerRadius > 0) {
-            const r = Math.min(cornerRadius, rightGap / 2, Math.abs(deltaY) / 4)
-            return `M ${startX} ${startY}
-                    L ${rightOffsetX - r} ${startY}
-                    Q ${rightOffsetX} ${startY} ${rightOffsetX} ${startY + (deltaY > 0 ? r : -r)}
-                    L ${rightOffsetX} ${endY - (deltaY > 0 ? r : -r)}
-                    Q ${rightOffsetX} ${endY} ${rightOffsetX - r} ${endY}
-                    L ${endX} ${endY}`
-          }
-
-          return `M ${startX} ${startY} L ${rightOffsetX} ${startY} L ${rightOffsetX} ${endY} L ${endX} ${endY}`
-
-        case 'cross':
-          // 交叉连接（开始-完成）
-          if (deltaX > 20 && Math.abs(deltaY) < 10) {
-            return `M ${startX} ${startY} L ${endX} ${endY}`
-          }
-
-          const crossMidX = startX + deltaX / 2
-
-          if (smoothCorners && cornerRadius > 0) {
-            const r = Math.min(cornerRadius, Math.abs(deltaX) / 4, Math.abs(deltaY) / 2)
-            if (deltaY > 0) {
+            if (smoothCorners && cornerRadius > 0) {
+              const r = Math.min(cornerRadius, leftGap / 2, Math.abs(deltaY) / 4)
               return `M ${startX} ${startY}
-                      L ${crossMidX - r} ${startY}
-                      Q ${crossMidX} ${startY} ${crossMidX} ${startY + r}
-                      L ${crossMidX} ${endY - r}
-                      Q ${crossMidX} ${endY} ${crossMidX + r} ${endY}
-                      L ${endX} ${endY}`
-            } else {
-              return `M ${startX} ${startY}
-                      L ${crossMidX - r} ${startY}
-                      Q ${crossMidX} ${startY} ${crossMidX} ${startY - r}
-                      L ${crossMidX} ${endY + r}
-                      Q ${crossMidX} ${endY} ${crossMidX + r} ${endY}
+                      L ${leftOffsetX + r} ${startY}
+                      Q ${leftOffsetX} ${startY} ${leftOffsetX} ${startY + (deltaY > 0 ? r : -r)}
+                      L ${leftOffsetX} ${endY - (deltaY > 0 ? r : -r)}
+                      Q ${leftOffsetX} ${endY} ${leftOffsetX + r} ${endY}
                       L ${endX} ${endY}`
             }
+
+            return `M ${startX} ${startY} L ${leftOffsetX} ${startY} L ${leftOffsetX} ${endY} L ${endX} ${endY}`
           }
 
-          return `M ${startX} ${startY} L ${crossMidX} ${startY} L ${crossMidX} ${endY} L ${endX} ${endY}`
+        case 'right-u':
+          {
+            // 右侧U型连接（完成-完成）
+            const rightGap = offset
+            const rightOffsetX = Math.max(startX, endX) + rightGap
+
+            if (smoothCorners && cornerRadius > 0) {
+              const r = Math.min(cornerRadius, rightGap / 2, Math.abs(deltaY) / 4)
+              return `M ${startX} ${startY}
+                      L ${rightOffsetX - r} ${startY}
+                      Q ${rightOffsetX} ${startY} ${rightOffsetX} ${startY + (deltaY > 0 ? r : -r)}
+                      L ${rightOffsetX} ${endY - (deltaY > 0 ? r : -r)}
+                      Q ${rightOffsetX} ${endY} ${rightOffsetX - r} ${endY}
+                      L ${endX} ${endY}`
+            }
+
+            return `M ${startX} ${startY} L ${rightOffsetX} ${startY} L ${rightOffsetX} ${endY} L ${endX} ${endY}`
+          }
+
+        case 'cross':
+          {
+            // 交叉连接（开始-完成）
+            if (deltaX > 20 && Math.abs(deltaY) < 10) {
+              return `M ${startX} ${startY} L ${endX} ${endY}`
+            }
+
+            const crossMidX = startX + deltaX / 2
+
+            if (smoothCorners && cornerRadius > 0) {
+              const r = Math.min(cornerRadius, Math.abs(deltaX) / 4, Math.abs(deltaY) / 2)
+              if (deltaY > 0) {
+                return `M ${startX} ${startY}
+                        L ${crossMidX - r} ${startY}
+                        Q ${crossMidX} ${startY} ${crossMidX} ${startY + r}
+                        L ${crossMidX} ${endY - r}
+                        Q ${crossMidX} ${endY} ${crossMidX + r} ${endY}
+                        L ${endX} ${endY}`
+              } else {
+                return `M ${startX} ${startY}
+                        L ${crossMidX - r} ${startY}
+                        Q ${crossMidX} ${startY} ${crossMidX} ${startY - r}
+                        L ${crossMidX} ${endY + r}
+                        Q ${crossMidX} ${endY} ${crossMidX + r} ${endY}
+                        L ${endX} ${endY}`
+              }
+            }
+
+            return `M ${startX} ${startY} L ${crossMidX} ${startY} L ${crossMidX} ${endY} L ${endX} ${endY}`
+          }
 
         default:
           return `M ${startX} ${startY} L ${endX} ${endY}`
@@ -870,8 +882,7 @@ export default defineComponent({
     // 生成箭头点（直接从子任务位置计算）- 用于父子关系连线
     const generateArrowPoints = (
       childPos: any,
-      arrowSize: number,
-      _linkType: LinkType = LinkType.FINISH_TO_START
+      arrowSize: number
     ): string => {
       if (!childPos) {
         console.warn('子任务位置无效')

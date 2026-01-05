@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { store, mutations } from '../components/gantt/state/Store'
 import type { GanttTask, GanttMapFields, GanttHeader, GanttTaskHeader, GanttViewMode } from '../components/gantt/types/GanttTypes'
 
@@ -353,14 +353,13 @@ describe('状态管理', () => {
 
     describe('setAllowChangeTaskDate', () => {
       it('应该设置是否允许修改任务日期', () => {
-        const task: Partial<GanttTask> = {
-          id: '1',
-          pid: '0',
-          start_date: '2024-01-01',
-          end_date: '2024-01-10',
-        }
-        mutations.setAllowChangeTaskDate(task)
-        expect(store.allowChangeTaskDate).toEqual(task)
+        mutations.setAllowChangeTaskDate(true)
+        expect(store.allowChangeTaskDate).toBe(true)
+      })
+
+      it('应该能够设置为 false', () => {
+        mutations.setAllowChangeTaskDate(false)
+        expect(store.allowChangeTaskDate).toBe(false)
       })
     })
   })

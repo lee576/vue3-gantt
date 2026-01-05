@@ -47,7 +47,7 @@ export function useBarTheme(bar: Ref<SVGSVGElement | null>, props: { startGanttD
   })
 
   const barRowStyle = computed(() => {
-    themeVersion.value // respond to theme changes
+    void themeVersion.value
     const cellWidth = store.scale
     const totalWidth = store.timelineCellCount * cellWidth
     const { bgContent, bgSecondary, borderColor } = findThemeColors(bar.value)
@@ -123,7 +123,7 @@ export function useBarTheme(bar: Ref<SVGSVGElement | null>, props: { startGanttD
   })
 
   const WeekEndColor = (count: number) => {
-    themeVersion.value
+    void themeVersion.value
     const { bgContent, bgSecondary } = findThemeColors(bar.value)
     return getWeekendColorShared(
       count,

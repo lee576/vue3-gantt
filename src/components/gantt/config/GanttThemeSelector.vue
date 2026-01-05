@@ -217,7 +217,7 @@ export default defineComponent({
             } else {
               alert('主题配置文件格式错误！')
             }
-          } catch (error) {
+          } catch {
             alert('主题配置文件格式错误！')
           }
         }

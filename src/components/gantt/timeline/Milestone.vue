@@ -38,14 +38,15 @@ import { Symbols } from '../state/Symbols'
 import { t } from '../i18n'
 
 export default defineComponent({
-  name: 'Milestone',
+  name: 'GanttMilestone',
   props: {
     rowHeight: { type: Number as () => number, default: 0 },
     row: { type: Object as () => Record<string, any>, default: () => ({}) },
     startGanttDate: { type: [String, Number] as PropType<string | number>, required: true },
     endGanttDate: { type: [String, Number] as PropType<string | number>, required: true },
   },
-  setup(props) {
+  emits: ['update:row', 'rowDateChanged'],
+  setup(props, { emit }) {
     const milestone = ref<SVGSVGElement | null>(null)
     const diamondSize = ref(props.rowHeight * 0.6)
     const showRow = ref(true)
@@ -54,6 +55,12 @@ export default defineComponent({
     const themeVersion = ref(0)
     const oldMilestoneX = ref(0)
 
+    const localRow = ref(JSON.parse(JSON.stringify(props.row)))
+
+    watch(() => props.row, (newRow) => {
+      localRow.value = JSON.parse(JSON.stringify(newRow))
+    }, { deep: true })
+
     const timelineCellCount = computed(() => store.timelineCellCount)
     const scale = computed(() => store.scale)
     const mode = computed(() => store.mode)
@@ -61,7 +68,8 @@ export default defineComponent({
 
     const startGanttDateStr = ref(String(props.startGanttDate ?? ''))
 
-    const setBarColor = inject(Symbols.SetBarColorSymbol) as ((row: any) => string) | undefined
+    // eslint-disable-next-line no-unused-vars
+    const setBarColor = inject<(row: any) => string>(Symbols.SetBarColorSymbol)
 
     const themeColors = computed(() => {
       themeVersion.value
@@ -159,12 +167,12 @@ export default defineComponent({
     watch(
       () => sharedState.highlightedId,
       newId => {
-        hover.value = props.row[mapFields.value['id']] === newId
+        hover.value = localRow.value[mapFields.value['id']] === newId
       }
     )
 
     const hoverActive = () =>
-      sharedState.triggerHighlight(props.row[mapFields.value.id] as number | null)
+      sharedState.triggerHighlight(localRow.value[mapFields.value.id] as number | null)
     const hoverInactive = () => sharedState.triggerHighlight(null)
 
     const WeekEndColor = (count: number) => {
@@ -189,37 +197,37 @@ export default defineComponent({
       switch (mode.value) {
         case '季度': {
           const ganttStartQuarter = DateUtils.startOf(startGanttDateStr.value, 'quarter')
-          const taskStartQuarter = DateUtils.startOf(props.row[mapFields.value.startdate ?? ''], 'quarter')
+          const taskStartQuarter = DateUtils.startOf(localRow.value[mapFields.value.startdate ?? ''], 'quarter')
           const fromStartQuarters =
             (DateUtils.year(taskStartQuarter) - DateUtils.year(ganttStartQuarter)) * 4 +
             (DateUtils.quarter(taskStartQuarter) - DateUtils.quarter(ganttStartQuarter))
           dataX = scale.value * fromStartQuarters + scale.value / 2
-          props.row[mapFields.value.takestime] = '0季度'
-          props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
+          localRow.value[mapFields.value.takestime] = '0季度'
+          localRow.value[mapFields.value.enddate ?? 'enddate'] = localRow.value[mapFields.value.startdate ?? 'startdate']
           break
         }
         case '月': {
           const ganttStartMonth = DateUtils.startOf(startGanttDateStr.value, 'month')
-          const taskStartMonth = DateUtils.startOf(props.row[mapFields.value.startdate ?? ''], 'month')
+          const taskStartMonth = DateUtils.startOf(localRow.value[mapFields.value.startdate ?? ''], 'month')
           const fromStartMonths =
             (DateUtils.year(taskStartMonth) - DateUtils.year(ganttStartMonth)) * 12 +
             (DateUtils.month(taskStartMonth) - DateUtils.month(ganttStartMonth))
           dataX = scale.value * fromStartMonths + scale.value / 2
-          props.row[mapFields.value.takestime ?? 'takestime'] = '0月'
-          props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
+          localRow.value[mapFields.value.takestime ?? 'takestime'] = '0月'
+          localRow.value[mapFields.value.enddate ?? 'enddate'] = localRow.value[mapFields.value.startdate ?? 'startdate']
           break
         }
         case '日': {
           const isHalfDay = store.daySubMode === 'half'
 
           const fromPlanStartDays = DateUtils.diff(
-            props.row[mapFields.value.startdate ?? ''],
+            localRow.value[mapFields.value.startdate ?? ''],
             startGanttDateStr.value,
             'days'
           )
 
           if (isHalfDay) {
-            const startHour = DateUtils.hour(props.row[mapFields.value.startdate ?? ''])
+            const startHour = DateUtils.hour(localRow.value[mapFields.value.startdate ?? ''])
             const startIsAM = startHour < 12
             const startCellOffset = startIsAM ? 0 : 1
 
@@ -228,28 +236,28 @@ export default defineComponent({
             dataX = scale.value * fromPlanStartDays + scale.value / 2
           }
 
-          props.row[mapFields.value.takestime ?? 'takestime'] = '0' + t('durationUnit.days')
-          props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
+          localRow.value[mapFields.value.takestime ?? 'takestime'] = '0' + t('durationUnit.days')
+          localRow.value[mapFields.value.enddate ?? 'enddate'] = localRow.value[mapFields.value.startdate ?? 'startdate']
           break
         }
         case '周': {
           const startGanttWeek = DateUtils.startOf(startGanttDateStr.value, 'isoWeek')
-          const taskStartWeek = DateUtils.startOf(props.row[mapFields.value.startdate ?? ''], 'isoWeek')
+          const taskStartWeek = DateUtils.startOf(localRow.value[mapFields.value.startdate ?? ''], 'isoWeek')
           const fromPlanStartWeeks = DateUtils.diff(taskStartWeek, startGanttWeek, 'week')
           dataX = scale.value * fromPlanStartWeeks + scale.value / 2
-          props.row[mapFields.value.takestime ?? 'takestime'] = '0周'
-          props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
+          localRow.value[mapFields.value.takestime ?? 'takestime'] = '0周'
+          localRow.value[mapFields.value.enddate ?? 'enddate'] = localRow.value[mapFields.value.startdate ?? 'startdate']
           break
         }
         case '时': {
           const fromPlanStartHours = DateUtils.diff(
-            props.row[mapFields.value.startdate ?? ''],
+            localRow.value[mapFields.value.startdate ?? ''],
             startGanttDateStr.value,
             'hours'
           )
           dataX = scale.value * fromPlanStartHours + scale.value / 2
-          props.row[mapFields.value.takestime ?? 'takestime'] = '0小时'
-          props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
+          localRow.value[mapFields.value.takestime ?? 'takestime'] = '0小时'
+          localRow.value[mapFields.value.enddate ?? 'enddate'] = localRow.value[mapFields.value.startdate ?? 'startdate']
           break
         }
       }
@@ -332,7 +340,7 @@ export default defineComponent({
 
       // 添加任务名称标签（在菱形右侧）
       const text = svg
-        .text(props.row[mapFields.value.task] || 'Milestone')
+        .text(localRow.value[mapFields.value.task] || 'Milestone')
         .move(size + 5, centerY - 7)
         .fill(textColor)
         .attr({
@@ -364,9 +372,9 @@ export default defineComponent({
       }
 
       setBarDate({
-        id: props.row[mapFields.value.id],
-        startDate: props.row[mapFields.value.startdate],
-        endDate: props.row[mapFields.value.startdate], // 里程碑的结束日期=开始日期
+        id: localRow.value[mapFields.value.id],
+        startDate: localRow.value[mapFields.value.startdate],
+        endDate: localRow.value[mapFields.value.startdate], // 里程碑的结束日期=开始日期
       })
 
       // 拖拽功能 - 只能水平移动
@@ -396,7 +404,7 @@ export default defineComponent({
 
             // 检查父任务约束
             const parentIdField = mapFields.value.parentId || 'pid'
-            const currentParentId = props.row[parentIdField]
+            const currentParentId = localRow.value[parentIdField]
             if (currentParentId && currentParentId !== '0') {
               const parentTask = store.tasks.find(
                 t => String(t[mapFields.value.id]) === String(currentParentId)
@@ -463,8 +471,9 @@ export default defineComponent({
                   .hour(newHour)
                   .minute(0)
                   .second(0)
-                props.row[mapFields.value.startdate ?? 'startdate'] = DateUtils.format(newDate, 'YYYY-MM-DD HH:mm:ss')
-                props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
+                localRow.value[mapFields.value.startdate ?? 'startdate'] = DateUtils.format(newDate, 'YYYY-MM-DD HH:mm:ss')
+                localRow.value[mapFields.value.enddate ?? 'enddate'] = localRow.value[mapFields.value.startdate ?? 'startdate']
+                emit('rowDateChanged', localRow.value)
               } else {
                 daysOffset = cellsMoved
               }
@@ -489,8 +498,9 @@ export default defineComponent({
                   .minute(minute)
                   .second(0)
 
-                props.row[mapFields.value.startdate ?? 'startdate'] = DateUtils.format(newDate, 'YYYY-MM-DD HH:mm:ss')
-                props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
+                localRow.value[mapFields.value.startdate ?? 'startdate'] = DateUtils.format(newDate, 'YYYY-MM-DD HH:mm:ss')
+                localRow.value[mapFields.value.enddate ?? 'enddate'] = localRow.value[mapFields.value.startdate ?? 'startdate']
+                emit('rowDateChanged', localRow.value)
               } else {
                 hoursOffset = cellsMoved
               }
@@ -499,32 +509,36 @@ export default defineComponent({
             const isHalfDayMode = mode.value === '日' && store.daySubMode === 'half'
 
             if (mode.value === '季度') {
-              props.row[mapFields.value.startdate ?? 'startdate'] = DateUtils.create(props.row[mapFields.value.startdate ?? 'startdate'])
+              localRow.value[mapFields.value.startdate ?? 'startdate'] = DateUtils.create(localRow.value[mapFields.value.startdate ?? 'startdate'])
                 .add(quartersOffset, 'quarters')
                 .format('YYYY-MM-DD HH:mm:ss')
-              props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
+              localRow.value[mapFields.value.enddate ?? 'enddate'] = localRow.value[mapFields.value.startdate ?? 'startdate']
+              emit('rowDateChanged', localRow.value)
             } else if (mode.value === '月') {
-              props.row[mapFields.value.startdate ?? 'startdate'] = DateUtils.create(props.row[mapFields.value.startdate ?? 'startdate'])
+              localRow.value[mapFields.value.startdate ?? 'startdate'] = DateUtils.create(localRow.value[mapFields.value.startdate ?? 'startdate'])
                 .add(monthsOffset, 'months')
                 .format('YYYY-MM-DD HH:mm:ss')
-              props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
+              localRow.value[mapFields.value.enddate ?? 'enddate'] = localRow.value[mapFields.value.startdate ?? 'startdate']
+              emit('rowDateChanged', localRow.value)
             } else if (mode.value === '时') {
               const minutesOffset = Math.round(hoursOffset * 60)
-              props.row[mapFields.value.startdate ?? 'startdate'] = DateUtils.create(props.row[mapFields.value.startdate ?? 'startdate'])
+              localRow.value[mapFields.value.startdate ?? 'startdate'] = DateUtils.create(localRow.value[mapFields.value.startdate ?? 'startdate'])
                 .add(minutesOffset, 'minutes')
                 .format('YYYY-MM-DD HH:mm:ss')
-              props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
+              localRow.value[mapFields.value.enddate ?? 'enddate'] = localRow.value[mapFields.value.startdate ?? 'startdate']
+              emit('rowDateChanged', localRow.value)
             } else if (!isHalfDayMode) {
-              props.row[mapFields.value.startdate ?? 'startdate'] = DateUtils.create(props.row[mapFields.value.startdate ?? 'startdate'])
+              localRow.value[mapFields.value.startdate ?? 'startdate'] = DateUtils.create(localRow.value[mapFields.value.startdate ?? 'startdate'])
                 .add(daysOffset, 'days')
                 .format('YYYY-MM-DD HH:mm:ss')
-              props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
+              localRow.value[mapFields.value.enddate ?? 'enddate'] = localRow.value[mapFields.value.startdate ?? 'startdate']
+              emit('rowDateChanged', localRow.value)
             }
 
             setBarDate({
-              id: props.row[mapFields.value.id],
-              startDate: props.row[mapFields.value.startdate],
-              endDate: props.row[mapFields.value.startdate],
+              id: localRow.value[mapFields.value.id],
+              startDate: localRow.value[mapFields.value.startdate],
+              endDate: localRow.value[mapFields.value.startdate],
             })
           },
         },
@@ -532,7 +546,7 @@ export default defineComponent({
     }
 
     watch(
-      () => [props.row[mapFields.value.startdate ?? 'startdate']],
+      () => [localRow.value[mapFields.value.startdate ?? 'startdate']],
       () => {
         if (milestone.value) drawMilestone(milestone.value)
       },
@@ -551,7 +565,7 @@ export default defineComponent({
         drawMilestone(milestone.value)
       }
       if (setBarColor) {
-        milestoneColor.value = setBarColor(props.row)
+        milestoneColor.value = setBarColor(localRow.value)
         if (milestone.value) drawMilestone(milestone.value)
       }
 
@@ -578,7 +592,9 @@ export default defineComponent({
       if (milestone.value) {
         try {
           interact(milestone.value).unset()
-        } catch (e) {}
+        } catch {
+          // 忽略清理错误
+        }
       }
       showRow.value = false
     })

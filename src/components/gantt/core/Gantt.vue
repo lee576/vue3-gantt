@@ -384,7 +384,7 @@ type HourHeaders = {
  */
 export default defineComponent({
   // 组件名称
-  name: 'Gantt',
+  name: 'VueGantt',
   props: {
     /**
      * 样式配置对象，包含表头高度和行高。
@@ -396,7 +396,9 @@ export default defineComponent({
       type: Object as () => {
         headersHeight: number
         rowHeight: number
+        // eslint-disable-next-line no-unused-vars
         setBarColor: (row: GanttTask) => string
+        // eslint-disable-next-line no-unused-vars
         setTaskType?: (row: GanttTask) => import('../types/Types').TaskType
       },
       required: true,
@@ -459,13 +461,21 @@ export default defineComponent({
      */
     eventConfig: {
       type: Object as () => {
+        // eslint-disable-next-line no-unused-vars
         addRootTask: (row: Partial<GanttTask> | null) => void
+        // eslint-disable-next-line no-unused-vars
         addSubTask: (task: Partial<GanttTask>) => void
+        // eslint-disable-next-line no-unused-vars
         removeTask: (task: Partial<GanttTask>) => void
+        // eslint-disable-next-line no-unused-vars
         editTask: (task: Partial<GanttTask>) => void
+        // eslint-disable-next-line no-unused-vars
         queryTask: (startDate: string, endDate: string, mode: string) => void
+        // eslint-disable-next-line no-unused-vars
         barDate: (id: string | number, startDate: string, endDate: string) => void
+        // eslint-disable-next-line no-unused-vars
         allowChangeTaskDate: (allow: boolean) => void
+        // eslint-disable-next-line no-unused-vars
         updateProgress?: (detail: {
           taskId: string | number
           oldProgress: number
@@ -685,7 +695,7 @@ export default defineComponent({
             monthCurrent = DateUtils.add(monthCurrent.toDate(), 1, 'month')
           }
 
-          months.forEach((month, _index) => {
+          months.forEach((month) => {
             const monthStart = DateUtils.create(month)
             const monthEnd = DateUtils.endOf(monthStart.toDate(), 'month')
 
@@ -778,7 +788,7 @@ export default defineComponent({
             if (!months.has(key)) months.set(key, [])
             months.get(key)!.push(d)
           })
-          months.forEach((monthDates, _key) => {
+          months.forEach((monthDates) => {
             const monthNum = DateUtils.month(monthDates[0])
             const monthTitle = DateUtils.getMonthName(monthNum + 1)
             const cellWidth = isHalfDay
@@ -1437,6 +1447,7 @@ export default defineComponent({
     )
 
     // 连线配置变化处理
+    // eslint-disable-next-line no-unused-vars
     const onLinkConfigChange = (_config: any) => {
       // 这里可以添加额外的处理逻辑，比如通知其他组件更新
     }

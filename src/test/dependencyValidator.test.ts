@@ -1,21 +1,21 @@
 import { describe, it, expect } from 'vitest'
 import { DependencyValidator } from '../components/gantt/features/DependencyValidator'
 import type { GanttTask } from '../components/gantt/types/GanttTypes'
-import type { TaskDependency } from '../components/gantt/types/Types'
+import type { TaskDependency, LinkType } from '../components/gantt/types/Types'
 
 const createMockTasks = (): GanttTask[] => [
-  { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', taskNo: 'Task-1' },
-  { id: '2', pid: '0', start_date: '2024-01-03', end_date: '2024-01-10', taskNo: 'Task-2' },
-  { id: '3', pid: '0', start_date: '2024-01-08', end_date: '2024-01-15', taskNo: 'Task-3' },
-  { id: '4', pid: '0', start_date: '2024-01-10', end_date: '2024-01-20', taskNo: 'Task-4' },
-  { id: '5', pid: '0', start_date: '2024-01-15', end_date: '2024-01-25', taskNo: 'Task-5' },
+  { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', taskNo: 'Task-1', job_progress: 0 },
+  { id: '2', pid: '0', start_date: '2024-01-03', end_date: '2024-01-10', taskNo: 'Task-2', job_progress: 0 },
+  { id: '3', pid: '0', start_date: '2024-01-08', end_date: '2024-01-15', taskNo: 'Task-3', job_progress: 0 },
+  { id: '4', pid: '0', start_date: '2024-01-10', end_date: '2024-01-20', taskNo: 'Task-4', job_progress: 0 },
+  { id: '5', pid: '0', start_date: '2024-01-15', end_date: '2024-01-25', taskNo: 'Task-5', job_progress: 0 },
 ]
 
 const createMockDependencies = (): TaskDependency[] => [
-  { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: 'finishToStart', lag: 0 },
-  { id: 'd2', sourceTaskId: '2', targetTaskId: '3', type: 'finishToStart', lag: 0 },
-  { id: 'd3', sourceTaskId: '3', targetTaskId: '4', type: 'finishToStart', lag: 0 },
-  { id: 'd4', sourceTaskId: '4', targetTaskId: '5', type: 'finishToStart', lag: 0 },
+  { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: LinkType.FINISH_TO_START, lag: 0 },
+  { id: 'd2', sourceTaskId: '2', targetTaskId: '3', type: LinkType.FINISH_TO_START, lag: 0 },
+  { id: 'd3', sourceTaskId: '3', targetTaskId: '4', type: LinkType.FINISH_TO_START, lag: 0 },
+  { id: 'd4', sourceTaskId: '4', targetTaskId: '5', type: LinkType.FINISH_TO_START, lag: 0 },
 ]
 
 describe('DependencyValidator 依赖验证器', () => {
@@ -35,14 +35,14 @@ describe('DependencyValidator 依赖验证器', () => {
     it('应该正确检测简单循环依赖', () => {
       const validator = new DependencyValidator()
       const tasks: GanttTask[] = [
-        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05' },
-        { id: '2', pid: '0', start_date: '2024-01-03', end_date: '2024-01-10' },
-        { id: '3', pid: '0', start_date: '2024-01-08', end_date: '2024-01-15' },
+        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', job_progress: 0 },
+        { id: '2', pid: '0', start_date: '2024-01-03', end_date: '2024-01-10', job_progress: 0 },
+        { id: '3', pid: '0', start_date: '2024-01-08', end_date: '2024-01-15', job_progress: 0 },
       ]
       const dependencies: TaskDependency[] = [
-        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: 'finishToStart', lag: 0 },
-        { id: 'd2', sourceTaskId: '2', targetTaskId: '3', type: 'finishToStart', lag: 0 },
-        { id: 'd3', sourceTaskId: '3', targetTaskId: '1', type: 'finishToStart', lag: 0 },
+        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: LinkType.FINISH_TO_START, lag: 0 },
+        { id: 'd2', sourceTaskId: '2', targetTaskId: '3', type: LinkType.FINISH_TO_START, lag: 0 },
+        { id: 'd3', sourceTaskId: '3', targetTaskId: '1', type: LinkType.FINISH_TO_START, lag: 0 },
       ]
 
       validator.loadData(tasks, dependencies)
@@ -68,14 +68,14 @@ describe('DependencyValidator 依赖验证器', () => {
     it('应该正确检测复杂循环（A->B->C->A）', () => {
       const validator = new DependencyValidator()
       const tasks: GanttTask[] = [
-        { id: 'A', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05' },
-        { id: 'B', pid: '0', start_date: '2024-01-03', end_date: '2024-01-10' },
-        { id: 'C', pid: '0', start_date: '2024-01-08', end_date: '2024-01-15' },
+        { id: 'A', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', job_progress: 0 },
+        { id: 'B', pid: '0', start_date: '2024-01-03', end_date: '2024-01-10', job_progress: 0 },
+        { id: 'C', pid: '0', start_date: '2024-01-08', end_date: '2024-01-15', job_progress: 0 },
       ]
       const dependencies: TaskDependency[] = [
-        { id: 'd1', sourceTaskId: 'A', targetTaskId: 'B', type: 'finishToStart', lag: 0 },
-        { id: 'd2', sourceTaskId: 'B', targetTaskId: 'C', type: 'finishToStart', lag: 0 },
-        { id: 'd3', sourceTaskId: 'C', targetTaskId: 'A', type: 'finishToStart', lag: 0 },
+        { id: 'd1', sourceTaskId: 'A', targetTaskId: 'B', type: LinkType.FINISH_TO_START, lag: 0 },
+        { id: 'd2', sourceTaskId: 'B', targetTaskId: 'C', type: LinkType.FINISH_TO_START, lag: 0 },
+        { id: 'd3', sourceTaskId: 'C', targetTaskId: 'A', type: LinkType.FINISH_TO_START, lag: 0 },
       ]
 
       validator.loadData(tasks, dependencies)
@@ -88,10 +88,10 @@ describe('DependencyValidator 依赖验证器', () => {
     it('应该正确检测自引用依赖', () => {
       const validator = new DependencyValidator()
       const tasks: GanttTask[] = [
-        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05' },
+        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', job_progress: 0 },
       ]
       const dependencies: TaskDependency[] = [
-        { id: 'd1', sourceTaskId: '1', targetTaskId: '1', type: 'finishToStart', lag: 0 },
+        { id: 'd1', sourceTaskId: '1', targetTaskId: '1', type: LinkType.FINISH_TO_START, lag: 0 },
       ]
 
       validator.loadData(tasks, dependencies)
@@ -106,13 +106,13 @@ describe('DependencyValidator 依赖验证器', () => {
     it('应该正确验证有效的依赖关系', () => {
       const validator = new DependencyValidator()
       const tasks: GanttTask[] = [
-        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', taskNo: 'Task-1' },
-        { id: '2', pid: '0', start_date: '2024-01-05', end_date: '2024-01-10', taskNo: 'Task-2' },
-        { id: '3', pid: '0', start_date: '2024-01-10', end_date: '2024-01-15', taskNo: 'Task-3' },
+        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', taskNo: 'Task-1', job_progress: 0 },
+        { id: '2', pid: '0', start_date: '2024-01-05', end_date: '2024-01-10', taskNo: 'Task-2', job_progress: 0 },
+        { id: '3', pid: '0', start_date: '2024-01-10', end_date: '2024-01-15', taskNo: 'Task-3', job_progress: 0 },
       ]
       const dependencies: TaskDependency[] = [
-        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: 'finishToStart', lag: 0 },
-        { id: 'd2', sourceTaskId: '2', targetTaskId: '3', type: 'finishToStart', lag: 0 },
+        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: LinkType.FINISH_TO_START, lag: 0 },
+        { id: 'd2', sourceTaskId: '2', targetTaskId: '3', type: LinkType.FINISH_TO_START, lag: 0 },
       ]
 
       const result = validator.validateDependencies(tasks, dependencies)
@@ -125,7 +125,7 @@ describe('DependencyValidator 依赖验证器', () => {
       const validator = new DependencyValidator()
       const tasks = createMockTasks()
       const dependencies: TaskDependency[] = [
-        { id: 'd1', sourceTaskId: '1', targetTaskId: '99', type: 'finishToStart', lag: 0 },
+        { id: 'd1', sourceTaskId: '1', targetTaskId: '99', type: LinkType.FINISH_TO_START, lag: 0 },
       ]
 
       const result = validator.validateDependencies(tasks, dependencies)
@@ -149,16 +149,16 @@ describe('DependencyValidator 依赖验证器', () => {
     it('应该检测到所有类型的循环依赖', () => {
       const validator = new DependencyValidator()
       const tasks: GanttTask[] = [
-        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-03' },
-        { id: '2', pid: '0', start_date: '2024-01-02', end_date: '2024-01-04' },
-        { id: '3', pid: '0', start_date: '2024-01-03', end_date: '2024-01-05' },
-        { id: '4', pid: '0', start_date: '2024-01-04', end_date: '2024-01-06' },
+        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-03', job_progress: 0 },
+        { id: '2', pid: '0', start_date: '2024-01-02', end_date: '2024-01-04', job_progress: 0 },
+        { id: '3', pid: '0', start_date: '2024-01-03', end_date: '2024-01-05', job_progress: 0 },
+        { id: '4', pid: '0', start_date: '2024-01-04', end_date: '2024-01-06', job_progress: 0 },
       ]
       const dependencies: TaskDependency[] = [
-        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: 'finishToStart', lag: 0 },
-        { id: 'd2', sourceTaskId: '2', targetTaskId: '3', type: 'finishToStart', lag: 0 },
-        { id: 'd3', sourceTaskId: '3', targetTaskId: '1', type: 'finishToStart', lag: 0 },
-        { id: 'd4', sourceTaskId: '4', targetTaskId: '2', type: 'finishToStart', lag: 0 },
+        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: LinkType.FINISH_TO_START, lag: 0 },
+        { id: 'd2', sourceTaskId: '2', targetTaskId: '3', type: LinkType.FINISH_TO_START, lag: 0 },
+        { id: 'd3', sourceTaskId: '3', targetTaskId: '1', type: LinkType.FINISH_TO_START, lag: 0 },
+        { id: 'd4', sourceTaskId: '4', targetTaskId: '2', type: LinkType.FINISH_TO_START, lag: 0 },
       ]
 
       const result = validator.validateDependencies(tasks, dependencies)
@@ -185,12 +185,12 @@ describe('DependencyValidator 依赖验证器', () => {
     it('应该正确识别孤立任务', () => {
       const validator = new DependencyValidator()
       const tasks: GanttTask[] = [
-        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05' },
-        { id: '2', pid: '0', start_date: '2024-01-03', end_date: '2024-01-10' },
-        { id: '3', pid: '0', start_date: '2024-01-08', end_date: '2024-01-15' },
+        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', job_progress: 0 },
+        { id: '2', pid: '0', start_date: '2024-01-03', end_date: '2024-01-10', job_progress: 0 },
+        { id: '3', pid: '0', start_date: '2024-01-08', end_date: '2024-01-15', job_progress: 0 },
       ]
       const dependencies: TaskDependency[] = [
-        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: 'finishToStart', lag: 0 },
+        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: LinkType.FINISH_TO_START, lag: 0 },
       ]
 
       validator.loadData(tasks, dependencies)

@@ -436,6 +436,8 @@ const eventConfig = ref<EventConfig>({
     dataConfig.value.queryStartDate = queryStart
     dataConfig.value.queryEndDate = queryEnd
 
+    void _mode
+
     const mockResponse = isPerformanceTest.value ? getPerformanceTestResponse() : getMockResponse()
 
     dataConfig.value.dataSource = customFieldsManagement.processTasksWithCustomFields(

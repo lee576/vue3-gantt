@@ -51,7 +51,7 @@
           <div class="form-group">
             <label>{{ t('app.fieldName') }} <span class="required-mark">*</span></label>
             <input
-              v-model="newField.label"
+              v-model="localNewField.label"
               type="text"
               :placeholder="t('app.enterFieldName')"
               :class="{ error: customFieldFormErrors.label }"
@@ -63,7 +63,7 @@
 
           <div class="form-group">
             <label>{{ t('app.fieldType') }} <span class="required-mark">*</span></label>
-            <select v-model="newField.type" :class="{ error: customFieldFormErrors.type }">
+            <select v-model="localNewField.type" :class="{ error: customFieldFormErrors.type }">
               <option value="text">{{ t('app.typeText') }}</option>
               <option value="number">{{ t('app.typeNumber') }}</option>
               <option value="date">{{ t('app.typeDate') }}</option>
@@ -80,13 +80,13 @@
           <div class="form-group">
             <label>{{ t('app.placeholderText') }}</label>
             <input
-              v-model="newField.placeholder"
+              v-model="localNewField.placeholder"
               type="text"
               :placeholder="t('app.enterPlaceholder')"
             />
           </div>
 
-          <div v-if="newField.type === 'select'" class="form-group">
+          <div v-if="localNewField.type === 'select'" class="form-group">
             <label>{{ t('app.selectOptions') }} <span class="required-mark">*</span></label>
             <div class="options-input">
               <input
@@ -98,8 +98,8 @@
               />
               <button class="metro-btn metro-btn-sm" @click="$emit('add-option')">{{ t('app.add') }}</button>
             </div>
-            <div v-if="newField.options.length > 0" class="options-list">
-              <div v-for="(option, idx) in newField.options" :key="idx" class="option-item">
+            <div v-if="localNewField.options.length > 0" class="options-list">
+              <div v-for="(option, idx) in localNewField.options" :key="idx" class="option-item">
                 <span>{{ option }}</span>
                 <button class="icon-btn-sm" @click="$emit('remove-option', idx)">×</button>
               </div>
@@ -111,7 +111,7 @@
 
           <div class="form-group">
             <label class="checkbox-label-inline">
-              <input type="checkbox" v-model="newField.required" />
+              <input type="checkbox" v-model="localNewField.required" />
               <span>{{ t('app.requiredField') }}</span>
             </label>
           </div>
@@ -128,9 +128,9 @@
               class="metro-btn metro-btn-primary"
               @click="editingFieldIndex !== null ? $emit('update-field') : $emit('add-field')"
               :disabled="
-                !newField.label ||
-                !newField.type ||
-                (newField.type === 'select' && newField.options.length === 0)
+                !localNewField.label ||
+                !localNewField.type ||
+                (localNewField.type === 'select' && localNewField.options.length === 0)
               "
             >
               {{ editingFieldIndex !== null ? t('app.updateField') : t('app.addField') }}
@@ -146,10 +146,11 @@
 </template>
 
 <script lang="ts" setup>
+import { watch, reactive } from 'vue'
 import type { CustomField } from '../types/task'
 import { t } from '../locales'
 
-defineProps<{
+const props = defineProps<{
   show: boolean
   customFields: CustomField[]
   newField: CustomField
@@ -159,7 +160,7 @@ defineProps<{
   getFieldTypeLabel: (type: string) => string
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   close: []
   'edit-field': [index: number]
   'delete-field': [index: number]
@@ -171,20 +172,24 @@ defineEmits<{
   save: []
   'update:newOptionText': [value: string]
 }>()
+
+const localNewField = reactive<CustomField>({ ...props.newField })
+
+watch(() => props.newField, (newVal) => {
+  Object.assign(localNewField, newVal)
+}, { deep: true })
+
+function handleOptionTextInput(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target?.value !== undefined) {
+    emit('update:newOptionText', target.value)
+  }
+}
 </script>
 
 <script lang="ts">
 export default {
   name: 'CustomFieldsDialog',
-  emits: ['update:newOptionText'],
-  methods: {
-    handleOptionTextInput(event: Event) {
-      const target = event.target as HTMLInputElement
-      if (target?.value !== undefined) {
-        this.$emit('update:newOptionText', target.value)
-      }
-    }
-  }
 }
 </script>
 

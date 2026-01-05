@@ -127,7 +127,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed, inject, watch } from 'vue'
+import { defineComponent, ref, computed, inject, watch } from 'vue'
 import { store, mutations } from '../state/Store'
 import sharedState from '../state/ShareState'
 import CollapseButton from './CollapseButton.vue'
@@ -162,6 +162,7 @@ export default defineComponent({
     const autoCollapsedTasks = computed(() => store.autoCollapsedTasks)
 
     inject('barHover', null)
+    // eslint-disable-next-line no-unused-vars
     const addRootTask = inject<((row: any) => void) | undefined>('addRootTask', undefined)
 
     // 判断当前任务是否有子任务
@@ -249,8 +250,6 @@ export default defineComponent({
       const currentId = props.row[mapFields.value['id']]
       mutations.toggleTaskCollapse(currentId)
     }
-
-    onMounted(() => {})
 
     const setSubTask = mutations.setSubTask
     const setEditTask = mutations.setEditTask

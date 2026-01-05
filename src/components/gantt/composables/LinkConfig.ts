@@ -290,7 +290,7 @@ export class LinkConfigManager {
     }
 
     // 更新其他顶层属性（排除嵌套对象）
-    const { linkTypeVisibility, linkTypeColors, parentChildStyle, ...rest } = source
+    const { ...rest } = source
     Object.assign(this.config, rest)
   }
 

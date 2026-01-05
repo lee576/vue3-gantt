@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed, watch } from 'vue'
+import { defineComponent, ref, computed, watch } from 'vue'
 import type { Ref } from 'vue'
 import TimelineHeader from './TimelineHeader.vue'
 import { store } from '../state/Store'
@@ -71,7 +71,7 @@ export default defineComponent({
       if (tableBar.value) {
         const ganttStart = startGanttDateStr.value
         switch (mode.value) {
-          case '季度':
+          case '季度': {
             const ganttStartMonth = DateUtils.startOf(ganttStart, 'month')
             const currentMonth = DateUtils.startOf(DateUtils.now(), 'month')
             const monthsDiff =
@@ -79,7 +79,8 @@ export default defineComponent({
               (DateUtils.month(currentMonth) - DateUtils.month(ganttStartMonth))
             tableBar.value.scrollLeft = monthsDiff * Number(scale.value)
             break
-          case '月':
+          }
+          case '月': {
             const ganttStartMonth2 = DateUtils.startOf(ganttStart, 'month')
             const currentMonth2 = DateUtils.startOf(DateUtils.now(), 'month')
             const monthsDiff2 =
@@ -87,20 +88,23 @@ export default defineComponent({
               (DateUtils.month(currentMonth2) - DateUtils.month(ganttStartMonth2))
             tableBar.value.scrollLeft = monthsDiff2 * Number(scale.value)
             break
+          }
           case '日':
             tableBar.value.scrollLeft =
               Number(DateUtils.diff(DateUtils.now(), ganttStart, 'day')) * Number(scale.value)
             break
-          case '周':
+          case '周': {
             const currentWeekStart = DateUtils.startOf(DateUtils.now(), 'isoWeek')
             const ganttWeekStart = DateUtils.startOf(ganttStart, 'isoWeek')
             tableBar.value.scrollLeft =
               Number(DateUtils.diff(currentWeekStart, ganttWeekStart, 'week')) * Number(scale.value)
             break
-          case '时':
+          }
+          case '时': {
             tableBar.value.scrollLeft =
               Number(DateUtils.diff(DateUtils.now(), ganttStart, 'hour')) * Number(scale.value)
             break
+          }
         }
       }
     }
@@ -115,8 +119,6 @@ export default defineComponent({
         }
       }
     )
-
-    onMounted(() => {})
 
     return {
       tableBar,

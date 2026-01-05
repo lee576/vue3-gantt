@@ -142,9 +142,10 @@ function calcPositionForMode(
         return calcWeekPosition(start, taskStart, taskEnd, scale)
       case '日':
         return calcDayPosition(start, taskStart, taskEnd, scale, daySubMode === 'half')
-      case '时':
+      case '时': {
         const minuteInterval = parseInt(hourSubMode || '60')
         return calcHourPosition(start, taskStart, taskEnd, scale, minuteInterval)
+      }
       default:
         return null
     }

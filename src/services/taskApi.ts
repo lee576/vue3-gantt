@@ -13,27 +13,18 @@ export const taskApi = {
   // 新增任务
   async addTask(task: any): Promise<ApiResponse> {
     await this.delay(300)
-    console.log('新增任务请求:', task)
-    // 实际项目中，这里应该是：
-    // const response = await axios.post('/api/tasks', task);
-    // return response.data;
     return {
       code: 200,
       message: '任务创建成功',
       data: {
-        id: `task-${Date.now()}`, // 生成新的任务ID
+        id: `task-${Date.now()}`,
         ...task,
       },
     }
   },
 
-  // 更新任务
   async updateTask(taskId: string, task: any): Promise<ApiResponse> {
     await this.delay(300)
-    console.log('更新任务请求:', taskId, task)
-    // 实际项目中，这里应该是：
-    // const response = await axios.put(`/api/tasks/${taskId}`, task);
-    // return response.data;
     return {
       code: 200,
       message: '任务更新成功',
@@ -41,10 +32,8 @@ export const taskApi = {
     }
   },
 
-  // 删除任务
   async deleteTask(taskId: string): Promise<ApiResponse> {
     await this.delay(300)
-    console.log('删除任务请求:', taskId)
     return {
       code: 200,
       message: '任务删除成功',

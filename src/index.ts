@@ -50,7 +50,7 @@ export { store, mutations } from './components/gantt/state/Store'
 
 // 支持 Vue.use() 安装
 export const install = (app: App) => {
-  app.component('Gantt', Gantt)
+  app.component('VueGantt', Gantt)
   app.component('Vue3Gantt', Gantt)
 }
 

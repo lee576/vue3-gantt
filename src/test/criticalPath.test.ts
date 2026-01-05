@@ -2,20 +2,21 @@ import { describe, it, expect } from 'vitest'
 import { CriticalPathAnalyzer, getCriticalPathAnalyzer } from '../components/gantt/features/CriticalPathAnalyzer'
 import type { GanttTask } from '../components/gantt/types/GanttTypes'
 import type { TaskDependency } from '../components/gantt/types/Types'
+import { LinkType } from '../components/gantt/types/Types'
 
 const createMockTasks = (): GanttTask[] => [
-  { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', taskNo: 'Task-1' },
-  { id: '2', pid: '0', start_date: '2024-01-03', end_date: '2024-01-10', taskNo: 'Task-2' },
-  { id: '3', pid: '0', start_date: '2024-01-08', end_date: '2024-01-15', taskNo: 'Task-3' },
-  { id: '4', pid: '0', start_date: '2024-01-10', end_date: '2024-01-20', taskNo: 'Task-4' },
-  { id: '5', pid: '0', start_date: '2024-01-15', end_date: '2024-01-25', taskNo: 'Task-5' },
+  { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', taskNo: 'Task-1', job_progress: 0 },
+  { id: '2', pid: '0', start_date: '2024-01-03', end_date: '2024-01-10', taskNo: 'Task-2', job_progress: 0 },
+  { id: '3', pid: '0', start_date: '2024-01-08', end_date: '2024-01-15', taskNo: 'Task-3', job_progress: 0 },
+  { id: '4', pid: '0', start_date: '2024-01-10', end_date: '2024-01-20', taskNo: 'Task-4', job_progress: 0 },
+  { id: '5', pid: '0', start_date: '2024-01-15', end_date: '2024-01-25', taskNo: 'Task-5', job_progress: 0 },
 ]
 
 const createMockDependencies = (): TaskDependency[] => [
-  { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: 'finishToStart', lag: 0 },
-  { id: 'd2', sourceTaskId: '2', targetTaskId: '3', type: 'finishToStart', lag: 0 },
-  { id: 'd3', sourceTaskId: '3', targetTaskId: '4', type: 'finishToStart', lag: 0 },
-  { id: 'd4', sourceTaskId: '4', targetTaskId: '5', type: 'finishToStart', lag: 0 },
+  { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: LinkType.FINISH_TO_START, lag: 0 },
+  { id: 'd2', sourceTaskId: '2', targetTaskId: '3', type: LinkType.FINISH_TO_START, lag: 0 },
+  { id: 'd3', sourceTaskId: '3', targetTaskId: '4', type: LinkType.FINISH_TO_START, lag: 0 },
+  { id: 'd4', sourceTaskId: '4', targetTaskId: '5', type: LinkType.FINISH_TO_START, lag: 0 },
 ]
 
 describe('CriticalPathAnalyzer 关键路径分析器', () => {
@@ -39,11 +40,11 @@ describe('CriticalPathAnalyzer 关键路径分析器', () => {
     it('应该正确计算任务的最早开始和最晚开始时间', () => {
       const analyzer = new CriticalPathAnalyzer()
       const tasks: GanttTask[] = [
-        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05' },
-        { id: '2', pid: '0', start_date: '2024-01-03', end_date: '2024-01-10' },
+        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', taskNo: 'Task-1', job_progress: 0 },
+        { id: '2', pid: '0', start_date: '2024-01-03', end_date: '2024-01-10', taskNo: 'Task-2', job_progress: 0 },
       ]
       const dependencies: TaskDependency[] = [
-        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: 'finishToStart', lag: 0 },
+        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: LinkType.FINISH_TO_START, lag: 0 },
       ]
 
       const result = analyzer.analyze(tasks, dependencies)
@@ -59,11 +60,11 @@ describe('CriticalPathAnalyzer 关键路径分析器', () => {
     it('应该正确计算浮动时间', () => {
       const analyzer = new CriticalPathAnalyzer()
       const tasks: GanttTask[] = [
-        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05' },
-        { id: '2', pid: '0', start_date: '2024-01-03', end_date: '2024-01-15' },
+        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', taskNo: 'Task-1', job_progress: 0 },
+        { id: '2', pid: '0', start_date: '2024-01-03', end_date: '2024-01-15', taskNo: 'Task-2', job_progress: 0 },
       ]
       const dependencies: TaskDependency[] = [
-        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: 'finishToStart', lag: 0 },
+        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: LinkType.FINISH_TO_START, lag: 0 },
       ]
 
       const result = analyzer.analyze(tasks, dependencies)
@@ -79,11 +80,11 @@ describe('CriticalPathAnalyzer 关键路径分析器', () => {
     it('应该正确识别关键任务', () => {
       const analyzer = new CriticalPathAnalyzer()
       const tasks: GanttTask[] = [
-        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05' },
-        { id: '2', pid: '0', start_date: '2024-01-06', end_date: '2024-01-10' },
+        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', taskNo: 'Task-1', job_progress: 0 },
+        { id: '2', pid: '0', start_date: '2024-01-06', end_date: '2024-01-10', taskNo: 'Task-2', job_progress: 0 },
       ]
       const dependencies: TaskDependency[] = [
-        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: 'finishToStart', lag: 0 },
+        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: LinkType.FINISH_TO_START, lag: 0 },
       ]
 
       const result = analyzer.analyze(tasks, dependencies)
@@ -94,8 +95,8 @@ describe('CriticalPathAnalyzer 关键路径分析器', () => {
     it('应该正确处理无依赖的任务', () => {
       const analyzer = new CriticalPathAnalyzer()
       const tasks: GanttTask[] = [
-        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05' },
-        { id: '2', pid: '0', start_date: '2024-01-03', end_date: '2024-01-10' },
+        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', taskNo: 'Task-1', job_progress: 0 },
+        { id: '2', pid: '0', start_date: '2024-01-03', end_date: '2024-01-10', taskNo: 'Task-2', job_progress: 0 },
       ]
 
       const result = analyzer.analyze(tasks, [])
@@ -107,13 +108,13 @@ describe('CriticalPathAnalyzer 关键路径分析器', () => {
     it('应该正确处理并行依赖的情况', () => {
       const analyzer = new CriticalPathAnalyzer()
       const tasks: GanttTask[] = [
-        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05' },
-        { id: '2', pid: '0', start_date: '2024-01-01', end_date: '2024-01-08' },
-        { id: '3', pid: '0', start_date: '2024-01-09', end_date: '2024-01-15' },
+        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', taskNo: 'Task-1', job_progress: 0 },
+        { id: '2', pid: '0', start_date: '2024-01-01', end_date: '2024-01-08', taskNo: 'Task-2', job_progress: 0 },
+        { id: '3', pid: '0', start_date: '2024-01-09', end_date: '2024-01-15', taskNo: 'Task-3', job_progress: 0 },
       ]
       const dependencies: TaskDependency[] = [
-        { id: 'd1', sourceTaskId: '1', targetTaskId: '3', type: 'finishToStart', lag: 0 },
-        { id: 'd2', sourceTaskId: '2', targetTaskId: '3', type: 'finishToStart', lag: 0 },
+        { id: 'd1', sourceTaskId: '1', targetTaskId: '3', type: LinkType.FINISH_TO_START, lag: 0 },
+        { id: 'd2', sourceTaskId: '2', targetTaskId: '3', type: LinkType.FINISH_TO_START, lag: 0 },
       ]
 
       const result = analyzer.analyze(tasks, dependencies)
@@ -127,11 +128,11 @@ describe('CriticalPathAnalyzer 关键路径分析器', () => {
     it('应该正确处理带延迟的依赖关系', () => {
       const analyzer = new CriticalPathAnalyzer()
       const tasks: GanttTask[] = [
-        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05' },
-        { id: '2', pid: '0', start_date: '2024-01-08', end_date: '2024-01-12' },
+        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', taskNo: 'Task-1', job_progress: 0 },
+        { id: '2', pid: '0', start_date: '2024-01-08', end_date: '2024-01-12', taskNo: 'Task-2', job_progress: 0 },
       ]
       const dependencies: TaskDependency[] = [
-        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: 'finishToStart', lag: 2 },
+        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: LinkType.FINISH_TO_START, lag: 2 },
       ]
 
       const result = analyzer.analyze(tasks, dependencies)
@@ -146,8 +147,8 @@ describe('CriticalPathAnalyzer 关键路径分析器', () => {
     it('应该正确计算项目开始和结束日期', () => {
       const analyzer = new CriticalPathAnalyzer()
       const tasks: GanttTask[] = [
-        { id: '1', pid: '0', start_date: '2024-03-01', end_date: '2024-03-10' },
-        { id: '2', pid: '0', start_date: '2024-02-15', end_date: '2024-02-28' },
+        { id: '1', pid: '0', start_date: '2024-03-01', end_date: '2024-03-10', taskNo: 'Task-1', job_progress: 0 },
+        { id: '2', pid: '0', start_date: '2024-02-15', end_date: '2024-02-28', taskNo: 'Task-2', job_progress: 0 },
       ]
 
       const result = analyzer.analyze(tasks, [])
@@ -159,8 +160,8 @@ describe('CriticalPathAnalyzer 关键路径分析器', () => {
     it('应该正确计算项目工期', () => {
       const analyzer = new CriticalPathAnalyzer()
       const tasks: GanttTask[] = [
-        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-15' },
-        { id: '2', pid: '0', start_date: '2024-01-10', end_date: '2024-01-25' },
+        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-15', taskNo: 'Task-1', job_progress: 0 },
+        { id: '2', pid: '0', start_date: '2024-01-10', end_date: '2024-01-25', taskNo: 'Task-2', job_progress: 0 },
       ]
 
       const result = analyzer.analyze(tasks, [])
@@ -175,11 +176,11 @@ describe('CriticalPathAnalyzer 关键路径分析器', () => {
       analyzer.setCriticalThreshold(2)
 
       const tasks: GanttTask[] = [
-        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05' },
-        { id: '2', pid: '0', start_date: '2024-01-06', end_date: '2024-01-10' },
+        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', taskNo: 'Task-1', job_progress: 0 },
+        { id: '2', pid: '0', start_date: '2024-01-06', end_date: '2024-01-10', taskNo: 'Task-2', job_progress: 0 },
       ]
       const dependencies: TaskDependency[] = [
-        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: 'finishToStart', lag: 0 },
+        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: LinkType.FINISH_TO_START, lag: 0 },
       ]
 
       const result = analyzer.analyze(tasks, dependencies)
@@ -208,18 +209,18 @@ describe('CriticalPathAnalyzer 关键路径分析器', () => {
     it('应该正确处理复杂的网络依赖结构', () => {
       const analyzer = new CriticalPathAnalyzer()
       const tasks: GanttTask[] = [
-        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', taskNo: 'Start' },
-        { id: '2', pid: '0', start_date: '2024-01-03', end_date: '2024-01-08', taskNo: 'Task-A' },
-        { id: '3', pid: '0', start_date: '2024-01-03', end_date: '2024-01-10', taskNo: 'Task-B' },
-        { id: '4', pid: '0', start_date: '2024-01-09', end_date: '2024-01-15', taskNo: 'Task-C' },
-        { id: '5', pid: '0', start_date: '2024-01-11', end_date: '2024-01-20', taskNo: 'End' },
+        { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-05', taskNo: 'Start', job_progress: 0 },
+        { id: '2', pid: '0', start_date: '2024-01-03', end_date: '2024-01-08', taskNo: 'Task-A', job_progress: 0 },
+        { id: '3', pid: '0', start_date: '2024-01-03', end_date: '2024-01-10', taskNo: 'Task-B', job_progress: 0 },
+        { id: '4', pid: '0', start_date: '2024-01-09', end_date: '2024-01-15', taskNo: 'Task-C', job_progress: 0 },
+        { id: '5', pid: '0', start_date: '2024-01-11', end_date: '2024-01-20', taskNo: 'End', job_progress: 0 },
       ]
       const dependencies: TaskDependency[] = [
-        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: 'finishToStart', lag: 0 },
-        { id: 'd2', sourceTaskId: '1', targetTaskId: '3', type: 'finishToStart', lag: 0 },
-        { id: 'd3', sourceTaskId: '2', targetTaskId: '4', type: 'finishToStart', lag: 0 },
-        { id: 'd4', sourceTaskId: '3', targetTaskId: '4', type: 'finishToStart', lag: 0 },
-        { id: 'd5', sourceTaskId: '4', targetTaskId: '5', type: 'finishToStart', lag: 0 },
+        { id: 'd1', sourceTaskId: '1', targetTaskId: '2', type: LinkType.FINISH_TO_START, lag: 0 },
+        { id: 'd2', sourceTaskId: '1', targetTaskId: '3', type: LinkType.FINISH_TO_START, lag: 0 },
+        { id: 'd3', sourceTaskId: '2', targetTaskId: '4', type: LinkType.FINISH_TO_START, lag: 0 },
+        { id: 'd4', sourceTaskId: '3', targetTaskId: '4', type: LinkType.FINISH_TO_START, lag: 0 },
+        { id: 'd5', sourceTaskId: '4', targetTaskId: '5', type: LinkType.FINISH_TO_START, lag: 0 },
       ]
 
       const result = analyzer.analyze(tasks, dependencies)

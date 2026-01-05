@@ -84,7 +84,7 @@
           stroke-width="1.5"
         />
       </svg>
-      <TaskHeader :headers="taskHeaders" />
+      <TaskHeader :headers="taskHeaders" @update:headerWidth="handleHeaderWidthChange" />
     </div>
     <div :style="{ height: `calc(100% - ${headersHeight}px)` }">
       <TaskContent
@@ -164,6 +164,14 @@ export default defineComponent({
       mutations.setTaskHeaders(newHeaders)
     }
 
+    const handleHeaderWidthChange = ({ index, width }: { index: number; width: number }) => {
+      const headers = [...store.taskHeaders]
+      if (headers[index]) {
+        headers[index] = { ...headers[index], width }
+        mutations.setTaskHeaders(headers)
+      }
+    }
+
     return {
       t,
       tasks,
@@ -176,6 +184,7 @@ export default defineComponent({
       columnConfigVisible,
       showColumnConfig,
       updateHeaders,
+      handleHeaderWidthChange,
     }
   },
 })

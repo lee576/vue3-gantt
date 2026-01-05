@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 module.exports = {
   root: true,
   env: {
@@ -31,6 +32,11 @@ module.exports = {
     defineProps: 'readonly',
     defineEmits: 'readonly',
     defineExpose: 'readonly',
-    withDefaults: 'readonly'
+    withDefaults: 'readonly',
+    module: 'readonly',
+    process: 'readonly',
+    require: 'readonly',
+    __dirname: 'readonly',
+    __filename: 'readonly'
   }
 }

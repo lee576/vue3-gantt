@@ -102,7 +102,8 @@ export default defineComponent({
     let lastScrollY = 0
 
     // 注入自定义任务类型判断函数
-    const setTaskType = inject<((row: any) => any) | undefined>(Symbols.SetTaskTypeSymbol, undefined)
+    // eslint-disable-next-line no-unused-vars
+    const setTaskType = inject<((_row: any) => any) | undefined>(Symbols.SetTaskTypeSymbol, undefined)
 
     // 基线功能
     const { getBaselineDataForTask, baselineDisplayConfig } = useBaseline()
