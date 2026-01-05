@@ -5,7 +5,7 @@ export default {
   'app.hideBaseline': 'Скрыть Базовую Линию',
   'app.showBaseline': 'Показать Базовую Линию',
   'app.saveBaseline': 'Сохранить Базовую Линию',
-  'app.performanceTest': 'Тест Производительности (1000)',
+  'app.performanceTest': 'Тест Производительности (2000)',
   'app.normalData': 'Переключиться на Обычные Данные',
   'app.refreshData': 'Обновить Данные',
   'app.criticalPath': 'Анализ Критического Пути',

@@ -5,7 +5,7 @@ export default {
   'app.hideBaseline': '隐藏基线',
   'app.showBaseline': '显示基线',
   'app.saveBaseline': '保存基线',
-  'app.performanceTest': '性能测试(1000条)',
+  'app.performanceTest': '性能测试(2000条)',
   'app.normalData': '切换正常数据',
   'app.refreshData': '刷新数据',
   'app.criticalPath': '关键路径分析',

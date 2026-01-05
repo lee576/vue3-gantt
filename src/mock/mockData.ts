@@ -782,7 +782,7 @@ export const getPerformanceTestResponse = (): MockResponse => {
     }
   }
 
-  while (tasks.length < 1000) {
+  while (tasks.length < 2000) {
     const taskId = `extra-${tasks.length}`
     const taskType = taskTypes[Math.floor(Math.random() * taskTypes.length)]
     const priority = priorities[Math.floor(Math.random() * priorities.length)]

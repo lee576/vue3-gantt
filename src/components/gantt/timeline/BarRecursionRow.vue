@@ -289,7 +289,7 @@ export default defineComponent({
     )
 
     const recursionRow = (id: any) => {
-      let findRows = allTask.value.filter(obj => obj[mapFields.value['parentId']] === id)
+      const findRows = allTask.value.filter(obj => obj[mapFields.value['parentId']] === id)
       if (findRows && findRows.length > 0) {
         for (let i = 0; i < findRows.length; i++) {
           if (expandRow.value.expand === false) {

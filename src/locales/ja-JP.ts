@@ -5,7 +5,7 @@ export default {
   'app.hideBaseline': 'ベースライン非表示',
   'app.showBaseline': 'ベースライン表示',
   'app.saveBaseline': 'ベースライン保存',
-  'app.performanceTest': 'パフォーマンステスト(1000件)',
+  'app.performanceTest': 'パフォーマンステスト(2000件)',
   'app.normalData': '通常データに切り替え',
   'app.refreshData': 'データ更新',
   'app.criticalPath': 'クリティカルパス分析',

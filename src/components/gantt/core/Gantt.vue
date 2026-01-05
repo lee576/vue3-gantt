@@ -341,7 +341,7 @@ import { Symbols } from '../state/Symbols'
 import { linkDataManager, useLinkConfig } from '../composables/LinkConfig'
 import { useI18n } from '../i18n'
 import { PerformanceConfig } from '../composables/PerformanceConfig'
-import { getWorkerManager, destroyWorkerManager } from '../workers/WorkerManager'
+import { getWorkerManager, destroyWorkerManager } from '../workers/AdvancedWorkerAdapter'
 import type { GanttViewMode, GanttMapFields, GanttTask } from '../types/GanttTypes'
 // 导入日期选择器组件
 import DatePicker from '../config/DatePicker.vue'
@@ -954,7 +954,7 @@ export default defineComponent({
     const allowChangeTaskDate = computed(() => store.allowChangeTaskDate)
 
     const FindAllParent = (targetData: any[], pid: any) => {
-      let parent = targetData.filter(obj => obj[mapFields.value['id']] === pid)
+      const parent = targetData.filter(obj => obj[mapFields.value['id']] === pid)
       if (parent && parent.length > 0) {
         result.value = parent[0].index + '.' + result.value
         FindAllParent(targetData, parent[0][mapFields.value['parentId']])
@@ -970,14 +970,14 @@ export default defineComponent({
 
     // 主线程递归处理数据(保留作为 fallback)
     const RecursionData = (id: any, tasks: any[], level: number) => {
-      let findResult = tasks.filter(obj => obj[mapFields.value['parentId']] === id)
+      const findResult = tasks.filter(obj => obj[mapFields.value['parentId']] === id)
       if (findResult && findResult.length > 0) {
         level++
         for (let i = 0; i < findResult.length; i++) {
           findResult[i].treeLevel = level
           findResult[i].index = i + 1
 
-          let parent = initData.value.filter(
+          const parent = initData.value.filter(
             obj => obj[mapFields.value['id']] === findResult[i][mapFields.value['parentId']]
           )
           result.value = ''
@@ -1007,7 +1007,7 @@ export default defineComponent({
         return processedData
       } catch {
         initData.value = []
-        let level: number = 0
+        const level: number = 0
         RecursionData('0', tasks, level)
         return initData.value
       }
@@ -1137,7 +1137,7 @@ export default defineComponent({
     })
 
     const confirmStart = (value: ConfirmDateData) => {
-      let days = DateUtils.diff(endDate.value, value.date, 'days')
+      const days = DateUtils.diff(endDate.value, value.date, 'days')
       if (days < 0) {
         // 开始日期大于结束日期时，自动调整结束日期
         selectedEndDate.value = value.date
@@ -1154,7 +1154,7 @@ export default defineComponent({
     }
 
     const confirmEnd = (value: ConfirmDateData) => {
-      let days = DateUtils.diff(value.date, startDate.value, 'days')
+      const days = DateUtils.diff(value.date, startDate.value, 'days')
       if (days < 0) {
         // 结束日期小于开始日期时，自动调整开始日期
         selectedStartDate.value = DateUtils.format(value.date, 'YYYY-MM-DD')
@@ -1323,7 +1323,7 @@ export default defineComponent({
         const processedData = await processDataWithWorker(dataSource.value)
         mutations.setTasks(processedData)
       } else {
-        let level: number = 0
+        const level: number = 0
         RecursionData('0', dataSource.value, level)
         mutations.setTasks(initData.value)
       }
@@ -1368,7 +1368,7 @@ export default defineComponent({
               mutations.setTasks(processedData)
             } else {
               initData.value = []
-              let level: number = 0
+              const level: number = 0
               RecursionData('0', newVal, level)
               mutations.setTasks(initData.value)
             }

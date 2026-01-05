@@ -56,11 +56,11 @@ export default defineComponent({
   },
   emits: ['update:paneLengthPercent'],
   setup(props, { emit }) {
-    let splitPane = ref<HTMLElement | null>(null)
-    let trigger = ref<HTMLElement | null>(null)
-    let triggerLeftOffset = ref(0)
-    let isHovering = ref(false)
-    let isDragging = ref(false)
+    const splitPane = ref<HTMLElement | null>(null)
+    const trigger = ref<HTMLElement | null>(null)
+    const triggerLeftOffset = ref(0)
+    const isHovering = ref(false)
+    const isDragging = ref(false)
     const currentTheme = ref(ganttThemeManager.getCurrentTheme())
 
     let splitPaneRect: DOMRect | null = null

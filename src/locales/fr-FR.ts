@@ -5,7 +5,7 @@ export default {
   'app.hideBaseline': 'Masquer la Ligne de Base',
   'app.showBaseline': 'Afficher la Ligne de Base',
   'app.saveBaseline': 'Enregistrer la Ligne de Base',
-  'app.performanceTest': 'Test de Performance (1000)',
+  'app.performanceTest': 'Test de Performance (2000)',
   'app.normalData': 'Basculer vers les Données Normales',
   'app.refreshData': 'Actualiser les Données',
   'app.criticalPath': 'Analyse du Chemin Critique',

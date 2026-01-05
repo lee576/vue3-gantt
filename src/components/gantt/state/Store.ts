@@ -116,13 +116,13 @@ const initialStore: StoreType = {
 }
 
 /** 序列号计数器，用于生成唯一ID */
-export let serialNumber: number = 0
+export const serialNumber: number = 0
 
 /**
  * 甘特图全局响应式状态
  * @description 使用 Vue 3 的 reactive API 创建响应式状态管理
  */
-export let store = reactive(initialStore) as StoreType
+export const store = reactive(initialStore) as StoreType
 
 /**
  * 获取某个任务的所有子孙任务ID
@@ -225,7 +225,7 @@ interface MutationsType {
 }
 
 // 定义 Mutations
-export let mutations: MutationsType = {
+export const mutations: MutationsType = {
   setMonthHeaders(monthHeaders: any[]): void {
     store.monthHeaders = monthHeaders
   },

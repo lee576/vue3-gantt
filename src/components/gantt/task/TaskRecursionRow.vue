@@ -274,7 +274,7 @@ export default defineComponent({
 
     const recursionRow = (id: any) => {
       // 检查 props.tasks 是否存在，如果存在则进行过滤，否则返回空数组
-      let findRows = props.tasks
+      const findRows = props.tasks
         ? props.tasks.filter(obj => obj[mapFields.value['parentId']] === id)
         : []
       if (findRows && findRows.length > 0) {

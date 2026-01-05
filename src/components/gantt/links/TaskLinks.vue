@@ -155,7 +155,7 @@ export default defineComponent({
     // 虚拟滚动状态
     const scrollTop = ref(0)
     const containerHeight = ref(0)
-    let lastScrollY = 0
+    const lastScrollY = 0
     const isScrolling = ref(false)
     let scrollEndTimer: number | null = null
 

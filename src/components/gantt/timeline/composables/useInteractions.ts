@@ -513,8 +513,8 @@ export function useInteractions(deps: InteractionDeps) {
           end: event => {
             if (isProgressDragging.value) return
             const target = event.target
-            let currentX = parseFloat(target.getAttribute('data-x') || '0') || 0
-            let currentWidth = target.width.baseVal.value
+            const currentX = parseFloat(target.getAttribute('data-x') || '0') || 0
+            const currentWidth = target.width.baseVal.value
 
             // 对齐到网格 - 根据模式确定对齐粒度
             let alignedX = currentX
@@ -791,8 +791,8 @@ export function useInteractions(deps: InteractionDeps) {
           end: event => {
             if (isProgressDragging.value) return
             const target = event.target
-            let currentX = parseFloat(target.getAttribute('data-x') || '0') || 0
-            let multiple = Math.round(currentX / store.scale)
+            const currentX = parseFloat(target.getAttribute('data-x') || '0') || 0
+            const multiple = Math.round(currentX / store.scale)
             let alignedX = multiple * store.scale
             if (alignedX < 0) alignedX = 0
 

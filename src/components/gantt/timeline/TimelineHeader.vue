@@ -151,9 +151,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, toRefs, ref, shallowRef, computed, watch, onMounted, onUnmounted } from 'vue'
+import { defineComponent, toRefs, ref, shallowRef, computed, onMounted, onUnmounted } from 'vue'
 import DateUtils from '../utils/dateUtils'
-import { store } from '../state/Store'
 
 // 虚拟滚动阈值：超过此数量启用虚拟滚动
 const VIRTUAL_SCROLL_THRESHOLD = 100
@@ -328,14 +327,6 @@ export default defineComponent({
       })
     }
 
-    // 监听 store 中的滚动状态变化
-    watch(
-      () => store.scrollFlag,
-      () => {
-        handleScroll()
-      }
-    )
-
     onMounted(() => {
       if (headerContainerRef.value) {
         // 监听父级滚动容器
@@ -361,10 +352,10 @@ export default defineComponent({
 
     return {
       headerContainerRef,
-      weekHeaders,
-      dayHeaders,
-      monthHeaders,
-      hourHeaders,
+      weekHeadersList: weekHeaders,
+      dayHeadersList: dayHeaders,
+      monthHeadersList: monthHeaders,
+      hourHeadersList: hourHeaders,
       isToday,
       useVirtual,
       totalWidth,

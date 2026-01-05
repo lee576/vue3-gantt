@@ -25,7 +25,7 @@ try {
 
   // 读取 src/index.ts
   const indexTsPath = join(rootDir, 'src', 'index.ts')
-  let indexTsContent = readFileSync(indexTsPath, 'utf-8')
+  const indexTsContent = readFileSync(indexTsPath, 'utf-8')
 
   // 替换版本号
   const versionRegex = /export const version = ['"][\d.]+['"]/

@@ -190,7 +190,7 @@ export default defineComponent({
         case '季度': {
           const ganttStartQuarter = DateUtils.startOf(startGanttDateStr.value, 'quarter')
           const taskStartQuarter = DateUtils.startOf(props.row[mapFields.value.startdate ?? ''], 'quarter')
-          let fromStartQuarters =
+          const fromStartQuarters =
             (DateUtils.year(taskStartQuarter) - DateUtils.year(ganttStartQuarter)) * 4 +
             (DateUtils.quarter(taskStartQuarter) - DateUtils.quarter(ganttStartQuarter))
           dataX = scale.value * fromStartQuarters + scale.value / 2
@@ -201,7 +201,7 @@ export default defineComponent({
         case '月': {
           const ganttStartMonth = DateUtils.startOf(startGanttDateStr.value, 'month')
           const taskStartMonth = DateUtils.startOf(props.row[mapFields.value.startdate ?? ''], 'month')
-          let fromStartMonths =
+          const fromStartMonths =
             (DateUtils.year(taskStartMonth) - DateUtils.year(ganttStartMonth)) * 12 +
             (DateUtils.month(taskStartMonth) - DateUtils.month(ganttStartMonth))
           dataX = scale.value * fromStartMonths + scale.value / 2
@@ -212,7 +212,7 @@ export default defineComponent({
         case '日': {
           const isHalfDay = store.daySubMode === 'half'
 
-          let fromPlanStartDays = DateUtils.diff(
+          const fromPlanStartDays = DateUtils.diff(
             props.row[mapFields.value.startdate ?? ''],
             startGanttDateStr.value,
             'days'
@@ -235,14 +235,14 @@ export default defineComponent({
         case '周': {
           const startGanttWeek = DateUtils.startOf(startGanttDateStr.value, 'isoWeek')
           const taskStartWeek = DateUtils.startOf(props.row[mapFields.value.startdate ?? ''], 'isoWeek')
-          let fromPlanStartWeeks = DateUtils.diff(taskStartWeek, startGanttWeek, 'week')
+          const fromPlanStartWeeks = DateUtils.diff(taskStartWeek, startGanttWeek, 'week')
           dataX = scale.value * fromPlanStartWeeks + scale.value / 2
           props.row[mapFields.value.takestime ?? 'takestime'] = '0周'
           props.row[mapFields.value.enddate ?? 'enddate'] = props.row[mapFields.value.startdate ?? 'startdate']
           break
         }
         case '时': {
-          let fromPlanStartHours = DateUtils.diff(
+          const fromPlanStartHours = DateUtils.diff(
             props.row[mapFields.value.startdate ?? ''],
             startGanttDateStr.value,
             'hours'
@@ -255,7 +255,7 @@ export default defineComponent({
       }
 
       oldMilestoneX.value = dataX
-      let svg = SVG(milestoneElement as unknown as HTMLElement)
+      const svg = SVG(milestoneElement as unknown as HTMLElement)
       const borderColor =
         getComputedStyle(milestoneElement).getPropertyValue('--border') || '#cecece'
 
@@ -379,16 +379,16 @@ export default defineComponent({
             oldMilestoneX.value = Number(event.target.getAttribute('data-x'))
           },
           move: (event: { target: SVGSVGElement; dx: number }) => {
-            let x = (
+            const x = (
               (parseFloat(event.target.getAttribute('data-x') || '0') || 0) + event.dx
             ).toString()
             event.target.style.transform = `translate(${x}px, 0px)`
             event.target.setAttribute('data-x', x)
           },
           end: (event: { target: SVGSVGElement }) => {
-            let target = event.target
-            let currentX = parseFloat(target.getAttribute('data-x') || '0') || 0
-            let multiple = Math.round((currentX - scale.value / 2) / scale.value)
+            const target = event.target
+            const currentX = parseFloat(target.getAttribute('data-x') || '0') || 0
+            const multiple = Math.round((currentX - scale.value / 2) / scale.value)
             let alignedX = multiple * scale.value + scale.value / 2
             if (alignedX < scale.value / 2) alignedX = scale.value / 2
             if (alignedX > timelineCellCount.value * scale.value)

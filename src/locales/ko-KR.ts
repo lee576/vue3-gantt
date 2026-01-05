@@ -5,7 +5,7 @@ export default {
   'app.hideBaseline': '기준선 숨기기',
   'app.showBaseline': '기준선 표시',
   'app.saveBaseline': '기준선 저장',
-  'app.performanceTest': '성능 테스트(1000개)',
+  'app.performanceTest': '성능 테스트(2000개)',
   'app.normalData': '정상 데이터로 전환',
   'app.refreshData': '데이터 새로고침',
   'app.criticalPath': '핵심 경로 분석',

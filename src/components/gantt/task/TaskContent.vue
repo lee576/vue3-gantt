@@ -29,11 +29,10 @@ export default defineComponent({
   },
   setup(props) {
     const tasks = computed(() => store.tasks)
-    const { scrollTop, scrollFlag, setScrollTop, setScrollFlag } = useScrollState()
+    const { scrollTop, setScrollTop } = useScrollState()
     const taskContent = ref<HTMLDivElement | null>(null)
     const mapFields = computed(() => store.mapFields)
 
-    // 计算内容高度，与右侧保持一致
     const contentHeight = computed(() => {
       return tasks.value.length * props.rowHeight
     })
@@ -43,13 +42,13 @@ export default defineComponent({
     }
 
     watch(scrollTop, newValue => {
-      if (!scrollFlag.value && taskContent.value) {
+      if (taskContent.value && taskContent.value.scrollTop !== newValue) {
         taskContent.value.scrollTop = newValue
       }
     })
 
-    // 优化：使用requestAnimationFrame优化滚动性能
     let rafId: number | null = null
+
     const scroll = () => {
       if (!taskContent.value) return
 
@@ -59,7 +58,6 @@ export default defineComponent({
 
       rafId = requestAnimationFrame(() => {
         if (taskContent.value) {
-          setScrollFlag(true) // 标记当前面板为主动滚动
           setScrollTop(taskContent.value.scrollTop)
         }
         rafId = null
@@ -121,9 +119,7 @@ export default defineComponent({
     return {
       tasks,
       taskContent,
-      scrollFlag,
       mapFields,
-      setScrollFlag,
       getRootNode,
       scroll,
       mouseover,

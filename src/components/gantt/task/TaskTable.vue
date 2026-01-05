@@ -150,7 +150,7 @@ export default defineComponent({
     const setRootTask = mutations.setRootTask
     const scrollToToday = () => {
       if (!startGanttDate.value || !endGanttDate.value) return
-      let isBetween = DateUtils.isBetween(DateUtils.now().toDate(), startGanttDate.value, endGanttDate.value)
+      const isBetween = DateUtils.isBetween(DateUtils.now().toDate(), startGanttDate.value, endGanttDate.value)
       if (isBetween) {
         sharedState.triggerScrollToToday()
       }

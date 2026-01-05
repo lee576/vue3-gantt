@@ -5,7 +5,7 @@ export default {
   'app.hideBaseline': 'Ocultar Línea Base',
   'app.showBaseline': 'Mostrar Línea Base',
   'app.saveBaseline': 'Guardar Línea Base',
-  'app.performanceTest': 'Prueba de Rendimiento (1000)',
+  'app.performanceTest': 'Prueba de Rendimiento (2000)',
   'app.normalData': 'Cambiar a Datos Normales',
   'app.refreshData': 'Actualizar Datos',
   'app.criticalPath': 'Análisis de Ruta Crítica',

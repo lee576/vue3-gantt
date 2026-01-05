@@ -52,7 +52,7 @@ export default defineComponent({
   },
   setup(props) {
     const barContent = ref<HTMLDivElement | null>(null)
-    const { scrollTop, scrollFlag, setScrollTop, setScrollFlag } = useScrollState()
+    const { scrollTop, setScrollTop } = useScrollState()
     const { config: linkConfig } = useLinkConfig()
 
     const tasks = computed(() => store.tasks)
@@ -80,10 +80,9 @@ export default defineComponent({
     })
 
     let isScrollingFromWatcher = false
-    let scrollEndTimer: ReturnType<typeof setTimeout> | null = null
 
     const syncScrollFromWatcher = () => {
-      if (barContent.value && scrollFlag.value && scrollTop.value !== undefined) {
+      if (barContent.value && scrollTop.value !== undefined) {
         isScrollingFromWatcher = true
         barContent.value.scrollTop = scrollTop.value
         isScrollingFromWatcher = false
@@ -97,19 +96,21 @@ export default defineComponent({
       }
     )
 
+    let rafId: number | null = null
+
     const handleScrollEvent = () => {
       if (!barContent.value || isScrollingFromWatcher) return
 
-      const currentScrollTop = barContent.value.scrollTop
-      setScrollFlag(false)
-      setScrollTop(currentScrollTop)
-
-      if (scrollEndTimer) {
-        clearTimeout(scrollEndTimer)
+      if (rafId) {
+        cancelAnimationFrame(rafId)
       }
-      scrollEndTimer = setTimeout(() => {
-        setScrollFlag(true)
-      }, 150)
+
+      rafId = requestAnimationFrame(() => {
+        if (barContent.value) {
+          setScrollTop(barContent.value.scrollTop)
+        }
+        rafId = null
+      })
     }
 
     onMounted(() => {
@@ -123,8 +124,8 @@ export default defineComponent({
       if (barContent.value) {
         barContent.value.removeEventListener('scroll', handleScrollEvent)
       }
-      if (scrollEndTimer) {
-        clearTimeout(scrollEndTimer)
+      if (rafId) {
+        cancelAnimationFrame(rafId)
       }
     })
 
@@ -164,7 +165,6 @@ export default defineComponent({
 
     return {
       barContent,
-      scrollFlag,
       tasks,
       timelineCellCount,
       scale,
@@ -174,7 +174,6 @@ export default defineComponent({
       mapFields,
       getRootNode,
       handleScrollEvent,
-      setScrollFlag,
       containerWidth,
       containerHeight,
       linkConfig,

@@ -5,7 +5,7 @@ export default {
   'app.hideBaseline': 'Hide Baseline',
   'app.showBaseline': 'Show Baseline',
   'app.saveBaseline': 'Save Baseline',
-  'app.performanceTest': 'Performance Test (1000 items)',
+  'app.performanceTest': 'Performance Test (2000 items)',
   'app.normalData': 'Switch to Normal Data',
   'app.refreshData': 'Refresh Data',
   'app.criticalPath': 'Critical Path Analysis',

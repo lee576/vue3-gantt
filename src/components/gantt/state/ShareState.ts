@@ -19,7 +19,6 @@ const sharedState = reactive({
 export default sharedState
 
 const scrollTop = shallowRef(0)
-const scrollFlag = shallowRef(false)
 
 const setScrollTop = (value: number) => {
   if (scrollTop.value !== value) {
@@ -27,17 +26,9 @@ const setScrollTop = (value: number) => {
   }
 }
 
-const setScrollFlag = (value: boolean) => {
-  if (scrollFlag.value !== value) {
-    scrollFlag.value = value
-  }
-}
-
 export const useScrollState = () => {
   return {
     scrollTop,
-    scrollFlag,
     setScrollTop,
-    setScrollFlag,
   }
 }

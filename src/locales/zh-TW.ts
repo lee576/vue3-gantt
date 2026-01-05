@@ -5,7 +5,7 @@ export default {
   'app.hideBaseline': '隱藏基線',
   'app.showBaseline': '顯示基線',
   'app.saveBaseline': '儲存基線',
-  'app.performanceTest': '效能測試(1000條)',
+  'app.performanceTest': '效能測試(2000條)',
   'app.normalData': '切換正常資料',
   'app.refreshData': '重新整理資料',
   'app.dependencyValidation': '相依性驗證',

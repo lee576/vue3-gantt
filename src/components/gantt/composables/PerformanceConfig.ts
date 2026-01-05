@@ -78,6 +78,27 @@ export const PerformanceConfig = {
   // 启用 Worker 的任务数量阈值(任务数超过此值时使用 Worker)
   WORKER_THRESHOLD: 50,
 
+  // 是否启用 Worker Pool（多个 Worker 并行处理）
+  ENABLE_WORKER_POOL: true,
+
+  // Worker Pool 大小（默认使用 CPU 核心数）
+  WORKER_POOL_SIZE: 0, // 0 = 自动检测 CPU 核心数
+
+  // 是否启用 SharedArrayBuffer 共享内存
+  ENABLE_SHARED_MEMORY: true,
+
+  // SharedArrayBuffer 初始大小（字节）
+  SHARED_MEMORY_SIZE: 1024 * 1024, // 1MB
+
+  // 是否启用增量计算（只处理变化的数据）
+  ENABLE_INCREMENTAL_COMPUTATION: true,
+
+  // 启用增量计算的任务数量阈值
+  INCREMENTAL_THRESHOLD: 100,
+
+  // 增量计算追踪的字段
+  INCREMENTAL_TRACK_FIELDS: ['startDate', 'endDate', 'parentId', 'name'],
+
   // 是否启用基于视口的自动折叠功能
   ENABLE_VIEWPORT_COLLAPSE: true,
 
