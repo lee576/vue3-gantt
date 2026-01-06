@@ -126,7 +126,7 @@
             </button>
             <button
               class="metro-btn metro-btn-primary"
-              @click="editingFieldIndex !== null ? $emit('update-field') : $emit('add-field')"
+              @click="handleAddOrUpdateField"
               :disabled="
                 !localNewField.label ||
                 !localNewField.type ||
@@ -183,6 +183,15 @@ function handleOptionTextInput(event: Event) {
   const target = event.target as HTMLInputElement
   if (target?.value !== undefined) {
     emit('update:newOptionText', target.value)
+  }
+}
+
+function handleAddOrUpdateField() {
+  Object.assign(props.newField, localNewField)
+  if (props.editingFieldIndex !== null) {
+    emit('update-field')
+  } else {
+    emit('add-field')
   }
 }
 </script>
