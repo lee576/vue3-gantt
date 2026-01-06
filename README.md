@@ -367,6 +367,68 @@ onMounted(() => {
 | rowHeight | number | 60 | 每行任务的高度（像素） |
 | setBarColor | function | - | 自定义任务条颜色的回调函数 |
 
+#### CSS 变量配置
+
+通过 `cssVariables` 属性可以自定义组件的 CSS 变量，实现主题定制：
+
+```typescript
+const styleConfig = ref<StyleConfig>({
+  cssVariables: {
+    '--text-primary': '#eab308',    // 单元格文字颜色（黄色）
+    '--row-hover': '#dbeafe',       // 行悬停背景色（蓝色）
+    '--bg-content': '#ffffff',      // 行内容区域背景色
+    '--border-color': '#d0d0d0',    // 边框颜色
+  }
+});
+```
+
+#### 类名样式配置
+
+组件支持通过 Tailwind CSS 类名自定义各元素的样式，方便与其他样式方案集成：
+
+```typescript
+const styleConfig = ref<StyleConfig>({
+  // ========== CSS 变量配置 ==========
+  cssVariables: {
+    '--text-primary': '#eab308',
+    '--row-hover': '#dbeafe',
+  },
+
+  // ========== CSS 类名样式配置 ==========
+  tableClassName: '!shadow-xl !border !border-gray-200 !rounded-lg !overflow-hidden',
+  headerClassName: '!bg-gradient-to-r !from-slate-100 !to-slate-200 !text-slate-700 !font-semibold',
+  captionClassName: '!bg-gradient-to-r !from-slate-50 !to-gray-100 !text-slate-700',
+  contentClassName: '!text-gray-500',
+  addTaskButtonClassName: '!bg-indigo-600 !hover:bg-indigo-700 !text-white',
+  todayButtonClassName: '!bg-emerald-500 !hover:bg-emerald-600 !text-white',
+  columnSettingsButtonClassName: '!bg-amber-500 !hover:bg-amber-600 !text-white',
+  barClassName: '!rounded-md !shadow-md',
+  barRowClassName: '!cursor-pointer !transition-colors !duration-150 !rounded',
+  progressHandleClassName: '!bg-white/80 !hover:bg-white !shadow-md',
+  containerClassName: '!shadow-md !bg-white',
+  timelineHeaderClassName: '!bg-gradient-to-r !from-slate-100 !to-slate-200',
+})
+```
+
+**类名配置说明：**
+
+| 属性 | 说明 | 示例类名 |
+|------|------|----------|
+| tableClassName | 任务表格容器整体样式 | `!shadow-xl !border` |
+| headerClassName | 表格头部（表头行）样式 | `!bg-gradient-to-r` |
+| captionClassName | 表格标题栏样式 | `!bg-gray-100` |
+| contentClassName | 表格内容单元格样式 | `!text-yellow-500` |
+| addTaskButtonClassName | 添加任务按钮样式 | `!bg-blue-600` |
+| todayButtonClassName | 今日按钮样式 | `!bg-green-500` |
+| columnSettingsButtonClassName | 列设置按钮样式 | `!bg-amber-500` |
+| barClassName | 任务条（甘特图条形）样式 | `!rounded-md` |
+| barRowClassName | 任务条行容器样式 | `!cursor-pointer` |
+| progressHandleClassName | 进度拖拽手柄样式 | `!bg-white` |
+| containerClassName | 甘特图主容器样式 | `!shadow-lg` |
+| timelineHeaderClassName | 时间轴头部样式 | `!bg-gray-100` |
+
+> 💡 **提示**：使用 `!` 前缀可以确保样式类具有最高优先级，避免被默认样式覆盖。
+
 ### DataConfig 数据配置
 
 | 属性 | 类型 | 说明 |

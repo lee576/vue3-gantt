@@ -5,6 +5,9 @@ import Gantt from './components/gantt/core/Gantt.vue'
 import './components/gantt/gantt.css'
 import './components/gantt/themes/LiquidGlass.css'
 
+// 导入 Tailwind 样式（组件级集成，不影响外部项目）
+import './components/gantt/tailwind.css'
+
 // 导出组件
 export { default as Gantt } from './components/gantt/core/Gantt.vue'
 

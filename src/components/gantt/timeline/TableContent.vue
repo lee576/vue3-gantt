@@ -5,6 +5,7 @@
     @mouseleave="handleMouseLeave"
     v-if="tasks"
     class="content"
+    :class="['content-base']"
   >
     <div class="content-inner" :style="{ minHeight: containerHeight + 'px', position: 'relative' }">
       <!-- 竖线基准线 -->
@@ -17,6 +18,8 @@
         :key="`${mode}-${scale}-${timelineCellCount}`"
         :rowHeight="rowHeight"
         :tasks="tasks"
+        :bar-class-name="barClassName"
+        :progress-handle-class-name="progressHandleClassName"
       ></BarRecursionRow>
       <!-- 任务连线层 -->
       <TaskLinks
@@ -44,6 +47,14 @@ export default defineComponent({
     headers: {
       type: Array,
       default: () => [],
+    },
+    barClassName: {
+      type: String,
+      default: '',
+    },
+    progressHandleClassName: {
+      type: String,
+      default: '',
     },
   },
   components: {
@@ -181,6 +192,8 @@ export default defineComponent({
       guideLineX,
       handleMouseMove,
       handleMouseLeave,
+      barClassName: props.barClassName,
+      progressHandleClassName: props.progressHandleClassName,
     }
   },
 })

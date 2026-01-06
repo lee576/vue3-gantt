@@ -352,6 +352,68 @@ onMounted(() => {
 | rowHeight | number | 60 | Row height (pixels) |
 | setBarColor | function | - | Callback function for custom task bar colors |
 
+#### CSS Variables Configuration
+
+You can customize component CSS variables through the `cssVariables` property for theme customization:
+
+```typescript
+const styleConfig = ref<StyleConfig>({
+  cssVariables: {
+    '--text-primary': '#eab308',    // Cell text color (yellow)
+    '--row-hover': '#dbeafe',       // Row hover background color (blue)
+    '--bg-content': '#ffffff',      // Row content area background color
+    '--border-color': '#d0d0d0',    // Border color
+  }
+});
+```
+
+#### Class Name Configuration
+
+The component supports customizing element styles through Tailwind CSS class names, making it easy to integrate with other styling solutions:
+
+```typescript
+const styleConfig = ref<StyleConfig>({
+  // ========== CSS Variables Configuration ==========
+  cssVariables: {
+    '--text-primary': '#eab308',
+    '--row-hover': '#dbeafe',
+  },
+
+  // ========== CSS Class Name Configuration ==========
+  tableClassName: '!shadow-xl !border !border-gray-200 !rounded-lg !overflow-hidden',
+  headerClassName: '!bg-gradient-to-r !from-slate-100 !to-slate-200 !text-slate-700 !font-semibold',
+  captionClassName: '!bg-gradient-to-r !from-slate-50 !to-gray-100 !text-slate-700',
+  contentClassName: '!text-gray-500',
+  addTaskButtonClassName: '!bg-indigo-600 !hover:bg-indigo-700 !text-white',
+  todayButtonClassName: '!bg-emerald-500 !hover:bg-emerald-600 !text-white',
+  columnSettingsButtonClassName: '!bg-amber-500 !hover:bg-amber-600 !text-white',
+  barClassName: '!rounded-md !shadow-md',
+  barRowClassName: '!cursor-pointer !transition-colors !duration-150 !rounded',
+  progressHandleClassName: '!bg-white/80 !hover:bg-white !shadow-md',
+  containerClassName: '!shadow-md !bg-white',
+  timelineHeaderClassName: '!bg-gradient-to-r !from-slate-100 !to-slate-200',
+})
+```
+
+**Class Name Configuration Reference:**
+
+| Property | Description | Example Classes |
+|----------|-------------|-----------------|
+| tableClassName | Task table container overall style | `!shadow-xl !border` |
+| headerClassName | Table header (header row) style | `!bg-gradient-to-r` |
+| captionClassName | Table caption bar style | `!bg-gray-100` |
+| contentClassName | Table content cell style | `!text-yellow-500` |
+| addTaskButtonClassName | Add task button style | `!bg-blue-600` |
+| todayButtonClassName | Today button style | `!bg-green-500` |
+| columnSettingsButtonClassName | Column settings button style | `!bg-amber-500` |
+| barClassName | Task bar (Gantt bar) style | `!rounded-md` |
+| barRowClassName | Task bar row container style | `!cursor-pointer` |
+| progressHandleClassName | Progress drag handle style | `!bg-white` |
+| containerClassName | Gantt main container style | `!shadow-lg` |
+| timelineHeaderClassName | Timeline header style | `!bg-gray-100` |
+
+> 💡 **Tip**: Using the `!` prefix ensures the style class has the highest priority and avoids being overwritten by default styles.
+
 ### DataConfig
 
 | Property | Type | Description |

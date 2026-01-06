@@ -2,22 +2,28 @@
   <div
     v-if="showRow"
     class="barRow"
+    :class="['barRow-base', barRowClassName, { active: hover }]"
     :style="barRowStyle"
     @mouseover="hoverActive()"
     @mouseleave="hoverInactive()"
-    :class="{ active: hover }"
     :data-task-id="row[mapFields.id]"
   >
-    <svg
-      key="row.no"
-      v-if="showRow"
-      ref="bar"
-      class="bar"
-      :height="barHeight + 'px'"
-      :class="{ active: hover }"
-      style="overflow: visible"
-    ></svg>
-    <!-- 使用CSS背景绘制网格，不再渲染大量cell div -->
+    <slot name="bar" :row="row">
+      <svg
+        key="row.no"
+        v-if="showRow"
+        ref="bar"
+        class="bar"
+        :class="['bar-base', barClassName, { active: hover }]"
+        :height="barHeight + 'px'"
+        style="overflow: visible"
+      >
+        <slot name="progress" :row="row" :progress="progress">
+          <slot name="label" :row="row"></slot>
+        </slot>
+      </svg>
+    </slot>
+    <slot :row="row" :progress="progress"></slot>
   </div>
 </template>
 <script lang="ts">
@@ -31,6 +37,7 @@ import {
   onBeforeUnmount,
   inject,
   type PropType,
+  type VNode,
 } from 'vue'
 import interact from 'interactjs'
 import { store, mutations } from '../state/Store'
@@ -45,11 +52,20 @@ import type { GanttTask } from '../types/GanttTypes'
 export default defineComponent({
   name: 'GanttBar',
   emits: ['progress-update'],
+  slots: Object as {
+    default?: (props: { row: GanttTask; progress: number }) => VNode[]
+    bar?: (props: { row: GanttTask }) => VNode[]
+    progress?: (props: { row: GanttTask; progress: number }) => VNode[]
+    label?: (props: { row: GanttTask }) => VNode[]
+  },
   props: {
     rowHeight: { type: Number as () => number, default: 0 },
     row: { type: Object as () => GanttTask, default: () => ({}) },
     startGanttDate: { type: [String, Date] as PropType<string | Date>, required: true },
     endGanttDate: { type: [String, Date] as PropType<string | Date>, required: true },
+    barClassName: { type: String, default: '' },
+    barRowClassName: { type: String, default: '' },
+    progressHandleClassName: { type: String, default: '' },
   },
   setup(props, { emit }) {
     const bar = ref<SVGSVGElement | null>(null)
@@ -57,6 +73,12 @@ export default defineComponent({
     const showRow = ref(true)
     const barColor = ref('')
     const isBarInteracted = ref(false)
+
+    const {
+      barClassName,
+      barRowClassName,
+      progressHandleClassName,
+    } = props
 
     // 使用 useBarGeometry composables
     const { oldBarDataX, oldBarWidth, computePosition } = useBarGeometry(props, store.mapFields)
@@ -89,18 +111,21 @@ export default defineComponent({
     // 初始化交互功能
     const initInteractions = (_barElement: SVGSVGElement) => {
       const interactions = useInteractions({
-        bar: _barElement,
-        barHeight: barHeight.value,
-        mapFields: store.mapFields,
-        props,
-        oldBarDataX,
-        oldBarWidth,
-        progress,
-        barColor,
-        isProgressDragging: isProgressDraggingFromComposable,
-        emitProgressUpdate: emitProgressUpdateFromComposable,
-        computePosition,
-      })
+      bar: _barElement,
+      barHeight: barHeight.value,
+      mapFields: store.mapFields,
+      props,
+      oldBarDataX,
+      oldBarWidth,
+      progress,
+      barColor,
+      isProgressDragging: isProgressDraggingFromComposable,
+      emitProgressUpdate: emitProgressUpdateFromComposable,
+      computePosition,
+      barClassName,
+      barRowClassName,
+      progressHandleClassName,
+    })
       drawBarFromComposable = interactions.drawBar
       destroyInteractions = interactions.destroy
     }
@@ -201,16 +226,17 @@ export default defineComponent({
       hoverInactive,
       barRowStyle,
       mapFields,
+      barClassName,
+      barRowClassName,
+      progressHandleClassName,
+      progress,
     }
   },
 })
 </script>
-<style lang="scss" scoped>
-.barRow.active {
-  background: var(--row-hover, #fff3a1) !important;
-}
 
-.barRow {
+<style lang="scss" scoped>
+.barRow-base {
   display: flex;
   flex-flow: row nowrap;
   align-items: center;
@@ -218,15 +244,21 @@ export default defineComponent({
   width: fit-content;
   position: relative;
   overflow: visible;
+  @apply transition-colors duration-200;
 
-  .bar {
-    position: absolute;
-    z-index: 100;
-    background-color: #faf7ec;
-    border-radius: 10px;
-    overflow: visible;
-    cursor: move;
+  &.active {
+    background: var(--row-hover, #fff3a1) !important;
   }
+}
+
+.bar-base {
+  position: absolute;
+  z-index: 100;
+  background-color: #faf7ec;
+  border-radius: 10px;
+  overflow: visible;
+  cursor: move;
+  @apply transition-all duration-200;
 }
 
 .progressHandle {

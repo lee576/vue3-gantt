@@ -5,7 +5,7 @@
     @mouseleave="hoverInactive()"
     :class="{ active: hover }"
   >
-    <div class="row" @dblclick="setEditTask(row)" v-bind:style="{ height: rowHeight + 'px' }">
+    <div class="row" @dblclick="setEditTask(row)" v-bind:style="{ height: rowHeight + 'px' }" :class="barRowClassName">
       <template v-for="(header, headerIndex) in headers">
         <div
           class="cellNo"
@@ -111,6 +111,7 @@
           v-else
           v-show="header.show"
           class="cell"
+          :class="contentClassName"
           :key="headerIndex + '-header'"
           :columnindex="headerIndex"
           :style="{
@@ -148,6 +149,14 @@ export default defineComponent({
     row: {
       type: Object as () => Record<string, any>,
       default: () => ({}),
+    },
+    contentClassName: {
+      type: String,
+      default: '',
+    },
+    barRowClassName: {
+      type: String,
+      default: '',
     },
   },
   setup(props) {
@@ -276,10 +285,12 @@ export default defineComponent({
     )
 
     const hoverActive = () => {
+      hover.value = true
       sharedState.triggerHighlight(props.row[mapFields.value.id] as number | null)
     }
 
     const hoverInactive = () => {
+      hover.value = false
       sharedState.triggerHighlight(null)
     }
 
@@ -314,8 +325,10 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.active .row {
-  background: var(--row-hover, #fff3a1) !important;
+.active > .row,
+.active > .row .cell,
+.active > .row .cellNo {
+  background: var(--row-hover, #dbeafe) !important;
 }
 
 .row {
@@ -323,34 +336,49 @@ export default defineComponent({
   flex-flow: row nowrap;
   align-items: center;
   justify-content: flex-start;
-  border-top: none;
-  border-bottom: 1px solid var(--border, #d0d0d0);
   width: fit-content;
   background: var(--bg-content, #ffffff);
   color: var(--text-primary, #333333);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: #d0d0d0;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: #d0d0d0;
+  }
 
   .cellNo {
     display: flex;
     align-items: center;
     justify-content: space-between;
     font-size: 12px;
-    border-top: none;
-    border-bottom: none;
-    margin: 0px 0px 0px 1px;
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
     position: relative;
     color: var(--text-primary, #333333);
+    background: var(--bg-content, #ffffff);
     padding: 0 8px;
 
-    &:first-child {
-      border-left: 1px solid var(--border, #d0d0d0);
+    &:first-of-type {
+      border-left: 1px solid #d0d0d0;
     }
 
-    &:not(:last-child) {
-      border-right: 1px solid var(--border, #d0d0d0);
-    }
-
-    &:last-child {
-      border-right: 1px solid var(--border, #d0d0d0);
+    &:not(:last-of-type) {
+      border-right: 1px solid #d0d0d0;
     }
 
     .no-cell-content {
@@ -383,7 +411,7 @@ export default defineComponent({
     .tree-line-vertical {
       position: absolute;
       width: 1px;
-      background: var(--border, #d0d0d0);
+      background: #d0d0d0;
 
       // 祖先贯穿线（从顶部到底部）
       &.ancestor {
@@ -412,7 +440,7 @@ export default defineComponent({
       position: absolute;
       top: 50%;
       height: 1px;
-      background: var(--border, #d0d0d0);
+      background: #d0d0d0;
     }
 
     .collapse-btn {
@@ -564,35 +592,20 @@ export default defineComponent({
     align-items: center;
     justify-content: center;
     font-size: 12px;
-    border-top: none;
-    border-bottom: none;
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
     position: relative;
-    color: var(--text-primary, #333333);
+    color: var(--text-content, #ffff00);
+    background: var(--bg-content, #ffffff);
+    min-width: 0;
+    overflow: hidden;
 
-    &::before {
-      content: '';
-      position: absolute;
-      left: -1px;
-      top: 0;
-      bottom: 0;
-      width: 1px;
-      background: var(--border, #d0d0d0);
+    &:first-of-type {
+      border-left: 1px solid #d0d0d0;
     }
 
-    &:first-child {
-      border-left: 1px solid var(--border, #d0d0d0);
-
-      &::before {
-        display: none;
-      }
-    }
-
-    &:not(:last-child) {
-      border-right: 1px solid var(--border, #d0d0d0);
-    }
-
-    &:last-child {
-      border-right: 1px solid var(--border, #d0d0d0);
+    &:not(:last-of-type) {
+      border-right: 1px solid #d0d0d0;
     }
   }
 }

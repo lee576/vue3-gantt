@@ -1,18 +1,28 @@
 <template>
-  <div class="headerContainer" ref="headerContainerRef">
-    <!-- 使用虚拟滚动时的渲染 -->
+  <div
+    class="headerContainer"
+    :class="['headerContainer-base', containerClassName, { 'dark': isDarkMode }]"
+    :style="containerStyle"
+    ref="headerContainerRef"
+  >
     <template v-if="useVirtual">
       <div
         v-if="monthHeaders && monthHeaders.length > 0"
         class="header"
-        :style="{ width: totalWidth + 'px', minWidth: '100%' }"
+        :class="['header-base', headerClassName]"
+        :style="{ width: totalWidth + 'px', minWidth: '100%', ...headerStyle }"
       >
-        <div class="virtual-spacer" :style="{ width: monthOffsetX + 'px', flexShrink: 0 }"></div>
+        <div
+          class="virtual-spacer"
+          :class="['virtualSpacer-base', spacerClassName]"
+          :style="{ width: monthOffsetX + 'px', flexShrink: 0 }"
+        ></div>
         <template v-for="item in visibleMonthHeaders" :key="item.key">
           <div
             class="headerCaption"
+            :class="['headerCaption-base', captionClassName]"
             style="border-bottom: 0px"
-            :style="{ width: item.width + 'px' }"
+            :style="{ width: item.width + 'px', ...captionStyle }"
           >
             <span :style="{ width: item.width + 'px' }">{{ item.title }}</span>
           </div>
@@ -21,11 +31,21 @@
       <div
         v-if="weekHeaders && weekHeaders.length > 0"
         class="header"
-        :style="{ width: totalWidth + 'px', minWidth: '100%' }"
+        :class="['header-base', headerClassName]"
+        :style="{ width: totalWidth + 'px', minWidth: '100%', ...headerStyle }"
       >
-        <div class="virtual-spacer" :style="{ width: weekOffsetX + 'px', flexShrink: 0 }"></div>
+        <div
+          class="virtual-spacer"
+          :class="['virtualSpacer-base', spacerClassName]"
+          :style="{ width: weekOffsetX + 'px', flexShrink: 0 }"
+        ></div>
         <template v-for="item in visibleWeekHeaders" :key="item.key">
-          <div class="headerCaption" style="border-top: 1px" :style="{ width: item.width + 'px' }">
+          <div
+            class="headerCaption"
+            :class="['headerCaption-base', captionClassName]"
+            style="border-top: 1px"
+            :style="{ width: item.width + 'px', ...captionStyle }"
+          >
             <span :style="{ width: item.width + 'px' }">{{ item.title }}</span>
           </div>
         </template>
@@ -33,15 +53,25 @@
       <div
         v-if="dayHeaders && dayHeaders.length > 0"
         class="header"
-        :style="{ width: totalWidth + 'px', minWidth: '100%' }"
+        :class="['header-base', headerClassName]"
+        :style="{ width: totalWidth + 'px', minWidth: '100%', ...headerStyle }"
       >
-        <div class="virtual-spacer" :style="{ width: dayOffsetX + 'px', flexShrink: 0 }"></div>
+        <div
+          class="virtual-spacer"
+          :class="['virtualSpacer-base', spacerClassName]"
+          :style="{ width: dayOffsetX + 'px', flexShrink: 0 }"
+        ></div>
         <template v-for="item in visibleDayHeaders" :key="item.key">
-          <div class="headerCaption" :style="{ width: item.width + 'px' }">
+          <div
+            class="headerCaption"
+            :class="['headerCaption-base', captionClassName, { 'is-today': isToday(item.fulldate) }]"
+            :style="{ width: item.width + 'px', ...captionStyle }"
+          >
             <span :style="{ width: item.width + 'px' }">{{ item.title }}</span>
             <svg
               v-if="isToday(item.fulldate)"
               class="today"
+              :class="['today-base', todayClassName]"
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -67,29 +97,39 @@
       <div
         v-if="hourHeaders && hourHeaders.length > 0"
         class="header"
-        :style="{ width: totalWidth + 'px', minWidth: '100%' }"
+        :class="['header-base', headerClassName]"
+        :style="{ width: totalWidth + 'px', minWidth: '100%', ...headerStyle }"
       >
-        <div class="virtual-spacer" :style="{ width: hourOffsetX + 'px', flexShrink: 0 }"></div>
+        <div
+          class="virtual-spacer"
+          :class="['virtualSpacer-base', spacerClassName]"
+          :style="{ width: hourOffsetX + 'px', flexShrink: 0 }"
+        ></div>
         <template v-for="item in visibleHourHeaders" :key="item.key">
-          <div class="headerCaption" :style="{ width: item.width + 'px' }">
+          <div
+            class="headerCaption"
+            :class="['headerCaption-base', captionClassName]"
+            :style="{ width: item.width + 'px', ...captionStyle }"
+          >
             <span :style="{ width: item.width + 'px' }">{{ item.title }}</span>
           </div>
         </template>
       </div>
     </template>
 
-    <!-- 不使用虚拟滚动时的原始渲染 -->
     <template v-else>
       <div
         v-if="monthHeaders && monthHeaders.length > 0"
         class="header"
-        :style="{ minWidth: '100%' }"
+        :class="['header-base', headerClassName]"
+        :style="{ minWidth: '100%', ...headerStyle }"
       >
         <template v-for="item in monthHeaders" :key="item.title">
           <div
             class="headerCaption"
+            :class="['headerCaption-base', captionClassName]"
             style="border-bottom: 0px"
-            :style="{ width: item.width + 'px' }"
+            :style="{ width: item.width + 'px', ...captionStyle }"
           >
             <span :style="{ width: item.width + 'px' }">{{ item.title }}</span>
           </div>
@@ -98,21 +138,32 @@
       <div
         v-if="weekHeaders && weekHeaders.length > 0"
         class="header"
-        :style="{ minWidth: '100%' }"
+        :class="['header-base', headerClassName]"
+        :style="{ minWidth: '100%', ...headerStyle }"
       >
         <template v-for="item in weekHeaders" :key="item.title">
-          <div class="headerCaption" style="border-top: 1px" :style="{ width: item.width + 'px' }">
+          <div
+            class="headerCaption"
+            :class="['headerCaption-base', captionClassName]"
+            style="border-top: 1px"
+            :style="{ width: item.width + 'px', ...captionStyle }"
+          >
             <span :style="{ width: item.width + 'px' }">{{ item.title }}</span>
           </div>
         </template>
       </div>
-      <div v-if="dayHeaders && dayHeaders.length > 0" class="header" :style="{ minWidth: '100%' }">
+      <div v-if="dayHeaders && dayHeaders.length > 0" class="header" :class="['header-base', headerClassName]" :style="{ minWidth: '100%', ...headerStyle }">
         <template v-for="item in dayHeaders" :key="item.title">
-          <div class="headerCaption" :style="{ width: item.width + 'px' }">
+          <div
+            class="headerCaption"
+            :class="['headerCaption-base', captionClassName, { 'is-today': isToday(item.fulldate) }]"
+            :style="{ width: item.width + 'px', ...captionStyle }"
+          >
             <span :style="{ width: item.width + 'px' }">{{ item.title }}</span>
             <svg
               v-if="isToday(item.fulldate)"
               class="today"
+              :class="['today-base', todayClassName]"
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -138,10 +189,15 @@
       <div
         v-if="hourHeaders && hourHeaders.length > 0"
         class="header"
-        :style="{ minWidth: '100%' }"
+        :class="['header-base', headerClassName]"
+        :style="{ minWidth: '100%', ...headerStyle }"
       >
         <template v-for="item in hourHeaders" :key="item.title">
-          <div class="headerCaption" :style="{ width: item.width + 'px' }">
+          <div
+            class="headerCaption"
+            :class="['headerCaption-base', captionClassName]"
+            :style="{ width: item.width + 'px', ...captionStyle }"
+          >
             <span :style="{ width: item.width + 'px' }">{{ item.title }}</span>
           </div>
         </template>
@@ -151,12 +207,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, toRefs, ref, shallowRef, computed, onMounted, onUnmounted } from 'vue'
+import { defineComponent, toRefs, ref, shallowRef, computed, onMounted, onUnmounted, PropType } from 'vue'
 import DateUtils from '../utils/dateUtils'
 
-// 虚拟滚动阈值：超过此数量启用虚拟滚动
 const VIRTUAL_SCROLL_THRESHOLD = 100
-// 缓冲区大小
 const BUFFER_SIZE = 10
 
 interface HeaderItem {
@@ -164,8 +218,6 @@ interface HeaderItem {
   width: number
   fulldate?: string
 }
-
-// VisibleHeaderItem 类型在 getVisibleHeaders 返回值中使用
 
 export default defineComponent({
   props: {
@@ -185,12 +237,71 @@ export default defineComponent({
       type: Array as () => HeaderItem[],
       default: () => [],
     },
+    containerClassName: {
+      type: String,
+      default: '',
+    },
+    headerClassName: {
+      type: String,
+      default: '',
+    },
+    captionClassName: {
+      type: String,
+      default: '',
+    },
+    spacerClassName: {
+      type: String,
+      default: '',
+    },
+    todayClassName: {
+      type: String,
+      default: '',
+    },
+    isDarkMode: {
+      type: Boolean,
+      default: false,
+    },
+    containerStyle: {
+      type: Object as PropType<Record<string, string>>,
+      default: () => ({}),
+    },
+    headerStyle: {
+      type: Object as PropType<Record<string, string>>,
+      default: () => ({}),
+    },
   },
   setup(props) {
     const { weekHeaders, dayHeaders, monthHeaders, hourHeaders } = toRefs(props)
 
     const headerContainerRef = ref<HTMLElement | null>(null)
     const scrollLeft = shallowRef(0)
+
+    const hasCustomBackground = computed(() => {
+      const bgKeywords = ['bg-', 'from-', 'to-', 'via-', 'background']
+      return bgKeywords.some(keyword => 
+        props.headerClassName?.includes(keyword) || 
+        props.captionClassName?.includes(keyword)
+      )
+    })
+
+    const headerContainerStyle = computed(() => {
+      if (hasCustomBackground.value) {
+        return {
+          ...props.containerStyle,
+          background: 'unset',
+        }
+      }
+      return props.containerStyle
+    })
+
+    const captionStyle = computed(() => {
+      if (hasCustomBackground.value) {
+        return {
+          background: 'unset',
+        }
+      }
+      return {}
+    })
 
     // 计算总单元格数（使用最细粒度的表头）
     const totalCellCount = computed(() => {
@@ -367,6 +478,15 @@ export default defineComponent({
       weekOffsetX,
       dayOffsetX,
       hourOffsetX,
+      containerClassName: props.containerClassName,
+      headerClassName: props.headerClassName,
+      captionClassName: props.captionClassName,
+      spacerClassName: props.spacerClassName,
+      todayClassName: props.todayClassName,
+      isDarkMode: props.isDarkMode,
+      containerStyle: headerContainerStyle,
+      headerStyle: props.headerStyle,
+      captionStyle,
     }
   },
 })

@@ -17,6 +17,9 @@ type InteractionDeps = {
   isProgressDragging: { value: boolean }
   emitProgressUpdate: (p: number) => void
   computePosition: () => { dataX: number; width: number }
+  barClassName: string
+  barRowClassName: string
+  progressHandleClassName: string
 }
 
 export function useInteractions(deps: InteractionDeps) {
@@ -32,6 +35,9 @@ export function useInteractions(deps: InteractionDeps) {
     isProgressDragging,
     emitProgressUpdate,
     computePosition,
+    barClassName,
+    barRowClassName,
+    progressHandleClassName,
   } = deps
   const { setBarDate, setAllowChangeTaskDate } = mutations
 
@@ -272,6 +278,10 @@ export function useInteractions(deps: InteractionDeps) {
         .fill(themeColors.primary)
         .stroke({ color: '#ffffff', width: 1.5 })
         .addClass('progressHandle')
+
+      if (progressHandleClassName) {
+        progressHandle.addClass(progressHandleClassName)
+      }
 
       progressHandle.front()
 

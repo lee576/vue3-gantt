@@ -6,7 +6,7 @@
         :columnindex="index"
         v-show="item.property === 'no' || item.show"
         class="headerCaption"
-        :class="{ 'no-column': item.property === 'no' }"
+        :class="[headerClassName, { 'no-column': item.property === 'no' }]"
         :style="{ width: `${item.width}px` }"
       >
         <span v-if="item.property !== 'no'">{{ getHeaderTitle(item) }}</span>
@@ -52,6 +52,10 @@ export default defineComponent({
         title: string
       }[],
       required: true,
+    },
+    headerClassName: {
+      type: String,
+      default: '',
     },
   },
   emits: ['update:headerWidth'],
@@ -194,6 +198,7 @@ export default defineComponent({
       startResize,
       allCollapsed,
       toggleAllCollapse,
+      headerClassName: props.headerClassName,
     }
   },
 })

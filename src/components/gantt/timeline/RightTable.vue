@@ -1,25 +1,42 @@
 <template>
-  <div ref="tableBar" class="table">
+  <div
+    ref="tableBar"
+    class="table"
+    :class="['table-base', containerClassName, { 'dark': isDarkMode }]"
+  >
     <div
       class="header"
-      :style="{ height: `${headersHeight}px`, width: 'fit-content', minWidth: '100%' }"
+      :class="['header-base', timelineHeaderClassName]"
+      :style="{ 
+        height: `${headersHeight}px`, 
+        width: 'fit-content', 
+        minWidth: '100%',
+        backgroundColor: hasHeaderCustomBackground ? 'unset' : undefined
+      }"
     >
       <TimelineHeader
         :weekHeaders="weekHeaders"
         :hourHeaders="hourHeaders"
         :dayHeaders="dayHeaders"
         :monthHeaders="monthHeaders"
+        :header-class-name="timelineHeaderClassName"
+        :caption-class-name="captionClassName"
       ></TimelineHeader>
     </div>
     <div
       class="content"
+      :class="['content-base', barRowClassName]"
       :style="{
         height: `calc(100% - ${headersHeight}px)`,
         width: 'fit-content',
         position: 'relative',
       }"
     >
-      <TableContent :rowHeight="rowHeight"></TableContent>
+      <TableContent
+        :rowHeight="rowHeight"
+        :bar-class-name="barClassName"
+        :progress-handle-class-name="progressHandleClassName"
+      ></TableContent>
     </div>
   </div>
 </template>
@@ -33,6 +50,12 @@ import DateUtils from '../utils/dateUtils'
 import sharedState from '../state/ShareState'
 import TableContent from './TableContent.vue'
 
+const bgKeywords = ['bg-', 'from-', 'to-', 'via-', 'background', 'background-']
+
+const hasCustomBackground = (className: string): boolean => {
+  return bgKeywords.some(keyword => className?.includes(keyword))
+}
+
 export default defineComponent({
   props: {
     headersHeight: {
@@ -43,6 +66,34 @@ export default defineComponent({
       type: Number,
       default: 50,
     },
+    barClassName: {
+      type: String,
+      default: '',
+    },
+    barRowClassName: {
+      type: String,
+      default: '',
+    },
+    progressHandleClassName: {
+      type: String,
+      default: '',
+    },
+    containerClassName: {
+      type: String,
+      default: '',
+    },
+    timelineHeaderClassName: {
+      type: String,
+      default: '',
+    },
+    captionClassName: {
+      type: String,
+      default: '',
+    },
+    isDarkMode: {
+      type: Boolean,
+      default: false,
+    },
   },
   components: {
     TimelineHeader,
@@ -51,6 +102,12 @@ export default defineComponent({
   setup(props) {
     // 引用 tableBar
     const tableBar: Ref<HTMLDivElement | null> = ref(null)
+
+    // 从 props 中解构样式相关的变量
+    const { barClassName, barRowClassName, progressHandleClassName, containerClassName, timelineHeaderClassName, captionClassName, isDarkMode } = props
+
+    // 检测是否有自定义背景样式
+    const hasHeaderCustomBackground = computed(() => hasCustomBackground(timelineHeaderClassName))
 
     // 计算属性
     const dayHeaders = computed(() => store.dayHeaders)
@@ -130,6 +187,13 @@ export default defineComponent({
       mode,
       scale,
       scrollToToday,
+      barClassName,
+      barRowClassName,
+      progressHandleClassName,
+      containerClassName,
+      timelineHeaderClassName,
+      hasHeaderCustomBackground,
+      isDarkMode,
     }
   },
 })

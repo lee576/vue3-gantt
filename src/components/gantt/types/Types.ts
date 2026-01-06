@@ -97,7 +97,20 @@ export interface StyleConfig {
   headersHeight: number
   rowHeight: number
   setBarColor: (row: GanttTask) => string
-  setTaskType?: (row: GanttTask) => TaskType // 可选：自定义任务类型判断
+  setTaskType?: (row: GanttTask) => TaskType
+  cssVariables?: Record<string, string>
+  tableClassName?: string
+  headerClassName?: string
+  captionClassName?: string
+  contentClassName?: string
+  addTaskButtonClassName?: string
+  todayButtonClassName?: string
+  columnSettingsButtonClassName?: string
+  barClassName?: string
+  barRowClassName?: string
+  progressHandleClassName?: string
+  containerClassName?: string
+  timelineHeaderClassName?: string
 }
 
 // 数据配置接口

@@ -7,14 +7,14 @@
         :style="{ height: totalHeight + 'px', paddingTop: offsetY + 'px', boxSizing: 'border-box' }"
       >
         <template v-for="item in visibleTasks" :key="item.task[mapFields.id] + '_taskrow'">
-          <TaskRow v-if="headers" :headers="headers" :rowHeight="rowHeight" :row="item.task" />
+          <TaskRow v-if="headers" :headers="headers" :rowHeight="rowHeight" :row="item.task" :content-class-name="contentClassName" :bar-row-class-name="barRowClassName" />
         </template>
       </div>
     </template>
     <!-- 普通模式 -->
     <template v-else>
       <template v-for="item in filterTask" :key="item[mapFields.id] + '_taskrow'">
-        <TaskRow v-if="headers" :headers="headers" :rowHeight="rowHeight" :row="item" />
+        <TaskRow v-if="headers" :headers="headers" :rowHeight="rowHeight" :row="item" :content-class-name="contentClassName" :bar-row-class-name="barRowClassName" />
       </template>
     </template>
   </div>
@@ -34,6 +34,14 @@ export default defineComponent({
       default: 0,
     },
     tasks: Array as () => any[],
+    contentClassName: {
+      type: String,
+      default: '',
+    },
+    barRowClassName: {
+      type: String,
+      default: '',
+    },
   },
   components: {
     TaskRow,

@@ -1,7 +1,7 @@
 <template>
   <div ref="taskContent" class="content" @scroll="scroll()" @mouseover="mouseover()">
     <div class="content-inner" :style="{ minHeight: contentHeight + 'px' }">
-      <TaskRecursionRow :headers="headers" :rowHeight="rowHeight" :tasks="tasks"></TaskRecursionRow>
+      <TaskRecursionRow :headers="headers" :rowHeight="rowHeight" :tasks="tasks" :content-class-name="contentClassName" :bar-row-class-name="barRowClassName"></TaskRecursionRow>
     </div>
   </div>
 </template>
@@ -22,6 +22,14 @@ export default defineComponent({
     rowHeight: {
       type: Number,
       default: 0,
+    },
+    contentClassName: {
+      type: String,
+      default: '',
+    },
+    barRowClassName: {
+      type: String,
+      default: '',
     },
   },
   components: {

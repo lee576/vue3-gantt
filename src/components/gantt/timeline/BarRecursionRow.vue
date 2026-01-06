@@ -21,6 +21,8 @@
               :endGanttDate="endGanttDate"
               :row="item.task"
               :rowHeight="rowHeight"
+              :bar-class-name="barClassName"
+              :progress-handle-class-name="progressHandleClassName"
             />
             <!-- 基线显示 -->
             <BaselineBar
@@ -53,6 +55,8 @@
             :endGanttDate="endGanttDate"
             :row="item"
             :rowHeight="rowHeight"
+            :bar-class-name="barClassName"
+            :progress-handle-class-name="progressHandleClassName"
           />
           <!-- 基线显示 -->
           <BaselineBar
@@ -87,6 +91,14 @@ export default defineComponent({
     rowHeight: {
       type: Number as () => number,
       default: 0,
+    },
+    barClassName: {
+      type: String,
+      default: '',
+    },
+    progressHandleClassName: {
+      type: String,
+      default: '',
     },
   },
   setup(props) {

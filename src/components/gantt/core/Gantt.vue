@@ -1,5 +1,5 @@
 <template>
-  <div class="page gantt-container" ref="ganttContainer">
+  <div class="page gantt-container" ref="ganttContainer" :style="containerStyle">
     <div class="toolbar">
       <div class="dateInput">
         <DatePicker
@@ -308,7 +308,22 @@
         v-model:paneLengthPercent="paneLengthPercent"
       >
         <template #one>
-          <TaskTable :headersHeight="styleConfig.headersHeight" :rowHeight="styleConfig.rowHeight">
+          <TaskTable
+            :headersHeight="styleConfig.headersHeight"
+            :rowHeight="styleConfig.rowHeight"
+            :table-class-name="tableClassName"
+            :header-class-name="headerClassName"
+            :caption-class-name="captionClassName"
+            :content-class-name="contentClassName"
+            :add-task-button-class-name="addTaskButtonClassName"
+            :today-button-class-name="todayButtonClassName"
+            :column-settings-button-class-name="columnSettingsButtonClassName"
+            :bar-row-class-name="barRowClassName"
+            :is-dark-mode="isDarkMode"
+          >
+            <template v-if="$slots.header" #header>
+              <slot name="header" />
+            </template>
           </TaskTable>
         </template>
         <template #two>
@@ -316,7 +331,14 @@
             ref="barContent"
             :headersHeight="styleConfig.headersHeight"
             :rowHeight="styleConfig.rowHeight"
-          ></RightTable>
+            :bar-class-name="barClassName"
+            :bar-row-class-name="barRowClassName"
+            :progress-handle-class-name="progressHandleClassName"
+            :container-class-name="containerClassName"
+            :timeline-header-class-name="timelineHeaderClassName"
+            :caption-class-name="captionClassName"
+            :is-dark-mode="isDarkMode"
+          />
         </template>
       </SplitPane>
     </div>
@@ -393,20 +415,15 @@ export default defineComponent({
      * @default { headersHeight: 100, rowHeight: 60 }
      */
     styleConfig: {
-      type: Object as () => {
-        headersHeight: number
-        rowHeight: number
-        // eslint-disable-next-line no-unused-vars
-        setBarColor: (row: GanttTask) => string
-        // eslint-disable-next-line no-unused-vars
-        setTaskType?: (row: GanttTask) => import('../types/Types').TaskType
-      },
+      type: Object as () => import('../types/Types').StyleConfig,
       required: true,
       default: () => ({
         // 表头高度
         headersHeight: 100,
         // 行高
         rowHeight: 60,
+        // 默认条形图颜色函数
+        setBarColor: () => '#0078d4',
       }),
       // 验证参数合法性
       validator: (value: { headersHeight: number; rowHeight: number }) => {
@@ -484,6 +501,132 @@ export default defineComponent({
         }) => void
       },
       required: true,
+    },
+    /**
+     * 自定义 Tailwind 类名，允许外部传入自定义样式
+     * @type {string}
+     * @default ""
+     */
+    customClass: {
+      type: String,
+      default: '',
+    },
+    /**
+     * 暗色模式
+     * @type {boolean}
+     * @default false
+     */
+    isDarkMode: {
+      type: Boolean,
+      default: false,
+    },
+    /**
+     * 任务表格容器类名
+     * @type {string}
+     * @default ""
+     */
+    tableClassName: {
+      type: String,
+      default: '',
+    },
+    /**
+     * 任务表格头部类名
+     * @type {string}
+     * @default ""
+     */
+    headerClassName: {
+      type: String,
+      default: '',
+    },
+    /**
+     * 任务表格头部标题类名
+     * @type {string}
+     * @default ""
+     */
+    captionClassName: {
+      type: String,
+      default: '',
+    },
+    /**
+     * 任务表格内容类名
+     * @type {string}
+     * @default ""
+     */
+    contentClassName: {
+      type: String,
+      default: '',
+    },
+    /**
+     * 添加任务按钮类名
+     * @type {string}
+     * @default ""
+     */
+    addTaskButtonClassName: {
+      type: String,
+      default: '',
+    },
+    /**
+     * 今日按钮类名
+     * @type {string}
+     * @default ""
+     */
+    todayButtonClassName: {
+      type: String,
+      default: '',
+    },
+    /**
+     * 列设置按钮类名
+     * @type {string}
+     * @default ""
+     */
+    columnSettingsButtonClassName: {
+      type: String,
+      default: '',
+    },
+    /**
+     * 任务条类名
+     * @type {string}
+     * @default ""
+     */
+    barClassName: {
+      type: String,
+      default: '',
+    },
+    /**
+     * 任务条行类名
+     * @type {string}
+     * @default ""
+     */
+    barRowClassName: {
+      type: String,
+      default: '',
+    },
+    /**
+     * 进度控制点类名
+     * @type {string}
+     * @default ""
+     */
+    progressHandleClassName: {
+      type: String,
+      default: '',
+    },
+    /**
+     * 容器类名
+     * @type {string}
+     * @default ""
+     */
+    containerClassName: {
+      type: String,
+      default: '',
+    },
+    /**
+     * 时间轴头部类名
+     * @type {string}
+     * @default ""
+     */
+    timelineHeaderClassName: {
+      type: String,
+      default: '',
     },
   },
   emits: ['localeChange'],
@@ -1500,6 +1643,27 @@ export default defineComponent({
       linkTypeVisibility,
       updateLinkVisibility,
       handleLinkVisibilityChange,
+      tableClassName: props.styleConfig?.tableClassName ?? props.tableClassName,
+      headerClassName: props.styleConfig?.headerClassName ?? props.headerClassName,
+      captionClassName: props.styleConfig?.captionClassName ?? props.captionClassName,
+      contentClassName: props.styleConfig?.contentClassName ?? props.contentClassName,
+      addTaskButtonClassName: props.styleConfig?.addTaskButtonClassName ?? props.addTaskButtonClassName,
+      todayButtonClassName: props.styleConfig?.todayButtonClassName ?? props.todayButtonClassName,
+      columnSettingsButtonClassName: props.styleConfig?.columnSettingsButtonClassName ?? props.columnSettingsButtonClassName,
+      barClassName: props.styleConfig?.barClassName ?? props.barClassName,
+      barRowClassName: props.styleConfig?.barRowClassName ?? props.barRowClassName,
+      progressHandleClassName: props.styleConfig?.progressHandleClassName ?? props.progressHandleClassName,
+      containerClassName: props.styleConfig?.containerClassName ?? props.containerClassName,
+      timelineHeaderClassName: props.styleConfig?.timelineHeaderClassName ?? props.timelineHeaderClassName,
+      containerStyle: computed(() => {
+        const vars = props.styleConfig?.cssVariables
+        if (!vars) return {}
+        return Object.entries(vars).reduce((acc, [key, value]) => {
+          acc[key] = value
+          return acc
+        }, {} as Record<string, string>)
+      }),
+      isDarkMode: props.isDarkMode,
     }
   },
 })
@@ -1510,129 +1674,178 @@ $toolbarHeight: 70px;
 
 .page {
   height: 100%;
-  min-height: 0; /* 允许 flex 子元素收缩 */
+  min-height: 0;
   width: 100%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
 
-  .toolbar {
-    height: $toolbarHeight;
-    width: 100%;
+:global(.gantt-theme) {
+  --row-hover: #dbeafe;
+  --text-primary: #eab308;
+  --bg-content: #ffffff;
+  --border: #d0d0d0;
+}
+
+.toolbar {
+  height: $toolbarHeight;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  padding: calc($toolbarHeight / 2);
+  background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
+  border-bottom: 1px solid var(--border, #d0d0d0);
+  transition: all var(--transition-normal, 0.25s ease);
+
+  .dateInput {
+    cursor: pointer;
+    height: calc($toolbarHeight / 1.5);
+    width: 450px;
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: flex-start;
-    padding: calc($toolbarHeight / 2);
-    background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
-    border-bottom: 1px solid var(--border, #d0d0d0);
-    transition: all var(--transition-normal, 0.25s ease);
+    justify-content: center;
+    margin-right: 20px;
+    border-radius: 5px;
+    color: var(--primary, #0078d4);
+    font-size: 14px;
+    transition: color var(--transition-fast, 0.15s ease);
+  }
 
-    .dateInput {
-      cursor: pointer;
-      height: calc($toolbarHeight / 1.5);
-      width: 450px;
+  .buttonGroup {
+    height: calc($toolbarHeight / 1.5);
+    display: flex;
+    flex-direction: row;
+    margin-right: 20px;
+    background: var(--bg-metal-normal);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-inset), var(--shadow-outset);
+    border-radius: 2px;
+    overflow: hidden;
+    transition: all var(--transition-normal);
+
+    .metro-btn {
+      position: relative;
       display: flex;
-      flex-direction: row;
       align-items: center;
       justify-content: center;
-      margin-right: 20px;
-      border-radius: 5px;
-      color: var(--primary, #0078d4);
-      font-size: 14px;
-      transition: color var(--transition-fast, 0.15s ease);
-    }
+      width: 80px;
+      height: 100%;
+      cursor: pointer;
+      transition: all var(--transition-fast, 0.15s ease);
+      background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
+      border-right: 1px solid var(--border, #d0d0d0);
 
-    .buttonGroup {
-      height: calc($toolbarHeight / 1.5);
-      display: flex;
-      flex-direction: row;
-      margin-right: 20px;
-      background: var(--bg-metal-normal);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-inset), var(--shadow-outset);
-      border-radius: 2px;
-      overflow: hidden;
-      transition: all var(--transition-normal);
+      &:last-child {
+        border-right: none;
+      }
 
-      .metro-btn {
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f0f0f0));
+        opacity: 0;
+        transition: opacity var(--transition-fast, 0.15s ease);
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        right: 2px;
+        bottom: 2px;
+        background: var(--bg-metal-pressed, linear-gradient(145deg, #e0e0e0, #f8f8f8));
+        opacity: 0;
+        transition: opacity var(--transition-fast, 0.15s ease);
+      }
+
+      .metro-content {
         position: relative;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+      }
+
+      .metro-icon {
+        color: var(--text-secondary, #666666);
+        transition: color var(--transition-fast, 0.15s ease);
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 80px;
-        height: 100%;
-        cursor: pointer;
-        transition: all var(--transition-fast, 0.15s ease);
-        background: var(--bg-metal-normal, linear-gradient(145deg, #f5f5f5, #e8e8e8));
-        border-right: 1px solid var(--border, #d0d0d0);
+      }
 
-        &:last-child {
-          border-right: none;
-        }
+      .metro-text {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-secondary, #555555);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: color var(--transition-fast, 0.15s ease);
+      }
 
+      &:hover {
         &::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f0f0f0));
-          opacity: 0;
-          transition: opacity var(--transition-fast, 0.15s ease);
-        }
-
-        &::after {
-          content: '';
-          position: absolute;
-          top: 2px;
-          left: 2px;
-          right: 2px;
-          bottom: 2px;
-          background: var(--bg-metal-pressed, linear-gradient(145deg, #e0e0e0, #f8f8f8));
-          opacity: 0;
-          transition: opacity var(--transition-fast, 0.15s ease);
-        }
-
-        .metro-content {
-          position: relative;
-          z-index: 3;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 4px;
+          opacity: 1;
         }
 
         .metro-icon {
-          color: var(--text-secondary, #666666);
-          transition: color var(--transition-fast, 0.15s ease);
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          color: var(--text-primary, #333333);
         }
 
         .metro-text {
-          font-size: 11px;
-          font-weight: 600;
-          color: var(--text-secondary, #555555);
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          transition: color var(--transition-fast, 0.15s ease);
+          color: var(--text-primary, #333333);
+        }
+      }
+
+      &:active {
+        &::after {
+          opacity: 1;
+        }
+      }
+
+      &.button.is-active,
+      &.is-active {
+        background: linear-gradient(145deg, #0078d4, #106ebe);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.2),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+          0 1px 2px rgba(0, 0, 0, 0.2);
+
+        &::before {
+          background: linear-gradient(145deg, #1084d8, #0d5aa7);
+          opacity: 0;
+        }
+
+        &::after {
+          background: linear-gradient(145deg, #0d5aa7, #1084d8);
+          opacity: 0;
+        }
+
+        .metro-icon {
+          color: #ffffff;
+          text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+        }
+
+        .metro-text {
+          color: #ffffff;
+          text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+          font-weight: 700;
         }
 
         &:hover {
           &::before {
             opacity: 1;
-          }
-
-          .metro-icon {
-            color: var(--text-primary, #333333);
-          }
-
-          .metro-text {
-            color: var(--text-primary, #333333);
           }
         }
 
@@ -1641,288 +1854,241 @@ $toolbarHeight: 70px;
             opacity: 1;
           }
         }
-
-        // 激活状态
-        &.button.is-active,
-        &.is-active {
-          background: linear-gradient(145deg, #0078d4, #106ebe);
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.2),
-            inset 0 -1px 0 rgba(0, 0, 0, 0.3),
-            0 1px 2px rgba(0, 0, 0, 0.2);
-
-          &::before {
-            background: linear-gradient(145deg, #1084d8, #0d5aa7);
-            opacity: 0;
-          }
-
-          &::after {
-            background: linear-gradient(145deg, #0d5aa7, #1084d8);
-            opacity: 0;
-          }
-
-          .metro-icon {
-            color: #ffffff;
-            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
-          }
-
-          .metro-text {
-            color: #ffffff;
-            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
-            font-weight: 700;
-          }
-
-          &:hover {
-            &::before {
-              opacity: 1;
-            }
-          }
-
-          &:active {
-            &::after {
-              opacity: 1;
-            }
-          }
-        }
-      }
-
-      // 兼容旧的class名称
-      .button {
-        @extend .metro-btn;
       }
     }
 
-    .link-legend {
+    .button {
+      @extend .metro-btn;
+    }
+  }
+
+  .link-legend {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 16px;
+    background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
+    border: 1px solid var(--border, #d0d0d0);
+    border-radius: 4px;
+    margin-right: 16px;
+
+    .legend-title {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 6px 16px;
-      background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
-      border: 1px solid var(--border, #d0d0d0);
-      border-radius: 4px;
-      margin-right: 16px;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary, #666666);
+      padding-right: 12px;
+      border-right: 1px solid var(--border, #d0d0d0);
 
-      .legend-title {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 11px;
-        font-weight: 600;
-        color: var(--text-secondary, #666666);
-        padding-right: 12px;
-        border-right: 1px solid var(--border, #d0d0d0);
-
-        svg {
-          color: var(--primary, #0078d4);
-        }
-      }
-
-      .legend-items {
-        display: flex;
-        gap: 12px;
-      }
-
-      .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        cursor: pointer;
-        padding: 2px 6px;
-        border-radius: 3px;
-        transition: all var(--transition-fast, 0.15s ease);
-
-        input[type='checkbox'] {
-          width: 14px;
-          height: 14px;
-          cursor: pointer;
-          accent-color: var(--primary, #0078d4);
-          margin: 0;
-        }
-
-        &:hover {
-          background: var(--bg-secondary, #e8e8e8);
-        }
-
-        &.disabled {
-          opacity: 0.5;
-
-          svg {
-            opacity: 0.4;
-          }
-
-          .legend-label,
-          .legend-desc {
-            text-decoration: line-through;
-          }
-        }
-
-        .legend-label {
-          font-size: 10px;
-          font-weight: 700;
-          color: var(--text-primary, #333333);
-          min-width: 18px;
-        }
-
-        .legend-desc {
-          font-size: 10px;
-          color: var(--text-secondary, #666666);
-          white-space: nowrap;
-        }
+      svg {
+        color: var(--primary, #0078d4);
       }
     }
 
-    .config-buttons {
+    .legend-items {
       display: flex;
       gap: 12px;
-      margin-left: auto;
-      padding: 0 8px;
     }
 
-    .link-config-btn {
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 3px;
+      transition: all var(--transition-fast, 0.15s ease);
+
+      input[type='checkbox'] {
+        width: 14px;
+        height: 14px;
+        cursor: pointer;
+        accent-color: var(--primary, #0078d4);
+        margin: 0;
+      }
+
+      &:hover {
+        background: var(--bg-secondary, #e8e8e8);
+      }
+
+      &.disabled {
+        opacity: 0.5;
+
+        svg {
+          opacity: 0.4;
+        }
+
+        .legend-label,
+        .legend-desc {
+          text-decoration: line-through;
+        }
+      }
+
+      .legend-label {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--text-primary, #333333);
+        min-width: 18px;
+      }
+
+      .legend-desc {
+        font-size: 10px;
+        color: var(--text-secondary, #666666);
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .config-buttons {
+    display: flex;
+    gap: 12px;
+    margin-left: auto;
+    padding: 0 8px;
+  }
+
+  .link-config-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    background: linear-gradient(
+      135deg,
+      rgba(52, 152, 219, 0.1) 0%,
+      rgba(155, 89, 182, 0.1) 50%,
+      rgba(52, 152, 219, 0.1) 100%
+    );
+    border: 1px solid rgba(52, 152, 219, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .btn-content {
       position: relative;
       display: flex;
       align-items: center;
-      padding: 10px 16px;
+      gap: 8px;
+      z-index: 2;
+    }
+
+    .btn-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      svg {
+        width: 18px;
+        height: 18px;
+        color: #3498db;
+        transition: all 0.3s ease;
+        filter: drop-shadow(0 0 3px rgba(52, 152, 219, 0.3));
+      }
+    }
+
+    .btn-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: #2c3e50;
+      transition: all 0.3s ease;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
       background: linear-gradient(
         135deg,
-        rgba(52, 152, 219, 0.1) 0%,
-        rgba(155, 89, 182, 0.1) 50%,
-        rgba(52, 152, 219, 0.1) 100%
+        rgba(52, 152, 219, 0.2) 0%,
+        rgba(155, 89, 182, 0.2) 50%,
+        rgba(52, 152, 219, 0.2) 100%
       );
-      border: 1px solid rgba(52, 152, 219, 0.3);
-      border-radius: 8px;
-      cursor: pointer;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow: hidden;
+      border-color: rgba(52, 152, 219, 0.5);
+      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
 
       &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        transition: left 0.5s ease;
+        left: 100%;
       }
 
-      .btn-content {
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        z-index: 2;
-      }
-
-      .btn-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        svg {
-          width: 18px;
-          height: 18px;
-          color: #3498db;
-          transition: all 0.3s ease;
-          filter: drop-shadow(0 0 3px rgba(52, 152, 219, 0.3));
-        }
+      .btn-icon svg {
+        color: #2980b9;
+        transform: scale(1.1);
       }
 
       .btn-text {
-        font-size: 13px;
-        font-weight: 600;
-        color: #2c3e50;
-        transition: all 0.3s ease;
-      }
-
-      // 悬停效果
-      &:hover {
-        transform: translateY(-2px);
-        background: linear-gradient(
-          135deg,
-          rgba(52, 152, 219, 0.2) 0%,
-          rgba(155, 89, 182, 0.2) 50%,
-          rgba(52, 152, 219, 0.2) 100%
-        );
-        border-color: rgba(52, 152, 219, 0.5);
-        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
-
-        &::before {
-          left: 100%;
-        }
-
-        .btn-icon svg {
-          color: #2980b9;
-          transform: scale(1.1);
-        }
-
-        .btn-text {
-          color: #2980b9;
-        }
-      }
-
-      // 激活状态
-      &.active {
-        background: linear-gradient(
-          135deg,
-          rgba(231, 76, 60, 0.15) 0%,
-          rgba(192, 57, 43, 0.15) 50%,
-          rgba(231, 76, 60, 0.15) 100%
-        );
-        border-color: rgba(231, 76, 60, 0.4);
-        box-shadow: 0 0 15px rgba(231, 76, 60, 0.3);
-
-        .btn-icon svg {
-          color: #e74c3c;
-          animation: pulse 2s infinite ease-in-out;
-        }
-
-        .btn-text {
-          color: #e74c3c;
-          font-weight: 700;
-        }
+        color: #2980b9;
       }
     }
 
-    // 动画定义
-    @keyframes pulse {
-      0%,
-      100% {
-        transform: scale(1);
-        filter: drop-shadow(0 0 3px rgba(231, 76, 60, 0.3));
+    &.active {
+      background: linear-gradient(
+        135deg,
+        rgba(231, 76, 60, 0.15) 0%,
+        rgba(192, 57, 43, 0.15) 50%,
+        rgba(231, 76, 60, 0.15) 100%
+      );
+      border-color: rgba(231, 76, 60, 0.4);
+      box-shadow: 0 0 15px rgba(231, 76, 60, 0.3);
+
+      .btn-icon svg {
+        color: #e74c3c;
+        animation: pulse 2s infinite ease-in-out;
       }
-      50% {
-        transform: scale(1.1);
-        filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.6));
+
+      .btn-text {
+        color: #e74c3c;
+        font-weight: 700;
       }
     }
   }
 
-  .gantt {
-    flex: 1; /* 使用 flex 自动填充剩余空间 */
-    min-height: 0; /* 允许内容收缩 */
-    width: 100%;
+  @keyframes pulse {
+    0%,
+    100% {
+      transform: scale(1);
+      filter: drop-shadow(0 0 3px rgba(231, 76, 60, 0.3));
+    }
+    50% {
+      transform: scale(1.1);
+      filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.6));
+    }
   }
+}
 
-  .config-panel-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
+.gantt {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
 
-  .config-panel-container {
-    position: relative;
-    max-height: 90vh;
-    overflow: hidden;
-  }
+.config-panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.config-panel-container {
+  position: relative;
+  max-height: 90vh;
+  overflow: hidden;
 }
 </style>
 

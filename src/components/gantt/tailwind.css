@@ -1,0 +1,38 @@
+@import "tailwindcss";
+@config "./tailwind.config.js";
+
+@theme {
+  --color-gantt-primary: var(--gantt-primary, #3b82f6);
+  --color-gantt-secondary: var(--gantt-secondary, #64748b);
+  --color-gantt-success: var(--gantt-success, #22c55e);
+  --color-gantt-warning: var(--gantt-warning, #f59e0b);
+  --color-gantt-danger: var(--gantt-danger, #ef4444);
+  --color-gantt-bg: var(--gantt-bg, #ffffff);
+  --color-gantt-bg-dark: var(--gantt-bg-dark, #1e293b);
+  --color-gantt-border: var(--gantt-border, #e2e8f0);
+  --color-gantt-text: var(--gantt-text, #1e293b);
+  --color-gantt-text-muted: var(--gantt-text-muted, #64748b);
+  
+  --height-gantt-bar: var(--gantt-bar-height, 32px);
+  --height-gantt-row: var(--gantt-row-height, 60px);
+  --height-gantt-header: var(--gantt-header-height, 100px);
+  
+  --spacing-gantt-padding: var(--gantt-padding, 16px);
+  
+  --breakpoint-gantt-sm: 640px;
+  --breakpoint-gantt-md: 768px;
+  --breakpoint-gantt-lg: 1024px;
+  --breakpoint-gantt-xl: 1280px;
+}
+
+@utility dark {
+  &.dark {
+    @slot;
+  }
+}
+
+@layer base {
+  .dark {
+    color-scheme: dark;
+  }
+}

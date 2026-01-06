@@ -82,8 +82,19 @@
         :styleConfig="styleConfig"
         :dataConfig="dataConfig"
         :eventConfig="eventConfig"
+        :is-dark-mode="isDarkMode"
         @locale-change="handleLocaleChange"
-      ></gantt>
+      >
+        <!-- 自定义任务表格头部插槽 -->
+        <template #header>
+          <div class="custom-table-header flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <span class="font-bold">项目任务列表</span>
+          </div>
+        </template>
+      </gantt>
     </div>
 
     <!-- 任务编辑/新建对话框 -->
@@ -290,7 +301,51 @@ const styleConfig = ref<StyleConfig>({
     }
     return colorMap[row.level as keyof typeof colorMap] ?? 'black'
   },
+
+  // ========== CSS 变量配置 ==========
+  cssVariables: {
+    '--text-primary': '#eab308', // 黄色文字
+    '--row-hover': '#dbeafe', // 蓝色hover背景 (blue-50)
+  },
+  // ========== CSS 类名样式配置 ==========
+  // 任务表格容器样式
+  tableClassName: '!shadow-xl !border !border-gray-200 !rounded-lg !overflow-hidden',
+  // 表格头部样式
+  headerClassName: '!bg-gradient-to-r !from-slate-100 !to-slate-200 !text-slate-700 !font-semibold',
+  // 表格标题样式
+  captionClassName: '!bg-gradient-to-r !from-slate-50 !to-gray-100 !text-slate-700',
+  // 表格内容样式
+  contentClassName: '!text-gray-500',
+  // 添加任务按钮样式
+  addTaskButtonClassName: '!bg-indigo-600 !hover:bg-indigo-700 !text-white !shadow-lg !hover:shadow-xl !transition-all !duration-200 !rounded-lg',
+  // 今日按钮样式
+  todayButtonClassName: '!bg-emerald-500 !hover:bg-emerald-600 !text-white !shadow-md !hover:shadow-lg !transition-all !duration-200 !rounded-lg',
+  // 列设置按钮样式
+  columnSettingsButtonClassName: '!bg-amber-500 !hover:bg-amber-600 !text-white !shadow-md !transition-all !duration-200 !rounded-lg',
+  // 任务条样式
+  barClassName: '!rounded-md !shadow-md !transition-all !duration-200',
+  // 任务条行样式
+  barRowClassName: '!cursor-pointer !transition-colors !duration-150 !rounded',
+  // 进度拖拽手柄样式
+  progressHandleClassName: '!bg-white/80 !hover:bg-white !shadow-md !cursor-ew-resize !transition-all !duration-150 !rounded-full',
+  // 甘特图容器样式
+  containerClassName: '!shadow-md !bg-white',
+  // 时间轴头部样式
+  timelineHeaderClassName: '!bg-gradient-to-r !from-slate-100 !to-slate-200 !text-slate-600 !font-medium',
 })
+
+// 暗色模式状态
+const isDarkMode = ref(false)
+
+// 切换暗色模式
+const toggleDarkMode = () => {
+  isDarkMode.value = !isDarkMode.value
+  if (isDarkMode.value) {
+    document.documentElement.classList.add('dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+  }
+}
 
 // 更新任务表头,将自定义字段添加到列显示中
 const updateTaskHeaders = () => {
