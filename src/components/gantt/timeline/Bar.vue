@@ -2,7 +2,7 @@
   <div
     v-if="showRow"
     class="barRow"
-    :class="['barRow-base', barRowClassName, { active: hover }]"
+    :class="['barRow-base', rowClassName, { active: hover }]"
     :style="barRowStyle"
     @mouseover="hoverActive()"
     @mouseleave="hoverInactive()"
@@ -14,7 +14,7 @@
         v-if="showRow"
         ref="bar"
         class="bar"
-        :class="['bar-base', barClassName, { active: hover }]"
+        :class="['bar-base', customBarClassName, { active: hover }]"
         :height="barHeight + 'px'"
         style="overflow: visible"
       >
@@ -37,7 +37,6 @@ import {
   onBeforeUnmount,
   inject,
   type PropType,
-  type VNode,
 } from 'vue'
 import interact from 'interactjs'
 import { store, mutations } from '../state/Store'
@@ -50,14 +49,7 @@ import { useInteractions } from './composables/useInteractions'
 import type { GanttTask } from '../types/GanttTypes'
 
 export default defineComponent({
-  name: 'GanttBar',
   emits: ['progress-update'],
-  slots: Object as {
-    default?: (props: { row: GanttTask; progress: number }) => VNode[]
-    bar?: (props: { row: GanttTask }) => VNode[]
-    progress?: (props: { row: GanttTask; progress: number }) => VNode[]
-    label?: (props: { row: GanttTask }) => VNode[]
-  },
   props: {
     rowHeight: { type: Number as () => number, default: 0 },
     row: { type: Object as () => GanttTask, default: () => ({}) },
@@ -74,11 +66,9 @@ export default defineComponent({
     const barColor = ref('')
     const isBarInteracted = ref(false)
 
-    const {
-      barClassName,
-      barRowClassName,
-      progressHandleClassName,
-    } = props
+    const computedBarClassName = computed(() => props.barClassName)
+    const computedBarRowClassName = computed(() => props.barRowClassName)
+    const computedProgressHandleClassName = computed(() => props.progressHandleClassName)
 
     // 使用 useBarGeometry composables
     const { oldBarDataX, oldBarWidth, computePosition } = useBarGeometry(props, store.mapFields)
@@ -104,8 +94,7 @@ export default defineComponent({
     const setBarDate = mutations.setBarDate
 
     // 用于存储交互功能
-    // eslint-disable-next-line no-unused-vars
-    let drawBarFromComposable: ((barElement?: SVGSVGElement) => void) | null = null
+    let drawBarFromComposable: (() => void) | null = null
     let destroyInteractions: (() => void) | null = null
 
     // 初始化交互功能
@@ -122,21 +111,22 @@ export default defineComponent({
       isProgressDragging: isProgressDraggingFromComposable,
       emitProgressUpdate: emitProgressUpdateFromComposable,
       computePosition,
-      barClassName,
-      barRowClassName,
-      progressHandleClassName,
+      barClassName: computedBarClassName.value,
+      barRowClassName: computedBarRowClassName.value,
+      progressHandleClassName: computedProgressHandleClassName.value,
     })
       drawBarFromComposable = interactions.drawBar
       destroyInteractions = interactions.destroy
     }
 
-    const drowBar = (_barElement: SVGSVGElement) => {
-      // 使用 useBarGeometry 的计算结果
+    type DrowBarFn = (barElement: SVGSVGElement) => void
+
+    // eslint-disable-next-line no-unused-vars,@typescript-eslint/no-unused-vars
+    const drowBar: DrowBarFn = (_barElement: SVGSVGElement): void => {
       const { dataX, width } = computePosition()
       oldBarDataX.value = dataX
       oldBarWidth.value = width
 
-      // 设置基本的 SVG 属性
       const borderColor = getComputedStyle(_barElement).getPropertyValue('--border') || '#cecece'
       _barElement.setAttribute('data-x', dataX.toString())
       _barElement.setAttribute('width', oldBarWidth.value.toString())
@@ -144,14 +134,12 @@ export default defineComponent({
       _barElement.setAttribute('stroke-width', '1px')
       _barElement.style.transform = `translate(${dataX}px, 0px)`
 
-      // 初始化交互功能（如果尚未初始化）
       if (!drawBarFromComposable) {
         initInteractions(_barElement)
       }
 
-      // 调用交互绘制功能
       if (drawBarFromComposable) {
-        drawBarFromComposable(_barElement)
+        drawBarFromComposable()
       }
 
       setBarDate({
@@ -164,7 +152,7 @@ export default defineComponent({
     watch(
       () => [props.row[mapFields.value.startdate], props.row[mapFields.value.enddate]],
       () => {
-        if (bar.value && isBarInteracted.value) drowBar(bar.value)
+        if (bar.value && isBarInteracted.value) (drowBar as DrowBarFn)(bar.value)
       },
       { deep: false }
     )
@@ -172,18 +160,20 @@ export default defineComponent({
     // 监听模式和缩放变化，重新绘制 bar
     watch([mode, scale], () => {
       if (bar.value && isBarInteracted.value) {
-        drowBar(bar.value)
+        (drowBar as DrowBarFn)(bar.value)
       }
     })
 
     onMounted(() => {
       if (bar.value && !isBarInteracted.value) {
-        drowBar(bar.value)
+        (drowBar as DrowBarFn)(bar.value)
         isBarInteracted.value = true
       }
       if (setBarColor) {
         barColor.value = setBarColor(props.row)
-        if (bar.value) drowBar(bar.value)
+        if (bar.value) {
+          (drowBar as DrowBarFn)(bar.value)
+        }
       }
       // 使用 useBarTheme 提供的主题观察器
       if (bar.value) {
@@ -226,9 +216,8 @@ export default defineComponent({
       hoverInactive,
       barRowStyle,
       mapFields,
-      barClassName,
-      barRowClassName,
-      progressHandleClassName,
+      rowClassName: computedBarRowClassName,
+      customBarClassName: computedBarClassName.value,
       progress,
     }
   },
