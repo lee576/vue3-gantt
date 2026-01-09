@@ -604,7 +604,7 @@ export default defineComponent({
       border-left: 1px solid #d0d0d0;
     }
 
-    &:not(:last-of-type) {
+    &:not(:first-of-type) {
       border-right: 1px solid #d0d0d0;
     }
   }
