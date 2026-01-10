@@ -23,6 +23,7 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+.claude/
 .claude/settings.local.json
 
 # npm configuration with sensitive tokens
