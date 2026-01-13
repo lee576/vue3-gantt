@@ -356,10 +356,10 @@ export const ganttThemes: GanttTheme[] = [
       '--font-weight-bold': '600',
 
       // Liquid Glass 特有的CSS变量 - iOS 26 风格
-      '--glass-blur': '40px',
-      '--glass-saturation': '200%',
-      '--glass-brightness': '108%',
-      '--glass-opacity': '0.72',
+      '--glass-blur': '50px',
+      '--glass-saturation': '220%',
+      '--glass-brightness': '110%',
+      '--glass-opacity': '0.65',
       '--glass-edge-highlight': 'rgba(255, 255, 255, 0.9)',
       '--glass-edge-shadow': 'rgba(0, 0, 0, 0.05)',
       '--glass-reflection':
