@@ -52,7 +52,12 @@ export const PerformanceConfig = {
   VIRTUAL_SCROLL_BUFFER: 30,
 
   // 虚拟滚动：快速滚动时的额外缓冲区行数
-  VIRTUAL_SCROLL_FAST_SCROLL_BUFFER: 60,
+  // 对鼠标滚轮这类连续滚动保留中等缓冲，避免白屏。
+  VIRTUAL_SCROLL_FAST_SCROLL_BUFFER: 16,
+
+  // 虚拟滚动：滚动条拖拽这类“大跳转”场景使用更小缓冲区。
+  // 这类场景下一次会跨过很多行，优先减少挂载成本比预渲染更多行更重要。
+  VIRTUAL_SCROLL_JUMP_SCROLL_BUFFER: 6,
 
   // 是否启用虚拟滚动
   ENABLE_VIRTUAL_SCROLL: true,
@@ -100,7 +105,9 @@ export const PerformanceConfig = {
   INCREMENTAL_TRACK_FIELDS: ['startDate', 'endDate', 'parentId', 'name'],
 
   // 是否启用基于视口的自动折叠功能
-  ENABLE_VIEWPORT_COLLAPSE: true,
+  // 默认关闭。它会直接改变可见任务列表的结构，在大数据量拖动滚动条时容易造成
+  // scrollTop 锚点丢失和滚动条回弹。当前版本优先保证滚动稳定性。
+  ENABLE_VIEWPORT_COLLAPSE: false,
 
   // 启用自动折叠的任务数量阈值（任务数超过此值时才启用自动折叠）
   VIEWPORT_COLLAPSE_THRESHOLD: 100,

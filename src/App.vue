@@ -40,13 +40,13 @@
           </svg>
           {{ t('app.saveBaseline') }}
         </button>
-        <button class="metro-btn" @click="togglePerformanceTest">
+        <button class="metro-btn" :disabled="isPerformanceLoading" @click="togglePerformanceTest">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path
               d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4h2v4zm0-6h-2V7h2v4z"
             />
           </svg>
-          {{ isPerformanceTest ? t('app.normalData') : t('app.performanceTest') }}
+          {{ isPerformanceLoading ? '加载中...' : isPerformanceTest ? t('app.normalData') : t('app.performanceTest') }}
         </button>
         <button class="metro-btn" @click="refreshData">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -171,7 +171,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import DateUtils from './components/gantt/utils/dateUtils'
 import Gantt from './components/gantt/core/Gantt.vue'
 import type { GanttTask } from './components/gantt/types/GanttTypes'
@@ -247,6 +247,7 @@ const dependencyCycles = ref<any[]>([])
 
 // 性能测试模式
 const isPerformanceTest = ref(false)
+const isPerformanceLoading = ref(false)
 
 // 定义数据配置
 const dataConfig = ref<DataConfig>({
@@ -336,16 +337,6 @@ const styleConfig = ref<StyleConfig>({
 
 // 暗色模式状态
 const isDarkMode = ref(false)
-
-// 切换暗色模式
-const toggleDarkMode = () => {
-  isDarkMode.value = !isDarkMode.value
-  if (isDarkMode.value) {
-    document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-  }
-}
 
 // 更新任务表头,将自定义字段添加到列显示中
 const updateTaskHeaders = () => {
@@ -448,7 +439,10 @@ const refreshData = async () => {
 
 const togglePerformanceTest = async () => {
   isPerformanceTest.value = !isPerformanceTest.value
+  isPerformanceLoading.value = true
   try {
+    // 先把按钮文本和 loading 状态刷到页面，再进入大数据生成流程。
+    await nextTick()
     const startDate =
       dataConfig.value.queryStartDate || DateUtils.startOf(DateUtils.now().toDate(), 'month').format('YYYY-MM-DD')
     const endDate = dataConfig.value.queryEndDate || DateUtils.endOf(DateUtils.now().toDate(), 'month').format('YYYY-MM-DD')
@@ -458,6 +452,8 @@ const togglePerformanceTest = async () => {
   } catch (error) {
     console.error('切换模式失败:', error)
     messageToast.showMessage(t('app.switchModeFailed'), 'error')
+  } finally {
+    isPerformanceLoading.value = false
   }
 }
 
@@ -493,7 +489,9 @@ const eventConfig = ref<EventConfig>({
 
     void _mode
 
-    const mockResponse = isPerformanceTest.value ? getPerformanceTestResponse() : getMockResponse()
+    const mockResponse = isPerformanceTest.value
+      ? await getPerformanceTestResponse()
+      : getMockResponse()
 
     dataConfig.value.dataSource = customFieldsManagement.processTasksWithCustomFields(
       mockResponse.tasks

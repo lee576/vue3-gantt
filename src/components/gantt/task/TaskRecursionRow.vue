@@ -1,30 +1,53 @@
 <template>
-  <div ref="containerRef" class="task-recursion-container">
+  <div class="task-recursion-container">
     <!-- 虚拟滚动模式 -->
     <template v-if="useVirtualScroll">
       <div
         class="virtual-scroll-spacer"
         :style="{ height: totalHeight + 'px', paddingTop: offsetY + 'px', boxSizing: 'border-box' }"
       >
-        <template v-for="item in visibleTasks" :key="item.task[mapFields.id] + '_taskrow'">
-          <TaskRow v-if="headers" :headers="headers" :rowHeight="rowHeight" :row="item.task" :content-class-name="contentClassName" :bar-row-class-name="barRowClassName" />
+        <template v-for="item in visibleItems" :key="item.item[mapFields.id] + '_taskrow'">
+          <TaskRow
+            v-if="headers"
+            :headers="headers"
+            :rowHeight="rowHeight"
+            :row="item.item"
+            :row-index="item.index"
+            :content-class-name="contentClassName"
+            :bar-row-class-name="barRowClassName"
+          />
         </template>
       </div>
     </template>
     <!-- 普通模式 -->
     <template v-else>
-      <template v-for="item in filterTask" :key="item[mapFields.id] + '_taskrow'">
-        <TaskRow v-if="headers" :headers="headers" :rowHeight="rowHeight" :row="item" :content-class-name="contentClassName" :bar-row-class-name="barRowClassName" />
+      <template v-for="item in visibleItems" :key="item.item[mapFields.id] + '_taskrow'">
+        <TaskRow
+          v-if="headers"
+          :headers="headers"
+          :rowHeight="rowHeight"
+          :row="item.item"
+          :row-index="item.index"
+          :content-class-name="contentClassName"
+          :bar-row-class-name="barRowClassName"
+        />
       </template>
     </template>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { defineComponent, computed, watch, onBeforeUnmount } from 'vue'
 import { store, mutations } from '../state/Store'
 import TaskRow from './TaskRow.vue'
 import { PerformanceConfig } from '../composables/PerformanceConfig'
+import { useScrollState } from '../state/ShareState'
+import {
+  normalizeTaskKey,
+  taskHierarchyIndex,
+  visibleTasks,
+} from '../state/DerivedState'
+import { useSharedVerticalVirtualScroll } from '../composables/useSharedVerticalVirtualScroll'
 
 export default defineComponent({
   props: {
@@ -47,172 +70,55 @@ export default defineComponent({
     TaskRow,
   },
   setup(props) {
-    const hiddenTask = ref<Array<any>>([])
-    const containerRef = ref<HTMLElement | null>(null)
-
-    // 虚拟滚动状态
-    const scrollTop = ref(0)
-    const containerHeight = ref(0)
-    const startIndex = ref(0)
-    const endIndex = ref(0)
-    let lastScrollY = 0
-
     const mapFields = computed(() => store.mapFields)
-    const collapsedTasks = computed(() => store.collapsedTasks)
-
-    // 判断是否启用虚拟滚动
-    const useVirtualScroll = computed(() => {
-      return (
-        PerformanceConfig.ENABLE_VIRTUAL_SCROLL &&
-        filterTask.value.length >= PerformanceConfig.VIRTUAL_SCROLL_THRESHOLD
-      )
-    })
-
-    // 虚拟滚动计算
-    const totalHeight = computed(() => filterTask.value.length * props.rowHeight)
-    const offsetY = computed(() => startIndex.value * props.rowHeight)
-
-    const visibleTasks = computed(() => {
-      if (!useVirtualScroll.value) return []
-      const tasks = filterTask.value
-      const result: { task: any; index: number }[] = []
-      for (let i = startIndex.value; i <= endIndex.value && i < tasks.length; i++) {
-        result.push({ task: tasks[i], index: i })
-      }
-      // 调试日志
-      // console.log(`[左侧虚拟滚动] 总任务: ${tasks.length}, 渲染: ${result.length}, 范围: ${startIndex.value}-${endIndex.value}`);
-      return result
-    })
-
-    // 更新可见范围
-    const updateVisibleRange = () => {
-      if (!containerRef.value) return
-
-      // 获取父滚动容器
-      const scrollContainer = containerRef.value.closest('.content') as HTMLElement
-      if (!scrollContainer) return
-
-      const scrollY = scrollContainer.scrollTop
-      const viewHeight = scrollContainer.clientHeight || 500 // 默认高度
-      const rowH = props.rowHeight || 40 // 默认行高
-
-      // 动态缓冲区：快速滚动时增加缓冲区
-      const scrollDelta = Math.abs(lastScrollY - scrollY)
-      const isFastScroll = scrollDelta > rowH * 5
-      const buffer = isFastScroll
-        ? PerformanceConfig.VIRTUAL_SCROLL_FAST_SCROLL_BUFFER
-        : PerformanceConfig.VIRTUAL_SCROLL_BUFFER
-
-      scrollTop.value = scrollY
-      containerHeight.value = viewHeight
-
-      const start = Math.max(0, Math.floor(scrollY / rowH) - buffer)
-      const visibleCount = Math.ceil(viewHeight / rowH)
-      const end = Math.min(filterTask.value.length - 1, start + visibleCount + buffer * 2)
-
-      startIndex.value = start
-      endIndex.value = Math.max(end, start) // 确保 end >= start
-
-      lastScrollY = scrollY
-    }
-
-    // 滚动处理（改进的RAF逻辑，避免丢失帧）
-    let rafId: number | null = null
-    let pendingUpdate = false
-    let batchUpdateTimer: number | null = null
-
-    const onScroll = () => {
-      if (PerformanceConfig.USE_RAF) {
-        if (!containerRef.value) return
-        const scrollContainer = containerRef.value.closest('.content') as HTMLElement
-        if (!scrollContainer) return
-        const scrollY = scrollContainer.scrollTop
-
-        if (rafId !== null) {
-          pendingUpdate = true
-          lastScrollY = scrollY
-          return
-        }
-
-        pendingUpdate = false
-        lastScrollY = scrollY
-
-        rafId = requestAnimationFrame(() => {
-          updateVisibleRange()
-          rafId = null
-
-          if (pendingUpdate) {
-            rafId = requestAnimationFrame(() => {
-              updateVisibleRange()
-              rafId = null
-            })
-          }
-        })
-      } else {
-        if (batchUpdateTimer) {
-          clearTimeout(batchUpdateTimer)
-        }
-        batchUpdateTimer = setTimeout(() => {
-          updateVisibleRange()
-          batchUpdateTimer = null
-        }, PerformanceConfig.BATCH_UPDATE_DELAY)
-      }
-    }
-
-    // 优化：使用Set提高查找性能
-    const hiddenTaskIds = computed(() => {
-      return new Set(hiddenTask.value.map(obj => obj[mapFields.value['id']]))
-    })
-
-    const filterTask = computed(() => {
-      const hiddenIds = hiddenTaskIds.value
-      const tasks = store.tasks.filter(task => !hiddenIds.has(task[mapFields.value['id']]))
-
-      // 使用缓存：直接从 store.allCollapsedTaskIds 获取所有被折叠的任务ID
-      return tasks.filter(task => !store.allCollapsedTaskIds.has(task[mapFields.value['id']]))
-    })
-
-    const expandRow = computed({
-      get: () => store.expandRow,
-      set: newValue => {
-        mutations.setExpandRow(newValue)
-      },
-    })
-
-    watch(expandRow, newVal => {
-      hiddenTask.value = []
-      recursionRow(newVal.pid)
-    })
-
-    // 监听任务数量变化，更新虚拟滚动
-    watch(
-      () => filterTask.value.length,
-      () => {
-        updateVisibleRange()
-      }
-    )
-
-    // 监听虚拟滚动模式变化
-    watch(
-      useVirtualScroll,
-      newVal => {
-        if (newVal) {
-          setTimeout(() => {
-            updateVisibleRange()
-          }, 0)
-        }
-      },
-      { immediate: true }
-    )
+    const tasks = computed(() => visibleTasks.value)
+    const rowHeight = computed(() => props.rowHeight || 40)
+    const { isVerticalScrolling, scrollTop, setScrollTop } = useScrollState()
+    // 左右面板共享同一份虚拟窗口，这样滚动时两边渲染的是完全相同的任务切片。
+    const { useVirtualScroll, totalHeight, offsetY, visibleItems, startIndex, endIndex } =
+      useSharedVerticalVirtualScroll(tasks, rowHeight)
 
     // ========== 视口自动折叠功能 ==========
     let lastAutoCollapsedIds: Set<string | number> = new Set()
 
+    const collectHiddenIdsFromCollapsedRoots = (
+      collapsedRootIds: Set<string | number>
+    ): Set<string | number> => {
+      const hiddenIds = new Set<string | number>()
+      const idField = mapFields.value.id
+      const { childrenByParentId } = taskHierarchyIndex.value
+
+      const walk = (taskId: string | number) => {
+        const normalizedTaskId = normalizeTaskKey(taskId)
+        const children = childrenByParentId.get(normalizedTaskId) ?? []
+
+        for (const child of children) {
+          const childId = child[idField] as string | number
+          if (hiddenIds.has(childId)) {
+            continue
+          }
+
+          hiddenIds.add(childId)
+          walk(childId)
+        }
+      }
+
+      for (const collapsedRootId of collapsedRootIds) {
+        walk(collapsedRootId)
+      }
+
+      return hiddenIds
+    }
+
     const updateAutoCollapseState = (): void => {
       if (
         !PerformanceConfig.ENABLE_VIEWPORT_COLLAPSE ||
-        filterTask.value.length < PerformanceConfig.VIEWPORT_COLLAPSE_THRESHOLD
+        tasks.value.length < PerformanceConfig.VIEWPORT_COLLAPSE_THRESHOLD
       ) {
+        if (lastAutoCollapsedIds.size > 0) {
+          lastAutoCollapsedIds = new Set()
+          mutations.clearAutoCollapsedTasks()
+        }
         return
       }
 
@@ -221,23 +127,43 @@ export default defineComponent({
       const visibleEnd = endIndex.value
 
       const autoCollapseStart = Math.max(0, visibleStart - buffer)
-      const autoCollapseEnd = Math.min(filterTask.value.length - 1, visibleEnd + buffer)
+      const autoCollapseEnd = Math.min(tasks.value.length - 1, visibleEnd + buffer)
 
       const tasksToCollapse = new Set<string | number>()
+      const { hasChildrenById, ancestorChainById } = taskHierarchyIndex.value
+      const protectedTaskIds = new Set<string>()
 
-      for (let i = 0; i < filterTask.value.length; i++) {
+      // 保护当前视口以及它们的整条祖先链。
+      // 否则当用户滚到很靠下的位置时，顶部某个父任务虽然自身已经离开视口，
+      // 但它仍然是当前可见任务的祖先；如果这里把它自动折叠，就会把当前视口整段内容一起隐藏，
+      // 最终表现成可见任务数量骤减，滚动条位置被浏览器强制夹回顶部。
+      for (let i = visibleStart; i <= visibleEnd && i < tasks.value.length; i += 1) {
+        const task = tasks.value[i]
+        const normalizedTaskId = normalizeTaskKey(task[mapFields.value.id])
+        protectedTaskIds.add(normalizedTaskId)
+
+        const ancestorChain = ancestorChainById.get(normalizedTaskId) ?? []
+        for (const ancestorId of ancestorChain) {
+          protectedTaskIds.add(ancestorId)
+        }
+      }
+
+      // 自动折叠只处理“视口外而且本身有子节点”的任务。
+      // 这样可见区附近的树始终展开，离屏很远的树则自动收起，减少深层嵌套渲染成本。
+      for (let i = 0; i < tasks.value.length; i++) {
         if (i >= autoCollapseStart && i <= autoCollapseEnd) {
           continue
         }
 
-        const task = filterTask.value[i]
-        const taskId = task[mapFields.value['id']]
+        const task = tasks.value[i]
+        const taskId = task[mapFields.value.id]
+        const normalizedTaskId = normalizeTaskKey(taskId)
 
-        const hasChildren = filterTask.value.some(
-          t => t[mapFields.value['parentId']] === taskId
-        )
-
-        if (hasChildren && !collapsedTasks.value.has(taskId)) {
+        if (
+          hasChildrenById.has(normalizedTaskId) &&
+          !store.collapsedTasks.has(taskId) &&
+          !protectedTaskIds.has(normalizedTaskId)
+        ) {
           tasksToCollapse.add(taskId)
         }
       }
@@ -247,8 +173,45 @@ export default defineComponent({
         ![...tasksToCollapse].every(id => lastAutoCollapsedIds.has(id))
 
       if (hasChanged) {
+        const currentTopTask =
+          tasks.value[Math.min(startIndex.value, Math.max(0, tasks.value.length - 1))]
+
+        const currentTopTaskId = currentTopTask
+          ? (currentTopTask[mapFields.value.id] as string | number)
+          : null
+
+        const scrollOffsetInsideRow =
+          rowHeight.value > 0 ? scrollTop.value % rowHeight.value : 0
+
+        const effectiveCollapsedRoots = new Set<string | number>([
+          ...store.collapsedTasks,
+          ...tasksToCollapse,
+        ])
+
+        const nextHiddenIds = collectHiddenIdsFromCollapsedRoots(effectiveCollapsedRoots)
+        const nextVisibleTasks = store.tasks.filter(
+          task => !nextHiddenIds.has(task[mapFields.value.id] as string | number)
+        )
+
+        // 只有集合内容真的变了才写回 store，避免滚动过程中重复触发响应式更新。
         lastAutoCollapsedIds = new Set(tasksToCollapse)
         mutations.updateAutoCollapsedTasks(tasksToCollapse)
+
+        if (currentTopTaskId !== null) {
+          const nextTopIndex = nextVisibleTasks.findIndex(
+            task => task[mapFields.value.id] === currentTopTaskId
+          )
+
+          // 自动折叠会移除当前视口上方的大量行，导致当前 scrollTop 对应的逻辑行号失真。
+          // 这里把“当前视口顶部任务”作为锚点，折叠后重新定位到它在新可见列表中的 index，
+          // 避免浏览器因为内容高度突变把滚动条夹回顶部。
+          if (nextTopIndex >= 0) {
+            const nextScrollTop = nextTopIndex * rowHeight.value + scrollOffsetInsideRow
+            if (Math.abs(nextScrollTop - scrollTop.value) >= 1) {
+              setScrollTop(nextScrollTop)
+            }
+          }
+        }
       }
     }
 
@@ -267,73 +230,48 @@ export default defineComponent({
     watch(
       [startIndex, endIndex],
       () => {
+        // 滚动过程中冻结自动折叠，避免大跳转时“窗口变化 -> 折叠集合变化 -> 可见任务再变化”
+        // 这一串响应式连锁反复叠加。停下来后会由下面的 watch 统一补算一次。
+        if (isVerticalScrolling.value) {
+          return
+        }
         debouncedUpdateAutoCollapse()
       }
     )
 
-    // 监听任务变化时清除自动折叠状态
+    watch(isVerticalScrolling, scrolling => {
+      if (!scrolling) {
+        debouncedUpdateAutoCollapse()
+      }
+    })
+
     watch(
-      () => filterTask.value.length,
+      () => store.tasks.length,
       () => {
+        // 这里只在“原始任务集”变化时清空自动折叠缓存。
+        // 如果监听的是 visibleTasks.length，那么自动折叠自己造成的可见数量变化
+        // 会反过来把 autoCollapsedTasks 清空，形成一轮“折叠 -> 展开”的抖动，
+        // 列表总高度也会瞬间变化，最终把滚动条位置冲掉。
         mutations.clearAutoCollapsedTasks()
         lastAutoCollapsedIds = new Set()
       }
     )
 
-    const recursionRow = (id: any) => {
-      // 检查 props.tasks 是否存在，如果存在则进行过滤，否则返回空数组
-      const findRows = props.tasks
-        ? props.tasks.filter(obj => obj[mapFields.value['parentId']] === id)
-        : []
-      if (findRows && findRows.length > 0) {
-        for (let i = 0; i < findRows.length; i++) {
-          if (expandRow.value.expand === false) {
-            hiddenTask.value.push(findRows[i])
-          }
-          recursionRow(findRows[i][mapFields.value['id']])
-        }
+    onBeforeUnmount(() => {
+      if (autoCollapseTimer) {
+        clearTimeout(autoCollapseTimer)
       }
-    }
-
-    onMounted(() => {
-      if (containerRef.value) {
-        const scrollContainer = containerRef.value.closest('.content') as HTMLElement
-        if (scrollContainer) {
-          scrollContainer.addEventListener('scroll', onScroll, { passive: true })
-        }
-      }
-      // 延迟初始化，确保 DOM 已渲染
-      setTimeout(() => {
-        updateVisibleRange()
-      }, 0)
-    })
-
-    onUnmounted(() => {
-      if (containerRef.value) {
-        const scrollContainer = containerRef.value.closest('.content') as HTMLElement
-        if (scrollContainer) {
-          scrollContainer.removeEventListener('scroll', onScroll)
-        }
-      }
-      if (rafId) {
-        cancelAnimationFrame(rafId)
-      }
-      if (batchUpdateTimer) {
-        clearTimeout(batchUpdateTimer)
-      }
+      mutations.clearAutoCollapsedTasks()
     })
 
     return {
-      containerRef,
-      filterTask,
-      expandRow,
-      recursionRow,
       mapFields,
       // 虚拟滚动相关
       useVirtualScroll,
       totalHeight,
       offsetY,
-      visibleTasks,
+      visibleItems,
+      tasks,
       startIndex,
       endIndex,
     }

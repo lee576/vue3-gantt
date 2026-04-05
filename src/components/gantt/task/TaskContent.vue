@@ -8,10 +8,10 @@
 
 <script lang="ts">
 import { defineComponent, ref, watch, computed, onMounted, onUnmounted } from 'vue'
-import { store } from '../state/Store'
 import { useScrollState } from '../state/ShareState'
 import TaskRecursionRow from './TaskRecursionRow.vue'
 import { throttle } from '../composables/PerformanceConfig'
+import { visibleTasks } from '../state/DerivedState'
 
 export default defineComponent({
   props: {
@@ -36,29 +36,55 @@ export default defineComponent({
     TaskRecursionRow,
   },
   setup(props) {
-    const tasks = computed(() => store.tasks)
-    const { scrollTop, setScrollTop } = useScrollState()
+    // 左侧任务表不再自己维护一份“根节点 + 递归可见树”。
+    // 这里直接消费共享派生结果，确保左右两边看到的是同一份可见任务切片。
+    const tasks = computed(() => visibleTasks.value)
+    const {
+      scrollTop,
+      setScrollTop,
+      setViewportHeight,
+      markVerticalScrolling,
+      registerVerticalScrollElement,
+      unregisterVerticalScrollElement,
+      syncVerticalScrollToPeer,
+      consumeMirroredVerticalScroll,
+    } = useScrollState()
     const taskContent = ref<HTMLDivElement | null>(null)
-    const mapFields = computed(() => store.mapFields)
 
     const contentHeight = computed(() => {
       return tasks.value.length * props.rowHeight
     })
 
-    const getRootNode = () => {
-      return tasks.value.filter((obj: any) => obj[mapFields.value.parentId] === '0')
-    }
-
-    watch(scrollTop, newValue => {
-      if (taskContent.value && taskContent.value.scrollTop !== newValue) {
-        taskContent.value.scrollTop = newValue
+    watch(
+      scrollTop,
+      newValue => {
+        if (taskContent.value && taskContent.value.scrollTop !== newValue) {
+          taskContent.value.scrollTop = newValue
+        }
+      },
+      {
+        // 共享 scrollTop 被程序性改写时，左侧表格要尽快跟上。
+        // 例如自动折叠修正锚点后，如果这里再等到默认 flush 时机，就容易出现短暂错位。
+        flush: 'sync',
       }
-    })
+    )
 
     let rafId: number | null = null
 
-    const scroll = () => {
+    const handleScroll = () => {
       if (!taskContent.value) return
+
+      const currentScrollTop = taskContent.value.scrollTop
+
+      // 如果这次 scroll 是右侧时间线镜像过来的，就不要再反向写回，
+      // 否则左右两个容器会在高频滚动时相互“回声”触发，出现细微滞后。
+      if (consumeMirroredVerticalScroll('task', currentScrollTop)) {
+        return
+      }
+
+      // 先直接驱动右侧 DOM 滚动，保证用户当前这一帧看到的是对齐的。
+      // 共享状态仍然会在下面的 rAF 中更新，用来驱动虚拟列表和连线等派生计算。
+      syncVerticalScrollToPeer('task', currentScrollTop)
 
       if (rafId) {
         cancelAnimationFrame(rafId)
@@ -67,6 +93,7 @@ export default defineComponent({
       rafId = requestAnimationFrame(() => {
         if (taskContent.value) {
           setScrollTop(taskContent.value.scrollTop)
+          markVerticalScrolling()
         }
         rafId = null
       })
@@ -74,6 +101,16 @@ export default defineComponent({
 
     const mouseover = () => {
       // 鼠标悬停时不改变滚动标志，让滚动事件处理
+    }
+
+    let resizeObserver: ResizeObserver | null = null
+
+    const syncViewportHeight = () => {
+      // 共享虚拟窗口需要的是“真实可滚动视口高度”，而不是内容总高度。
+      // 任务区先把自己的 clientHeight 写入共享状态，右侧时间线就能复用同一窗口计算结果。
+      if (taskContent.value) {
+        setViewportHeight(taskContent.value.clientHeight)
+      }
     }
 
     // 动态同步滚动区域高度
@@ -99,6 +136,9 @@ export default defineComponent({
 
     // 监听任务变化，重新同步高度
     watch(tasks, () => {
+      // 可见任务数量变化后，虚拟窗口和左右面板底部补偿都可能失效，
+      // 因此这里同时刷新视口高度和滚动条占位。
+      syncViewportHeight()
       setTimeout(syncScrollHeight, 50)
     })
 
@@ -109,27 +149,39 @@ export default defineComponent({
 
     onMounted(() => {
       if (taskContent.value) {
+        registerVerticalScrollElement('task', taskContent.value)
         // 监听滚动位置的变化
         taskContent.value.scrollTop = scrollTop.value
+        syncViewportHeight()
 
         // 延迟同步高度，确保DOM已渲染完成
         setTimeout(syncScrollHeight, 100)
 
         // 监听窗口大小变化
         window.addEventListener('resize', handleResize)
+
+        resizeObserver = new ResizeObserver(() => {
+          // 这里不直接关心内容高度，只关心当前滚动视口是否变窄/变高，
+          // 让共享虚拟窗口在 split pane 拉伸时也能保持两侧同步。
+          syncViewportHeight()
+        })
+        resizeObserver.observe(taskContent.value)
       }
     })
 
     onUnmounted(() => {
+      unregisterVerticalScrollElement('task')
       window.removeEventListener('resize', handleResize)
+      if (rafId) {
+        cancelAnimationFrame(rafId)
+      }
+      resizeObserver?.disconnect()
     })
 
     return {
       tasks,
       taskContent,
-      mapFields,
-      getRootNode,
-      scroll,
+      scroll: handleScroll,
       mouseover,
       contentHeight,
     }

@@ -7,7 +7,6 @@ import { PerformanceConfig } from '../composables/PerformanceConfig'
 import { getWorkerPool, destroyWorkerPool, type WorkerPool, calculateOptimalWorkerCount } from './WorkerPool'
 import { getSharedMemoryManager, destroySharedMemoryManager, type SharedMemoryManager } from './SharedMemoryManager'
 import { getIncrementalManager, destroyIncrementalManager, type IncrementalComputationManager, type TaskDiff } from './IncrementalComputationManager'
-import type { WorkerMessage } from './dataProcessor.worker'
 import { sanitizeTasksForWorker, sanitizeMapFieldsForWorker } from './workerDataSerializer'
 
 export interface AdvancedWorkerConfig {
@@ -90,6 +89,8 @@ export class AdvancedWorkerManager {
   ): Promise<ProcessedData> {
     const taskCount = tasks.length
     this.initialize(taskCount)
+    // 增量计算只在“任务数量够大 + 已经有上一轮缓存”时才有意义。
+    // 小数据集直接全量跑通常更便宜，避免 diff / 分流本身反而成为额外成本。
     const useIncremental = this.config.enableIncremental &&
       taskCount >= PerformanceConfig.INCREMENTAL_THRESHOLD &&
       this.cachedTasks.length > 0
@@ -114,12 +115,16 @@ export class AdvancedWorkerManager {
     const sanitizedMapFields = sanitizeMapFieldsForWorker(mapFields)
     
     if (this.pool) {
+      // 全量计算仍然拆成“树结构递归数据”和“时间轴位置”两类任务并行提交。
+      // 这两块读同一份输入，但彼此独立，适合直接并发跑满 worker 池。
       const useSharedMemory = this.config.enableSharedMemory && this.sharedMemory?.isSupported()
 
       let recursionData: any[]
       let positions: any[]
 
       if (useSharedMemory && this.sharedMemory) {
+        // 当 SharedArrayBuffer 可用时，优先走共享内存路径，减少大数组在主线程和 worker
+        // 之间的额外复制成本；否则退回普通消息传递，保证兼容性优先。
         const results = await this.processWithSharedMemory(
           sanitizedTasks,
           startGanttDate,
@@ -149,8 +154,8 @@ export class AdvancedWorkerManager {
             hourSubMode,
           }),
         ])
-        recursionData = recursionResult
-        positions = positionResult
+        recursionData = recursionResult as any[]
+        positions = positionResult as any[]
       }
 
       this.cachedTasks = [...sanitizedTasks]
@@ -181,6 +186,7 @@ export class AdvancedWorkerManager {
 
     const offset = this.sharedMemory.allocate(102400)
     if (offset === null) {
+      // 共享内存不足时直接降级到普通全量流程，不让“优化手段不可用”变成失败路径。
       return this.processFull(tasks, startGanttDate, mode, scale, mapFields, daySubMode, hourSubMode) as Promise<{ recursionData: any[]; positions: any[] }>
     }
 
@@ -207,8 +213,8 @@ export class AdvancedWorkerManager {
     this.sharedMemory.reset()
 
     return {
-      recursionData: recursionResult,
-      positions: positionResult,
+      recursionData: recursionResult as any[],
+      positions: positionResult as any[],
     }
   }
 
@@ -229,6 +235,8 @@ export class AdvancedWorkerManager {
     const stats = this.incrementalManager.getStatistics(diffs)
 
     if (stats.requiresRecalculation === 0) {
+      // 如果变更只命中了与布局无关的字段，就直接复用上一轮缓存。
+      // 这样像名称、备注之类的轻量更新不会把整条 worker 计算链再次跑一遍。
       return {
         recursionData: this.cachedTasks,
         positions: [],
@@ -240,8 +248,10 @@ export class AdvancedWorkerManager {
 
     const affectedDiffs = this.incrementalManager.filterDiffsRequiringRecalculation(diffs)
 
+    // 这里先保留受影响任务集合，后续如果要把“全量重算”继续细化成“局部重算”，
+    // 可以直接复用这份结果，不需要重新回头扫 diffs。
     const affectedTaskIds = new Set(affectedDiffs.map(d => d.taskId))
-    const affectedTasks = tasks.filter(t => affectedTaskIds.has(t.id))
+    void affectedTaskIds
 
     const sanitizedTasks = sanitizeTasksForWorker(tasks)
     const sanitizedMapFields = sanitizeMapFieldsForWorker(mapFields)
@@ -264,11 +274,13 @@ export class AdvancedWorkerManager {
       }),
     ])
 
+    // 当前实现仍然在“需要重算”时走一次全量 worker 计算，
+    // 但把 diff 结果一并返回给上层，方便后续继续演进为真正的局部回填。
     this.cachedTasks = [...sanitizedTasks]
 
     return {
-      recursionData,
-      positions,
+      recursionData: recursionData as any[],
+      positions: positions as any[],
       oldTasks: this.cachedTasks,
       newTasks: tasks,
       diffs,
@@ -289,7 +301,7 @@ export class AdvancedWorkerManager {
         tasks,
         level,
         mapFields,
-      })
+      }) as Promise<any[]>
     }
 
     return []
@@ -315,7 +327,7 @@ export class AdvancedWorkerManager {
         mapFields,
         daySubMode,
         hourSubMode,
-      })
+      }) as Promise<any[]>
     }
 
     return []
@@ -325,7 +337,7 @@ export class AdvancedWorkerManager {
     this.initialize()
 
     if (this.pool) {
-      return this.pool.submit('FORMAT_DATES', { dates, format })
+      return this.pool.submit('FORMAT_DATES', { dates, format }) as Promise<string[]>
     }
 
     return []
@@ -343,7 +355,7 @@ export class AdvancedWorkerManager {
     this.initialize()
 
     if (this.pool) {
-      return this.pool.submit('CALC_DATES', { operations })
+      return this.pool.submit('CALC_DATES', { operations }) as Promise<any[]>
     }
 
     return []

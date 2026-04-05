@@ -207,7 +207,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, toRefs, ref, shallowRef, computed, onMounted, onUnmounted, PropType } from 'vue'
+import { defineComponent, toRefs, ref, shallowRef, computed, onMounted, onUnmounted, type PropType } from 'vue'
 import DateUtils from '../utils/dateUtils'
 
 const VIRTUAL_SCROLL_THRESHOLD = 100

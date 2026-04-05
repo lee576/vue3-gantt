@@ -3,15 +3,12 @@
  * 提供与原有 WorkerManager 接口兼容的适配器，内部使用 AdvancedWorkerManager
  */
 
-import type { WorkerMessage, WorkerResponse } from './dataProcessor.worker'
 import { AdvancedWorkerManager, type ProcessedData } from './AdvancedWorkerManager'
 import { PerformanceConfig } from '../composables/PerformanceConfig'
 import { sanitizeTasksForWorker, sanitizeMapFieldsForWorker } from './workerDataSerializer'
 
 export class AdvancedWorkerAdapter {
   private manager: AdvancedWorkerManager | null = null
-  private messageId = 0
-  private timeout = 10000
 
   constructor() {
     this.initManager()
@@ -33,9 +30,9 @@ export class AdvancedWorkerAdapter {
   }
 
   async processRecursionData(
-    id: any,
+    _id: any,
     tasks: any[],
-    level: number,
+    _level: number,
     mapFields: Record<string, string>
   ): Promise<any[]> {
     if (!this.manager) {
@@ -45,18 +42,16 @@ export class AdvancedWorkerAdapter {
     try {
       const sanitizedTasks = sanitizeTasksForWorker(tasks)
       const sanitizedMapFields = sanitizeMapFieldsForWorker(mapFields)
-      
-      const mode = '月'
-      const scale = 1
-      const startGanttDate = new Date().toISOString().split('T')[0]
-      const result = await this.manager.processAllData(
+
+      // 旧版本这里直接复用了 `processAllData`，会在“只想拿树结构”的装载阶段里
+      // 额外再跑一遍全量 bar 位置计算，白白多消耗一份 worker CPU 和消息传输成本。
+      // 现在只调用递归展开接口，把 6 万条首屏加载链路压到最短。
+      return this.manager.processRecursionData(
+        _id,
         sanitizedTasks,
-        startGanttDate,
-        mode,
-        scale,
+        _level,
         sanitizedMapFields
       )
-      return result.recursionData
     } catch (error) {
       console.error('processRecursionData failed:', error)
       throw error
@@ -80,6 +75,7 @@ export class AdvancedWorkerAdapter {
       const sanitizedTasks = sanitizeTasksForWorker(tasks)
       const sanitizedMapFields = sanitizeMapFieldsForWorker(mapFields)
       
+      // 位置计算同样复用统一入口，避免适配器和 manager 维护两套近似分支。
       const result = await this.manager.processAllData(
         sanitizedTasks,
         startGanttDate,

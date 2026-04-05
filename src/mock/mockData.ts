@@ -36,6 +36,13 @@ export interface MockResponse {
   }
 }
 
+const PERFORMANCE_TEST_TASK_COUNT = 60000
+const PERFORMANCE_TEST_BATCH_SIZE = 1000
+
+const yieldToMainThread = async () => {
+  await new Promise(resolve => setTimeout(resolve, 0))
+}
+
 export const getMockResponse = (): MockResponse => {
   const currentMonth = DateUtils.format(DateUtils.now(), 'YYYY-MM')
 
@@ -696,12 +703,13 @@ export const getMockResponse = (): MockResponse => {
   }
 }
 
-export const getPerformanceTestResponse = (): MockResponse => {
+export const getPerformanceTestResponse = async (): Promise<MockResponse> => {
   const currentMonth = DateUtils.format(DateUtils.now(), 'YYYY-MM')
   const tasks: MockTask[] = []
   const dependencies: MockDependency[] = []
   const priorities = ['紧急', '重要', '一般', '不重要']
   const taskTypes = ['开发', '测试', '设计', '文档', '部署', '优化', '修复', '分析', '规划', '维护']
+  const monthStart = DateUtils.create(`${currentMonth}-01`)
 
   const generateTasks = (
     parentId: string,
@@ -715,7 +723,7 @@ export const getPerformanceTestResponse = (): MockResponse => {
       const taskType = taskTypes[Math.floor(Math.random() * taskTypes.length)]
       const priority = priorities[Math.floor(Math.random() * priorities.length)]
       const duration = Math.floor(Math.random() * 5) + 1
-      const startDate = DateUtils.add(DateUtils.create(`${currentMonth}-01`), startDateOffset + i, 'day')
+      const startDate = DateUtils.add(monthStart, startDateOffset + i, 'day')
       const endDate = DateUtils.add(startDate, duration, 'day')
       const progress = Math.random().toFixed(2)
 
@@ -753,11 +761,11 @@ export const getPerformanceTestResponse = (): MockResponse => {
       taskNo: `项目 ${i + 1}`,
       level: priorities[Math.floor(Math.random() * priorities.length)],
       start_date: DateUtils.format(
-        DateUtils.add(DateUtils.create(`${currentMonth}-01`), startDateOffset, 'day'),
+        DateUtils.add(monthStart, startDateOffset, 'day'),
         'YYYY-MM-DD HH:mm:ss'
       ),
       end_date: DateUtils.format(
-        DateUtils.add(DateUtils.create(`${currentMonth}-01`), startDateOffset + 10, 'day'),
+        DateUtils.add(monthStart, startDateOffset + 10, 'day'),
         'YYYY-MM-DD HH:mm:ss'
       ),
       job_progress: Math.random().toFixed(2),
@@ -780,14 +788,23 @@ export const getPerformanceTestResponse = (): MockResponse => {
         type: LinkType.FINISH_TO_START,
       })
     }
+
+    if ((i + 1) % 10 === 0) {
+      // 根任务展开时会递归生成不少子任务。
+      // 这里先按小批次让出主线程，保证切换按钮、loading 状态和浏览器重绘能及时发生。
+      await yieldToMainThread()
+    }
   }
 
-  while (tasks.length < 2000) {
+  while (tasks.length < PERFORMANCE_TEST_TASK_COUNT) {
+    const batchEnd = Math.min(tasks.length + PERFORMANCE_TEST_BATCH_SIZE, PERFORMANCE_TEST_TASK_COUNT)
+
+    while (tasks.length < batchEnd) {
     const taskId = `extra-${tasks.length}`
     const taskType = taskTypes[Math.floor(Math.random() * taskTypes.length)]
     const priority = priorities[Math.floor(Math.random() * priorities.length)]
     const duration = Math.floor(Math.random() * 5) + 1
-    const startDate = DateUtils.add(DateUtils.create(`${currentMonth}-01`), Math.floor(Math.random() * 25), 'day')
+    const startDate = DateUtils.add(monthStart, Math.floor(Math.random() * 25), 'day')
     const endDate = DateUtils.add(startDate, duration, 'day')
     const progress = Math.random().toFixed(2)
 
@@ -801,6 +818,11 @@ export const getPerformanceTestResponse = (): MockResponse => {
       job_progress: progress,
       spend_time: null,
     })
+  }
+
+    // 6 万条数据如果一次性同步生成，会把主线程长时间占满，看起来像“按钮点了没反应”。
+    // 分批 yield 后，页面至少可以先完成一次重绘，再继续补齐剩余 mock 数据。
+    await yieldToMainThread()
   }
 
   return { tasks, dependencies }

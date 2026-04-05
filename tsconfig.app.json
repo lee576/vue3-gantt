@@ -10,5 +10,12 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "exclude": [
+    // 这些文件只用于 Vitest / 手工集成验证，不属于应用构建输入。
+    // 从 app tsconfig 中排除后，`vue-tsc -b` 不会再被测试桩和实验文件阻塞。
+    "src/test/**/*",
+    "src/components/gantt/workers/test-integration.ts",
+    "src/components/gantt/workers/workerTest.ts"
+  ]
 }

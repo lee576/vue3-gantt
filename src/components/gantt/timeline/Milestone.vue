@@ -36,12 +36,17 @@ import {
 import sharedState from '../state/ShareState'
 import { Symbols } from '../state/Symbols'
 import { t } from '../i18n'
+import {
+  registerTaskPosition,
+  unregisterTaskPosition,
+} from '../state/TaskPositionRegistry'
 
 export default defineComponent({
   name: 'GanttMilestone',
   props: {
     rowHeight: { type: Number as () => number, default: 0 },
     row: { type: Object as () => Record<string, any>, default: () => ({}) },
+    rowIndex: { type: Number, default: -1 },
     startGanttDate: { type: [String, Number] as PropType<string | number>, required: true },
     endGanttDate: { type: [String, Number] as PropType<string | number>, required: true },
   },
@@ -191,6 +196,31 @@ export default defineComponent({
 
     const setBarDate = mutations.setBarDate
 
+    const syncTaskPosition = (dataX: number) => {
+      if (props.rowIndex < 0) {
+        return
+      }
+
+      const size = diamondSize.value
+      const topY = props.rowIndex * props.rowHeight
+      const height = props.rowHeight
+
+      // 里程碑本身是一个菱形，但对连线来说我们只需要稳定的包围盒和中心点。
+      // 这样 TaskLinks 在计算箭头和路径时就不需要再回到 DOM 层做测量。
+      registerTaskPosition({
+        taskId: localRow.value[mapFields.value.id],
+        kind: 'milestone',
+        leftX: dataX,
+        rightX: dataX + size,
+        centerX: dataX + size / 2,
+        centerY: topY + height / 2,
+        width: size,
+        height,
+        topY,
+        bottomY: topY + height,
+      })
+    }
+
     const drawMilestone = (milestoneElement: SVGSVGElement) => {
       let dataX = 0
 
@@ -263,6 +293,8 @@ export default defineComponent({
       }
 
       oldMilestoneX.value = dataX
+      // 里程碑的几何数据和普通 bar 一样统一注册，连线层无需区分它来自哪个组件。
+      syncTaskPosition(dataX)
       const svg = SVG(milestoneElement as unknown as HTMLElement)
       const borderColor =
         getComputedStyle(milestoneElement).getPropertyValue('--border') || '#cecece'
@@ -376,6 +408,18 @@ export default defineComponent({
         startDate: localRow.value[mapFields.value.startdate],
         endDate: localRow.value[mapFields.value.startdate], // 里程碑的结束日期=开始日期
       })
+
+      const interactiveMilestone = milestoneElement as SVGSVGElement & {
+        __ganttInteractionsBound?: boolean
+      }
+
+      // 里程碑重绘会被模式切换、主题切换、数据变更反复触发。
+      // 拖拽绑定只需要初始化一次，否则每次重绘都重新接管事件会放大滚动成本。
+      if (interactiveMilestone.__ganttInteractionsBound) {
+        return
+      }
+
+      interactiveMilestone.__ganttInteractionsBound = true
 
       // 拖拽功能 - 只能水平移动
       interact(milestoneElement).draggable({
@@ -561,12 +605,12 @@ export default defineComponent({
     })
 
     onMounted(() => {
-      if (milestone.value) {
-        drawMilestone(milestone.value)
-      }
       if (setBarColor) {
         milestoneColor.value = setBarColor(localRow.value)
-        if (milestone.value) drawMilestone(milestone.value)
+      }
+
+      if (milestone.value) {
+        drawMilestone(milestone.value)
       }
 
       // 监听主题变化
@@ -592,10 +636,16 @@ export default defineComponent({
       if (milestone.value) {
         try {
           interact(milestone.value).unset()
+          ;(
+            milestone.value as SVGSVGElement & {
+              __ganttInteractionsBound?: boolean
+            }
+          ).__ganttInteractionsBound = false
         } catch {
           // 忽略清理错误
         }
       }
+      unregisterTaskPosition(localRow.value[mapFields.value.id])
       showRow.value = false
     })
 

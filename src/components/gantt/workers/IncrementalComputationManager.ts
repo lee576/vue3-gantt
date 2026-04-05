@@ -49,9 +49,10 @@ export class IncrementalComputationManager {
 
   diffTasks(oldTasks: TaskRecord[], newTasks: TaskRecord[]): TaskDiff[] {
     const oldTaskMap = new Map(oldTasks.map(task => [task.id, task]))
-    const newTaskMap = new Map(newTasks.map(task => [task.id, task]))
     const diffs: TaskDiff[] = []
 
+    // processedIds 记录“新列表里已经见过的任务”，
+    // 这样第二轮扫旧任务时就能准确识别哪些任务是被删除的。
     const processedIds = new Set<string>()
 
     for (const newTask of newTasks) {
@@ -100,6 +101,8 @@ export class IncrementalComputationManager {
 
   private detectChangedFields(oldTask: TaskRecord, newTask: TaskRecord): string[] {
     if (!this.config.enableFieldTracking) {
+      // 关闭字段追踪时退化为“全字段深比较”。
+      // 成本更高，但适合调试或字段集合不稳定的场景。
       const allFields = new Set([
         ...Object.keys(oldTask),
         ...Object.keys(newTask),
@@ -118,6 +121,8 @@ export class IncrementalComputationManager {
     const trackedFields = this.config.trackFields || []
     const changedFields: string[] = []
 
+    // 开启字段追踪后只比较会影响布局/层级判断的关键字段，
+    // 避免把无关字段变化也升级成需要重算的位置变更。
     for (const field of trackedFields) {
       if (field in oldTask || field in newTask) {
         if (JSON.stringify(oldTask[field]) !== JSON.stringify(newTask[field])) {
@@ -133,7 +138,11 @@ export class IncrementalComputationManager {
     for (const task of tasks) {
       if (this.taskCache.size >= (this.config.maxCachedRecords || 10000)) {
         const firstKey = this.taskCache.keys().next().value
-        this.taskCache.delete(firstKey)
+        if (firstKey) {
+          // Map 按插入顺序迭代，这里删掉最早进入缓存的记录，
+          // 用最简单的 FIFO 策略控制内存，不引入额外的淘汰维护成本。
+          this.taskCache.delete(firstKey)
+        }
       }
       this.taskCache.set(task.id, { ...task })
     }
@@ -153,6 +162,8 @@ export class IncrementalComputationManager {
     }
 
     if (diff.type === 'modified' && diff.changedFields) {
+      // 只有位置字段和树结构字段变化才要求重算。
+      // 这样增量模式才能真正过滤掉“内容变了但布局没变”的更新。
       const positionFields = ['startDate', 'endDate']
       const recursionFields = ['parentId']
 
@@ -217,6 +228,8 @@ export class IncrementalComputationManager {
     oldTasks: TaskRecord[],
     diffs: TaskDiff[]
   ): PositionResult[] {
+    // 这里返回的是“需要被上层重新求位置的占位清单”，
+    // 不是立即计算新位置。真正的位置重算仍由 worker 负责。
     const changedTaskIds = new Set(
       diffs
         .filter(diff => this.needsRecalculation(diff))
@@ -235,6 +248,8 @@ export class IncrementalComputationManager {
     oldTasks: TaskRecord[],
     diffs: TaskDiff[]
   ): RecursionResult[] {
+    // 树层级变化的影响面通常以父节点为边界扩散，
+    // 所以这里先找受影响的 parentId，再把对应子列表标出来交给上层处理。
     const affectedParentIds = this.getAffectedParentIds(diffs)
 
     return oldTasks

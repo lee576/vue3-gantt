@@ -37,6 +37,7 @@ import { useScrollState } from '../state/ShareState'
 import { useLinkConfig } from '../composables/LinkConfig'
 import BarRecursionRow from './BarRecursionRow.vue'
 import TaskLinks from '../links/TaskLinks.vue'
+import { visibleTasks } from '../state/DerivedState'
 
 export default defineComponent({
   props: {
@@ -63,10 +64,21 @@ export default defineComponent({
   },
   setup(props) {
     const barContent = ref<HTMLDivElement | null>(null)
-    const { scrollTop, setScrollTop } = useScrollState()
+    const {
+      scrollTop,
+      setScrollTop,
+      setViewportHeight,
+      markVerticalScrolling,
+      registerVerticalScrollElement,
+      unregisterVerticalScrollElement,
+      syncVerticalScrollToPeer,
+      consumeMirroredVerticalScroll,
+    } = useScrollState()
     const { config: linkConfig } = useLinkConfig()
 
-    const tasks = computed(() => store.tasks)
+    // 时间线和左侧任务表共享同一份可见任务列表。
+    // 这样条形、里程碑、连线层都天然对齐左侧渲染顺序，不需要再各自过滤折叠节点。
+    const tasks = computed(() => visibleTasks.value)
     const timelineCellCount = computed(() => store.timelineCellCount)
     const scale = computed(() => store.scale)
     const mode = computed(() => store.mode)
@@ -90,13 +102,10 @@ export default defineComponent({
       return tasks.value.length * props.rowHeight
     })
 
-    let isScrollingFromWatcher = false
-
     const syncScrollFromWatcher = () => {
       if (barContent.value && scrollTop.value !== undefined) {
-        isScrollingFromWatcher = true
         barContent.value.scrollTop = scrollTop.value
-        isScrollingFromWatcher = false
+        setViewportHeight(barContent.value.clientHeight)
       }
     }
 
@@ -104,13 +113,29 @@ export default defineComponent({
       () => scrollTop.value,
       () => {
         syncScrollFromWatcher()
+      },
+      {
+        // 自动折叠或程序性定位改写共享 scrollTop 时，时间线需要立即对齐。
+        flush: 'sync',
       }
     )
 
     let rafId: number | null = null
 
     const handleScrollEvent = () => {
-      if (!barContent.value || isScrollingFromWatcher) return
+      if (!barContent.value) return
+
+      const currentScrollTop = barContent.value.scrollTop
+
+      // 如果这次 scroll 是左侧表格镜像过来的，就直接消费掉，
+      // 避免再次写回共享状态，把一次用户滚动放大成双向联动循环。
+      if (consumeMirroredVerticalScroll('timeline', currentScrollTop)) {
+        return
+      }
+
+      // 先同帧把左侧表格的 DOM 滚动位置对齐，保证拖动滚动条时两边肉眼同步。
+      // 共享状态的更新继续放在 rAF 里，避免滚动期间把派生计算推到每一个原生事件上。
+      syncVerticalScrollToPeer('timeline', currentScrollTop)
 
       if (rafId) {
         cancelAnimationFrame(rafId)
@@ -118,16 +143,32 @@ export default defineComponent({
 
       rafId = requestAnimationFrame(() => {
         if (barContent.value) {
+          // 滚动位置和视口高度在同一帧里一起提交。
+          // 这样共享虚拟窗口会基于同一时刻的输入计算，避免“位置是新的，高度还是旧的”抖动。
           setScrollTop(barContent.value.scrollTop)
+          setViewportHeight(barContent.value.clientHeight)
+          markVerticalScrolling()
         }
         rafId = null
       })
     }
 
+    let resizeObserver: ResizeObserver | null = null
+
     onMounted(() => {
       if (barContent.value) {
+        registerVerticalScrollElement('timeline', barContent.value)
         barContent.value.addEventListener('scroll', handleScrollEvent, { passive: true })
         barContent.value.scrollTop = scrollTop.value || 0
+        setViewportHeight(barContent.value.clientHeight)
+        resizeObserver = new ResizeObserver(() => {
+          if (barContent.value) {
+            // 右侧区域宽高变化时，同步刷新共享视口高度。
+            // 左右任一面板先感知到尺寸变化，都足以驱动共享虚拟窗口更新。
+            setViewportHeight(barContent.value.clientHeight)
+          }
+        })
+        resizeObserver.observe(barContent.value)
       }
     })
 
@@ -135,14 +176,12 @@ export default defineComponent({
       if (barContent.value) {
         barContent.value.removeEventListener('scroll', handleScrollEvent)
       }
+      unregisterVerticalScrollElement('timeline')
       if (rafId) {
         cancelAnimationFrame(rafId)
       }
+      resizeObserver?.disconnect()
     })
-
-    const getRootNode = () => {
-      return tasks.value.filter(obj => obj[mapFields.value['parentId']] === '0')
-    }
 
     const showGuideLine = ref(false)
     const guideLineX = ref(0)
@@ -183,7 +222,6 @@ export default defineComponent({
       startGanttDate,
       endGanttDate,
       mapFields,
-      getRootNode,
       handleScrollEvent,
       containerWidth,
       containerHeight,

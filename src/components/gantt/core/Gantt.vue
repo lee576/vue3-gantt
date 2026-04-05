@@ -364,6 +364,7 @@ import { linkDataManager, useLinkConfig } from '../composables/LinkConfig'
 import { useI18n } from '../i18n'
 import { PerformanceConfig } from '../composables/PerformanceConfig'
 import { getWorkerManager, destroyWorkerManager } from '../workers/AdvancedWorkerAdapter'
+import { flattenTasksByHierarchy } from '../utils/taskTree'
 import type { GanttViewMode, GanttMapFields, GanttTask } from '../types/GanttTypes'
 // 导入日期选择器组件
 import DatePicker from '../config/DatePicker.vue'
@@ -703,7 +704,6 @@ export default defineComponent({
     // 初始化 startGanttDate 和 endGanttDate，确保 bar 位置计算正确
     const startGanttDate = ref<string | null>(startDate.value + ' 00:00:00')
     const endGanttDate = ref<string | null>(endDate.value + ' 23:59:59')
-    const result = ref('')
 
     const setTimeLineHeaders = (newVal: string) => {
       const start = DateUtils.create(selectedStartDate.value)
@@ -1106,14 +1106,6 @@ export default defineComponent({
     const rootTask = computed(() => store.rootTask)
     const allowChangeTaskDate = computed(() => store.allowChangeTaskDate)
 
-    const FindAllParent = (targetData: any[], pid: any) => {
-      const parent = targetData.filter(obj => obj[mapFields.value['id']] === pid)
-      if (parent && parent.length > 0) {
-        result.value = parent[0].index + '.' + result.value
-        FindAllParent(targetData, parent[0][mapFields.value['parentId']])
-      }
-    }
-
     // 判断是否使用 Worker 处理数据
     const shouldUseWorker = (tasks: any[]) => {
       return (
@@ -1121,30 +1113,15 @@ export default defineComponent({
       )
     }
 
-    // 主线程递归处理数据(保留作为 fallback)
-    const RecursionData = (id: any, tasks: any[], level: number) => {
-      const findResult = tasks.filter(obj => obj[mapFields.value['parentId']] === id)
-      if (findResult && findResult.length > 0) {
-        level++
-        for (let i = 0; i < findResult.length; i++) {
-          findResult[i].treeLevel = level
-          findResult[i].index = i + 1
-
-          const parent = initData.value.filter(
-            obj => obj[mapFields.value['id']] === findResult[i][mapFields.value['parentId']]
-          )
-          result.value = ''
-          if (parent && parent.length > 0) {
-            result.value = parent[0].index + '.' + findResult[i].index
-            FindAllParent(initData.value, parent[0][mapFields.value['parentId']])
-            findResult[i].no = result.value
-          } else {
-            findResult[i].no = i + 1 + ''
-          }
-          initData.value.push(findResult[i])
-          RecursionData(findResult[i][mapFields.value['id']], tasks, level)
-        }
-      }
+    // 主线程 fallback 也改成 O(n) 预索引遍历。
+    // 这样即便 worker 不可用，6 万条数据也不会因为递归 filter 全量数组而把页面拖死。
+    const RecursionData = (_id: any, tasks: any[], _level: number) => {
+      void _id
+      void _level
+      initData.value = flattenTasksByHierarchy(
+        tasks,
+        mapFields.value as unknown as Record<string, string>
+      )
     }
 
     // 使用 Worker 处理数据

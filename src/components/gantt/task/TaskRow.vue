@@ -18,94 +18,107 @@
             height: rowHeight + 'px',
           }"
         >
-          <div class="no-cell-content">
-            <!-- 树形连线 -->
-            <div class="tree-lines">
-              <!-- 祖先节点的贯穿线（连接兄弟节点） -->
+          <template v-if="isVerticalScrolling">
+            <div class="no-cell-content no-cell-content-simple">
               <div
-                v-for="level in getAncestorLines"
-                :key="'ancestor-' + level"
-                class="tree-line-vertical ancestor"
-                :style="{ left: level * 16 + 8 + 'px' }"
-              ></div>
-
-              <!-- 顶级节点有子节点且未折叠时，显示向下的竖线 -->
-              <div
-                v-if="row.treeLevel === 1 && hasChildren && !isCollapsed"
-                class="tree-line-vertical parent-to-child"
-                :style="{ left: row.treeLevel * 16 + 8 + 'px' }"
-              ></div>
-
-              <!-- 子节点的连接线 -->
-              <template v-if="row.treeLevel && row.treeLevel > 1">
-                <!-- 当前节点的垂直线 -->
+                class="no-left-section no-left-section-simple"
+                :style="{ paddingLeft: (row.treeLevel || 0) * 16 + 'px' }"
+              >
+                <span class="collapse-placeholder"></span>
+                <span class="no-text">{{ row.no }}</span>
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <div class="no-cell-content">
+              <!-- 树形连线 -->
+              <div class="tree-lines">
+                <!-- 祖先节点的贯穿线（连接兄弟节点） -->
                 <div
-                  class="tree-line-vertical current"
-                  :class="{ 'is-last-child': isLastChild }"
-                  :style="{ left: (row.treeLevel - 1) * 16 + 8 + 'px' }"
+                  v-for="level in getAncestorLines"
+                  :key="'ancestor-' + level"
+                  class="tree-line-vertical ancestor"
+                  :style="{ left: level * 16 + 8 + 'px' }"
                 ></div>
 
-                <!-- 水平线（连接到当前节点） -->
+                <!-- 顶级节点有子节点且未折叠时，显示向下的竖线 -->
                 <div
-                  class="tree-line-horizontal"
-                  :style="{ left: (row.treeLevel - 1) * 16 + 8 + 'px', width: '32px' }"
-                ></div>
-
-                <!-- 如果当前节点有子节点且未折叠，显示向下的竖线 -->
-                <div
-                  v-if="hasChildren && !isCollapsed"
+                  v-if="row.treeLevel === 1 && hasChildren && !isCollapsed"
                   class="tree-line-vertical parent-to-child"
                   :style="{ left: row.treeLevel * 16 + 8 + 'px' }"
                 ></div>
-              </template>
-            </div>
 
-            <!-- 左侧：折叠按钮 + 序号 -->
-            <div class="no-left-section" :style="{ paddingLeft: (row.treeLevel || 0) * 16 + 'px' }">
-              <!-- 折叠/展开按钮 -->
-              <CollapseButton
-                v-if="hasChildren"
-                :collapsed="isCollapsed"
-                :title="isCollapsed ? '展开' : '折叠'"
-                @toggle="toggleCollapse"
-              />
-              <!-- 无子节点时的占位空间（透明，不遮挡横线） -->
-              <span v-else class="collapse-placeholder"></span>
+                <!-- 子节点的连接线 -->
+                <template v-if="row.treeLevel && row.treeLevel > 1">
+                  <!-- 当前节点的垂直线 -->
+                  <div
+                    class="tree-line-vertical current"
+                    :class="{ 'is-last-child': isLastChild }"
+                    :style="{ left: (row.treeLevel - 1) * 16 + 8 + 'px' }"
+                  ></div>
 
-              <!-- 序号 -->
-              <span class="no-text">{{ row.no }}</span>
-            </div>
+                  <!-- 水平线（连接到当前节点） -->
+                  <div
+                    class="tree-line-horizontal"
+                    :style="{ left: (row.treeLevel - 1) * 16 + 8 + 'px', width: '32px' }"
+                  ></div>
 
-            <!-- 右侧：操作按钮（鼠标悬停显示） -->
-            <div class="action-buttons">
-              <button
-                @click.stop="setSubTask(row)"
-                class="action-btn add-btn"
-                :title="'添加子任务'"
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                  <path
-                    d="M8 2a.5.5 0 01.5.5v5h5a.5.5 0 010 1h-5v5a.5.5 0 01-1 0v-5h-5a.5.5 0 010-1h5v-5A.5.5 0 018 2z"
-                  />
-                </svg>
-              </button>
-              <button
-                @click.stop="setRemoveTask(row)"
-                class="action-btn delete-btn"
-                :title="'删除任务'"
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                  <path
-                    d="M5.5 5.5A.5.5 0 016 6v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm3 .5a.5.5 0 00-1 0v6a.5.5 0 001 0V6z"
-                  />
-                  <path
-                    fill-rule="evenodd"
-                    d="M14.5 3a1 1 0 01-1 1H13v9a2 2 0 01-2 2H5a2 2 0 01-2-2V4h-.5a1 1 0 01-1-1V2a1 1 0 011-1H6a1 1 0 011-1h2a1 1 0 011 1h3.5a1 1 0 011 1v1zM4.118 4L4 4.059V13a1 1 0 001 1h6a1 1 0 001-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"
-                  />
-                </svg>
-              </button>
+                  <!-- 如果当前节点有子节点且未折叠，显示向下的竖线 -->
+                  <div
+                    v-if="hasChildren && !isCollapsed"
+                    class="tree-line-vertical parent-to-child"
+                    :style="{ left: row.treeLevel * 16 + 8 + 'px' }"
+                  ></div>
+                </template>
+              </div>
+
+              <!-- 左侧：折叠按钮 + 序号 -->
+              <div class="no-left-section" :style="{ paddingLeft: (row.treeLevel || 0) * 16 + 'px' }">
+                <!-- 折叠/展开按钮 -->
+                <CollapseButton
+                  v-if="hasChildren"
+                  :collapsed="isCollapsed"
+                  :title="isCollapsed ? '展开' : '折叠'"
+                  @toggle="toggleCollapse"
+                />
+                <!-- 无子节点时的占位空间（透明，不遮挡横线） -->
+                <span v-else class="collapse-placeholder"></span>
+
+                <!-- 序号 -->
+                <span class="no-text">{{ row.no }}</span>
+              </div>
+
+              <!-- 右侧：操作按钮（鼠标悬停显示） -->
+              <div class="action-buttons">
+                <button
+                  @click.stop="setSubTask(row)"
+                  class="action-btn add-btn"
+                  :title="'添加子任务'"
+                >
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                    <path
+                      d="M8 2a.5.5 0 01.5.5v5h5a.5.5 0 010 1h-5v5a.5.5 0 01-1 0v-5h-5a.5.5 0 010-1h5v-5A.5.5 0 018 2z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  @click.stop="setRemoveTask(row)"
+                  class="action-btn delete-btn"
+                  :title="'删除任务'"
+                >
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                    <path
+                      d="M5.5 5.5A.5.5 0 016 6v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm3 .5a.5.5 0 00-1 0v6a.5.5 0 001 0V6z"
+                    />
+                    <path
+                      fill-rule="evenodd"
+                      d="M14.5 3a1 1 0 01-1 1H13v9a2 2 0 01-2 2H5a2 2 0 01-2-2V4h-.5a1 1 0 01-1-1V2a1 1 0 011-1H6a1 1 0 011-1h2a1 1 0 011 1h3.5a1 1 0 011 1v1zM4.118 4L4 4.059V13a1 1 0 001 1h6a1 1 0 001-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
-          </div>
+          </template>
         </div>
         <div
           v-else
@@ -128,10 +141,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, inject, watch } from 'vue'
+import { defineComponent, ref, computed, inject } from 'vue'
 import { store, mutations } from '../state/Store'
-import sharedState from '../state/ShareState'
+import sharedState, { useScrollState } from '../state/ShareState'
 import CollapseButton from './CollapseButton.vue'
+import {
+  normalizeTaskKey,
+  taskHierarchyIndex,
+} from '../state/DerivedState'
 
 export default defineComponent({
   components: {
@@ -150,6 +167,10 @@ export default defineComponent({
       type: Object as () => Record<string, any>,
       default: () => ({}),
     },
+    rowIndex: {
+      type: Number,
+      default: -1,
+    },
     contentClassName: {
       type: String,
       default: '',
@@ -161,14 +182,20 @@ export default defineComponent({
   },
   setup(props) {
     const showRow = ref(true)
-    const hover = ref(false)
     const addTips = '添加子任务'
     const removeTips = '删除当前任务'
+    const { isVerticalScrolling } = useScrollState()
 
     const mapFields = computed(() => store.mapFields)
     const subTask = computed(() => store.subTask)
     const collapsedTasks = computed(() => store.collapsedTasks)
     const autoCollapsedTasks = computed(() => store.autoCollapsedTasks)
+    const hierarchyIndex = computed(() => taskHierarchyIndex.value)
+    const hover = computed(
+      () =>
+        !isVerticalScrolling.value &&
+        props.row[mapFields.value.id] === sharedState.highlightedId
+    )
 
     inject('barHover', null)
     // eslint-disable-next-line no-unused-vars
@@ -176,8 +203,8 @@ export default defineComponent({
 
     // 判断当前任务是否有子任务
     const hasChildren = computed(() => {
-      const currentId = props.row[mapFields.value['id']]
-      return store.tasks.some(task => task[mapFields.value['parentId']] === currentId)
+      const currentId = normalizeTaskKey(props.row[mapFields.value.id])
+      return hierarchyIndex.value.hasChildrenById.has(currentId)
     })
 
     // 判断当前任务是否已折叠（包括手动折叠和自动折叠）
@@ -188,16 +215,11 @@ export default defineComponent({
 
     // 判断是否是最后一个子节点
     const isLastChild = computed(() => {
-      const parentId = props.row[mapFields.value['parentId']]
-      if (!parentId || parentId === '0') return false
+      const parentId = normalizeTaskKey(props.row[mapFields.value.parentId])
+      if (parentId === '0') return false
 
-      const siblings = store.tasks.filter(task => task[mapFields.value['parentId']] === parentId)
-
-      if (siblings.length === 0) return false
-
-      const currentId = props.row[mapFields.value['id']]
-      const lastSibling = siblings[siblings.length - 1]
-      return lastSibling[mapFields.value['id']] === currentId
+      const currentId = normalizeTaskKey(props.row[mapFields.value.id])
+      return hierarchyIndex.value.lastChildByParentId.get(parentId) === currentId
     })
 
     // 获取需要显示祖先贯穿线的层级
@@ -210,44 +232,33 @@ export default defineComponent({
       // 当前节点的 current 线位置对应的层级（需要过滤掉，避免重叠）
       const currentLineLevel = treeLevel - 1
 
-      // 构建从根到当前节点的路径
-      const path: any[] = []
-      let currentTask = props.row
+      const currentId = normalizeTaskKey(props.row[mapFields.value.id])
+      const ancestorChain = hierarchyIndex.value.ancestorChainById.get(currentId) ?? []
 
-      while (currentTask) {
-        path.unshift(currentTask)
-        const parentId = currentTask[mapFields.value['parentId']]
-        if (!parentId || parentId === '0') break
+      // 这里不再在每一行里反复 scan 全量 tasks，而是直接读取共享索引。
+      // ancestorChain 保存了从根到父节点的任务 ID 链，逐层判断该祖先是不是
+      // 自己父级中的最后一个子节点；不是最后一个时，就需要给当前行补一条贯穿线。
+      for (let index = ancestorChain.length - 1; index >= 0; index -= 1) {
+        const ancestorId = ancestorChain[index]
+        const ancestorTask = hierarchyIndex.value.taskById.get(ancestorId)
+        if (!ancestorTask) {
+          break
+        }
 
-        const parent = store.tasks.find(task => task[mapFields.value['id']] === parentId)
-        if (!parent) break
-        currentTask = parent
-      }
+        const ancestorParentId = normalizeTaskKey(ancestorTask[mapFields.value.parentId])
+        const lastChildId = hierarchyIndex.value.lastChildByParentId.get(ancestorParentId)
 
-      // 从直接父节点开始向上检查，遇到"最后一个子节点"就停止
-      for (let i = path.length - 2; i >= 0; i--) {
-        const node = path[i]
-        const nodeId = node[mapFields.value['id']]
-        const parentId = node[mapFields.value['parentId']]
+        if (lastChildId === ancestorId) {
+          break
+        }
 
-        // 查找该节点的所有兄弟节点
-        const siblings = store.tasks.filter(task => task[mapFields.value['parentId']] === parentId)
-
-        if (siblings.length > 0) {
-          const lastSibling = siblings[siblings.length - 1]
-          const isLast = lastSibling[mapFields.value['id']] === nodeId
-
-          if (isLast) {
-            // 如果这个节点是最后一个子节点，停止添加贯穿线
-            break
-          } else {
-            // 如果不是最后一个，需要显示贯穿线
-            const nodeTreeLevel = node.treeLevel
-            // 过滤掉和 current 线位置相同的层级
-            if (nodeTreeLevel && nodeTreeLevel >= 1 && nodeTreeLevel !== currentLineLevel) {
-              lines.push(nodeTreeLevel)
-            }
-          }
+        const ancestorTreeLevel = ancestorTask.treeLevel
+        if (
+          ancestorTreeLevel &&
+          ancestorTreeLevel >= 1 &&
+          ancestorTreeLevel !== currentLineLevel
+        ) {
+          lines.push(ancestorTreeLevel)
         }
       }
 
@@ -273,24 +284,18 @@ export default defineComponent({
       return null
     }
 
-    watch(
-      () => sharedState.highlightedId,
-      newId => {
-        if (props.row[mapFields.value['id']] === newId) {
-          hover.value = true
-        } else {
-          hover.value = false
-        }
-      }
-    )
-
     const hoverActive = () => {
-      hover.value = true
+      // 正在拖动滚动条时不做高亮广播，避免左右两侧可见行一起响应 hover 状态。
+      if (isVerticalScrolling.value) {
+        return
+      }
       sharedState.triggerHighlight(props.row[mapFields.value.id] as number | null)
     }
 
     const hoverInactive = () => {
-      hover.value = false
+      if (isVerticalScrolling.value) {
+        return
+      }
       sharedState.triggerHighlight(null)
     }
 
@@ -303,6 +308,7 @@ export default defineComponent({
     return {
       showRow,
       hover,
+      isVerticalScrolling,
       addTips,
       removeTips,
       mapFields,
@@ -396,6 +402,10 @@ export default defineComponent({
       gap: 6px;
       flex: 1;
       min-width: 0;
+    }
+
+    .no-left-section-simple {
+      gap: 4px;
     }
 
     .tree-lines {

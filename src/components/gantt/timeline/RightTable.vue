@@ -104,7 +104,14 @@ export default defineComponent({
     const tableBar: Ref<HTMLDivElement | null> = ref(null)
 
     // 从 props 中解构样式相关的变量
-    const { barClassName, barRowClassName, progressHandleClassName, containerClassName, timelineHeaderClassName, captionClassName, isDarkMode } = props
+    const {
+      barClassName,
+      barRowClassName,
+      progressHandleClassName,
+      containerClassName,
+      timelineHeaderClassName,
+      isDarkMode,
+    } = props
 
     // 检测是否有自定义背景样式
     const hasHeaderCustomBackground = computed(() => hasCustomBackground(timelineHeaderClassName))

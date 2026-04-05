@@ -4,6 +4,7 @@
  */
 
 import DateUtils from '../utils/dateUtils'
+import { flattenTasksByHierarchy } from '../utils/taskTree'
 
 /**
  * 消息类型定义
@@ -25,60 +26,6 @@ export interface WorkerResponse {
   payload: any
   id?: string
   error?: string
-}
-
-/**
- * 递归处理数据
- * 将扁平化的树形数据处理为带层级的数据
- */
-function processRecursionData(
-  id: any,
-  tasks: any[],
-  level: number,
-  mapFields: Record<string, string>,
-  initData: any[] = []
-): any[] {
-  const findResult = tasks.filter(obj => obj[mapFields['parentId']] === id)
-
-  if (findResult && findResult.length > 0) {
-    level++
-    for (let i = 0; i < findResult.length; i++) {
-      findResult[i].treeLevel = level
-      findResult[i].index = i + 1
-
-      const parent = initData.filter(
-        obj => obj[mapFields['id']] === findResult[i][mapFields['parentId']]
-      )
-
-      if (parent && parent.length > 0) {
-        // 构建序号
-        let result = parent[0].index + '.' + findResult[i].index
-
-        // 查找所有父级
-        let currentParent = parent[0]
-        while (currentParent[mapFields['parentId']] !== '0') {
-          const upperParent = initData.find(
-            obj => obj[mapFields['id']] === currentParent[mapFields['parentId']]
-          )
-          if (upperParent) {
-            result = upperParent.index + '.' + result
-            currentParent = upperParent
-          } else {
-            break
-          }
-        }
-
-        findResult[i].no = result
-      } else {
-        findResult[i].no = i + 1 + ''
-      }
-
-      initData.push(findResult[i])
-      processRecursionData(findResult[i][mapFields['id']], tasks, level, mapFields, initData)
-    }
-  }
-
-  return initData
 }
 
 /**
@@ -355,13 +302,9 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
 
     switch (type) {
       case 'PROCESS_RECURSION_DATA':
-        result = processRecursionData(
-          payload.id,
-          payload.tasks,
-          payload.level,
-          payload.mapFields,
-          []
-        )
+        // worker 里的树展开是大数据首屏装载的关键热路径。
+        // 这里直接复用 O(n) 的预索引遍历实现，避免旧版递归在 6 万条时反复扫全量数组。
+        result = flattenTasksByHierarchy(payload.tasks, payload.mapFields)
         break
 
       case 'CALC_BAR_POSITIONS':

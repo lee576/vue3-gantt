@@ -25,6 +25,9 @@ export const taskApi = {
 
   async updateTask(taskId: string, task: any): Promise<ApiResponse> {
     await this.delay(300)
+    // 这里是本地 mock，实现里暂时只回传更新后的任务对象。
+    // 显式消费 taskId 只是为了在开启 noUnusedParameters 后仍保持函数签名与真实 API 对齐。
+    void taskId
     return {
       code: 200,
       message: '任务更新成功',

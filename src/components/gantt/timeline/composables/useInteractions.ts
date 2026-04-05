@@ -17,8 +17,6 @@ type InteractionDeps = {
   isProgressDragging: { value: boolean }
   emitProgressUpdate: (p: number) => void
   computePosition: () => { dataX: number; width: number }
-  barClassName: string
-  barRowClassName: string
   progressHandleClassName: string
 }
 
@@ -35,8 +33,6 @@ export function useInteractions(deps: InteractionDeps) {
     isProgressDragging,
     emitProgressUpdate,
     computePosition,
-    barClassName,
-    barRowClassName,
     progressHandleClassName,
   } = deps
   const { setBarDate, setAllowChangeTaskDate } = mutations
@@ -423,6 +419,16 @@ export function useInteractions(deps: InteractionDeps) {
       startDate: props.row[mapFields.startdate],
       endDate: props.row[mapFields.enddate],
     })
+
+    const interactionBoundBar = bar as SVGSVGElement & { __ganttInteractionsBound?: boolean }
+
+    // interact.js 绑定非常重，只需要对同一个 SVG 实例做一次。
+    // 如果在每次 drawBar 时都重复绑定，缩放/重绘/虚拟滚动挂载时会额外制造很多开销。
+    if (interactionBoundBar.__ganttInteractionsBound) {
+      return
+    }
+
+    interactionBoundBar.__ganttInteractionsBound = true
 
     // 配置 interact.js 同时支持拖拽和调整大小
     interact(bar)
@@ -1096,6 +1102,7 @@ export function useInteractions(deps: InteractionDeps) {
   const destroy = () => {
     try {
       interact(bar).unset()
+      ;(bar as SVGSVGElement & { __ganttInteractionsBound?: boolean }).__ganttInteractionsBound = false
     } catch (e) {
       /* ignore */
     }

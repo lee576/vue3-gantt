@@ -10,6 +10,8 @@ import type {
   GanttHourSubMode
 } from '../types/GanttTypes'
 
+type TaskId = string | number
+
 /**
  * 甘特图全局状态接口
  * @description 管理甘特图的所有响应式状态，包括任务数据、视图模式、时间轴配置等
@@ -124,26 +126,159 @@ export const serialNumber: number = 0
  */
 export const store = reactive(initialStore) as StoreType
 
+interface TaskTreeCache {
+  childIdsByParentKey: Map<string, TaskId[]>
+  parentTaskIds: Set<TaskId>
+  parentTaskIdByTaskKey: Map<string, TaskId>
+  nonRootTaskIds: Set<TaskId>
+  descendantIdsByTaskKey: Map<string, Set<TaskId>>
+}
+
+const taskTreeCache: TaskTreeCache = {
+  childIdsByParentKey: new Map(),
+  parentTaskIds: new Set(),
+  parentTaskIdByTaskKey: new Map(),
+  nonRootTaskIds: new Set(),
+  descendantIdsByTaskKey: new Map(),
+}
+
+const normalizeTaskKey = (value: string | number | null | undefined): string => {
+  if (value === null || value === undefined || value === '') {
+    return '0'
+  }
+
+  return String(value)
+}
+
+const rebuildTaskTreeCache = () => {
+  const idField = store.mapFields['id']
+  const parentIdField = store.mapFields['parentId']
+  const childIdsByParentKey = new Map<string, TaskId[]>()
+  const parentTaskIds = new Set<TaskId>()
+  const parentTaskIdByTaskKey = new Map<string, TaskId>()
+  const nonRootTaskIds = new Set<TaskId>()
+  const taskIdByKey = new Map<string, TaskId>()
+
+  // 折叠/展开按钮点击很频繁，而任务结构真正变化只发生在 setTasks / mapFields 切换时。
+  // 因此把“父子关系索引”前移到这里一次性构建，后续每次点击都复用缓存，
+  // 避免 6 万条数据下重复扫描整份任务列表。
+  for (const task of store.tasks) {
+    const taskId = task[idField] as TaskId
+    const parentId = task[parentIdField] as string | number | null | undefined
+    const parentKey = normalizeTaskKey(parentId)
+    taskIdByKey.set(normalizeTaskKey(taskId), taskId)
+    const siblings = childIdsByParentKey.get(parentKey)
+
+    if (siblings) {
+      siblings.push(taskId)
+    } else {
+      childIdsByParentKey.set(parentKey, [taskId])
+    }
+  }
+
+  childIdsByParentKey.forEach((childIds, parentKey) => {
+    if (parentKey === '0' || childIds.length === 0) {
+      return
+    }
+
+    // 这里把“归一化 key”再映射回原始 taskId。
+    // 这样 collapsedTasks / autoCollapsedTasks / allCollapsedTaskIds 三个集合里的值类型始终一致，
+    // 后续 visibleTasks 过滤时就不会出现 `'1'` 和 `1` 混用造成的误判。
+    const originalParentTaskId = taskIdByKey.get(parentKey)
+    if (originalParentTaskId !== undefined) {
+      parentTaskIds.add(originalParentTaskId)
+    }
+  })
+
+  for (const task of store.tasks) {
+    const taskId = task[idField] as TaskId
+    const parentKey = normalizeTaskKey(task[parentIdField] as string | number | null | undefined)
+
+    if (parentKey === '0') {
+      continue
+    }
+
+    nonRootTaskIds.add(taskId)
+
+    const originalParentTaskId = taskIdByKey.get(parentKey)
+    if (originalParentTaskId !== undefined) {
+      parentTaskIdByTaskKey.set(normalizeTaskKey(taskId), originalParentTaskId)
+    }
+  }
+
+  taskTreeCache.childIdsByParentKey = childIdsByParentKey
+  taskTreeCache.parentTaskIds = parentTaskIds
+  taskTreeCache.parentTaskIdByTaskKey = parentTaskIdByTaskKey
+  taskTreeCache.nonRootTaskIds = nonRootTaskIds
+  taskTreeCache.descendantIdsByTaskKey = new Map()
+}
+
+const getCollapsedRootTaskIds = (
+  collapsedTaskIds: Set<string | number>
+): Set<string | number> => {
+  const collapsedRootTaskIds = new Set<string | number>()
+
+  // 当祖先和子孙同时处于折叠集合里时，只保留最顶层祖先。
+  // 这样 updateAllCollapsedTaskIds 在合并隐藏后代时不会重复遍历同一批节点，
+  // 尤其是“全部折叠”或用户连续点多层折叠按钮时，能明显减少重复 DFS。
+  collapsedTaskIds.forEach(taskId => {
+    let currentParentTaskId =
+      taskTreeCache.parentTaskIdByTaskKey.get(normalizeTaskKey(taskId)) ?? null
+    let coveredByCollapsedAncestor = false
+
+    while (currentParentTaskId !== null) {
+      if (collapsedTaskIds.has(currentParentTaskId)) {
+        coveredByCollapsedAncestor = true
+        break
+      }
+
+      currentParentTaskId =
+        taskTreeCache.parentTaskIdByTaskKey.get(normalizeTaskKey(currentParentTaskId)) ?? null
+    }
+
+    if (!coveredByCollapsedAncestor) {
+      collapsedRootTaskIds.add(taskId)
+    }
+  })
+
+  return collapsedRootTaskIds
+}
+
 /**
  * 获取某个任务的所有子孙任务ID
  * @param parentId - 父任务ID
- * @param tasks - 任务列表
- * @param parentIdField - 父ID字段名
  * @returns 包含所有子孙任务ID的集合
  */
-const getAllChildrenIds = (parentId: any, tasks: any[], parentIdField: string): Set<any> => {
-  const childrenIds = new Set<any>()
-
-  const collectChildren = (pid: any) => {
-    const children = tasks.filter(task => task[parentIdField] === pid)
-    children.forEach(child => {
-      const childId = child[store.mapFields['id']]
-      childrenIds.add(childId)
-      collectChildren(childId)
-    })
+const getAllChildrenIds = (parentId: TaskId): Set<TaskId> => {
+  const normalizedParentId = normalizeTaskKey(parentId)
+  const cachedDescendants = taskTreeCache.descendantIdsByTaskKey.get(normalizedParentId)
+  if (cachedDescendants) {
+    return cachedDescendants
   }
 
-  collectChildren(parentId)
+  const childrenIds = new Set<TaskId>()
+  const stack = [...(taskTreeCache.childIdsByParentKey.get(normalizedParentId) ?? [])]
+
+  // descendants 结果按 taskId 做懒缓存。
+  // 某个节点第一次点击时做一次 DFS，后续重复展开/折叠同一节点直接 O(1) 复用。
+  while (stack.length > 0) {
+    const child = stack.pop()
+    if (child === undefined) {
+      continue
+    }
+
+    if (childrenIds.has(child)) {
+      continue
+    }
+
+    childrenIds.add(child)
+    const descendants = taskTreeCache.childIdsByParentKey.get(normalizeTaskKey(child))
+    if (descendants && descendants.length > 0) {
+      stack.push(...descendants)
+    }
+  }
+
+  taskTreeCache.descendantIdsByTaskKey.set(normalizedParentId, childrenIds)
   return childrenIds
 }
 
@@ -152,11 +287,29 @@ const getAllChildrenIds = (parentId: any, tasks: any[], parentIdField: string): 
  * @description 递归收集所有被折叠任务的子孙任务ID，用于虚拟滚动优化
  */
 const updateAllCollapsedTaskIds = () => {
-  const allCollapsedIds = new Set<any>()
-  const parentIdField = store.mapFields['parentId']
+  const allCollapsedIds = new Set<TaskId>()
 
-  store.collapsedTasks.forEach(collapsedId => {
-    const childrenIds = getAllChildrenIds(collapsedId, store.tasks, parentIdField)
+  const effectiveCollapsedTasks = new Set([
+    ...store.collapsedTasks,
+    ...store.autoCollapsedTasks,
+  ])
+
+  if (effectiveCollapsedTasks.size === 0) {
+    store.allCollapsedTaskIds = allCollapsedIds
+    return
+  }
+
+  if (store.allCollapsed && store.autoCollapsedTasks.size === 0) {
+    // “全部折叠”时最终隐藏集其实就是所有非根节点。
+    // 这里直接复用缓存，避免再对每个父节点分别展开后代集合。
+    store.allCollapsedTaskIds = new Set(taskTreeCache.nonRootTaskIds)
+    return
+  }
+
+  const collapsedRootTaskIds = getCollapsedRootTaskIds(effectiveCollapsedTasks)
+
+  collapsedRootTaskIds.forEach(collapsedId => {
+    const childrenIds = getAllChildrenIds(collapsedId)
     childrenIds.forEach(id => allCollapsedIds.add(id))
   })
 
@@ -234,6 +387,7 @@ export const mutations: MutationsType = {
   },
   setTasks(tasks: GanttTask[]): void {
     store.tasks = tasks
+    rebuildTaskTreeCache()
   },
   setTaskHeaders(taskHeaders: GanttTaskHeader[]): void {
     store.taskHeaders = taskHeaders
@@ -249,6 +403,9 @@ export const mutations: MutationsType = {
   },
   setMapFields(mapFields: GanttMapFields): void {
     store.mapFields = mapFields
+    if (store.tasks.length > 0) {
+      rebuildTaskTreeCache()
+    }
   },
   setTimelineCellCount(timelineCellCount: number): void {
     store.timelineCellCount = timelineCellCount
@@ -286,19 +443,9 @@ export const mutations: MutationsType = {
     updateAllCollapsedTaskIds()
   },
   collapseAllTasks(): void {
-    // 找出所有有子节点的任务ID
-    const parentTasks = new Set<string | number>()
-    const parentIdField = store.mapFields['parentId']
-
-    store.tasks.forEach(task => {
-      const parentId = task[parentIdField]
-      if (parentId && parentId !== '0') {
-        parentTasks.add(parentId)
-      }
-    })
-
-    // 将这些任务ID添加到折叠集合
-    store.collapsedTasks = new Set(parentTasks)
+    // 全部折叠时直接复用 setTasks 阶段准备好的“有子节点任务”缓存。
+    // 这样点击表头按钮不需要再重新遍历 6 万条任务去反推父节点集合。
+    store.collapsedTasks = new Set(taskTreeCache.parentTaskIds)
     store.allCollapsed = true
     // 更新缓存
     updateAllCollapsedTaskIds()
@@ -335,8 +482,10 @@ export const mutations: MutationsType = {
   },
   updateAutoCollapsedTasks(taskIds: Set<string | number>): void {
     store.autoCollapsedTasks = new Set(taskIds)
+    updateAllCollapsedTaskIds()
   },
   clearAutoCollapsedTasks(): void {
     store.autoCollapsedTasks = new Set()
+    updateAllCollapsedTaskIds()
   },
 }

@@ -47,12 +47,17 @@ import { useHover } from './composables/useHover'
 import { useProgress } from './composables/useProgress'
 import { useInteractions } from './composables/useInteractions'
 import type { GanttTask } from '../types/GanttTypes'
+import {
+  registerTaskPosition,
+  unregisterTaskPosition,
+} from '../state/TaskPositionRegistry'
 
 export default defineComponent({
   emits: ['progress-update'],
   props: {
     rowHeight: { type: Number as () => number, default: 0 },
     row: { type: Object as () => GanttTask, default: () => ({}) },
+    rowIndex: { type: Number, default: -1 },
     startGanttDate: { type: [String, Date] as PropType<string | Date>, required: true },
     endGanttDate: { type: [String, Date] as PropType<string | Date>, required: true },
     barClassName: { type: String, default: '' },
@@ -86,12 +91,38 @@ export default defineComponent({
       emitProgressUpdate: emitProgressUpdateFromComposable,
     } = useProgress(props, emit, store.mapFields)
 
-    const setBarColor = inject(Symbols.SetBarColorSymbol) as (() => string) | undefined
+    const setBarColor = inject(Symbols.SetBarColorSymbol) as
+      | ((row: GanttTask) => string)
+      | undefined
 
     // 使用 useHover composables
     const { hover: hoverFromComposable, hoverActive, hoverInactive } = useHover(props)
 
     const setBarDate = mutations.setBarDate
+
+    const syncTaskPosition = (dataX: number, width: number) => {
+      if (props.rowIndex < 0) {
+        return
+      }
+
+      // 连线层现在直接消费这里登记的几何信息，而不是回头去 query DOM。
+      // 这样滚动时只要可见行重新登记位置，连线就能基于缓存增量重算。
+      const topY = props.rowIndex * props.rowHeight
+      const height = props.rowHeight
+
+      registerTaskPosition({
+        taskId: props.row[mapFields.value.id],
+        kind: 'bar',
+        leftX: dataX,
+        rightX: dataX + width,
+        centerX: dataX + width / 2,
+        centerY: topY + height / 2,
+        width,
+        height,
+        topY,
+        bottomY: topY + height,
+      })
+    }
 
     // 用于存储交互功能
     let drawBarFromComposable: (() => void) | null = null
@@ -111,8 +142,6 @@ export default defineComponent({
       isProgressDragging: isProgressDraggingFromComposable,
       emitProgressUpdate: emitProgressUpdateFromComposable,
       computePosition,
-      barClassName: computedBarClassName.value,
-      barRowClassName: computedBarRowClassName.value,
       progressHandleClassName: computedProgressHandleClassName.value,
     })
       drawBarFromComposable = interactions.drawBar
@@ -127,6 +156,8 @@ export default defineComponent({
       oldBarDataX.value = dataX
       oldBarWidth.value = width
 
+      // 这里仍然保留 SVG 直接绘制，但把“几何结果”额外同步到位置注册表。
+      // 这样交互层和连线层的职责拆开了：Bar 负责画自己，TaskLinks 负责读缓存画连线。
       const borderColor = getComputedStyle(_barElement).getPropertyValue('--border') || '#cecece'
       _barElement.setAttribute('data-x', dataX.toString())
       _barElement.setAttribute('width', oldBarWidth.value.toString())
@@ -141,6 +172,9 @@ export default defineComponent({
       if (drawBarFromComposable) {
         drawBarFromComposable()
       }
+
+      // 位置同步必须发生在 drawBar 之后，确保 width / dataX 已经是本轮最终值。
+      syncTaskPosition(dataX, width)
 
       setBarDate({
         id: props.row[mapFields.value.id],
@@ -165,20 +199,17 @@ export default defineComponent({
     })
 
     onMounted(() => {
+      // 先确定颜色，再做首次绘制，避免挂载时出现“先画一遍默认色，再画一遍真实色”。
+      if (setBarColor) {
+        barColor.value = setBarColor(props.row)
+      }
+
       if (bar.value && !isBarInteracted.value) {
         (drowBar as DrowBarFn)(bar.value)
         isBarInteracted.value = true
       }
-      if (setBarColor) {
-        barColor.value = setBarColor(props.row)
-        if (bar.value) {
-          (drowBar as DrowBarFn)(bar.value)
-        }
-      }
       // 使用 useBarTheme 提供的主题观察器
-      if (bar.value) {
-        setupThemeObserver()
-      }
+      setupThemeObserver()
     })
 
     onDeactivated(() => {
@@ -189,6 +220,7 @@ export default defineComponent({
           console.warn('Error unsetting interact:', e)
         }
       }
+      unregisterTaskPosition(props.row[mapFields.value.id])
       showRow.value = false
     })
 
@@ -204,6 +236,7 @@ export default defineComponent({
       if (destroyInteractions) {
         destroyInteractions()
       }
+      unregisterTaskPosition(props.row[mapFields.value.id])
       showRow.value = false
     })
 
