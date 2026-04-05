@@ -9,11 +9,18 @@
       top: '0px',
       left: '0px',
       pointerEvents: 'none',
-      zIndex: 50,
+      zIndex: 160,
       overflow: 'visible',
     }"
   >
     <g v-for="link in links" :key="link.id">
+      <path
+        :d="link.path"
+        :stroke="getLinkBackdropColor(link.type)"
+        :stroke-width="getLinkBackdropWidth(link.type)"
+        fill="none"
+        class="task-link-backdrop"
+      />
       <path
         :d="link.path"
         :stroke="getLinkStyle(link.type).color"
@@ -57,8 +64,13 @@
 <script lang="ts">
 import { defineComponent, computed, ref, watch } from 'vue'
 import { store } from '../state/Store'
-import { LinkPathType, LinkType, type LinkConfig, type TaskLink } from '../types/Types'
+import { LinkType, type LinkConfig, type TaskLink } from '../types/Types'
 import { linkDataManager } from '../composables/LinkConfig'
+import {
+  createArrowPoints,
+  createConnectionPath,
+  type ConnectionVariant,
+} from './linkPath'
 import {
   normalizeTaskKey,
   taskHierarchyIndex,
@@ -68,8 +80,6 @@ import {
   type TaskVisualPosition,
 } from '../state/TaskPositionRegistry'
 import { useScrollState } from '../state/ShareState'
-
-type ConnectionVariant = 'horizontal' | 'left-u' | 'right-u' | 'cross'
 
 const defaultVisibility = {
   finishToStart: true,
@@ -163,6 +173,18 @@ export default defineComponent({
       }
     }
 
+    const getLinkBackdropColor = (linkType: LinkType): string => {
+      if (linkType === LinkType.PARENT_CHILD) {
+        return 'rgba(255, 255, 255, 0.9)'
+      }
+
+      return 'rgba(255, 255, 255, 0.92)'
+    }
+
+    const getLinkBackdropWidth = (linkType: LinkType): number => {
+      return getLinkStyle(linkType).width + 3
+    }
+
     const isDashedLine = (linkType: LinkType): boolean => {
       const style = getLinkStyle(linkType)
       return !!(style.dashArray && style.dashArray.length > 0)
@@ -186,118 +208,6 @@ export default defineComponent({
       }
     }
 
-    const createArrowPoints = (
-      endX: number,
-      endY: number,
-      direction: 'left' | 'right'
-    ): string => {
-      const size = props.linkConfig.arrowSize || 8
-
-      if (direction === 'right') {
-        return `${endX},${endY} ${endX - size},${endY - size / 2} ${endX - size},${endY + size / 2}`
-      }
-
-      return `${endX},${endY} ${endX + size},${endY - size / 2} ${endX + size},${endY + size / 2}`
-    }
-
-    const createConnectionPath = (
-      startX: number,
-      startY: number,
-      endX: number,
-      endY: number,
-      pathType: LinkPathType,
-      variant: ConnectionVariant
-    ): string => {
-      if (pathType === LinkPathType.STRAIGHT) {
-        return `M ${startX} ${startY} L ${endX} ${endY}`
-      }
-
-      const offset = props.linkConfig.rightAngleOffset || 30
-      const radius = props.linkConfig.smoothCorners ? props.linkConfig.cornerRadius || 0 : 0
-
-      // 这里保留一套轻量路径生成逻辑：
-      // 1. 所有路径都只依赖缓存的几何数据；
-      // 2. pathType 只控制折线 / 贝塞尔的样式，不再读取 DOM；
-      // 3. variant 用来区分不同依赖类型的绕行方向。
-      if (pathType === LinkPathType.BEZIER) {
-        switch (variant) {
-          case 'horizontal': {
-            const curvature = Math.max(offset, Math.abs(endX - startX) * props.linkConfig.bezierCurvature)
-            return `M ${startX} ${startY} C ${startX + curvature} ${startY} ${endX - curvature} ${endY} ${endX} ${endY}`
-          }
-          case 'left-u': {
-            const midX = Math.min(startX, endX) - offset
-            return `M ${startX} ${startY} C ${midX} ${startY} ${midX} ${endY} ${endX} ${endY}`
-          }
-          case 'right-u': {
-            const midX = Math.max(startX, endX) + offset
-            return `M ${startX} ${startY} C ${midX} ${startY} ${midX} ${endY} ${endX} ${endY}`
-          }
-          case 'cross': {
-            const midX = startX + (endX - startX) / 2
-            return `M ${startX} ${startY} C ${midX} ${startY} ${midX} ${endY} ${endX} ${endY}`
-          }
-        }
-      }
-
-      const segments = (() => {
-        switch (variant) {
-          case 'horizontal': {
-            const midX = startX + offset
-            return [
-              [startX, startY],
-              [midX, startY],
-              [midX, endY],
-              [endX, endY],
-            ]
-          }
-          case 'left-u': {
-            const midX = Math.min(startX, endX) - offset
-            return [
-              [startX, startY],
-              [midX, startY],
-              [midX, endY],
-              [endX, endY],
-            ]
-          }
-          case 'right-u': {
-            const midX = Math.max(startX, endX) + offset
-            return [
-              [startX, startY],
-              [midX, startY],
-              [midX, endY],
-              [endX, endY],
-            ]
-          }
-          case 'cross': {
-            const midX = startX + (endX - startX) / 2
-            return [
-              [startX, startY],
-              [midX, startY],
-              [midX, endY],
-              [endX, endY],
-            ]
-          }
-        }
-      })()
-
-      if (radius <= 0 || segments.length < 4) {
-        return `M ${segments[0][0]} ${segments[0][1]} L ${segments[1][0]} ${segments[1][1]} L ${segments[2][0]} ${segments[2][1]} L ${segments[3][0]} ${segments[3][1]}`
-      }
-
-      const [p1, p2, p3, p4] = segments
-      const firstVerticalDirection = p3[1] >= p2[1] ? 1 : -1
-      const secondHorizontalDirection = p4[0] >= p3[0] ? 1 : -1
-      const safeRadius = Math.min(radius, Math.abs(p3[1] - p2[1]) / 2, Math.abs(p4[0] - p3[0]) / 2)
-
-      return `M ${p1[0]} ${p1[1]}
-              L ${p2[0] - safeRadius} ${p2[1]}
-              Q ${p2[0]} ${p2[1]} ${p2[0]} ${p2[1] + safeRadius * firstVerticalDirection}
-              L ${p3[0]} ${p3[1] - safeRadius * firstVerticalDirection}
-              Q ${p3[0]} ${p3[1]} ${p3[0] + safeRadius * secondHorizontalDirection} ${p3[1]}
-              L ${p4[0]} ${p4[1]}`
-    }
-
     const createParentChildLink = (
       parentPosition: TaskVisualPosition,
       childPosition: TaskVisualPosition,
@@ -319,11 +229,21 @@ export default defineComponent({
           startY,
           endX,
           endY,
-          props.linkConfig.pathType,
+          {
+            pathType: props.linkConfig.pathType,
+            offset: props.linkConfig.rightAngleOffset || 30,
+            radius: props.linkConfig.smoothCorners ? props.linkConfig.cornerRadius || 0 : 0,
+            bezierCurvature: props.linkConfig.bezierCurvature,
+          },
           'horizontal'
         ),
         arrowPoints: props.linkConfig.showArrow
-          ? createArrowPoints(childPosition.leftX, childPosition.centerY, 'right')
+          ? createArrowPoints(
+              childPosition.leftX,
+              childPosition.centerY,
+              'right',
+              props.linkConfig.arrowSize || 8
+            )
           : '',
         labelX: childPosition.centerX,
         labelY: childPosition.centerY - 10,
@@ -383,14 +303,20 @@ export default defineComponent({
           startY,
           endX,
           endY,
-          props.linkConfig.pathType,
+          {
+            pathType: props.linkConfig.pathType,
+            offset: props.linkConfig.rightAngleOffset || 30,
+            radius: props.linkConfig.smoothCorners ? props.linkConfig.cornerRadius || 0 : 0,
+            bezierCurvature: props.linkConfig.bezierCurvature,
+          },
           variant
         ),
         arrowPoints: props.linkConfig.showArrow
           ? createArrowPoints(
               direction === 'right' ? endX + arrowSize : endX - arrowSize,
               endY,
-              direction
+              direction,
+              arrowSize
             )
           : '',
         labelX: (sourcePosition.centerX + targetPosition.centerX) / 2,
@@ -505,6 +431,8 @@ export default defineComponent({
       links,
       isScrolling,
       getLinkStyle,
+      getLinkBackdropColor,
+      getLinkBackdropWidth,
       isDashedLine,
       getDashAnimationStyle,
       linkConfig: props.linkConfig,
@@ -517,8 +445,17 @@ export default defineComponent({
 .task-links-layer {
   pointer-events: none;
 
+  .task-link-backdrop {
+    pointer-events: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 1;
+  }
+
   .task-link {
     transition: stroke-width 0.2s ease;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 
     &:hover {
       stroke-width: 3;
