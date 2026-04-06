@@ -12,11 +12,7 @@
           :key="headerIndex"
           :columnindex="headerIndex"
           v-if="header.property === 'no'"
-          v-bind:style="{
-            minWidth: header.width + 'px',
-            maxWidth: header.width + 'px',
-            height: rowHeight + 'px',
-          }"
+          :style="getColumnWidthStyle(headerIndex, header, rowHeight)"
         >
           <template v-if="isVerticalScrolling">
             <div class="no-cell-content no-cell-content-simple">
@@ -127,11 +123,7 @@
           :class="contentClassName"
           :key="headerIndex + '-header'"
           :columnindex="headerIndex"
-          :style="{
-            minWidth: header.width + 'px',
-            maxWidth: header.width + 'px',
-            height: rowHeight + 'px',
-          }"
+          :style="getColumnWidthStyle(headerIndex, header, rowHeight)"
         >
           {{ checkField(row, header.property) }}
         </div>
@@ -284,6 +276,21 @@ export default defineComponent({
       return null
     }
 
+    const getColumnWidthStyle = (
+      headerIndex: number,
+      header: { width?: number },
+      rowHeight: number
+    ): Record<string, string> => {
+      const fallbackWidth = `${(header.width ?? 100).toString()}px`
+      const widthVar = `var(--gantt-column-width-${headerIndex}, ${fallbackWidth})`
+
+      return {
+        minWidth: widthVar,
+        maxWidth: widthVar,
+        height: `${rowHeight}px`,
+      }
+    }
+
     const hoverActive = () => {
       // 正在拖动滚动条时不做高亮广播，避免左右两侧可见行一起响应 hover 状态。
       if (isVerticalScrolling.value) {
@@ -322,6 +329,7 @@ export default defineComponent({
       setEditTask,
       setRemoveTask,
       checkField,
+      getColumnWidthStyle,
       hoverActive,
       hoverInactive,
       addRootTask: handleAddRootTask,

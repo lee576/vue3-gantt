@@ -7,7 +7,7 @@
         v-show="item.property === 'no' || item.show"
         class="headerCaption"
         :class="[headerClassName, { 'no-column': item.property === 'no' }]"
-        :style="{ width: `${item.width}px` }"
+        :style="getHeaderWidthStyle(index, item)"
       >
         <span v-if="item.property !== 'no'">{{ getHeaderTitle(item) }}</span>
         <!-- 序号列：显示折叠/展开按钮 + 标题 -->
@@ -58,7 +58,7 @@ export default defineComponent({
       default: '',
     },
   },
-  emits: ['update:headerWidth'],
+  emits: ['preview:headerWidth', 'update:headerWidth'],
   setup(props, { emit }) {
     const { t } = useI18n()
 
@@ -80,7 +80,7 @@ export default defineComponent({
     const resizingIndex = ref(-1)
     const startX = ref(0)
     const startWidth = ref(0)
-    const currentHeaderElement = ref<HTMLElement | null>(null)
+    const currentWidth = ref(0)
 
     // 根据 property 获取翻译后的标题
     const getHeaderTitle = (header: { property: string; title: string }) => {
@@ -106,6 +106,13 @@ export default defineComponent({
       return header.title
     }
 
+    const getHeaderWidthStyle = (
+      index: number,
+      header: { width?: number }
+    ): Record<string, string> => ({
+      width: `var(--gantt-column-width-${index}, ${(header.width ?? 100).toString()}px)`,
+    })
+
     // 开始拖动调整列宽
     const startResize = (event: MouseEvent, index: number) => {
       event.preventDefault()
@@ -115,10 +122,7 @@ export default defineComponent({
       resizingIndex.value = index
       startX.value = event.clientX
       startWidth.value = props.headers[index].width ?? 100
-
-      // 获取当前列的 DOM 元素
-      const target = event.target as HTMLElement
-      currentHeaderElement.value = target.closest('.headerCaption') as HTMLElement
+      currentWidth.value = startWidth.value
 
       // 添加全局鼠标移动和释放事件
       document.addEventListener('mousemove', handleMouseMove, { passive: false })
@@ -145,20 +149,8 @@ export default defineComponent({
       rafId = requestAnimationFrame(() => {
         const deltaX = event.clientX - startX.value
         const newWidth = Math.max(50, startWidth.value + deltaX)
-
-        // 直接设置 DOM 样式，避免 Vue 响应式更新延迟
-        if (currentHeaderElement.value) {
-          currentHeaderElement.value.style.width = `${newWidth}px`
-        }
-
-        // 同时更新对应的内容列
-        const contentCells = document.querySelectorAll(
-          `.cellNo[columnindex="${resizingIndex.value}"], .cell[columnindex="${resizingIndex.value}"]`
-        )
-        contentCells.forEach(cell => {
-          ;(cell as HTMLElement).style.minWidth = `${newWidth}px`
-          ;(cell as HTMLElement).style.maxWidth = `${newWidth}px`
-        })
+        currentWidth.value = newWidth
+        emit('preview:headerWidth', { index: resizingIndex.value, width: newWidth })
 
         rafId = null
       })
@@ -175,14 +167,13 @@ export default defineComponent({
       }
 
       // 计算最终宽度并通过 emit 更新
-      if (currentHeaderElement.value && resizingIndex.value >= 0) {
-        const finalWidth = parseInt(currentHeaderElement.value.style.width)
-        emit('update:headerWidth', { index: resizingIndex.value, width: finalWidth })
+      if (resizingIndex.value >= 0) {
+        emit('update:headerWidth', { index: resizingIndex.value, width: currentWidth.value })
       }
 
       resizing.value = false
       resizingIndex.value = -1
-      currentHeaderElement.value = null
+      currentWidth.value = 0
 
       // 移除全局事件监听
       document.removeEventListener('mousemove', handleMouseMove)
@@ -195,6 +186,7 @@ export default defineComponent({
 
     return {
       getHeaderTitle,
+      getHeaderWidthStyle,
       startResize,
       allCollapsed,
       toggleAllCollapse,
@@ -225,7 +217,9 @@ export default defineComponent({
     box-sizing: border-box;
     letter-spacing: 0.5px;
     background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
-    transition: all var(--transition-fast, 0.15s ease);
+    transition:
+      background var(--transition-fast, 0.15s ease),
+      color var(--transition-fast, 0.15s ease);
     flex-shrink: 0;
 
     &::before {

@@ -6,7 +6,7 @@
       tableClassName,
       { 'dark': isDarkMode }
     ]"
-    :style="tableStyle"
+    :style="mergedTableStyle"
   >
     <slot name="toolbar">
       <div
@@ -93,15 +93,20 @@
             stroke-width="1.5"
           />
         </svg>
-        <slot name="header" :headers="taskHeaders"></slot>
-        <TaskHeader :headers="taskHeaders" :header-class-name="headerClassName" @update:headerWidth="handleHeaderWidthChange" />
+        <slot name="header" :headers="displayHeaders"></slot>
+        <TaskHeader
+          :headers="displayHeaders"
+          :header-class-name="headerClassName"
+          @preview:headerWidth="handleHeaderWidthPreview"
+          @update:headerWidth="handleHeaderWidthChange"
+        />
       </div>
     </slot>
     <div :class="['content-base', contentClassName]" :style="{ height: `calc(100% - ${headersHeight}px)` }">
       <slot name="content" :tasks="tasks">
         <TaskContent
           v-if="Array.isArray(tasks) && tasks.length > 0"
-          :headers="taskHeaders"
+          :headers="displayHeaders"
           :rowHeight="rowHeight"
           :content-class-name="contentClassName"
           :bar-row-class-name="barRowClassName"
@@ -120,7 +125,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, ref, type PropType } from 'vue'
+import { defineComponent, computed, ref, watch, type PropType } from 'vue'
 import TaskHeader from './TaskHeader.vue'
 import TaskContent from './TaskContent.vue'
 import ColumnConfigPanel from '../config/ColumnConfigPanel.vue'
@@ -128,6 +133,7 @@ import { store, mutations } from '../state/Store'
 import DateUtils from '../utils/dateUtils'
 import sharedState from '../state/ShareState'
 import { useI18n } from '../i18n'
+import type { GanttTaskHeader } from '../types/GanttTypes'
 
 export default defineComponent({
   name: 'GanttTaskTable',
@@ -201,6 +207,8 @@ export default defineComponent({
     const endGanttDate = computed(() => store.endGanttDate)
 
     const columnConfigVisible = ref(false)
+    const displayHeaders = ref<GanttTaskHeader[]>([])
+    const previewColumnWidths = ref<Record<number, number>>({})
 
     const setRootTask = mutations.setRootTask
     const scrollToToday = () => {
@@ -220,7 +228,46 @@ export default defineComponent({
       mutations.setTaskHeaders(newHeaders)
     }
 
+    const syncDisplayHeaders = (headers: GanttTaskHeader[]) => {
+      displayHeaders.value = headers.map(header => ({ ...header }))
+    }
+
+    watch(
+      taskHeaders,
+      headers => {
+        syncDisplayHeaders(headers)
+        previewColumnWidths.value = {}
+      },
+      { immediate: true }
+    )
+
+    const columnWidthStyleVars = computed<Record<string, string>>(() => {
+      const styleVars: Record<string, string> = {}
+
+      displayHeaders.value.forEach((header, index) => {
+        const previewWidth = previewColumnWidths.value[index]
+        const width = previewWidth ?? header.width ?? 100
+        styleVars[`--gantt-column-width-${index}`] = `${width}px`
+      })
+
+      return styleVars
+    })
+
+    const mergedTableStyle = computed<Record<string, string>>(() => ({
+      ...(props.tableStyle ?? {}),
+      ...columnWidthStyleVars.value,
+    }))
+
+    const handleHeaderWidthPreview = ({ index, width }: { index: number; width: number }) => {
+      previewColumnWidths.value = {
+        ...previewColumnWidths.value,
+        [index]: width,
+      }
+    }
+
     const handleHeaderWidthChange = ({ index, width }: { index: number; width: number }) => {
+      handleHeaderWidthPreview({ index, width })
+
       const headers = [...store.taskHeaders]
       if (headers[index]) {
         headers[index] = { ...headers[index], width }
@@ -244,6 +291,8 @@ export default defineComponent({
       t,
       tasks,
       taskHeaders,
+      displayHeaders,
+      mergedTableStyle,
       rootTask,
       startGanttDate,
       endGanttDate,
@@ -252,6 +301,7 @@ export default defineComponent({
       columnConfigVisible,
       showColumnConfig,
       updateHeaders,
+      handleHeaderWidthPreview,
       handleHeaderWidthChange,
       tableClassName: tableClassNameProp,
       headerClassName: headerClassNameProp,
