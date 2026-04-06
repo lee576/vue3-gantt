@@ -64,11 +64,13 @@
 <script lang="ts">
 import { defineComponent, computed, ref, watch } from 'vue'
 import { store } from '../state/Store'
-import { LinkType, type LinkConfig, type TaskLink } from '../types/Types'
+import { LinkPathType, LinkType, type LinkConfig, type TaskLink } from '../types/Types'
 import { linkDataManager } from '../composables/LinkConfig'
 import {
   createArrowPoints,
   createConnectionPath,
+  createPolylinePath,
+  type ConnectionPoint,
   type ConnectionVariant,
 } from './linkPath'
 import {
@@ -214,7 +216,8 @@ export default defineComponent({
       parentId: string,
       childId: string
     ): TaskLink => {
-      const endX = childPosition.leftX - (props.linkConfig.arrowSize || 8)
+      const arrowSize = props.linkConfig.arrowSize || 8
+      const endX = childPosition.leftX - arrowSize
       const endY = childPosition.centerY
       const startX = parentPosition.leftX
       const startY = parentPosition.centerY
@@ -230,19 +233,19 @@ export default defineComponent({
           endX,
           endY,
           {
-            pathType: props.linkConfig.pathType,
+            pathType: LinkPathType.RIGHT_ANGLE,
             offset: props.linkConfig.rightAngleOffset || 30,
             radius: props.linkConfig.smoothCorners ? props.linkConfig.cornerRadius || 0 : 0,
             bezierCurvature: props.linkConfig.bezierCurvature,
           },
-          'horizontal'
+          'left-u'
         ),
         arrowPoints: props.linkConfig.showArrow
           ? createArrowPoints(
               childPosition.leftX,
               childPosition.centerY,
               'right',
-              props.linkConfig.arrowSize || 8
+              arrowSize
             )
           : '',
         labelX: childPosition.centerX,
@@ -259,6 +262,7 @@ export default defineComponent({
       dependencyId: string
     ): TaskLink => {
       const arrowSize = props.linkConfig.arrowSize || 8
+      const routeOffset = Math.max(16, props.linkConfig.rightAngleOffset || 30)
       let startX = sourcePosition.rightX
       let endX = targetPosition.leftX - arrowSize
       let direction: 'left' | 'right' = 'right'
@@ -282,6 +286,120 @@ export default defineComponent({
 
       const endY = targetPosition.centerY
       const startY = sourcePosition.centerY
+      const routeRadius = props.linkConfig.smoothCorners
+        ? props.linkConfig.cornerRadius || 0
+        : 0
+
+      const createDependencyRoutePoints = (): ConnectionPoint[] | null => {
+        const createLaneY = () => {
+          if (startY === endY) {
+            return startY
+          }
+
+          if (startY < endY) {
+            const laneTop = sourcePosition.bottomY
+            const laneBottom = targetPosition.topY
+
+            if (laneBottom > laneTop) {
+              return laneTop + (laneBottom - laneTop) / 2
+            }
+          } else {
+            const laneTop = targetPosition.bottomY
+            const laneBottom = sourcePosition.topY
+
+            if (laneBottom > laneTop) {
+              return laneTop + (laneBottom - laneTop) / 2
+            }
+          }
+
+          return startY + (endY - startY) / 2
+        }
+
+        const laneY = createLaneY()
+
+        switch (type) {
+          case LinkType.FINISH_TO_START: {
+            const sourceExitX = sourcePosition.rightX + routeOffset
+            const targetEntryX = targetPosition.leftX - routeOffset
+
+            if (sourceExitX <= targetEntryX) {
+              return [
+                [startX, startY],
+                [sourceExitX, startY],
+                [sourceExitX, endY],
+                [endX, endY],
+              ]
+            }
+
+            return [
+              [startX, startY],
+              [sourceExitX, startY],
+              [sourceExitX, laneY],
+              [targetEntryX, laneY],
+              [targetEntryX, endY],
+              [endX, endY],
+            ]
+          }
+
+          case LinkType.START_TO_START: {
+            const corridorX = Math.min(sourcePosition.leftX, targetPosition.leftX) - routeOffset
+            return [
+              [startX, startY],
+              [corridorX, startY],
+              [corridorX, endY],
+              [endX, endY],
+            ]
+          }
+
+          case LinkType.FINISH_TO_FINISH: {
+            const corridorX = Math.max(sourcePosition.rightX, targetPosition.rightX) + routeOffset
+            return [
+              [startX, startY],
+              [corridorX, startY],
+              [corridorX, endY],
+              [endX, endY],
+            ]
+          }
+
+          case LinkType.START_TO_FINISH: {
+            const sourceExitX = sourcePosition.leftX - routeOffset
+            const targetEntryX = targetPosition.rightX + routeOffset
+            return [
+              [startX, startY],
+              [sourceExitX, startY],
+              [sourceExitX, laneY],
+              [targetEntryX, laneY],
+              [targetEntryX, endY],
+              [endX, endY],
+            ]
+          }
+
+          default:
+            return null
+        }
+      }
+
+      const dependencyRoutePoints = createDependencyRoutePoints()
+      const routedPathRadius =
+        props.linkConfig.pathType === LinkPathType.BEZIER
+          ? Math.max(routeRadius, Math.min(routeOffset / 2, 18))
+          : routeRadius
+      const dependencyPath =
+        props.linkConfig.pathType !== LinkPathType.STRAIGHT && dependencyRoutePoints
+          ? createPolylinePath(dependencyRoutePoints, routedPathRadius)
+          : createConnectionPath(
+              startX,
+              startY,
+              endX,
+              endY,
+              {
+                pathType: props.linkConfig.pathType,
+                offset: props.linkConfig.rightAngleOffset || 30,
+                radius: routeRadius,
+                bezierCurvature: props.linkConfig.bezierCurvature,
+              },
+              variant
+            )
 
       // 依赖线的起止点完全由缓存几何推导，不再依赖 DOM 读布局。
       // 这样滚动和拖拽时只要位置缓存更新，这里就能同步拿到最新结果。
@@ -298,19 +416,7 @@ export default defineComponent({
               : type === LinkType.FINISH_TO_FINISH
                 ? 'FF'
                 : 'SF',
-        path: createConnectionPath(
-          startX,
-          startY,
-          endX,
-          endY,
-          {
-            pathType: props.linkConfig.pathType,
-            offset: props.linkConfig.rightAngleOffset || 30,
-            radius: props.linkConfig.smoothCorners ? props.linkConfig.cornerRadius || 0 : 0,
-            bezierCurvature: props.linkConfig.bezierCurvature,
-          },
-          variant
-        ),
+        path: dependencyPath,
         arrowPoints: props.linkConfig.showArrow
           ? createArrowPoints(
               direction === 'right' ? endX + arrowSize : endX - arrowSize,

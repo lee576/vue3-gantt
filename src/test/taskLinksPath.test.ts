@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createConnectionPath } from '../components/gantt/links/linkPath'
+import { createConnectionPath, createPolylinePath } from '../components/gantt/links/linkPath'
 import { LinkPathType } from '../components/gantt/types/Types'
 
 const normalizePath = (path: string) => path.replace(/\s+/g, ' ').trim()
@@ -46,5 +46,27 @@ describe('Task link path generation', () => {
 
     expect(path).toContain('L 145 20')
     expect(path).toContain('Q 150 20 150 25')
+  })
+
+  it('supports multi-segment orthogonal routes so dependencies can detour around bars', () => {
+    const path = normalizePath(
+      createPolylinePath(
+        [
+          [160, 90],
+          [190, 90],
+          [190, 120],
+          [82, 120],
+          [82, 150],
+          [112, 150],
+        ],
+        5
+      )
+    )
+
+    expect(path).toContain('L 185 90')
+    expect(path).toContain('Q 190 90 190 95')
+    expect(path).toContain('Q 82 120 82 125')
+    expect(path).toContain('Q 82 150 87 150')
+    expect(path).not.toContain('L 82 150 L 112 150')
   })
 })

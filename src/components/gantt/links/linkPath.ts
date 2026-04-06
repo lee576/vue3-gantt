@@ -1,12 +1,85 @@
 import { LinkPathType } from '../types/Types'
 
 export type ConnectionVariant = 'horizontal' | 'left-u' | 'right-u' | 'cross'
+export type ConnectionPoint = readonly [number, number]
 
 interface LinkPathOptions {
   pathType: LinkPathType
   offset: number
   radius: number
   bezierCurvature: number
+}
+
+const createPolylinePathInternal = (
+  points: readonly ConnectionPoint[],
+  radius: number
+): string => {
+  if (points.length === 0) {
+    return ''
+  }
+
+  if (points.length === 1) {
+    return `M ${points[0][0]} ${points[0][1]}`
+  }
+
+  if (radius <= 0 || points.length < 3) {
+    return points.reduce((path, [x, y], index) => {
+      if (index === 0) {
+        return `M ${x} ${y}`
+      }
+
+      return `${path} L ${x} ${y}`
+    }, '')
+  }
+
+  const firstPoint = points[0]
+  let path = `M ${firstPoint[0]} ${firstPoint[1]}`
+
+  for (let index = 1; index < points.length - 1; index += 1) {
+    const previousPoint = points[index - 1]
+    const currentPoint = points[index]
+    const nextPoint = points[index + 1]
+
+    const previousVectorX = currentPoint[0] - previousPoint[0]
+    const previousVectorY = currentPoint[1] - previousPoint[1]
+    const nextVectorX = nextPoint[0] - currentPoint[0]
+    const nextVectorY = nextPoint[1] - currentPoint[1]
+
+    const previousLength = Math.hypot(previousVectorX, previousVectorY)
+    const nextLength = Math.hypot(nextVectorX, nextVectorY)
+
+    if (previousLength === 0 || nextLength === 0) {
+      path += ` L ${currentPoint[0]} ${currentPoint[1]}`
+      continue
+    }
+
+    const safeRadius = Math.min(radius, previousLength / 2, nextLength / 2)
+
+    if (safeRadius <= 0) {
+      path += ` L ${currentPoint[0]} ${currentPoint[1]}`
+      continue
+    }
+
+    const entryX = currentPoint[0] - (previousVectorX / previousLength) * safeRadius
+    const entryY = currentPoint[1] - (previousVectorY / previousLength) * safeRadius
+    const exitX = currentPoint[0] + (nextVectorX / nextLength) * safeRadius
+    const exitY = currentPoint[1] + (nextVectorY / nextLength) * safeRadius
+
+    path += ` L ${entryX} ${entryY}`
+    path += ` Q ${currentPoint[0]} ${currentPoint[1]} ${exitX} ${exitY}`
+  }
+
+  const lastPoint = points[points.length - 1]
+  path += ` L ${lastPoint[0]} ${lastPoint[1]}`
+
+  return path
+}
+
+export function createPolylinePath(
+  points: readonly ConnectionPoint[],
+  radius = 0
+): string {
+  return createPolylinePathInternal(points, radius)
 }
 
 export function createArrowPoints(
@@ -99,25 +172,5 @@ export function createConnectionPath(
     }
   })()
 
-  if (options.radius <= 0 || segments.length < 4) {
-    return `M ${segments[0][0]} ${segments[0][1]} L ${segments[1][0]} ${segments[1][1]} L ${segments[2][0]} ${segments[2][1]} L ${segments[3][0]} ${segments[3][1]}`
-  }
-
-  const [p1, p2, p3, p4] = segments
-  const firstHorizontalDirection = p2[0] >= p1[0] ? 1 : -1
-  const firstVerticalDirection = p3[1] >= p2[1] ? 1 : -1
-  const secondHorizontalDirection = p4[0] >= p3[0] ? 1 : -1
-  const safeRadius = Math.min(
-    options.radius,
-    Math.abs(p2[0] - p1[0]) / 2,
-    Math.abs(p3[1] - p2[1]) / 2,
-    Math.abs(p4[0] - p3[0]) / 2
-  )
-
-  return `M ${p1[0]} ${p1[1]}
-          L ${p2[0] - safeRadius * firstHorizontalDirection} ${p2[1]}
-          Q ${p2[0]} ${p2[1]} ${p2[0]} ${p2[1] + safeRadius * firstVerticalDirection}
-          L ${p3[0]} ${p3[1] - safeRadius * firstVerticalDirection}
-          Q ${p3[0]} ${p3[1]} ${p3[0] + safeRadius * secondHorizontalDirection} ${p3[1]}
-          L ${p4[0]} ${p4[1]}`
+  return createPolylinePathInternal(segments, options.radius)
 }
