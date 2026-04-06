@@ -359,6 +359,7 @@ import {
   watch,
 } from 'vue'
 import DateUtils from '../utils/dateUtils'
+import { buildWeekModeHeaders } from '../utils/weekModeHeaders'
 
 import { Symbols } from '../state/Symbols'
 import { linkDataManager, useLinkConfig } from '../composables/LinkConfig'
@@ -847,75 +848,14 @@ export default defineComponent({
         }
         case '周': {
           scale.value = 120
-          let currentDate = DateUtils.startOf(start.toDate(), 'isoWeek')
-          const endWeek = DateUtils.endOf(end.toDate(), 'isoWeek')
-
-          const months: string[] = []
-          let monthCurrent = DateUtils.startOf(currentDate.toDate(), 'month')
-          while (
-            DateUtils.isBefore(monthCurrent.toDate(), endWeek.toDate()) ||
-            DateUtils.isSame(monthCurrent.toDate(), endWeek.toDate(), 'month')
-          ) {
-            months.push(DateUtils.format(monthCurrent.toDate(), 'YYYY-MM-DD'))
-            monthCurrent = DateUtils.add(monthCurrent.toDate(), 1, 'month')
-          }
-
-          months.forEach((month) => {
-            const monthStart = DateUtils.create(month)
-            const monthEnd = DateUtils.endOf(monthStart.toDate(), 'month')
-
-            let weekCount = 0
-            let weekCurrent = DateUtils.clone(currentDate)
-            while (
-              DateUtils.isBefore(weekCurrent.toDate(), endWeek.toDate()) ||
-              DateUtils.isSame(weekCurrent.toDate(), endWeek.toDate(), 'week')
-            ) {
-              const weekStart = DateUtils.startOf(weekCurrent.toDate(), 'isoWeek')
-              const weekEnd = DateUtils.endOf(weekCurrent.toDate(), 'isoWeek')
-
-              if (
-                DateUtils.isSame(weekStart.toDate(), monthStart.toDate(), 'month') ||
-                DateUtils.isSame(weekEnd.toDate(), monthStart.toDate(), 'month') ||
-                (DateUtils.isBefore(weekStart.toDate(), monthEnd.toDate()) && DateUtils.isAfter(weekEnd.toDate(), monthStart.toDate()))
-              ) {
-                weekCount++
-              }
-              weekCurrent = DateUtils.add(weekCurrent.toDate(), 1, 'week')
-            }
-
-            if (weekCount > 0) {
-              const isAsian = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value)
-              const monthNum = DateUtils.month(monthStart.toDate())
-              const monthName = DateUtils.getMonthName(monthNum + 1)
-              const monthTitle = isAsian
-                ? DateUtils.format(monthStart.toDate(), 'YYYY年MM月')
-                : `${monthName} ${DateUtils.year(monthStart.toDate())}`
-              monthHeaders.value.push({
-                title: monthTitle,
-                width: weekCount * scale.value,
-              })
-            }
-          })
-
-          while (
-            DateUtils.isBefore(currentDate.toDate(), endWeek.toDate()) ||
-            DateUtils.isSame(currentDate.toDate(), endWeek.toDate(), 'week')
-          ) {
-            const weekStart = DateUtils.startOf(currentDate.toDate(), 'isoWeek')
-            const weekEnd = DateUtils.endOf(currentDate.toDate(), 'isoWeek')
-
-            const isAsian = ['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR'].includes(locale.value)
-            const weekTitle = isAsian
-              ? `第${DateUtils.isoWeek(currentDate)}周 (${DateUtils.format(weekStart.toDate(), 'MM/DD')}-${DateUtils.format(weekEnd.toDate(), 'MM/DD')})`
-              : `Week ${DateUtils.isoWeek(currentDate)} (${DateUtils.format(weekStart.toDate(), 'MM/DD')}-${DateUtils.format(weekEnd.toDate(), 'MM/DD')})`
-            weekHeaders.value.push({
-              title: weekTitle,
-              width: scale.value,
-              fulldate: DateUtils.format(weekStart.toDate(), 'YYYY-MM-DD'),
-            })
-
-            currentDate = DateUtils.add(currentDate.toDate(), 1, 'week')
-          }
+          const headers = buildWeekModeHeaders(
+            start.toDate(),
+            end.toDate(),
+            locale.value,
+            scale.value
+          )
+          monthHeaders.value = headers.monthHeaders
+          weekHeaders.value = headers.weekHeaders
 
           timelineCellCount.value = weekHeaders.value.length
           break

@@ -2,6 +2,7 @@ import type {
   ResolvedTaskBarDecorations,
   ResolvedTaskBarIndicator,
   TaskBarDecorations,
+  TaskBarIndicator,
   TaskBarLabelValue,
 } from '../types/Types'
 
@@ -15,7 +16,7 @@ const normalizeLabelValue = (value: TaskBarLabelValue): string | undefined => {
 }
 
 const normalizeIndicator = (
-  indicator: TaskBarDecorations['indicators'] extends Array<infer T> ? T : never,
+  indicator: TaskBarIndicator | null | undefined,
   index: number
 ): ResolvedTaskBarIndicator | null => {
   if (!indicator) {

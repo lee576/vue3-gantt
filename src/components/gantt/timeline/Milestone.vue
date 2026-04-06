@@ -868,6 +868,7 @@ export default defineComponent({
       milestone,
       showRow,
       hover,
+      localRow,
       milestoneColor,
       timelineCellCount,
       scale,

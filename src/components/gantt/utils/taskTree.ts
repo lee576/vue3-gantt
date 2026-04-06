@@ -173,6 +173,14 @@ const getTaskSubtreeInsertIndex = <T extends TaskRecord>(
   return getTaskSubtreeEndIndex(tasks, startIndex) + 1
 }
 
+const setTaskParentId = <T extends TaskRecord>(
+  task: FlattenedTask<T>,
+  parentIdField: string,
+  parentIdValue: unknown
+) => {
+  Reflect.set(task as object, parentIdField, parentIdValue)
+}
+
 export const reorderTasksByHierarchy = <T extends TaskRecord>(
   tasks: T[],
   mapFields: Pick<GanttMapFields, 'id' | 'parentId'> | Record<string, string>,
@@ -235,13 +243,13 @@ export const reorderTasksByHierarchy = <T extends TaskRecord>(
   let insertIndex = targetIndexAfterRemoval
 
   if (position === 'child') {
-    movedRootTask[parentIdField] = targetTask[idField]
+    setTaskParentId(movedRootTask, parentIdField, targetTask[idField])
     insertIndex = getTaskSubtreeInsertIndex(remainingTasks, targetIndexAfterRemoval)
   } else if (position === 'below') {
-    movedRootTask[parentIdField] = targetTask[parentIdField]
+    setTaskParentId(movedRootTask, parentIdField, targetTask[parentIdField])
     insertIndex = getTaskSubtreeInsertIndex(remainingTasks, targetIndexAfterRemoval)
   } else {
-    movedRootTask[parentIdField] = targetTask[parentIdField]
+    setTaskParentId(movedRootTask, parentIdField, targetTask[parentIdField])
   }
 
   const reorderedTasks = [

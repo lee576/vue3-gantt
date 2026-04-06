@@ -4,7 +4,6 @@ import { flattenTasksByHierarchy } from '../../utils/taskTree'
 import type {
   TaskMoveDetail,
   TaskMoveEventHandlers,
-  TaskMoveHandlerResult,
   TaskMoveResolution,
   TaskMoveResolvedResult,
 } from '../../types/Types'
