@@ -334,6 +334,7 @@
             :bar-class-name="barClassName"
             :bar-row-class-name="barRowClassName"
             :progress-handle-class-name="progressHandleClassName"
+            :bar-decoration-resolver="barDecorationResolver"
             :container-class-name="containerClassName"
             :timeline-header-class-name="timelineHeaderClassName"
             :caption-class-name="captionClassName"
@@ -1667,6 +1668,7 @@ export default defineComponent({
       barClassName: props.styleConfig?.barClassName ?? props.barClassName,
       barRowClassName: props.styleConfig?.barRowClassName ?? props.barRowClassName,
       progressHandleClassName: props.styleConfig?.progressHandleClassName ?? props.progressHandleClassName,
+      barDecorationResolver: props.styleConfig?.setBarDecorations,
       containerClassName: props.styleConfig?.containerClassName ?? props.containerClassName,
       timelineHeaderClassName: props.styleConfig?.timelineHeaderClassName ?? props.timelineHeaderClassName,
       containerStyle: computed(() => {

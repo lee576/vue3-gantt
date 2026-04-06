@@ -366,6 +366,34 @@ onMounted(() => {
 | headersHeight | number | 100 | Header area height (pixels) |
 | rowHeight | number | 60 | Row height (pixels) |
 | setBarColor | function | - | Callback function for custom task bar colors |
+| setBarDecorations | function | - | Generate Bryntum-style labels and indicator chips for bars and milestones |
+
+#### Task Bar Labels And Indicators
+
+Use `setBarDecorations` to add left/right/top/bottom labels and lightweight status indicators:
+
+```typescript
+const styleConfig = ref<StyleConfig>({
+  setBarDecorations: (row) => ({
+    labels: {
+      left: row.no,
+      top: row.type === 'project' ? 'Summary' : undefined,
+      right: row.owner,
+      bottom: row.spend_time,
+    },
+    indicators: [
+      row.level === 'urgent'
+        ? {
+            key: 'priority',
+            text: 'Urgent',
+            color: '#991b1b',
+            backgroundColor: 'rgba(254, 226, 226, 0.95)',
+          }
+        : null,
+    ].filter(Boolean),
+  }),
+})
+```
 
 #### CSS Variables Configuration
 
@@ -1579,6 +1607,13 @@ Drag a bar or milestone vertically onto another task row to reorder the hierarch
 - Drop `below` the target to insert after it
 - Drop in the middle of the row to make it a child task
 - When the drop finishes, `moveTask(detail)` is triggered so you can persist the latest task tree to the server
+
+#### Timeline Quick Interactions
+
+- Hover a bar or milestone to inspect key task data in a quick info card
+- Right-click a bar or milestone to open task actions directly from the timeline
+- Double-click a bar or milestone to jump into task editing
+- A live current date/time indicator helps you locate today in quarter, month, week, day, and hour views
 
 ### Parent-Child Task Linkage
 

@@ -99,6 +99,7 @@ export interface StyleConfig {
   rowHeight: number
   setBarColor: (row: GanttTask) => string
   setTaskType?: (row: GanttTask) => TaskType
+  setBarDecorations?: (row: GanttTask) => TaskBarDecorations | null | undefined
   cssVariables?: Record<string, string>
   tableClassName?: string
   headerClassName?: string
@@ -112,6 +113,48 @@ export interface StyleConfig {
   progressHandleClassName?: string
   containerClassName?: string
   timelineHeaderClassName?: string
+}
+
+export type TaskBarLabelValue = string | number | null | undefined
+
+export interface TaskBarLabels {
+  left?: TaskBarLabelValue
+  right?: TaskBarLabelValue
+  top?: TaskBarLabelValue
+  bottom?: TaskBarLabelValue
+}
+
+export interface TaskBarIndicator {
+  key?: string | number
+  text: string | number
+  title?: string
+  color?: string
+  backgroundColor?: string
+  borderColor?: string
+  className?: string
+}
+
+export interface TaskBarDecorations {
+  labels?: TaskBarLabels
+  indicators?: TaskBarIndicator[]
+}
+
+export interface ResolvedTaskBarLabels {
+  left?: string
+  right?: string
+  top?: string
+  bottom?: string
+}
+
+export interface ResolvedTaskBarIndicator
+  extends Omit<TaskBarIndicator, 'key' | 'text'> {
+  key: string
+  text: string
+}
+
+export interface ResolvedTaskBarDecorations {
+  labels: ResolvedTaskBarLabels
+  indicators: ResolvedTaskBarIndicator[]
 }
 
 // 数据配置接口

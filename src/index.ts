@@ -30,6 +30,9 @@ export type {
   ProgressUpdateDetail,
   LinkTypeColors,
   LinkTypeVisibility,
+  TaskBarLabels,
+  TaskBarIndicator,
+  TaskBarDecorations,
 } from './components/gantt/types/Types'
 
 // 导出枚举

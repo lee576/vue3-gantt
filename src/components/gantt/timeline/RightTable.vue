@@ -36,19 +36,23 @@
         :rowHeight="rowHeight"
         :bar-class-name="barClassName"
         :progress-handle-class-name="progressHandleClassName"
+        :bar-decoration-resolver="barDecorationResolver"
       ></TableContent>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, watch } from 'vue'
+import { defineComponent, ref, computed, watch, type PropType } from 'vue'
 import type { Ref } from 'vue'
 import TimelineHeader from './TimelineHeader.vue'
 import { store } from '../state/Store'
 import DateUtils from '../utils/dateUtils'
 import sharedState from '../state/ShareState'
 import TableContent from './TableContent.vue'
+import type { StyleConfig } from '../types/Types'
+
+type BarDecorationResolver = NonNullable<StyleConfig['setBarDecorations']>
 
 const bgKeywords = ['bg-', 'from-', 'to-', 'via-', 'background', 'background-']
 
@@ -78,6 +82,10 @@ export default defineComponent({
       type: String,
       default: '',
     },
+    barDecorationResolver: {
+      type: Function as PropType<BarDecorationResolver | undefined>,
+      default: undefined,
+    },
     containerClassName: {
       type: String,
       default: '',
@@ -103,18 +111,10 @@ export default defineComponent({
     // 引用 tableBar
     const tableBar: Ref<HTMLDivElement | null> = ref(null)
 
-    // 从 props 中解构样式相关的变量
-    const {
-      barClassName,
-      barRowClassName,
-      progressHandleClassName,
-      containerClassName,
-      timelineHeaderClassName,
-      isDarkMode,
-    } = props
-
     // 检测是否有自定义背景样式
-    const hasHeaderCustomBackground = computed(() => hasCustomBackground(timelineHeaderClassName))
+    const hasHeaderCustomBackground = computed(() =>
+      hasCustomBackground(props.timelineHeaderClassName)
+    )
 
     // 计算属性
     const dayHeaders = computed(() => store.dayHeaders)
@@ -194,13 +194,7 @@ export default defineComponent({
       mode,
       scale,
       scrollToToday,
-      barClassName,
-      barRowClassName,
-      progressHandleClassName,
-      containerClassName,
-      timelineHeaderClassName,
       hasHeaderCustomBackground,
-      isDarkMode,
     }
   },
 })

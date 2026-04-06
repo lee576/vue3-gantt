@@ -5,7 +5,16 @@
     :class="['barRow-base', rowClassName, { active: hover, pending: isMovePending }]"
     :style="barRowStyle"
     @mouseover="hoverActive()"
-    @mouseleave="hoverInactive()"
+    @mouseenter="handleTaskMouseEnter"
+    @mousemove="handleTaskMouseMove"
+    @mouseleave="
+      () => {
+        hoverInactive()
+        handleTaskMouseLeave()
+      }
+    "
+    @contextmenu.prevent="handleTaskContextMenu"
+    @dblclick="handleEditTask"
     :data-task-id="row[mapFields.id]"
   >
     <slot name="bar" :row="row">
@@ -33,7 +42,27 @@
       <span class="movePendingDot"></span>
       <span>{{ movePendingLabel }}</span>
     </div>
+    <TaskBarDecorations
+      v-if="showTaskBarDecorations"
+      :anchor-x="oldBarDataX"
+      :bar-width="oldBarWidth"
+      :row-height="rowHeight"
+      :bar-height="barHeight"
+      :decorations="resolvedTaskBarDecorations"
+    />
     <slot :row="row" :progress="progress"></slot>
+    <TaskBarOverlay
+      :row="row"
+      :map-fields="mapFields"
+      :tooltip-visible="showTaskTooltip"
+      :tooltip-style="tooltipPosition"
+      :menu-visible="showTaskMenu"
+      :menu-style="menuPosition"
+      :is-move-pending="isMovePending"
+      @edit="handleEditTask"
+      @add-sub="handleAddSubTask"
+      @remove="handleRemoveTask"
+    />
   </div>
 </template>
 <script lang="ts">
@@ -59,11 +88,20 @@ import { useInteractions } from './composables/useInteractions'
 import { useTimelineBarDropState } from '../state/ShareState'
 import { t } from '../i18n'
 import type { GanttTask } from '../types/GanttTypes'
-import type { TaskMoveEventHandlers } from '../types/Types'
+import type { StyleConfig, TaskMoveEventHandlers } from '../types/Types'
+import TaskBarOverlay from './TaskBarOverlay.vue'
+import TaskBarDecorations from './TaskBarDecorations.vue'
+import { useTaskOverlay } from './composables/useTaskOverlay'
+import {
+  hasTaskBarDecorations,
+  normalizeTaskBarDecorations,
+} from '../utils/taskBarDecorations'
 import {
   registerTaskPosition,
   unregisterTaskPosition,
 } from '../state/TaskPositionRegistry'
+
+type BarDecorationResolver = NonNullable<StyleConfig['setBarDecorations']>
 
 export default defineComponent({
   emits: ['progress-update'],
@@ -76,6 +114,10 @@ export default defineComponent({
     barClassName: { type: String, default: '' },
     barRowClassName: { type: String, default: '' },
     progressHandleClassName: { type: String, default: '' },
+    barDecorationResolver: {
+      type: Function as PropType<BarDecorationResolver | undefined>,
+      default: undefined,
+    },
   },
   setup(props, { emit }) {
     const bar = ref<SVGSVGElement | null>(null)
@@ -104,9 +146,7 @@ export default defineComponent({
       emitProgressUpdate: emitProgressUpdateFromComposable,
     } = useProgress(props, emit, store.mapFields)
 
-    const setBarColor = inject(Symbols.SetBarColorSymbol) as
-      | ((row: GanttTask) => string)
-      | undefined
+    const setBarColor = inject(Symbols.SetBarColorSymbol) as StyleConfig['setBarColor'] | undefined
     const taskMoveHandlers = inject<TaskMoveEventHandlers | undefined>(
       Symbols.TaskMoveSymbol,
       undefined
@@ -120,6 +160,30 @@ export default defineComponent({
       left: `${oldBarDataX.value + oldBarWidth.value + 10}px`,
       top: `${Math.max(4, (props.rowHeight - barHeight.value) / 2 - 8)}px`,
     }))
+    const resolvedTaskBarDecorations = computed(() =>
+      normalizeTaskBarDecorations(props.barDecorationResolver?.(props.row))
+    )
+    const showTaskBarDecorations = computed(() =>
+      hasTaskBarDecorations(resolvedTaskBarDecorations.value)
+    )
+    const taskRow = computed(() => props.row as Record<string, any>)
+    const {
+      showTaskTooltip,
+      tooltipPosition,
+      showTaskMenu,
+      menuPosition,
+      handleTaskMouseEnter,
+      handleTaskMouseMove,
+      handleTaskMouseLeave,
+      handleTaskContextMenu,
+      handleEditTask,
+      handleAddSubTask,
+      handleRemoveTask,
+    } = useTaskOverlay({
+      taskRef: bar,
+      row: taskRow,
+      isMovePending,
+    })
 
     // 使用 useHover composables
     const { hover: hoverFromComposable, hoverActive, hoverInactive } = useHover(props)
@@ -176,10 +240,7 @@ export default defineComponent({
       destroyInteractions = interactions.destroy
     }
 
-    type DrowBarFn = (barElement: SVGSVGElement) => void
-
-    // eslint-disable-next-line no-unused-vars,@typescript-eslint/no-unused-vars
-    const drowBar: DrowBarFn = (_barElement: SVGSVGElement): void => {
+    const drowBar = (_barElement: SVGSVGElement): void => {
       const { dataX, width } = computePosition()
       oldBarDataX.value = dataX
       oldBarWidth.value = width
@@ -214,7 +275,7 @@ export default defineComponent({
     watch(
       () => [props.row[mapFields.value.startdate], props.row[mapFields.value.enddate]],
       () => {
-        if (bar.value && isBarInteracted.value) (drowBar as DrowBarFn)(bar.value)
+        if (bar.value && isBarInteracted.value) drowBar(bar.value)
       },
       { deep: false }
     )
@@ -222,7 +283,7 @@ export default defineComponent({
     // 监听模式和缩放变化，重新绘制 bar
     watch([mode, scale], () => {
       if (bar.value && isBarInteracted.value) {
-        (drowBar as DrowBarFn)(bar.value)
+        drowBar(bar.value)
       }
     })
 
@@ -233,7 +294,7 @@ export default defineComponent({
       }
 
       if (bar.value && !isBarInteracted.value) {
-        (drowBar as DrowBarFn)(bar.value)
+        drowBar(bar.value)
         isBarInteracted.value = true
       }
       // 使用 useBarTheme 提供的主题观察器
@@ -283,7 +344,26 @@ export default defineComponent({
       isMovePending,
       movePendingLabel,
       movePendingBadgeStyle,
+      oldBarDataX,
+      oldBarWidth,
+      resolvedTaskBarDecorations,
+      showTaskBarDecorations,
+      showTaskTooltip,
+      tooltipPosition,
+      showTaskMenu,
+      menuPosition,
+      handleTaskMouseEnter,
+      handleTaskMouseMove,
+      handleTaskMouseLeave,
+      handleTaskContextMenu,
+      handleEditTask,
+      handleAddSubTask,
+      handleRemoveTask,
     }
+  },
+  components: {
+    TaskBarOverlay,
+    TaskBarDecorations,
   },
 })
 </script>

@@ -184,6 +184,7 @@ import {
   type StyleConfig,
   type EventConfig,
   type ProgressUpdateDetail,
+  type TaskBarIndicator,
   type TaskMoveDetail,
   type TaskMoveErrorDetail,
   type TaskMoveSettledDetail,
@@ -314,6 +315,49 @@ const styleConfig = ref<StyleConfig>({
       不重要: 'yellow',
     }
     return colorMap[row.level as keyof typeof colorMap] ?? 'black'
+  },
+  setBarDecorations: (row: GanttTask) => {
+    const indicators: TaskBarIndicator[] = []
+
+    if (row.level === '紧急') {
+      indicators.push({
+        key: 'priority',
+        text: '紧急',
+        color: '#991b1b',
+        backgroundColor: 'rgba(254, 226, 226, 0.95)',
+        borderColor: 'rgba(248, 113, 113, 0.45)',
+      })
+    }
+
+    if (Number(row.job_progress ?? 0) < 0.4) {
+      indicators.push({
+        key: 'risk',
+        text: 'Risk',
+        color: '#9a3412',
+        backgroundColor: 'rgba(255, 237, 213, 0.94)',
+        borderColor: 'rgba(251, 146, 60, 0.38)',
+      })
+    }
+
+    if (row.type === 'project') {
+      indicators.push({
+        key: 'project',
+        text: 'Project',
+        color: '#1d4ed8',
+        backgroundColor: 'rgba(219, 234, 254, 0.95)',
+        borderColor: 'rgba(96, 165, 250, 0.4)',
+      })
+    }
+
+    return {
+      labels: {
+        left: row.no,
+        top: row.type === 'project' ? 'Summary' : undefined,
+        right: row.owner || row.executor || undefined,
+        bottom: row.spend_time,
+      },
+      indicators,
+    }
   },
 
   // ========== CSS 变量配置 ==========
@@ -572,21 +616,17 @@ const eventConfig = ref<EventConfig>({
     console.log('允许改变任务日期:', allow)
   },
   moveTask: async (detail: TaskMoveDetail) => {
-    try {
-      const response = await taskApi.moveTask(detail)
-      if (response.code === 200) {
-        const nextTasks = (response.data?.tasks as GanttTask[] | undefined) ?? detail.tasks
-        dataConfig.value.dataSource = nextTasks
-        return {
-          accepted: true,
-          tasks: nextTasks,
-        }
+    const response = await taskApi.moveTask(detail)
+    if (response.code === 200) {
+      const nextTasks = (response.data?.tasks as GanttTask[] | undefined) ?? detail.tasks
+      dataConfig.value.dataSource = nextTasks
+      return {
+        accepted: true,
+        tasks: nextTasks,
       }
-
-      return { accepted: false }
-    } catch (error) {
-      throw error
     }
+
+    return { accepted: false }
   },
 })
 

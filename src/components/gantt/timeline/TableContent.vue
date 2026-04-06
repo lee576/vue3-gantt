@@ -8,6 +8,15 @@
     :class="['content-base']"
   >
     <div class="content-inner" :style="{ minHeight: containerHeight + 'px', position: 'relative' }">
+      <div
+        v-if="currentTimeIndicator"
+        class="current-time-indicator"
+        :style="{ left: currentTimeIndicator.left, height: containerHeight + 'px' }"
+      >
+        <div class="current-time-indicator__badge">
+          {{ currentTimeIndicator.label }}
+        </div>
+      </div>
       <!-- 竖线基准线 -->
       <div
         v-if="showGuideLine"
@@ -29,6 +38,7 @@
         :tasks="tasks"
         :bar-class-name="barClassName"
         :progress-handle-class-name="progressHandleClassName"
+        :bar-decoration-resolver="barDecorationResolver"
       ></BarRecursionRow>
       <!-- 任务连线层 -->
       <TaskLinks
@@ -40,13 +50,18 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, ref, watch, computed, onMounted, onUnmounted } from 'vue'
+import { defineComponent, ref, watch, computed, onMounted, onUnmounted, type PropType } from 'vue'
 import { store } from '../state/Store'
 import { useScrollState, useTimelineBarDropState } from '../state/ShareState'
 import { useLinkConfig } from '../composables/LinkConfig'
+import DateUtils from '../utils/dateUtils'
+import { t } from '../i18n'
 import BarRecursionRow from './BarRecursionRow.vue'
 import TaskLinks from '../links/TaskLinks.vue'
 import { visibleTasks } from '../state/DerivedState'
+import type { StyleConfig } from '../types/Types'
+
+type BarDecorationResolver = NonNullable<StyleConfig['setBarDecorations']>
 
 export default defineComponent({
   props: {
@@ -65,6 +80,10 @@ export default defineComponent({
     progressHandleClassName: {
       type: String,
       default: '',
+    },
+    barDecorationResolver: {
+      type: Function as PropType<BarDecorationResolver | undefined>,
+      default: undefined,
     },
   },
   components: {
@@ -95,6 +114,7 @@ export default defineComponent({
     const startGanttDate = computed(() => store.startGanttDate)
     const endGanttDate = computed(() => store.endGanttDate)
     const mapFields = computed(() => store.mapFields)
+    const nowTick = ref(Date.now())
 
     const containerWidth = computed(() => {
       const baseWidth = timelineCellCount.value * scale.value
@@ -112,6 +132,90 @@ export default defineComponent({
       return tasks.value.length * props.rowHeight
     })
     const timelineDropIndicator = computed(() => timelineBarDropState.value)
+    const currentTimeIndicator = computed(() => {
+      if (!startGanttDate.value || !endGanttDate.value) {
+        return null
+      }
+
+      const now = DateUtils.create(nowTick.value)
+      const ganttStart = DateUtils.create(startGanttDate.value)
+      const ganttEnd = DateUtils.create(endGanttDate.value)
+
+      if (now.isBefore(ganttStart) || now.isAfter(ganttEnd)) {
+        return null
+      }
+
+      let positionX = 0
+      const minutesSinceStartOfDay = now.hour() * 60 + now.minute()
+
+      switch (mode.value) {
+        case '季度': {
+          const ganttStartQuarter = DateUtils.startOf(ganttStart, 'quarter')
+          const currentQuarterStart = DateUtils.startOf(now, 'quarter')
+          const quarterIndex =
+            (currentQuarterStart.year() - ganttStartQuarter.year()) * 4 +
+            (currentQuarterStart.quarter() - ganttStartQuarter.quarter())
+          const quarterProgress =
+            now.diff(currentQuarterStart, 'millisecond') /
+            currentQuarterStart.endOf('quarter').add(1, 'millisecond').diff(currentQuarterStart, 'millisecond')
+          positionX = (quarterIndex + quarterProgress) * scale.value
+          break
+        }
+        case '月': {
+          const ganttStartMonth = DateUtils.startOf(ganttStart, 'month')
+          const currentMonthStart = DateUtils.startOf(now, 'month')
+          const monthIndex =
+            (currentMonthStart.year() - ganttStartMonth.year()) * 12 +
+            (currentMonthStart.month() - ganttStartMonth.month())
+          const monthProgress =
+            now.diff(currentMonthStart, 'millisecond') /
+            currentMonthStart.endOf('month').add(1, 'millisecond').diff(currentMonthStart, 'millisecond')
+          positionX = (monthIndex + monthProgress) * scale.value
+          break
+        }
+        case '周': {
+          const ganttStartWeek = DateUtils.startOf(ganttStart, 'isoWeek')
+          const currentWeekStart = DateUtils.startOf(now, 'isoWeek')
+          const weekIndex = now.diff(ganttStartWeek, 'week')
+          const weekProgress =
+            now.diff(currentWeekStart, 'millisecond') /
+            currentWeekStart.endOf('isoWeek').add(1, 'millisecond').diff(currentWeekStart, 'millisecond')
+          positionX = (weekIndex + weekProgress) * scale.value
+          break
+        }
+        case '日': {
+          const daysDiff = now.startOf('day').diff(ganttStart.startOf('day'), 'day')
+          if (store.daySubMode === 'half') {
+            positionX = (daysDiff * 2 + minutesSinceStartOfDay / (12 * 60)) * scale.value
+          } else {
+            positionX = (daysDiff + minutesSinceStartOfDay / (24 * 60)) * scale.value
+          }
+          break
+        }
+        case '时': {
+          const hourSubMode = Number(store.hourSubMode || '60')
+          const minutesDiff = now.diff(ganttStart, 'minute', true)
+          positionX = (minutesDiff / hourSubMode) * scale.value
+          break
+        }
+        default:
+          return null
+      }
+
+      if (!Number.isFinite(positionX)) {
+        return null
+      }
+
+      const label =
+        mode.value === '时' || (mode.value === '日' && store.daySubMode === 'half')
+          ? `${t('date.today')} ${DateUtils.format(now, 'HH:mm')}`
+          : t('date.today')
+
+      return {
+        left: `${positionX}px`,
+        label,
+      }
+    })
     const dropIndicatorStyle = computed(() => {
       const { top, height, position } = timelineDropIndicator.value
       const sharedStyle = {
@@ -182,6 +286,7 @@ export default defineComponent({
     }
 
     let resizeObserver: ResizeObserver | null = null
+    let nowTimer: ReturnType<typeof setInterval> | null = null
 
     onMounted(() => {
       if (barContent.value) {
@@ -198,6 +303,10 @@ export default defineComponent({
         })
         resizeObserver.observe(barContent.value)
       }
+
+      nowTimer = setInterval(() => {
+        nowTick.value = Date.now()
+      }, 60000)
     })
 
     onUnmounted(() => {
@@ -209,6 +318,9 @@ export default defineComponent({
         cancelAnimationFrame(rafId)
       }
       resizeObserver?.disconnect()
+      if (nowTimer) {
+        clearInterval(nowTimer)
+      }
     })
 
     const showGuideLine = ref(false)
@@ -255,13 +367,12 @@ export default defineComponent({
       containerHeight,
       linkConfig,
       timelineDropIndicator,
+      currentTimeIndicator,
       dropIndicatorStyle,
       showGuideLine,
       guideLineX,
       handleMouseMove,
       handleMouseLeave,
-      barClassName: props.barClassName,
-      progressHandleClassName: props.progressHandleClassName,
     }
   },
 })
@@ -345,6 +456,43 @@ export default defineComponent({
       }
     }
   }
+}
+
+.current-time-indicator {
+  position: absolute;
+  top: 0;
+  width: 0;
+  border-left: 2px solid rgba(239, 68, 68, 0.9);
+  pointer-events: none;
+  z-index: 1002;
+  box-shadow: 0 0 0 1px rgba(254, 202, 202, 0.3);
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: -5px;
+    bottom: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(239, 68, 68, 0.95);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.28);
+  }
+}
+
+.current-time-indicator__badge {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.96);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 10px 22px rgba(239, 68, 68, 0.24);
 }
 
 /* 竖线基准线 */

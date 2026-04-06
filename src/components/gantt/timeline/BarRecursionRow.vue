@@ -15,6 +15,7 @@
               :row="item.item"
               :row-index="item.index"
               :rowHeight="rowHeight"
+              :bar-decoration-resolver="barDecorationResolver"
             />
             <Bar
               v-else
@@ -25,6 +26,7 @@
               :rowHeight="rowHeight"
               :bar-class-name="barClassName"
               :progress-handle-class-name="progressHandleClassName"
+              :bar-decoration-resolver="barDecorationResolver"
             />
             <!-- 基线显示 -->
             <BaselineBar
@@ -51,6 +53,7 @@
             :row="item.item"
             :row-index="item.index"
             :rowHeight="rowHeight"
+            :bar-decoration-resolver="barDecorationResolver"
           />
           <Bar
             v-else
@@ -61,6 +64,7 @@
             :rowHeight="rowHeight"
             :bar-class-name="barClassName"
             :progress-handle-class-name="progressHandleClassName"
+            :bar-decoration-resolver="barDecorationResolver"
           />
           <!-- 基线显示 -->
           <BaselineBar
@@ -79,16 +83,18 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, inject } from 'vue'
+import { defineComponent, computed, inject, type PropType } from 'vue'
 import { store } from '../state/Store'
 import Bar from './Bar.vue'
 import BaselineBar from './BaselineBar.vue'
 import Milestone from './Milestone.vue'
-import { TaskType } from '../types/Types'
+import { TaskType, type StyleConfig } from '../types/Types'
 import { Symbols } from '../state/Symbols'
 import { useBaseline } from '../composables/useBaseline'
 import { visibleTasks } from '../state/DerivedState'
 import { useSharedVerticalVirtualScroll } from '../composables/useSharedVerticalVirtualScroll'
+
+type BarDecorationResolver = NonNullable<StyleConfig['setBarDecorations']>
 
 export default defineComponent({
   name: 'BarRecursionRow',
@@ -104,6 +110,10 @@ export default defineComponent({
     progressHandleClassName: {
       type: String,
       default: '',
+    },
+    barDecorationResolver: {
+      type: Function as PropType<BarDecorationResolver | undefined>,
+      default: undefined,
     },
   },
   setup(props) {

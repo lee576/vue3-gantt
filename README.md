@@ -381,6 +381,34 @@ onMounted(() => {
 | headersHeight | number | 100 | 表头区域高度（像素） |
 | rowHeight | number | 60 | 每行任务的高度（像素） |
 | setBarColor | function | - | 自定义任务条颜色的回调函数 |
+| setBarDecorations | function | - | 为任务条和里程碑生成 Bryntum 风格标签与 indicator chips |
+
+#### 任务条标签与 Indicators
+
+通过 `setBarDecorations` 可以给条形任务和里程碑增加左右/上下标签以及状态指示器：
+
+```typescript
+const styleConfig = ref<StyleConfig>({
+  setBarDecorations: (row) => ({
+    labels: {
+      left: row.no,
+      top: row.type === 'project' ? 'Summary' : undefined,
+      right: row.owner,
+      bottom: row.spend_time,
+    },
+    indicators: [
+      row.level === '紧急'
+        ? {
+            key: 'priority',
+            text: 'Urgent',
+            color: '#991b1b',
+            backgroundColor: 'rgba(254, 226, 226, 0.95)',
+          }
+        : null,
+    ].filter(Boolean),
+  }),
+})
+```
 
 #### CSS 变量配置
 
@@ -1606,6 +1634,9 @@ export default {
 | ↕️ **行间拖动** | 纵向拖拽任务条到其他任务行 | 调整任务层级并触发 `moveTask` 回调 |
 | 📏 **调整大小** | 拖拽任务条左右边缘 | 调整任务时长 |
 | 📊 **进度调整** | 拖拽任务条底部三角形滑块 | 调整任务完成进度 |
+| 💬 **悬浮信息卡** | 鼠标悬停任务条/里程碑 | 快速查看名称、时间、进度和耗时 |
+| 🧭 **右键快捷菜单** | 右键任务条/里程碑 | 直接编辑、添加子任务或删除任务 |
+| 📍 **当前时间指示线** | 时间轴内实时显示 Today/当前时间 | 快速判断计划与当前日期的相对位置 |
 
 ### 任务条操作
 
@@ -1613,6 +1644,10 @@ export default {
 - **行间拖动** - 纵向拖拽任务条到其他行，可放置为上方、下方或子任务
 - **调整大小** - 拖拽任务条左右边缘可以调整任务时长
 - **进度调整** - 拖拽任务条底部的三角形滑块可以调整进度
+- **悬浮信息卡** - 鼠标悬停任务条或里程碑，可直接查看关键信息
+- **右键快捷菜单** - 在时间轴上直接右键打开任务操作菜单
+- **双击编辑** - 双击任务条或里程碑可直接进入编辑流程
+- **当前时间指示线** - 在季度、月、周、日、时视图中显示当前时间线，小时/半天视图会显示精确时刻
 
 ### 父子任务联动
 

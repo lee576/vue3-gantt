@@ -4,7 +4,16 @@
     class="milestoneRow"
     :style="milestoneRowStyle"
     @mouseover="hoverActive()"
-    @mouseleave="hoverInactive()"
+    @mouseenter="handleTaskMouseEnter"
+    @mousemove="handleTaskMouseMove"
+    @mouseleave="
+      () => {
+        hoverInactive()
+        handleTaskMouseLeave()
+      }
+    "
+    @contextmenu.prevent="handleTaskContextMenu"
+    @dblclick="handleEditTask"
     :class="{ active: hover, pending: isMovePending }"
     :data-task-id="row[mapFields.id]"
   >
@@ -28,6 +37,26 @@
       <span class="movePendingDot"></span>
       <span>{{ movePendingLabel }}</span>
     </div>
+    <TaskBarDecorations
+      v-if="showTaskBarDecorations"
+      :anchor-x="oldMilestoneX"
+      :bar-width="diamondSize"
+      :row-height="rowHeight"
+      :bar-height="diamondSize"
+      :decorations="resolvedTaskBarDecorations"
+    />
+    <TaskBarOverlay
+      :row="localRow"
+      :map-fields="mapFields"
+      :tooltip-visible="showTaskTooltip"
+      :tooltip-style="tooltipPosition"
+      :menu-visible="showTaskMenu"
+      :menu-style="menuPosition"
+      :is-move-pending="isMovePending"
+      @edit="handleEditTask"
+      @add-sub="handleAddSubTask"
+      @remove="handleRemoveTask"
+    />
     <!-- 使用CSS背景绘制网格，不再渲染大量cell div -->
   </div>
 </template>
@@ -52,11 +81,20 @@ import {
   unregisterTaskPosition,
 } from '../state/TaskPositionRegistry'
 import type { GanttTaskDropPosition } from '../types/GanttTypes'
-import type { TaskMoveEventHandlers } from '../types/Types'
+import type { StyleConfig, TaskMoveEventHandlers } from '../types/Types'
 import {
   cloneTaskSnapshot,
   notifyTaskMoveWithRollback,
 } from './utils/taskMovePersistence'
+import TaskBarOverlay from './TaskBarOverlay.vue'
+import TaskBarDecorations from './TaskBarDecorations.vue'
+import { useTaskOverlay } from './composables/useTaskOverlay'
+import {
+  hasTaskBarDecorations,
+  normalizeTaskBarDecorations,
+} from '../utils/taskBarDecorations'
+
+type BarDecorationResolver = NonNullable<StyleConfig['setBarDecorations']>
 
 export default defineComponent({
   name: 'GanttMilestone',
@@ -66,6 +104,10 @@ export default defineComponent({
     rowIndex: { type: Number, default: -1 },
     startGanttDate: { type: [String, Number] as PropType<string | number>, required: true },
     endGanttDate: { type: [String, Number] as PropType<string | number>, required: true },
+    barDecorationResolver: {
+      type: Function as PropType<BarDecorationResolver | undefined>,
+      default: undefined,
+    },
   },
   emits: ['update:row', 'rowDateChanged'],
   setup(props, { emit }) {
@@ -113,6 +155,37 @@ export default defineComponent({
       left: `${oldMilestoneX.value + diamondSize.value + 12}px`,
       top: `${Math.max(4, props.rowHeight / 2 - 10)}px`,
     }))
+    const resolvedTaskBarDecorations = computed(() => {
+      if (props.barDecorationResolver) {
+        return normalizeTaskBarDecorations(props.barDecorationResolver(localRow.value))
+      }
+
+      return normalizeTaskBarDecorations({
+        labels: {
+          right: localRow.value[mapFields.value.task] || 'Milestone',
+        },
+      })
+    })
+    const showTaskBarDecorations = computed(() =>
+      hasTaskBarDecorations(resolvedTaskBarDecorations.value)
+    )
+    const {
+      showTaskTooltip,
+      tooltipPosition,
+      showTaskMenu,
+      menuPosition,
+      handleTaskMouseEnter,
+      handleTaskMouseMove,
+      handleTaskMouseLeave,
+      handleTaskContextMenu,
+      handleEditTask,
+      handleAddSubTask,
+      handleRemoveTask,
+    } = useTaskOverlay({
+      taskRef: milestone,
+      row: localRow,
+      isMovePending,
+    })
 
     const themeColors = computed(() => {
       themeVersion.value
@@ -486,39 +559,6 @@ export default defineComponent({
         diamond.animate(200).attr({ opacity: 0.9, strokeWidth: 2 })
       })
 
-      // 添加任务名称标签（在菱形右侧）
-      const text = svg
-        .text(localRow.value[mapFields.value.task] || 'Milestone')
-        .move(size + 5, centerY - 7)
-        .fill(textColor)
-        .attr({
-          'font-size': '14px',
-          'font-family':
-            "'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif",
-          'font-weight': '400', // 使用 400 正常字重，平衡粗细和对比度
-          'text-anchor': 'start',
-          'dominant-baseline': 'auto',
-        })
-
-      // 添加文字描边增强对比度
-      const isDarkTheme =
-        bgColor.includes('#1') || bgColor.includes('#2') || bgColor.toLowerCase().includes('dark')
-      if (isDarkTheme) {
-        // 深色主题：添加深色描边
-        text.attr({
-          stroke: '#000000',
-          'stroke-width': '0.5px',
-          'paint-order': 'stroke fill',
-        })
-      } else {
-        // 浅色主题：添加浅色描边
-        text.attr({
-          stroke: '#ffffff',
-          'stroke-width': '0.5px',
-          'paint-order': 'stroke fill',
-        })
-      }
-
       setBarDate({
         id: localRow.value[mapFields.value.id],
         startDate: localRow.value[mapFields.value.startdate],
@@ -840,7 +880,26 @@ export default defineComponent({
       isMovePending,
       movePendingLabel,
       movePendingBadgeStyle,
+      oldMilestoneX,
+      diamondSize,
+      resolvedTaskBarDecorations,
+      showTaskBarDecorations,
+      showTaskTooltip,
+      tooltipPosition,
+      showTaskMenu,
+      menuPosition,
+      handleTaskMouseEnter,
+      handleTaskMouseMove,
+      handleTaskMouseLeave,
+      handleTaskContextMenu,
+      handleEditTask,
+      handleAddSubTask,
+      handleRemoveTask,
     }
+  },
+  components: {
+    TaskBarOverlay,
+    TaskBarDecorations,
   },
 })
 </script>
