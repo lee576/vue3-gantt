@@ -28,3 +28,4 @@ coverage
 
 # npm configuration with sensitive tokens
 .npmrc
+.codex/config.toml
