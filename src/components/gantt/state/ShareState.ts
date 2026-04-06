@@ -1,4 +1,5 @@
 import { reactive, shallowRef } from 'vue'
+import type { GanttTaskDropPosition } from '../types/GanttTypes'
 
 const sharedState = reactive({
   shouldScrollToToday: false,
@@ -17,6 +18,57 @@ const sharedState = reactive({
   },
 })
 export default sharedState
+
+type TimelineBarDropState = {
+  active: boolean
+  valid: boolean
+  draggedTaskId: string | number | null
+  targetTaskId: string | number | null
+  position: GanttTaskDropPosition | null
+  top: number
+  height: number
+}
+
+const createEmptyTimelineBarDropState = (): TimelineBarDropState => ({
+  active: false,
+  valid: false,
+  draggedTaskId: null,
+  targetTaskId: null,
+  position: null,
+  top: 0,
+  height: 0,
+})
+
+const timelineBarDropState = shallowRef<TimelineBarDropState>(createEmptyTimelineBarDropState())
+const pendingTaskMoveIds = shallowRef<Set<string | number>>(new Set())
+
+const setTimelineBarDropState = (nextState: TimelineBarDropState) => {
+  timelineBarDropState.value = nextState
+}
+
+const clearTimelineBarDropState = () => {
+  timelineBarDropState.value = createEmptyTimelineBarDropState()
+}
+
+const markTaskMovePending = (taskId: string | number) => {
+  const next = new Set(pendingTaskMoveIds.value)
+  next.add(taskId)
+  pendingTaskMoveIds.value = next
+}
+
+const clearTaskMovePending = (taskId: string | number) => {
+  if (!pendingTaskMoveIds.value.has(taskId)) {
+    return
+  }
+
+  const next = new Set(pendingTaskMoveIds.value)
+  next.delete(taskId)
+  pendingTaskMoveIds.value = next
+}
+
+const isTaskMovePending = (taskId: string | number) => {
+  return pendingTaskMoveIds.value.has(taskId)
+}
 
 const scrollTop = shallowRef(0)
 type VerticalScrollContainer = 'task' | 'timeline'
@@ -144,6 +196,8 @@ export const resetSharedScrollStateForTests = () => {
   taskScrollElement.value = null
   timelineScrollElement.value = null
   mirroredScroll = null
+  clearTimelineBarDropState()
+  pendingTaskMoveIds.value = new Set()
 
   if (verticalScrollTimer) {
     clearTimeout(verticalScrollTimer)
@@ -168,5 +222,17 @@ export const useScrollState = () => {
     unregisterVerticalScrollElement,
     syncVerticalScrollToPeer,
     consumeMirroredVerticalScroll,
+  }
+}
+
+export const useTimelineBarDropState = () => {
+  return {
+    timelineBarDropState,
+    setTimelineBarDropState,
+    clearTimelineBarDropState,
+    pendingTaskMoveIds,
+    markTaskMovePending,
+    clearTaskMovePending,
+    isTaskMovePending,
   }
 }

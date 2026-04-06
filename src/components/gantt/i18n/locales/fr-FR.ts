@@ -100,6 +100,7 @@ export default {
     taskType: 'Tâche',
     projectType: 'Projet',
     milestoneType: 'Jalon',
+    syncingMove: 'Synchronisation',
   },
 
   // Link Legend

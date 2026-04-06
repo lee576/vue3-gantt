@@ -328,6 +328,21 @@ const eventConfig = ref<EventConfig>({
   },
   updateProgress: (detail) => {
     console.log('Progress updated', detail);
+  },
+  moveTask: async (detail) => {
+    const response = await api.moveTask(detail);
+
+    if (response.code !== 200) {
+      return { accepted: false };
+    }
+
+    const nextTasks = response.data?.tasks ?? detail.tasks;
+    dataConfig.value.dataSource = nextTasks;
+
+    return {
+      accepted: true,
+      tasks: nextTasks
+    };
   }
 });
 
@@ -464,6 +479,10 @@ const styleConfig = ref<StyleConfig>({
 | barDate | (id, startDate, endDate) | Triggered when task date changes |
 | allowChangeTaskDate | (allow) | Whether task date modification is allowed |
 | updateProgress | (detail) | Triggered when progress is updated |
+| moveTask | (detail) | Triggered after a task is dropped onto another row and can asynchronously sync with the server |
+| moveTaskStart | (detail) | Triggered when a cross-row task move enters async confirmation |
+| moveTaskError | (detail) | Triggered when `moveTask` throws an error |
+| moveTaskSettled | (detail) | Triggered after the task move finishes, whether accepted, rolled back, or ignored as stale |
 
 #### updateProgress Event Details
 
@@ -475,6 +494,89 @@ interface ProgressUpdateDetail {
   task: object;       // Complete task object
 }
 ```
+
+#### moveTask Event Details
+
+```typescript
+interface TaskMoveDetail {
+  draggedTaskId: string | number;          // Dragged task ID
+  targetTaskId: string | number;           // Drop target task ID
+  position: 'above' | 'below' | 'child';   // Drop position
+  tasks: GanttTask[];                      // Current task tree snapshot after drag
+}
+```
+
+`moveTask` can return synchronously or asynchronously:
+
+- `void` or `true`: accept the optimistic move
+- `false` or `{ accepted: false }`: reject and roll back
+- `{ accepted: true, tasks }`: accept and replace with the server-normalized task tree
+
+Related lifecycle events:
+
+- `moveTaskStart(detail)`: the drag has entered async confirmation
+- `moveTaskError(detail)`: `moveTask` threw an exception
+- `moveTaskSettled(detail)`: the drag has finished and you can inspect `accepted / rolledBack / finalTasks`
+
+The same lifecycle is also emitted by the component:
+
+- `@move-task-start`
+- `@move-task-error`
+- `@move-task-settled`
+
+```typescript
+const eventConfig = ref<EventConfig>({
+  moveTaskStart: (detail) => {
+    console.log('Task move started', detail);
+  },
+  moveTask: async (detail) => {
+    const response = await api.moveTask(detail);
+
+    if (response.code !== 200) {
+      return { accepted: false };
+    }
+
+    const nextTasks = response.data?.tasks ?? detail.tasks;
+    dataConfig.value.dataSource = nextTasks;
+
+    return {
+      accepted: true,
+      tasks: nextTasks
+    };
+  },
+  moveTaskError: ({ error }) => {
+    console.error('Task move failed', error);
+  },
+  moveTaskSettled: ({ accepted, rolledBack, finalTasks }) => {
+    console.log('Task move settled', { accepted, rolledBack, finalTasks });
+  }
+});
+```
+
+```vue
+<gantt
+  :styleConfig="styleConfig"
+  :dataConfig="dataConfig"
+  :eventConfig="eventConfig"
+  @move-task-settled="handleMoveTaskSettled"
+/>
+```
+
+If you want to reuse a default feedback strategy, the library also exports a helper:
+
+```typescript
+import { createTaskMoveFeedbackHandlers } from '@lee576/vue3-gantt';
+
+const taskMoveFeedbackHandlers = createTaskMoveFeedbackHandlers({
+  notify: (message, level) => messageToast.showMessage(message, level),
+  onError: ({ error }) => console.error('Task move failed', error),
+  successMessage: 'Task moved successfully',
+  rollbackMessage: 'Task move failed and was rolled back',
+  staleMessage: 'Task move result was stale and was ignored'
+});
+```
+
+> If the server returns a normalized task tree, also write it back to `dataConfig.value.dataSource` to avoid a later external refresh overwriting the optimistic order inside the component.
 
 ## Task Data Format
 
@@ -1468,6 +1570,15 @@ const deleteTask = (taskId: string) => {
 - Deleting a parent task deletes all its children
 - Deleting a child task only deletes that child
 - Confirmation dialog warns about cascade deletion
+
+#### Drag Tasks Between Rows
+
+Drag a bar or milestone vertically onto another task row to reorder the hierarchy:
+
+- Drop `above` the target to insert before it
+- Drop `below` the target to insert after it
+- Drop in the middle of the row to make it a child task
+- When the drop finishes, `moveTask(detail)` is triggered so you can persist the latest task tree to the server
 
 ### Parent-Child Task Linkage
 

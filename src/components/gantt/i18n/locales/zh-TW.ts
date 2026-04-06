@@ -100,6 +100,7 @@ export default {
     taskType: '任務',
     projectType: '專案',
     milestoneType: '里程碑',
+    syncingMove: '同步中',
   },
 
   // 連線圖例

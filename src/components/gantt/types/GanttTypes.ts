@@ -104,6 +104,11 @@ export interface GanttBarDate {
 }
 
 /**
+ * 任务拖放位置
+ */
+export type GanttTaskDropPosition = 'above' | 'below' | 'child';
+
+/**
  * 视图模式类型
  */
 export type GanttViewMode = '季度' | '月' | '周' | '日' | '时' | null;

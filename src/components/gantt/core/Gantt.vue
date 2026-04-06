@@ -374,6 +374,13 @@ import TaskTable from '../task/TaskTable.vue'
 import RightTable from '../timeline/RightTable.vue'
 import GanttConfigPanel from '../config/GanttConfigPanel.vue'
 import { store, mutations } from '../state/Store'
+import type {
+  TaskMoveDetail,
+  TaskMoveErrorDetail,
+  TaskMoveHandlerResult,
+  TaskMoveSettledDetail,
+  TaskMoveStartDetail,
+} from '../types/Types'
 export type { DataConfig, StyleConfig, EventConfig, TaskHeader } from '../types/Types'
 // 移除未使用的类型导入
 import { type ConfirmDateData } from '../types/ZodSchema'
@@ -466,14 +473,20 @@ export default defineComponent({
       },
     },
     /**
-     * 事件配置对象，包含添加根任务、添加子任务、移除任务等事件处理函数。
+     * 事件配置对象，包含新增、编辑、删除、时间调整、进度更新和行间拖动等事件处理函数。
      * @type {{
-     *   addRootTask: () => void;
-     *   addSubTask: (task: any) => void;
-     *   removeTask: (task: any) => void;
+     *   addRootTask: (row: Partial<GanttTask> | null) => void;
+     *   addSubTask: (task: Partial<GanttTask>) => void;
+     *   removeTask: (task: Partial<GanttTask>) => void;
+     *   editTask: (task: Partial<GanttTask>) => void;
      *   queryTask: (startDate: string, endDate: string, mode: string) => void;
-     *   barDate: (id: any, startDate: string, endDate: string) => void;
+     *   barDate: (id: string | number, startDate: string, endDate: string) => void;
      *   allowChangeTaskDate: (allow: boolean) => void;
+     *   updateProgress?: (detail: import('../types/Types').ProgressUpdateDetail) => void;
+     *   moveTask?: (detail: TaskMoveDetail) => TaskMoveHandlerResult;
+     *   moveTaskStart?: (detail: TaskMoveStartDetail) => void;
+     *   moveTaskError?: (detail: TaskMoveErrorDetail) => void;
+     *   moveTaskSettled?: (detail: TaskMoveSettledDetail) => void;
      * }}
      * @required
      */
@@ -500,6 +513,14 @@ export default defineComponent({
           newProgress: number
           task: GanttTask
         }) => void
+        // eslint-disable-next-line no-unused-vars
+        moveTask?: (detail: TaskMoveDetail) => TaskMoveHandlerResult
+        // eslint-disable-next-line no-unused-vars
+        moveTaskStart?: (detail: TaskMoveStartDetail) => void
+        // eslint-disable-next-line no-unused-vars
+        moveTaskError?: (detail: TaskMoveErrorDetail) => void
+        // eslint-disable-next-line no-unused-vars
+        moveTaskSettled?: (detail: TaskMoveSettledDetail) => void
       },
       required: true,
     },
@@ -630,7 +651,7 @@ export default defineComponent({
       default: '',
     },
   },
-  emits: ['localeChange'],
+  emits: ['localeChange', 'moveTaskStart', 'moveTaskError', 'moveTaskSettled'],
   components: {
     DatePicker,
     SplitPane,
@@ -1527,6 +1548,22 @@ export default defineComponent({
     // 设置Bar的颜色,传递到子组件
     provide(Symbols.SetBarColorSymbol, (row: GanttTask) => {
       return props.styleConfig.setBarColor(row)
+    })
+
+    provide(Symbols.TaskMoveSymbol, {
+      moveTask: (detail: TaskMoveDetail) => props.eventConfig.moveTask?.(detail),
+      moveTaskStart: (detail: TaskMoveStartDetail) => {
+        props.eventConfig.moveTaskStart?.(detail)
+        emit('moveTaskStart', detail)
+      },
+      moveTaskError: (detail: TaskMoveErrorDetail) => {
+        props.eventConfig.moveTaskError?.(detail)
+        emit('moveTaskError', detail)
+      },
+      moveTaskSettled: (detail: TaskMoveSettledDetail) => {
+        props.eventConfig.moveTaskSettled?.(detail)
+        emit('moveTaskSettled', detail)
+      },
     })
 
     // 设置任务类型判断函数（只有当用户提供了自定义函数时才 provide）

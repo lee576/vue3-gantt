@@ -345,6 +345,21 @@ const eventConfig = ref<EventConfig>({
   },
   updateProgress: (detail) => {
     console.log('进度更新', detail);
+  },
+  moveTask: async (detail) => {
+    const response = await api.moveTask(detail);
+
+    if (response.code !== 200) {
+      return { accepted: false };
+    }
+
+    const nextTasks = response.data?.tasks ?? detail.tasks;
+    dataConfig.value.dataSource = nextTasks;
+
+    return {
+      accepted: true,
+      tasks: nextTasks
+    };
   }
 });
 
@@ -479,6 +494,10 @@ const styleConfig = ref<StyleConfig>({
 | barDate | (id, startDate, endDate) | 任务日期变更时触发 |
 | allowChangeTaskDate | (allow) | 任务日期是否允许修改 |
 | updateProgress | (detail) | 进度更新时触发 |
+| moveTask | (detail) | 任务条跨行拖动完成后触发，可异步回调服务端 |
+| moveTaskStart | (detail) | 任务行间拖动已提交，开始进入异步确认时触发 |
+| moveTaskError | (detail) | `moveTask` 抛出异常时触发 |
+| moveTaskSettled | (detail) | 任务行间拖动完成确认后触发，无论接受、回滚还是过期都会触发 |
 
 #### updateProgress 事件详情
 
@@ -490,6 +509,89 @@ interface ProgressUpdateDetail {
   task: object;       // 完整任务对象
 }
 ```
+
+#### moveTask 事件详情
+
+```typescript
+interface TaskMoveDetail {
+  draggedTaskId: string | number;        // 被拖拽任务ID
+  targetTaskId: string | number;         // 目标任务ID
+  position: 'above' | 'below' | 'child'; // 落点位置
+  tasks: GanttTask[];                    // 当前拖拽后的任务树快照
+}
+```
+
+`moveTask` 支持同步或异步返回以下结果：
+
+- `void` 或 `true`：接受本次拖动，保留组件内的乐观排序
+- `false` 或 `{ accepted: false }`：拒绝本次拖动并回滚
+- `{ accepted: true, tasks }`：接受本次拖动，并采用服务端返回的任务树
+
+配套的生命周期事件：
+
+- `moveTaskStart(detail)`：本次拖动已经进入异步确认阶段
+- `moveTaskError(detail)`：`moveTask` 执行时抛出了异常
+- `moveTaskSettled(detail)`：本次拖动已经结束，可根据 `accepted / rolledBack / finalTasks` 做收尾
+
+同一组生命周期也会以组件事件形式抛出：
+
+- `@move-task-start`
+- `@move-task-error`
+- `@move-task-settled`
+
+```typescript
+const eventConfig = ref<EventConfig>({
+  moveTaskStart: (detail) => {
+    console.log('任务移动开始', detail);
+  },
+  moveTask: async (detail) => {
+    const response = await api.moveTask(detail);
+
+    if (response.code !== 200) {
+      return { accepted: false };
+    }
+
+    const nextTasks = response.data?.tasks ?? detail.tasks;
+    dataConfig.value.dataSource = nextTasks;
+
+    return {
+      accepted: true,
+      tasks: nextTasks
+    };
+  },
+  moveTaskError: ({ error }) => {
+    console.error('任务移动异常', error);
+  },
+  moveTaskSettled: ({ accepted, rolledBack, finalTasks }) => {
+    console.log('任务移动结束', { accepted, rolledBack, finalTasks });
+  }
+});
+```
+
+```vue
+<gantt
+  :styleConfig="styleConfig"
+  :dataConfig="dataConfig"
+  :eventConfig="eventConfig"
+  @move-task-settled="handleMoveTaskSettled"
+/>
+```
+
+如果你希望复用一套默认提示策略，可以直接使用库导出的 helper：
+
+```typescript
+import { createTaskMoveFeedbackHandlers } from '@lee576/vue3-gantt';
+
+const taskMoveFeedbackHandlers = createTaskMoveFeedbackHandlers({
+  notify: (message, level) => messageToast.showMessage(message, level),
+  onError: ({ error }) => console.error('任务移动失败', error),
+  successMessage: '任务移动成功',
+  rollbackMessage: '任务移动失败，已回滚',
+  staleMessage: '任务移动结果已过期，已忽略'
+});
+```
+
+> 建议：如果服务端返回了规范化后的任务树，请同时写回 `dataConfig.value.dataSource`，避免后续外部刷新覆盖组件内的乐观排序结果。
 
 ## 任务数据格式
 
@@ -953,14 +1055,14 @@ eventConfig.value.editTask?.(task);
 ```typescript
 const eventConfig = ref<EventConfig>({
   // 添加根任务
-  addRootTask: (task) => {
+  addRootTask: async (task) => {
     console.log('添加根任务', task);
     // 保存到后端
     await api.createTask(task);
   },
 
   // 添加子任务
-  addSubTask: (parentTask) => {
+  addSubTask: async (parentTask) => {
     console.log('添加子任务，父任务：', parentTask);
     // 创建子任务
     const subTask = {
@@ -971,10 +1073,27 @@ const eventConfig = ref<EventConfig>({
   },
 
   // 编辑任务
-  editTask: (task) => {
+  editTask: async (task) => {
     console.log('编辑任务', task);
     // 更新到后端
     await api.updateTask(task);
+  },
+
+  // 行间拖动任务
+  moveTask: async (detail) => {
+    const response = await api.moveTask(detail);
+
+    if (response.code !== 200) {
+      return { accepted: false };
+    }
+
+    const nextTasks = response.data?.tasks ?? detail.tasks;
+    dataConfig.value.dataSource = nextTasks;
+
+    return {
+      accepted: true,
+      tasks: nextTasks
+    };
   }
 });
 ```
@@ -1484,18 +1603,21 @@ export default {
 | 操作类型 | 说明 | 效果 |
 |----------|------|------|
 | 🖱️ **拖拽移动** | 拖拽任务条整体 | 修改任务开始和结束日期 |
+| ↕️ **行间拖动** | 纵向拖拽任务条到其他任务行 | 调整任务层级并触发 `moveTask` 回调 |
 | 📏 **调整大小** | 拖拽任务条左右边缘 | 调整任务时长 |
 | 📊 **进度调整** | 拖拽任务条底部三角形滑块 | 调整任务完成进度 |
 
 ### 任务条操作
 
 - **拖拽移动** - 拖拽任务条可以修改任务的开始和结束日期
+- **行间拖动** - 纵向拖拽任务条到其他行，可放置为上方、下方或子任务
 - **调整大小** - 拖拽任务条左右边缘可以调整任务时长
 - **进度调整** - 拖拽任务条底部的三角形滑块可以调整进度
 
 ### 父子任务联动
 
 - 拖动父任务时，子任务会跟随移动
+- 行间拖动完成后会触发 `moveTask`，可以将最新任务树异步回调给服务端
 - 调整父任务大小时，会检查子任务约束
 - 子任务不能早于父任务开始
 
@@ -1973,6 +2095,21 @@ const eventConfig = ref<EventConfig>({
   },
   updateProgress: (detail) => {
     console.log('Progress updated', detail);
+  },
+  moveTask: async (detail) => {
+    const response = await api.moveTask(detail);
+
+    if (response.code !== 200) {
+      return { accepted: false };
+    }
+
+    const nextTasks = response.data?.tasks ?? detail.tasks;
+    dataConfig.value.dataSource = nextTasks;
+
+    return {
+      accepted: true,
+      tasks: nextTasks
+    };
   }
 });
 
@@ -2047,6 +2184,7 @@ onMounted(() => {
 | barDate | (id, startDate, endDate) | Triggered when task date changes |
 | allowChangeTaskDate | (allow) | Whether task date modification is allowed |
 | updateProgress | (detail) | Triggered when progress is updated |
+| moveTask | (detail) | Triggered after a task is dropped onto another row and can asynchronously sync with the server |
 
 #### updateProgress Event Details
 
@@ -2058,6 +2196,45 @@ interface ProgressUpdateDetail {
   task: object;       // Complete task object
 }
 ```
+
+#### moveTask Event Details
+
+```typescript
+interface TaskMoveDetail {
+  draggedTaskId: string | number;          // Dragged task ID
+  targetTaskId: string | number;           // Drop target task ID
+  position: 'above' | 'below' | 'child';   // Drop position
+  tasks: GanttTask[];                      // Current task tree snapshot after drag
+}
+```
+
+`moveTask` can return synchronously or asynchronously:
+
+- `void` or `true`: accept the optimistic move
+- `false` or `{ accepted: false }`: reject and roll back
+- `{ accepted: true, tasks }`: accept and replace with the server-normalized task tree
+
+```typescript
+const eventConfig = ref<EventConfig>({
+  moveTask: async (detail) => {
+    const response = await api.moveTask(detail);
+
+    if (response.code !== 200) {
+      return { accepted: false };
+    }
+
+    const nextTasks = response.data?.tasks ?? detail.tasks;
+    dataConfig.value.dataSource = nextTasks;
+
+    return {
+      accepted: true,
+      tasks: nextTasks
+    };
+  }
+});
+```
+
+> If the server returns a normalized task tree, also write it back to `dataConfig.value.dataSource` to avoid a later external refresh overwriting the optimistic order inside the component.
 
 ## Task Data Format
 

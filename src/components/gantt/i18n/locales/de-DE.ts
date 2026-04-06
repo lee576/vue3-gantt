@@ -100,6 +100,7 @@ export default {
     taskType: 'Aufgabe',
     projectType: 'Projekt',
     milestoneType: 'Meilenstein',
+    syncingMove: 'Synchronisierung',
   },
 
   // Link Legend

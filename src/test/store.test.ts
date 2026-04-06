@@ -11,7 +11,16 @@ describe('状态管理', () => {
       expect(store.hourHeaders).toEqual([])
       expect(store.tasks).toEqual([])
       expect(store.taskHeaders).toEqual([])
-      expect(store.mapFields).toEqual({})
+      expect(store.mapFields).toEqual({
+        id: 'id',
+        parentId: 'pid',
+        task: 'taskNo',
+        priority: 'level',
+        startdate: 'start_date',
+        enddate: 'end_date',
+        takestime: 'spend_time',
+        progress: 'job_progress',
+      })
       expect(store.scale).toBe(90)
       expect(store.timelineCellCount).toBe(0)
       expect(store.startGanttDate).toBeNull()
@@ -28,7 +37,7 @@ describe('状态管理', () => {
       expect(store.subTask).toEqual({})
       expect(store.editTask).toEqual({})
       expect(store.removeTask).toEqual({})
-      expect(store.allowChangeTaskDate).toEqual({})
+      expect(store.allowChangeTaskDate).toBe(false)
       expect(store.barDate).toEqual({ id: '', startDate: '', endDate: '' })
     })
   })
@@ -360,6 +369,51 @@ describe('状态管理', () => {
       it('应该能够设置为 false', () => {
         mutations.setAllowChangeTaskDate(false)
         expect(store.allowChangeTaskDate).toBe(false)
+      })
+    })
+
+    describe('moveTask', () => {
+      beforeEach(() => {
+        const mapFields: GanttMapFields = {
+          id: 'id',
+          parentId: 'pid',
+          task: 'name',
+          priority: 'priority',
+          startdate: 'start_date',
+          enddate: 'end_date',
+          takestime: 'duration',
+          progress: 'progress',
+        }
+
+        mutations.setMapFields(mapFields)
+        mutations.expandAllTasks()
+        mutations.setTasks([
+          { id: '1', pid: '0', start_date: '2024-01-01', end_date: '2024-01-10', job_progress: 0.5 },
+          { id: '2', pid: '1', start_date: '2024-01-02', end_date: '2024-01-05', job_progress: 0.3 },
+          { id: '3', pid: '0', start_date: '2024-01-06', end_date: '2024-01-09', job_progress: 0.7 },
+        ])
+      })
+
+      it('应该支持把任务移动到另一行上方', () => {
+        const moved = mutations.moveTask('3', '1', 'above')
+
+        expect(moved).toBe(true)
+        expect(store.tasks.map(task => task.id)).toEqual(['3', '1', '2'])
+      })
+
+      it('应该支持把任务移动为目标任务的子任务', () => {
+        const moved = mutations.moveTask('3', '1', 'child')
+
+        expect(moved).toBe(true)
+        expect(store.tasks.map(task => task.id)).toEqual(['1', '2', '3'])
+        expect(store.tasks.find(task => task.id === '3')?.pid).toBe('1')
+      })
+
+      it('不应该允许把任务移动到自己的子孙节点下', () => {
+        const moved = mutations.moveTask('1', '2', 'child')
+
+        expect(moved).toBe(false)
+        expect(store.tasks.map(task => task.id)).toEqual(['1', '2', '3'])
       })
     })
   })

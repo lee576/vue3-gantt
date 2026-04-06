@@ -100,6 +100,7 @@ export default {
     taskType: 'Tarea',
     projectType: 'Proyecto',
     milestoneType: 'Hito',
+    syncingMove: 'Sincronizando',
   },
 
   // Link Legend

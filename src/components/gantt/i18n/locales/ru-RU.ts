@@ -100,6 +100,7 @@ export default {
     taskType: 'Задача',
     projectType: 'Проект',
     milestoneType: 'Веха',
+    syncingMove: 'Синхронизация',
   },
 
   // Link Legend

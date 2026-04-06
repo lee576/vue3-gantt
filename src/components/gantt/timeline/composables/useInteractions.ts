@@ -2,14 +2,27 @@ import SVG from 'svg.js'
 import interact from 'interactjs'
 import DateUtils from '../../utils/dateUtils'
 import { store, mutations } from '../../state/Store'
+import { visibleTasks } from '../../state/DerivedState'
+import { useTimelineBarDropState } from '../../state/ShareState'
 import { t } from '../../i18n'
-import type { GanttTask, GanttMapFields } from '../../types/GanttTypes'
+import {
+  cloneTaskSnapshot,
+  notifyTaskMoveWithRollback,
+} from '../utils/taskMovePersistence'
+import type {
+  GanttTask,
+  GanttMapFields,
+  GanttTaskDropPosition,
+} from '../../types/GanttTypes'
+import type { TaskMoveEventHandlers } from '../../types/Types'
 
 type InteractionDeps = {
   bar: SVGSVGElement
   barHeight: number
+  rowHeight: number
   mapFields: GanttMapFields
   props: { row: GanttTask; startGanttDate: string | Date }
+  taskMoveHandlers?: TaskMoveEventHandlers
   oldBarDataX: { value: number }
   oldBarWidth: { value: number }
   progress: { value: string }
@@ -24,8 +37,10 @@ export function useInteractions(deps: InteractionDeps) {
   const {
     bar,
     barHeight,
+    rowHeight,
     mapFields,
     props,
+    taskMoveHandlers,
     oldBarDataX,
     oldBarWidth,
     progress,
@@ -35,7 +50,88 @@ export function useInteractions(deps: InteractionDeps) {
     computePosition,
     progressHandleClassName,
   } = deps
-  const { setBarDate, setAllowChangeTaskDate } = mutations
+  const { setBarDate, setAllowChangeTaskDate, moveTask } = mutations
+  const {
+    setTimelineBarDropState,
+    clearTimelineBarDropState,
+    markTaskMovePending,
+    clearTaskMovePending,
+    isTaskMovePending,
+  } = useTimelineBarDropState()
+  const minVerticalDragDistance = Math.max(8, rowHeight * 0.2)
+
+  const getDragDropTarget = (
+    clientY: number,
+    currentY: number
+  ):
+    | {
+        targetTaskId: string | number
+        position: GanttTaskDropPosition
+        top: number
+        height: number
+        valid: boolean
+      }
+    | null => {
+    if (Math.abs(currentY) < minVerticalDragDistance || visibleTasks.value.length === 0) {
+      return null
+    }
+
+    const timelineContent = document.querySelector('.table .content') as HTMLElement | null
+    if (!timelineContent) {
+      return null
+    }
+
+    const timelineRect = timelineContent.getBoundingClientRect()
+    const relativeY = clientY - timelineRect.top + timelineContent.scrollTop
+    const rowIndex = Math.max(
+      0,
+      Math.min(visibleTasks.value.length - 1, Math.floor(relativeY / rowHeight))
+    )
+    const targetTask = visibleTasks.value[rowIndex]
+
+    if (!targetTask) {
+      return null
+    }
+
+    const rowTop = rowIndex * rowHeight
+    const offsetInsideRow = relativeY - rowTop
+    let position: GanttTaskDropPosition = 'child'
+
+    if (offsetInsideRow < rowHeight * 0.25) {
+      position = 'above'
+    } else if (offsetInsideRow > rowHeight * 0.75) {
+      position = 'below'
+    }
+
+    const draggedTaskId = props.row[mapFields.id]
+    const targetTaskId = targetTask[mapFields.id]
+    const draggedFlatIndex = typeof props.row.flatIndex === 'number' ? props.row.flatIndex : -1
+    const draggedSubtreeEndIndex =
+      typeof props.row.subtreeEndIndex === 'number' ? props.row.subtreeEndIndex : draggedFlatIndex
+    const draggedSubtree = new Set<string>()
+
+    if (draggedFlatIndex >= 0 && draggedSubtreeEndIndex >= draggedFlatIndex) {
+      for (
+        let index = draggedFlatIndex;
+        index <= draggedSubtreeEndIndex && index < store.tasks.length;
+        index += 1
+      ) {
+        draggedSubtree.add(String(store.tasks[index][mapFields.id]))
+      }
+    }
+
+    const valid =
+      String(draggedTaskId) !== String(targetTaskId) &&
+      !draggedSubtree.has(String(targetTaskId))
+
+    return {
+      targetTaskId,
+      position,
+      top: rowTop,
+      height: rowHeight,
+      valid,
+    }
+  }
 
   const drawBar = () => {
     const { dataX, width } = computePosition()
@@ -43,6 +139,7 @@ export function useInteractions(deps: InteractionDeps) {
     const borderColor = getComputedStyle(bar).getPropertyValue('--border') || '#cecece'
 
     bar.setAttribute('data-x', dataX.toString())
+    bar.setAttribute('data-y', '0')
     bar.setAttribute('width', width.toString())
     bar.setAttribute('stroke', borderColor)
     bar.setAttribute('stroke-width', '1px')
@@ -783,31 +880,57 @@ export function useInteractions(deps: InteractionDeps) {
       })
       .draggable({
         inertia: false,
-        modifiers: [interact.modifiers.restrictRect({ restriction: 'parent', endOnly: true })],
         autoScroll: true,
         listeners: {
           start: event => {
             if (isProgressDragging.value) return
+            if (isTaskMovePending(props.row[mapFields.id])) return
             oldBarDataX.value = Number(event.target.getAttribute('data-x'))
             oldBarWidth.value = event.target.width.baseVal.value
+            event.target.setAttribute('data-y', event.target.getAttribute('data-y') || '0')
+            clearTimelineBarDropState()
           },
           move: event => {
             if (isProgressDragging.value) return
             const x = (
               (parseFloat(event.target.getAttribute('data-x') || '0') || 0) + event.dx
             ).toString()
+            const y = (
+              (parseFloat(event.target.getAttribute('data-y') || '0') || 0) + event.dy
+            ).toString()
             Object.assign(event.target.style, {
               width: `${event.rect.width}px`,
               height: `${event.rect.height}px`,
-              transform: `translate(${x}px, 0px)`,
+              transform: `translate(${x}px, ${y}px)`,
             })
             event.target.setAttribute('data-x', x)
-            event.target.setAttribute('data-y', '0')
+            event.target.setAttribute('data-y', y)
+
+            const dragDropTarget = getDragDropTarget(event.clientY, Number(y))
+            if (dragDropTarget) {
+              setTimelineBarDropState({
+                active: true,
+                valid: dragDropTarget.valid,
+                draggedTaskId: props.row[mapFields.id],
+                targetTaskId: dragDropTarget.targetTaskId,
+                position: dragDropTarget.position,
+                top:
+                  dragDropTarget.position === 'below'
+                    ? dragDropTarget.top + dragDropTarget.height
+                    : dragDropTarget.top,
+                height: dragDropTarget.height,
+              })
+            } else {
+              clearTimelineBarDropState()
+            }
           },
           end: event => {
             if (isProgressDragging.value) return
+            const previousTasks = cloneTaskSnapshot(store.tasks)
             const target = event.target
             const currentX = parseFloat(target.getAttribute('data-x') || '0') || 0
+            const currentY = parseFloat(target.getAttribute('data-y') || '0') || 0
+            const dragDropTarget = getDragDropTarget(event.clientY, currentY)
             const multiple = Math.round(currentX / store.scale)
             let alignedX = multiple * store.scale
             if (alignedX < 0) alignedX = 0
@@ -858,6 +981,8 @@ export function useInteractions(deps: InteractionDeps) {
 
             target.style.transform = `translate(${alignedX}px, 0px)`
             target.setAttribute('data-x', alignedX.toString())
+            target.setAttribute('data-y', '0')
+            clearTimelineBarDropState()
 
             const cellsMoved = Math.round((alignedX - oldBarDataX.value) / store.scale)
             let daysOffset = 0,
@@ -1092,6 +1217,33 @@ export function useInteractions(deps: InteractionDeps) {
               startDate: props.row[mapFields.startdate],
               endDate: props.row[mapFields.enddate],
             })
+
+            if (dragDropTarget?.valid) {
+              const moved = moveTask(
+                props.row[mapFields.id],
+                dragDropTarget.targetTaskId,
+                dragDropTarget.position
+              )
+
+              if (moved) {
+                const draggedTaskId = props.row[mapFields.id]
+                markTaskMovePending(draggedTaskId)
+                void notifyTaskMoveWithRollback(
+                {
+                  draggedTaskId,
+                  targetTaskId: dragDropTarget.targetTaskId,
+                  position: dragDropTarget.position,
+                  tasks: cloneTaskSnapshot(store.tasks),
+                },
+                previousTasks,
+                taskMoveHandlers,
+                mapFields.id,
+                mapFields.parentId || 'pid'
+              ).finally(() => {
+                  clearTaskMovePending(draggedTaskId)
+                })
+              }
+            }
           },
         },
       })
@@ -1100,6 +1252,7 @@ export function useInteractions(deps: InteractionDeps) {
   }
 
   const destroy = () => {
+    clearTimelineBarDropState()
     try {
       interact(bar).unset()
       ;(bar as SVGSVGElement & { __ganttInteractionsBound?: boolean }).__ganttInteractionsBound = false

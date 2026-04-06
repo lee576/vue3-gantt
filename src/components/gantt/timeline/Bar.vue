@@ -2,7 +2,7 @@
   <div
     v-if="showRow"
     class="barRow"
-    :class="['barRow-base', rowClassName, { active: hover }]"
+    :class="['barRow-base', rowClassName, { active: hover, pending: isMovePending }]"
     :style="barRowStyle"
     @mouseover="hoverActive()"
     @mouseleave="hoverInactive()"
@@ -14,7 +14,7 @@
         v-if="showRow"
         ref="bar"
         class="bar"
-        :class="['bar-base', customBarClassName, { active: hover }]"
+        :class="['bar-base', customBarClassName, { active: hover, pending: isMovePending }]"
         :height="barHeight + 'px'"
         style="overflow: visible"
       >
@@ -23,6 +23,16 @@
         </slot>
       </svg>
     </slot>
+    <div
+      v-if="isMovePending"
+      class="movePendingBadge"
+      :style="movePendingBadgeStyle"
+      role="status"
+      :aria-label="movePendingLabel"
+    >
+      <span class="movePendingDot"></span>
+      <span>{{ movePendingLabel }}</span>
+    </div>
     <slot :row="row" :progress="progress"></slot>
   </div>
 </template>
@@ -46,7 +56,10 @@ import { useBarTheme } from './composables/useBarTheme'
 import { useHover } from './composables/useHover'
 import { useProgress } from './composables/useProgress'
 import { useInteractions } from './composables/useInteractions'
+import { useTimelineBarDropState } from '../state/ShareState'
+import { t } from '../i18n'
 import type { GanttTask } from '../types/GanttTypes'
+import type { TaskMoveEventHandlers } from '../types/Types'
 import {
   registerTaskPosition,
   unregisterTaskPosition,
@@ -94,6 +107,19 @@ export default defineComponent({
     const setBarColor = inject(Symbols.SetBarColorSymbol) as
       | ((row: GanttTask) => string)
       | undefined
+    const taskMoveHandlers = inject<TaskMoveEventHandlers | undefined>(
+      Symbols.TaskMoveSymbol,
+      undefined
+    )
+    const { pendingTaskMoveIds } = useTimelineBarDropState()
+    const isMovePending = computed(() =>
+      pendingTaskMoveIds.value.has(props.row[mapFields.value.id])
+    )
+    const movePendingLabel = computed(() => t('task.syncingMove'))
+    const movePendingBadgeStyle = computed(() => ({
+      left: `${oldBarDataX.value + oldBarWidth.value + 10}px`,
+      top: `${Math.max(4, (props.rowHeight - barHeight.value) / 2 - 8)}px`,
+    }))
 
     // 使用 useHover composables
     const { hover: hoverFromComposable, hoverActive, hoverInactive } = useHover(props)
@@ -133,8 +159,10 @@ export default defineComponent({
       const interactions = useInteractions({
       bar: _barElement,
       barHeight: barHeight.value,
+      rowHeight: props.rowHeight,
       mapFields: store.mapFields,
       props,
+      taskMoveHandlers,
       oldBarDataX,
       oldBarWidth,
       progress,
@@ -252,6 +280,9 @@ export default defineComponent({
       rowClassName: computedBarRowClassName,
       customBarClassName: computedBarClassName.value,
       progress,
+      isMovePending,
+      movePendingLabel,
+      movePendingBadgeStyle,
     }
   },
 })
@@ -271,6 +302,10 @@ export default defineComponent({
   &.active {
     background: var(--row-hover, #fff3a1) !important;
   }
+
+  &.pending {
+    cursor: progress;
+  }
 }
 
 .bar-base {
@@ -281,6 +316,53 @@ export default defineComponent({
   overflow: visible;
   cursor: move;
   @apply transition-all duration-200;
+
+  &.pending {
+    cursor: progress;
+    opacity: 0.7;
+    filter: saturate(0.85);
+  }
+}
+
+.movePendingBadge {
+  position: absolute;
+  z-index: 140;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.88);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(6px);
+}
+
+.movePendingDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #fbbf24;
+  animation: movePendingPulse 1.1s ease-in-out infinite;
+}
+
+@keyframes movePendingPulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.92);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
 }
 
 .progressHandle {

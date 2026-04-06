@@ -48,6 +48,14 @@ export {
 // 导出国际化系统
 export { useI18n, setLocale, detectBrowserLocale, type Locale } from './components/gantt/i18n'
 
+// 导出任务移动反馈辅助工具
+export {
+  createTaskMoveFeedbackHandlers,
+  type CreateTaskMoveFeedbackHandlersOptions,
+  type TaskMoveFeedbackLevel,
+  type TaskMoveFeedbackMessageResolver,
+} from './components/gantt/utils/taskMoveFeedback'
+
 // 导出 Store (可选,高级用户可能需要)
 export { store, mutations } from './components/gantt/state/Store'
 

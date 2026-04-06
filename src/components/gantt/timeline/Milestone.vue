@@ -5,7 +5,7 @@
     :style="milestoneRowStyle"
     @mouseover="hoverActive()"
     @mouseleave="hoverInactive()"
-    :class="{ active: hover }"
+    :class="{ active: hover, pending: isMovePending }"
     :data-task-id="row[mapFields.id]"
   >
     <svg
@@ -15,9 +15,19 @@
       class="milestone"
       :height="rowHeight + 'px'"
       :width="rowHeight * 0.6 + 200 + 'px'"
-      :class="{ active: hover }"
+      :class="{ active: hover, pending: isMovePending }"
       style="overflow: visible"
     ></svg>
+    <div
+      v-if="isMovePending"
+      class="movePendingBadge"
+      :style="movePendingBadgeStyle"
+      role="status"
+      :aria-label="movePendingLabel"
+    >
+      <span class="movePendingDot"></span>
+      <span>{{ movePendingLabel }}</span>
+    </div>
     <!-- 使用CSS背景绘制网格，不再渲染大量cell div -->
   </div>
 </template>
@@ -29,17 +39,24 @@ import SVG from 'svg.js'
 import interact from 'interactjs'
 import DateUtils from '../utils/dateUtils'
 import { store, mutations } from '../state/Store'
+import { visibleTasks } from '../state/DerivedState'
 import {
   getWeekendIndices as getWeekendIndicesShared,
   getWeekendColor as getWeekendColorShared,
 } from '../composables/PerformanceConfig'
-import sharedState from '../state/ShareState'
+import sharedState, { useTimelineBarDropState } from '../state/ShareState'
 import { Symbols } from '../state/Symbols'
 import { t } from '../i18n'
 import {
   registerTaskPosition,
   unregisterTaskPosition,
 } from '../state/TaskPositionRegistry'
+import type { GanttTaskDropPosition } from '../types/GanttTypes'
+import type { TaskMoveEventHandlers } from '../types/Types'
+import {
+  cloneTaskSnapshot,
+  notifyTaskMoveWithRollback,
+} from './utils/taskMovePersistence'
 
 export default defineComponent({
   name: 'GanttMilestone',
@@ -59,6 +76,15 @@ export default defineComponent({
     const milestoneColor = ref('')
     const themeVersion = ref(0)
     const oldMilestoneX = ref(0)
+    const {
+      setTimelineBarDropState,
+      clearTimelineBarDropState,
+      markTaskMovePending,
+      clearTaskMovePending,
+      isTaskMovePending,
+      pendingTaskMoveIds,
+    } = useTimelineBarDropState()
+    const minVerticalDragDistance = Math.max(8, props.rowHeight * 0.2)
 
     const localRow = ref(JSON.parse(JSON.stringify(props.row)))
 
@@ -75,6 +101,18 @@ export default defineComponent({
 
     // eslint-disable-next-line no-unused-vars
     const setBarColor = inject<(row: any) => string>(Symbols.SetBarColorSymbol)
+    const taskMoveHandlers = inject<TaskMoveEventHandlers | undefined>(
+      Symbols.TaskMoveSymbol,
+      undefined
+    )
+    const isMovePending = computed(() =>
+      pendingTaskMoveIds.value.has(localRow.value[mapFields.value.id])
+    )
+    const movePendingLabel = computed(() => t('task.syncingMove'))
+    const movePendingBadgeStyle = computed(() => ({
+      left: `${oldMilestoneX.value + diamondSize.value + 12}px`,
+      top: `${Math.max(4, props.rowHeight / 2 - 10)}px`,
+    }))
 
     const themeColors = computed(() => {
       themeVersion.value
@@ -195,6 +233,83 @@ export default defineComponent({
     }
 
     const setBarDate = mutations.setBarDate
+    const moveTask = mutations.moveTask
+
+    const getDragDropTarget = (
+      clientY: number,
+      currentY: number
+    ):
+      | {
+          targetTaskId: string | number
+          position: GanttTaskDropPosition
+          top: number
+          height: number
+          valid: boolean
+        }
+      | null => {
+      if (Math.abs(currentY) < minVerticalDragDistance || visibleTasks.value.length === 0) {
+        return null
+      }
+
+      const timelineContent = document.querySelector('.table .content') as HTMLElement | null
+      if (!timelineContent) {
+        return null
+      }
+
+      const timelineRect = timelineContent.getBoundingClientRect()
+      const relativeY = clientY - timelineRect.top + timelineContent.scrollTop
+      const rowIndex = Math.max(
+        0,
+        Math.min(visibleTasks.value.length - 1, Math.floor(relativeY / props.rowHeight))
+      )
+      const targetTask = visibleTasks.value[rowIndex]
+
+      if (!targetTask) {
+        return null
+      }
+
+      const rowTop = rowIndex * props.rowHeight
+      const offsetInsideRow = relativeY - rowTop
+      let position: GanttTaskDropPosition = 'child'
+
+      if (offsetInsideRow < props.rowHeight * 0.25) {
+        position = 'above'
+      } else if (offsetInsideRow > props.rowHeight * 0.75) {
+        position = 'below'
+      }
+
+      const draggedTaskId = localRow.value[mapFields.value.id]
+      const targetTaskId = targetTask[mapFields.value.id]
+      const draggedFlatIndex =
+        typeof localRow.value.flatIndex === 'number' ? localRow.value.flatIndex : -1
+      const draggedSubtreeEndIndex =
+        typeof localRow.value.subtreeEndIndex === 'number'
+          ? localRow.value.subtreeEndIndex
+          : draggedFlatIndex
+      const draggedSubtree = new Set<string>()
+
+      if (draggedFlatIndex >= 0 && draggedSubtreeEndIndex >= draggedFlatIndex) {
+        for (
+          let index = draggedFlatIndex;
+          index <= draggedSubtreeEndIndex && index < store.tasks.length;
+          index += 1
+        ) {
+          draggedSubtree.add(String(store.tasks[index][mapFields.value.id]))
+        }
+      }
+
+      const valid =
+        String(draggedTaskId) !== String(targetTaskId) &&
+        !draggedSubtree.has(String(targetTaskId))
+
+      return {
+        targetTaskId,
+        position,
+        top: rowTop,
+        height: props.rowHeight,
+        valid,
+      }
+    }
 
     const syncTaskPosition = (dataX: number) => {
       if (props.rowIndex < 0) {
@@ -300,6 +415,7 @@ export default defineComponent({
         getComputedStyle(milestoneElement).getPropertyValue('--border') || '#cecece'
 
       milestoneElement.setAttribute('data-x', dataX.toString())
+      milestoneElement.setAttribute('data-y', '0')
       milestoneElement.setAttribute('stroke', borderColor)
       milestoneElement.setAttribute('stroke-width', '2px')
       milestoneElement.style.transform = `translate(${dataX}px, 0px)`
@@ -421,25 +537,54 @@ export default defineComponent({
 
       interactiveMilestone.__ganttInteractionsBound = true
 
-      // 拖拽功能 - 只能水平移动
+      // 拖拽功能 - 支持横向改时间和纵向跨行重排
       interact(milestoneElement).draggable({
         inertia: false,
-        modifiers: [interact.modifiers.restrictRect({ restriction: 'parent', endOnly: true })],
         autoScroll: true,
         listeners: {
           start: (event: { target: SVGSVGElement }) => {
+            if (isTaskMovePending(localRow.value[mapFields.value.id])) return
             oldMilestoneX.value = Number(event.target.getAttribute('data-x'))
+            event.target.setAttribute('data-y', event.target.getAttribute('data-y') || '0')
+            clearTimelineBarDropState()
           },
-          move: (event: { target: SVGSVGElement; dx: number }) => {
+          move: (event: { target: SVGSVGElement; dx: number; dy: number; clientY: number }) => {
+            if (isTaskMovePending(localRow.value[mapFields.value.id])) return
             const x = (
               (parseFloat(event.target.getAttribute('data-x') || '0') || 0) + event.dx
             ).toString()
-            event.target.style.transform = `translate(${x}px, 0px)`
+            const y = (
+              (parseFloat(event.target.getAttribute('data-y') || '0') || 0) + event.dy
+            ).toString()
+            event.target.style.transform = `translate(${x}px, ${y}px)`
             event.target.setAttribute('data-x', x)
+            event.target.setAttribute('data-y', y)
+
+            const dragDropTarget = getDragDropTarget(event.clientY, Number(y))
+            if (dragDropTarget) {
+              setTimelineBarDropState({
+                active: true,
+                valid: dragDropTarget.valid,
+                draggedTaskId: localRow.value[mapFields.value.id],
+                targetTaskId: dragDropTarget.targetTaskId,
+                position: dragDropTarget.position,
+                top:
+                  dragDropTarget.position === 'below'
+                    ? dragDropTarget.top + dragDropTarget.height
+                    : dragDropTarget.top,
+                height: dragDropTarget.height,
+              })
+            } else {
+              clearTimelineBarDropState()
+            }
           },
-          end: (event: { target: SVGSVGElement }) => {
+          end: (event: { target: SVGSVGElement; clientY: number }) => {
+            if (isTaskMovePending(localRow.value[mapFields.value.id])) return
+            const previousTasks = cloneTaskSnapshot(store.tasks)
             const target = event.target
             const currentX = parseFloat(target.getAttribute('data-x') || '0') || 0
+            const currentY = parseFloat(target.getAttribute('data-y') || '0') || 0
+            const dragDropTarget = getDragDropTarget(event.clientY, currentY)
             const multiple = Math.round((currentX - scale.value / 2) / scale.value)
             let alignedX = multiple * scale.value + scale.value / 2
             if (alignedX < scale.value / 2) alignedX = scale.value / 2
@@ -494,6 +639,8 @@ export default defineComponent({
 
             target.style.transform = `translate(${alignedX}px, 0px)`
             target.setAttribute('data-x', alignedX.toString())
+            target.setAttribute('data-y', '0')
+            clearTimelineBarDropState()
 
             const cellsMoved = Math.round((alignedX - oldMilestoneX.value) / scale.value)
             let daysOffset = 0,
@@ -584,6 +731,33 @@ export default defineComponent({
               startDate: localRow.value[mapFields.value.startdate],
               endDate: localRow.value[mapFields.value.startdate],
             })
+
+            if (dragDropTarget?.valid) {
+              const moved = moveTask(
+                localRow.value[mapFields.value.id],
+                dragDropTarget.targetTaskId,
+                dragDropTarget.position
+              )
+
+              if (moved) {
+                const draggedTaskId = localRow.value[mapFields.value.id]
+                markTaskMovePending(draggedTaskId)
+                void notifyTaskMoveWithRollback(
+                  {
+                    draggedTaskId,
+                    targetTaskId: dragDropTarget.targetTaskId,
+                    position: dragDropTarget.position,
+                    tasks: cloneTaskSnapshot(store.tasks),
+                  },
+                  previousTasks,
+                  taskMoveHandlers,
+                  mapFields.value.id,
+                  mapFields.value.parentId || 'pid'
+                ).finally(() => {
+                  clearTaskMovePending(draggedTaskId)
+                })
+              }
+            }
           },
         },
       })
@@ -633,6 +807,7 @@ export default defineComponent({
     })
 
     onBeforeUnmount(() => {
+      clearTimelineBarDropState()
       if (milestone.value) {
         try {
           interact(milestone.value).unset()
@@ -662,6 +837,9 @@ export default defineComponent({
       hoverInactive,
       WeekEndColor,
       milestoneRowStyle,
+      isMovePending,
+      movePendingLabel,
+      movePendingBadgeStyle,
     }
   },
 })
@@ -683,12 +861,50 @@ export default defineComponent({
   position: relative;
   overflow: visible;
 
+  &.pending {
+    cursor: progress;
+  }
+
+  .movePendingBadge {
+    position: absolute;
+    z-index: 140;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.88);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+    backdrop-filter: blur(6px);
+  }
+
+  .movePendingDot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: #fbbf24;
+    animation: movePendingPulse 1.1s ease-in-out infinite;
+  }
+
   .milestone {
     position: absolute;
     z-index: 100;
     background-color: transparent;
     overflow: visible;
     cursor: move;
+
+    &.pending {
+      cursor: progress;
+      opacity: 0.7;
+      filter: saturate(0.85);
+    }
   }
 
   &:first-child .cell {
@@ -733,6 +949,19 @@ export default defineComponent({
 
   &:last-child .cell {
     border-bottom: 1px solid var(--border, #cecece);
+  }
+}
+
+@keyframes movePendingPulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.92);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
   }
 }
 </style>

@@ -100,6 +100,7 @@ export default {
     taskType: '작업',
     projectType: '프로젝트',
     milestoneType: '마일스톤',
+    syncingMove: '동기화 중',
   },
 
   // Link Legend

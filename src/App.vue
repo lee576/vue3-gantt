@@ -84,6 +84,9 @@
         :eventConfig="eventConfig"
         :is-dark-mode="isDarkMode"
         @locale-change="handleLocaleChange"
+        @move-task-start="handleMoveTaskStart"
+        @move-task-error="handleMoveTaskError"
+        @move-task-settled="handleMoveTaskSettled"
       >
         <!-- 自定义任务表格头部插槽 -->
         <template #header>
@@ -174,8 +177,18 @@
 import { ref, onMounted, computed, nextTick } from 'vue'
 import DateUtils from './components/gantt/utils/dateUtils'
 import Gantt from './components/gantt/core/Gantt.vue'
+import { createTaskMoveFeedbackHandlers } from './components/gantt/utils/taskMoveFeedback'
 import type { GanttTask } from './components/gantt/types/GanttTypes'
-import { type DataConfig, type StyleConfig, type EventConfig, type ProgressUpdateDetail } from './components/gantt/types/Types'
+import {
+  type DataConfig,
+  type StyleConfig,
+  type EventConfig,
+  type ProgressUpdateDetail,
+  type TaskMoveDetail,
+  type TaskMoveErrorDetail,
+  type TaskMoveSettledDetail,
+  type TaskMoveStartDetail,
+} from './components/gantt/types/Types'
 import { useI18n, getLocale, getClientLocale, setLocale as setI18nLocale } from './locales'
 import TaskDialog from './components/TaskDialog.vue'
 import DeleteConfirmDialog from './components/DeleteConfirmDialog.vue'
@@ -558,6 +571,36 @@ const eventConfig = ref<EventConfig>({
   allowChangeTaskDate: (allow: boolean) => {
     console.log('允许改变任务日期:', allow)
   },
+  moveTask: async (detail: TaskMoveDetail) => {
+    try {
+      const response = await taskApi.moveTask(detail)
+      if (response.code === 200) {
+        const nextTasks = (response.data?.tasks as GanttTask[] | undefined) ?? detail.tasks
+        dataConfig.value.dataSource = nextTasks
+        return {
+          accepted: true,
+          tasks: nextTasks,
+        }
+      }
+
+      return { accepted: false }
+    } catch (error) {
+      throw error
+    }
+  },
+})
+
+const taskMoveFeedbackHandlers = createTaskMoveFeedbackHandlers({
+  notify: (message, level) => messageToast.showMessage(message, level),
+  onStart: detail => {
+    console.log('任务移动开始:', detail)
+  },
+  onError: detail => {
+    console.error('任务移动失败:', detail.error)
+  },
+  successMessage: '任务移动成功',
+  rollbackMessage: '任务移动失败，已回滚',
+  staleMessage: '任务移动结果已过期，已忽略',
 })
 
 // 基线相关函数
@@ -570,6 +613,15 @@ const toggleBaseline = () => {
   const statusText = baselineDisplayConfig.value.enabled ? t('app.baselineShown') : t('app.baselineHidden')
   messageToast.showMessage(statusText, 'success')
 }
+
+const handleMoveTaskStart = (detail: TaskMoveStartDetail) =>
+  taskMoveFeedbackHandlers.moveTaskStart?.(detail)
+
+const handleMoveTaskError = (detail: TaskMoveErrorDetail) =>
+  taskMoveFeedbackHandlers.moveTaskError?.(detail)
+
+const handleMoveTaskSettled = (detail: TaskMoveSettledDetail) =>
+  taskMoveFeedbackHandlers.moveTaskSettled?.(detail)
 
 const handleLocaleChange = (locale: string) => {
   setLocale(locale as any)

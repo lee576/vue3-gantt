@@ -1,4 +1,5 @@
 import type { GanttTask, GanttTaskHeader, GanttMapFields } from './GanttTypes'
+import type { GanttTaskDropPosition } from './GanttTypes'
 
 // 任务类型枚举
 export enum TaskType {
@@ -131,8 +132,49 @@ export interface ProgressUpdateDetail {
   task: GanttTask
 }
 
+export interface TaskMoveDetail {
+  draggedTaskId: string | number
+  targetTaskId: string | number
+  position: GanttTaskDropPosition
+  tasks: GanttTask[]
+}
+
+export interface TaskMoveResolution {
+  accepted?: boolean
+  tasks?: GanttTask[]
+}
+
+export type TaskMoveResolvedResult = boolean | void | TaskMoveResolution
+
+export type TaskMoveHandlerResult =
+  | TaskMoveResolvedResult
+  | Promise<TaskMoveResolvedResult>
+
+export interface TaskMoveStartDetail extends TaskMoveDetail {
+  previousTasks: GanttTask[]
+}
+
+export interface TaskMoveErrorDetail extends TaskMoveStartDetail {
+  error: unknown
+}
+
+export interface TaskMoveSettledDetail extends TaskMoveStartDetail {
+  accepted: boolean
+  rolledBack: boolean
+  finalTasks: GanttTask[]
+  result?: TaskMoveResolvedResult
+  error?: unknown
+}
+
+export interface TaskMoveEventHandlers {
+  moveTask?: (detail: TaskMoveDetail) => TaskMoveHandlerResult
+  moveTaskStart?: (detail: TaskMoveStartDetail) => void
+  moveTaskError?: (detail: TaskMoveErrorDetail) => void
+  moveTaskSettled?: (detail: TaskMoveSettledDetail) => void
+}
+
 // 事件配置接口
-export interface EventConfig {
+export interface EventConfig extends TaskMoveEventHandlers {
   addRootTask: (row: Partial<GanttTask> | null) => void
   addSubTask: (task: Partial<GanttTask>) => void
   removeTask: (task: Partial<GanttTask>) => void

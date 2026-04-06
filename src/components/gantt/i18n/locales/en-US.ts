@@ -99,6 +99,7 @@ export default {
     taskType: 'Task',
     projectType: 'Project',
     milestoneType: 'Milestone',
+    syncingMove: 'Syncing',
   },
 
   // Link Legend

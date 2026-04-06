@@ -99,6 +99,7 @@ export default {
     taskType: '任务',
     projectType: '项目',
     milestoneType: '里程碑',
+    syncingMove: '同步中',
   },
 
   // 连线图例

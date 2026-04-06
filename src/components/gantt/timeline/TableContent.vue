@@ -14,6 +14,15 @@
         class="column-guide-line"
         :style="{ left: guideLineX + 'px', height: containerHeight + 'px' }"
       ></div>
+      <div
+        v-if="timelineDropIndicator.active"
+        class="row-drop-indicator"
+        :class="[
+          `is-${timelineDropIndicator.position}`,
+          { 'is-invalid': !timelineDropIndicator.valid },
+        ]"
+        :style="dropIndicatorStyle"
+      ></div>
       <BarRecursionRow
         :key="`${mode}-${scale}-${timelineCellCount}`"
         :rowHeight="rowHeight"
@@ -33,7 +42,7 @@
 <script lang="ts">
 import { defineComponent, ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { store } from '../state/Store'
-import { useScrollState } from '../state/ShareState'
+import { useScrollState, useTimelineBarDropState } from '../state/ShareState'
 import { useLinkConfig } from '../composables/LinkConfig'
 import BarRecursionRow from './BarRecursionRow.vue'
 import TaskLinks from '../links/TaskLinks.vue'
@@ -74,6 +83,7 @@ export default defineComponent({
       syncVerticalScrollToPeer,
       consumeMirroredVerticalScroll,
     } = useScrollState()
+    const { timelineBarDropState } = useTimelineBarDropState()
     const { config: linkConfig } = useLinkConfig()
 
     // 时间线和左侧任务表共享同一份可见任务列表。
@@ -100,6 +110,24 @@ export default defineComponent({
 
     const containerHeight = computed(() => {
       return tasks.value.length * props.rowHeight
+    })
+    const timelineDropIndicator = computed(() => timelineBarDropState.value)
+    const dropIndicatorStyle = computed(() => {
+      const { top, height, position } = timelineDropIndicator.value
+      const sharedStyle = {
+        top: `${top}px`,
+      }
+
+      if (position === 'child') {
+        return {
+          ...sharedStyle,
+          height: `${height}px`,
+        }
+      }
+
+      return {
+        ...sharedStyle,
+      }
     })
 
     const syncScrollFromWatcher = () => {
@@ -226,6 +254,8 @@ export default defineComponent({
       containerWidth,
       containerHeight,
       linkConfig,
+      timelineDropIndicator,
+      dropIndicatorStyle,
       showGuideLine,
       guideLineX,
       handleMouseMove,
@@ -260,6 +290,60 @@ export default defineComponent({
     position: relative;
     /* 避免不必要的布局计算 */
     contain: layout style;
+  }
+}
+
+.row-drop-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 1001;
+  transition:
+    top 0.08s linear,
+    height 0.08s linear,
+    border-color 0.08s linear,
+    box-shadow 0.08s linear,
+    background-color 0.08s linear;
+
+  &.is-above,
+  &.is-below {
+    height: 0;
+    border-top: 2px solid rgba(14, 165, 233, 0.95);
+    box-shadow: 0 0 0 1px rgba(125, 211, 252, 0.2);
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: -4px;
+      width: 8px;
+      height: 8px;
+      border-radius: 9999px;
+      background: rgba(14, 165, 233, 0.95);
+      box-shadow: 0 0 10px rgba(14, 165, 233, 0.35);
+    }
+  }
+
+  &.is-child {
+    border: 2px solid rgba(14, 165, 233, 0.95);
+    background: rgba(14, 165, 233, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(125, 211, 252, 0.25);
+  }
+
+  &.is-invalid {
+    border-color: rgba(239, 68, 68, 0.95);
+    background: rgba(239, 68, 68, 0.08);
+
+    &.is-above,
+    &.is-below {
+      border-top-color: rgba(239, 68, 68, 0.95);
+
+      &::before {
+        background: rgba(239, 68, 68, 0.95);
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.35);
+      }
+    }
   }
 }
 

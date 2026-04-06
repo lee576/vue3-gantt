@@ -7,8 +7,10 @@ import type {
   GanttBarDate,
   GanttViewMode,
   GanttDaySubMode,
-  GanttHourSubMode
+  GanttHourSubMode,
+  GanttTaskDropPosition,
 } from '../types/GanttTypes'
+import { reorderTasksByHierarchy } from '../utils/taskTree'
 
 type TaskId = string | number
 
@@ -375,6 +377,12 @@ interface MutationsType {
   updateAutoCollapsedTasks: (taskIds: Set<string | number>) => void
   /** 清除所有自动折叠状态 */
   clearAutoCollapsedTasks: () => void
+  /** 移动任务到新的父级或顺序 */
+  moveTask: (
+    draggedTaskId: string | number,
+    targetTaskId: string | number,
+    position: GanttTaskDropPosition
+  ) => boolean
 }
 
 // 定义 Mutations
@@ -487,5 +495,34 @@ export const mutations: MutationsType = {
   clearAutoCollapsedTasks(): void {
     store.autoCollapsedTasks = new Set()
     updateAllCollapsedTaskIds()
+  },
+  moveTask(
+    draggedTaskId: string | number,
+    targetTaskId: string | number,
+    position: GanttTaskDropPosition
+  ): boolean {
+    const reorderedTasks = reorderTasksByHierarchy(
+      store.tasks,
+      store.mapFields,
+      draggedTaskId,
+      targetTaskId,
+      position
+    )
+
+    if (!reorderedTasks) {
+      return false
+    }
+
+    if (position === 'child') {
+      store.collapsedTasks.delete(targetTaskId)
+      store.autoCollapsedTasks.delete(targetTaskId)
+      store.collapsedTasks = new Set(store.collapsedTasks)
+      store.autoCollapsedTasks = new Set(store.autoCollapsedTasks)
+    }
+
+    store.tasks = reorderedTasks
+    rebuildTaskTreeCache()
+    updateAllCollapsedTaskIds()
+    return true
   },
 }

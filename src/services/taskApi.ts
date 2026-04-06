@@ -1,4 +1,5 @@
 import type { ApiResponse } from '../types/task'
+import type { TaskMoveDetail } from '../components/gantt/types/Types'
 
 // 模拟后端 API 服务
 // 在实际项目中，请将这些方法替换为真实的 API 调用
@@ -62,6 +63,20 @@ export const taskApi = {
       code: 200,
       message: '日期更新成功',
       data: { id: taskId, startDate, endDate },
+    }
+  },
+
+  async moveTask(detail: TaskMoveDetail): Promise<ApiResponse> {
+    await this.delay(400)
+    return {
+      code: 200,
+      message: '任务移动成功',
+      data: {
+        draggedTaskId: detail.draggedTaskId,
+        targetTaskId: detail.targetTaskId,
+        position: detail.position,
+        tasks: detail.tasks,
+      },
     }
   },
 }

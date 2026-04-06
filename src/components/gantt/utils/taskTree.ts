@@ -1,4 +1,4 @@
-import type { GanttMapFields } from '../types/GanttTypes'
+import type { GanttMapFields, GanttTaskDropPosition } from '../types/GanttTypes'
 
 type TaskRecord = Record<string, any>
 
@@ -137,4 +137,118 @@ export const flattenTasksByHierarchy = <T extends TaskRecord>(
   }
 
   return orderedTasks
+}
+
+const getTaskSubtreeEndIndex = <T extends TaskRecord>(
+  tasks: Array<FlattenedTask<T>>,
+  startIndex: number
+): number => {
+  const task = tasks[startIndex]
+  if (!task) {
+    return startIndex
+  }
+
+  if (typeof task.subtreeEndIndex === 'number' && task.subtreeEndIndex >= startIndex) {
+    return task.subtreeEndIndex
+  }
+
+  const currentTreeLevel = task.treeLevel ?? 1
+  let endIndex = startIndex
+
+  for (let index = startIndex + 1; index < tasks.length; index += 1) {
+    const nextTask = tasks[index]
+    if ((nextTask.treeLevel ?? 1) <= currentTreeLevel) {
+      break
+    }
+    endIndex = index
+  }
+
+  return endIndex
+}
+
+const getTaskSubtreeInsertIndex = <T extends TaskRecord>(
+  tasks: Array<FlattenedTask<T>>,
+  startIndex: number
+): number => {
+  return getTaskSubtreeEndIndex(tasks, startIndex) + 1
+}
+
+export const reorderTasksByHierarchy = <T extends TaskRecord>(
+  tasks: T[],
+  mapFields: Pick<GanttMapFields, 'id' | 'parentId'> | Record<string, string>,
+  draggedTaskId: string | number,
+  targetTaskId: string | number,
+  position: GanttTaskDropPosition
+): T[] | null => {
+  if (draggedTaskId === targetTaskId || tasks.length === 0) {
+    return null
+  }
+
+  const idField = mapFields.id
+  const parentIdField = mapFields.parentId
+  const supportsTreeMetadata = tasks.some(
+    task =>
+      typeof (task as FlattenedTask<T>).flatIndex === 'number' ||
+      typeof (task as FlattenedTask<T>).subtreeEndIndex === 'number' ||
+      typeof (task as FlattenedTask<T>).treeLevel === 'number'
+  )
+  const orderedTasks = (
+    supportsTreeMetadata ? tasks : flattenTasksByHierarchy([...tasks], mapFields)
+  ) as Array<FlattenedTask<T>>
+  const normalizedDraggedTaskId = normalizeTreeKey(draggedTaskId)
+  const normalizedTargetTaskId = normalizeTreeKey(targetTaskId)
+  const draggedStartIndex = orderedTasks.findIndex(
+    task => normalizeTreeKey(task[idField]) === normalizedDraggedTaskId
+  )
+  const targetIndex = orderedTasks.findIndex(
+    task => normalizeTreeKey(task[idField]) === normalizedTargetTaskId
+  )
+
+  if (draggedStartIndex < 0 || targetIndex < 0) {
+    return null
+  }
+
+  const draggedEndIndex = getTaskSubtreeEndIndex(orderedTasks, draggedStartIndex)
+  const movedSubtree = orderedTasks.slice(draggedStartIndex, draggedEndIndex + 1)
+  const movedSubtreeIdSet = new Set(
+    movedSubtree.map(task => normalizeTreeKey(task[idField]))
+  )
+
+  if (movedSubtreeIdSet.has(normalizedTargetTaskId)) {
+    return null
+  }
+
+  const remainingTasks = [
+    ...orderedTasks.slice(0, draggedStartIndex),
+    ...orderedTasks.slice(draggedEndIndex + 1),
+  ]
+  const targetIndexAfterRemoval = remainingTasks.findIndex(
+    task => normalizeTreeKey(task[idField]) === normalizedTargetTaskId
+  )
+
+  if (targetIndexAfterRemoval < 0) {
+    return null
+  }
+
+  const targetTask = remainingTasks[targetIndexAfterRemoval]
+  const movedRootTask = movedSubtree[0]
+  let insertIndex = targetIndexAfterRemoval
+
+  if (position === 'child') {
+    movedRootTask[parentIdField] = targetTask[idField]
+    insertIndex = getTaskSubtreeInsertIndex(remainingTasks, targetIndexAfterRemoval)
+  } else if (position === 'below') {
+    movedRootTask[parentIdField] = targetTask[parentIdField]
+    insertIndex = getTaskSubtreeInsertIndex(remainingTasks, targetIndexAfterRemoval)
+  } else {
+    movedRootTask[parentIdField] = targetTask[parentIdField]
+  }
+
+  const reorderedTasks = [
+    ...remainingTasks.slice(0, insertIndex),
+    ...movedSubtree,
+    ...remainingTasks.slice(insertIndex),
+  ]
+
+  return flattenTasksByHierarchy(reorderedTasks, mapFields)
 }
