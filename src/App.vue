@@ -359,6 +359,32 @@ const styleConfig = ref<StyleConfig>({
       indicators,
     }
   },
+  taskHeaderCellStyle: {
+    fontSize: '13px',
+    fontWeight: 600,
+  },
+  setTaskHeaderCellStyle: header => {
+    if (header.property === 'task') {
+      return {
+        textAlign: 'left',
+      }
+    }
+    return undefined
+  },
+  taskHeaderTextColor: '#1f2937',
+  setTaskHeaderTextColor: header => {
+    if (header.property === 'priority') {
+      return '#7c3aed'
+    }
+    return undefined
+  },
+  taskHeaderBackgroundColor: '#f8fafc',
+  setTaskHeaderBackgroundColor: header => {
+    if (header.property === 'priority') {
+      return '#f3e8ff'
+    }
+    return undefined
+  },
   taskContentTextColor: '#333333',
   setTaskContentTextColor: (row: GanttTask, header, value) => {
     if (header.property === 'priority') {
@@ -376,6 +402,78 @@ const styleConfig = ref<StyleConfig>({
 
     return undefined
   },
+  taskContentCellStyle: {
+    fontSize: '12px',
+    fontWeight: 500,
+  },
+  setTaskContentCellStyle: (_row: GanttTask, header, value) => {
+    if (header.property === 'priority') {
+      return {
+        textAlign: 'center',
+        fontWeight: 600,
+      }
+    }
+
+    if (header.property === 'takestime' && Number.parseInt(String(value), 10) >= 10) {
+      return {
+        fontWeight: 700,
+      }
+    }
+
+    return undefined
+  },
+  taskContentBackgroundColor: '#ffffff',
+  setTaskContentBackgroundColor: (_row: GanttTask, header, value) => {
+    if (header.property === 'priority' && value === '紧急') {
+      return '#fef2f2'
+    }
+    return undefined
+  },
+  taskCollapseButtonStyle: {
+    backgroundColor: '#f8fafc',
+    color: '#475569',
+    '--task-collapse-button-hover-background': '#e2e8f0',
+    '--task-collapse-button-hover-color': '#1e293b',
+  },
+  setTaskCollapseButtonStyle: ({ scope, row }) => {
+    if (scope === 'header') {
+      return {
+        backgroundColor: '#e0f2fe',
+        color: '#0369a1',
+      }
+    }
+
+    if (row?.type === 'project') {
+      return {
+        backgroundColor: '#dcfce7',
+        color: '#166534',
+      }
+    }
+
+    return undefined
+  },
+  taskActionButtonStyle: {
+    backgroundColor: '#f8fafc',
+    borderRadius: '999px',
+    '--task-action-button-hover-background': '#e2e8f0',
+  },
+  setTaskActionButtonStyle: ({ type, row }) => {
+    if (type === 'delete') {
+      return {
+        color: row.type === 'project' ? '#b91c1c' : '#dc2626',
+        '--task-action-button-delete-hover-background': '#fee2e2',
+      }
+    }
+
+    return {
+      color: '#0f766e',
+      '--task-action-button-add-hover-background': '#ccfbf1',
+    }
+  },
+  taskRowHoverBackgroundColor: '#e0f2fe',
+  taskRowHoverTextColor: '#0f172a',
+  taskTreeIndentSize: 20,
+  taskTreeLineColor: '#94a3b8',
 
   // // ========== CSS 变量配置 ==========
   // cssVariables: {

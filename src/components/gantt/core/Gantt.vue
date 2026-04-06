@@ -1491,8 +1491,68 @@ export default defineComponent({
         return props.styleConfig.setBarColor(row)
       })
 
+      if (props.styleConfig.taskHeaderCellStyle) {
+        provide(Symbols.TaskHeaderCellStyleSymbol, props.styleConfig.taskHeaderCellStyle)
+      }
+
+      if (props.styleConfig.setTaskHeaderCellStyle) {
+        provide(Symbols.SetTaskHeaderCellStyleSymbol, props.styleConfig.setTaskHeaderCellStyle)
+      }
+
+      if (props.styleConfig.setTaskHeaderTextColor) {
+        provide(Symbols.SetTaskHeaderTextColorSymbol, props.styleConfig.setTaskHeaderTextColor)
+      }
+
+      if (props.styleConfig.setTaskHeaderBackgroundColor) {
+        provide(
+          Symbols.SetTaskHeaderBackgroundColorSymbol,
+          props.styleConfig.setTaskHeaderBackgroundColor
+        )
+      }
+
+      if (props.styleConfig.taskCollapseButtonStyle) {
+        provide(Symbols.TaskCollapseButtonStyleSymbol, props.styleConfig.taskCollapseButtonStyle)
+      }
+
+      if (props.styleConfig.setTaskCollapseButtonStyle) {
+        provide(
+          Symbols.SetTaskCollapseButtonStyleSymbol,
+          props.styleConfig.setTaskCollapseButtonStyle
+        )
+      }
+
+      if (props.styleConfig.taskContentCellStyle) {
+        provide(Symbols.TaskContentCellStyleSymbol, props.styleConfig.taskContentCellStyle)
+      }
+
+      if (props.styleConfig.taskTreeIndentSize) {
+        provide(Symbols.TaskTreeIndentSizeSymbol, props.styleConfig.taskTreeIndentSize)
+      }
+
+      if (props.styleConfig.setTaskContentCellStyle) {
+        provide(
+          Symbols.SetTaskContentCellStyleSymbol,
+          props.styleConfig.setTaskContentCellStyle
+        )
+      }
+
       if (props.styleConfig.setTaskContentTextColor) {
         provide(Symbols.SetTaskContentTextColorSymbol, props.styleConfig.setTaskContentTextColor)
+      }
+
+      if (props.styleConfig.setTaskContentBackgroundColor) {
+        provide(
+          Symbols.SetTaskContentBackgroundColorSymbol,
+          props.styleConfig.setTaskContentBackgroundColor
+        )
+      }
+
+      if (props.styleConfig.taskActionButtonStyle) {
+        provide(Symbols.TaskActionButtonStyleSymbol, props.styleConfig.taskActionButtonStyle)
+      }
+
+      if (props.styleConfig.setTaskActionButtonStyle) {
+        provide(Symbols.SetTaskActionButtonStyleSymbol, props.styleConfig.setTaskActionButtonStyle)
       }
 
       provide(Symbols.TaskMoveSymbol, {
@@ -1622,12 +1682,39 @@ export default defineComponent({
           return acc
         }, {} as Record<string, string>)
 
-        if (props.styleConfig?.taskContentTextColor) {
-          containerVars['--text-content'] = props.styleConfig.taskContentTextColor
-        }
+          if (props.styleConfig?.taskContentTextColor) {
+            containerVars['--text-content'] = props.styleConfig.taskContentTextColor
+          }
 
-        return containerVars
-      }),
+          if (props.styleConfig?.taskContentBackgroundColor) {
+            containerVars['--task-content-background-color'] =
+              props.styleConfig.taskContentBackgroundColor
+          }
+
+          if (props.styleConfig?.taskRowHoverBackgroundColor) {
+            containerVars['--task-row-hover-background-color'] =
+              props.styleConfig.taskRowHoverBackgroundColor
+          }
+
+          if (props.styleConfig?.taskRowHoverTextColor) {
+            containerVars['--task-row-hover-text-color'] = props.styleConfig.taskRowHoverTextColor
+          }
+
+          if (props.styleConfig?.taskTreeLineColor) {
+            containerVars['--task-tree-line-color'] = props.styleConfig.taskTreeLineColor
+          }
+
+          if (props.styleConfig?.taskHeaderTextColor) {
+            containerVars['--task-header-text-color'] = props.styleConfig.taskHeaderTextColor
+          }
+
+          if (props.styleConfig?.taskHeaderBackgroundColor) {
+            containerVars['--task-header-background-color'] =
+              props.styleConfig.taskHeaderBackgroundColor
+          }
+
+          return containerVars
+        }),
       isDarkMode: props.isDarkMode,
     }
   },

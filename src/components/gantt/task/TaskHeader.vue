@@ -7,7 +7,7 @@
         v-show="item.property === 'no' || item.show"
         class="headerCaption"
         :class="[headerClassName, { 'no-column': item.property === 'no' }]"
-        :style="getHeaderWidthStyle(index, item)"
+        :style="getHeaderCellStyle(index, item)"
       >
         <span v-if="item.property !== 'no'">{{ getHeaderTitle(item) }}</span>
         <!-- 序号列：显示折叠/展开按钮 + 标题 -->
@@ -15,6 +15,7 @@
           <div class="collapse-button-wrapper">
             <CollapseButton
               :collapsed="allCollapsed"
+              scope="header"
               :title="allCollapsed ? '展开所有' : '折叠所有'"
               @toggle="toggleAllCollapse"
             />
@@ -34,10 +35,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, nextTick } from 'vue'
+import { defineComponent, ref, computed, nextTick, inject } from 'vue'
 import { useI18n } from '../i18n'
 import { store, mutations } from '../state/Store'
 import CollapseButton from './CollapseButton.vue'
+import { Symbols } from '../state/Symbols'
+import type { StyleConfig } from '../types/Types'
 
 export default defineComponent({
   components: {
@@ -61,6 +64,21 @@ export default defineComponent({
   emits: ['preview:headerWidth', 'update:headerWidth'],
   setup(props, { emit }) {
     const { t } = useI18n()
+    const taskHeaderCellStyle = inject<Record<string, string | number> | undefined>(
+      Symbols.TaskHeaderCellStyleSymbol,
+      undefined
+    )
+    const setTaskHeaderCellStyle = inject<StyleConfig['setTaskHeaderCellStyle'] | undefined>(
+      Symbols.SetTaskHeaderCellStyleSymbol,
+      undefined
+    )
+    const setTaskHeaderTextColor = inject<StyleConfig['setTaskHeaderTextColor'] | undefined>(
+      Symbols.SetTaskHeaderTextColorSymbol,
+      undefined
+    )
+    const setTaskHeaderBackgroundColor = inject<
+      StyleConfig['setTaskHeaderBackgroundColor'] | undefined
+    >(Symbols.SetTaskHeaderBackgroundColorSymbol, undefined)
 
     // 全局折叠状态
     const allCollapsed = computed(() => store.allCollapsed)
@@ -106,12 +124,39 @@ export default defineComponent({
       return header.title
     }
 
-    const getHeaderWidthStyle = (
+    const getHeaderCellStyle = (
       index: number,
-      header: { width?: number }
-    ): Record<string, string> => ({
-      width: `var(--gantt-column-width-${index}, ${(header.width ?? 100).toString()}px)`,
-    })
+      header: { width?: number; property: string; show?: boolean; title: string }
+    ): Record<string, string | number> => {
+      const style: Record<string, string | number> = {
+        width: `var(--gantt-column-width-${index}, ${(header.width ?? 100).toString()}px)`,
+      }
+
+      if (taskHeaderCellStyle) {
+        Object.assign(style, taskHeaderCellStyle)
+      }
+
+      const resolvedColor = setTaskHeaderTextColor?.(header as any)
+      if (resolvedColor) {
+        style.color = resolvedColor
+      }
+
+      const resolvedBackgroundColor = setTaskHeaderBackgroundColor?.(header as any)
+      if (resolvedBackgroundColor) {
+        style.backgroundColor = resolvedBackgroundColor
+      }
+
+      const resolvedHeaderCellStyle = setTaskHeaderCellStyle?.(header as any)
+      if (resolvedHeaderCellStyle) {
+        Object.entries(resolvedHeaderCellStyle).forEach(([key, value]) => {
+          if (value !== undefined) {
+            style[key] = value
+          }
+        })
+      }
+
+      return style
+    }
 
     // 开始拖动调整列宽
     const startResize = (event: MouseEvent, index: number) => {
@@ -186,7 +231,7 @@ export default defineComponent({
 
     return {
       getHeaderTitle,
-      getHeaderWidthStyle,
+      getHeaderCellStyle,
       startResize,
       allCollapsed,
       toggleAllCollapse,
@@ -211,12 +256,15 @@ export default defineComponent({
     align-items: center;
     justify-content: center;
     position: relative;
-    color: var(--text-primary, #333333);
+    color: var(--task-header-text-color, var(--text-primary, #333333));
     font-size: 14px;
     font-weight: 600;
     box-sizing: border-box;
     letter-spacing: 0.5px;
-    background: var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5));
+    background: var(
+      --task-header-background-color,
+      var(--bg-metal-light, linear-gradient(145deg, #ffffff, #f5f5f5))
+    );
     transition:
       background var(--transition-fast, 0.15s ease),
       color var(--transition-fast, 0.15s ease);

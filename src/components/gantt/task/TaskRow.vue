@@ -18,7 +18,7 @@
             <div class="no-cell-content no-cell-content-simple">
               <div
                 class="no-left-section no-left-section-simple"
-                :style="{ paddingLeft: (row.treeLevel || 0) * 16 + 'px' }"
+                :style="{ paddingLeft: getIndentPaddingLeft(row.treeLevel) }"
               >
                 <span class="collapse-placeholder"></span>
                 <span class="no-text">{{ row.no }}</span>
@@ -34,14 +34,14 @@
                   v-for="level in getAncestorLines"
                   :key="'ancestor-' + level"
                   class="tree-line-vertical ancestor"
-                  :style="{ left: level * 16 + 8 + 'px' }"
+                  :style="{ left: getTreeLineLeft(level) }"
                 ></div>
 
                 <!-- 顶级节点有子节点且未折叠时，显示向下的竖线 -->
                 <div
                   v-if="row.treeLevel === 1 && hasChildren && !isCollapsed"
                   class="tree-line-vertical parent-to-child"
-                  :style="{ left: row.treeLevel * 16 + 8 + 'px' }"
+                  :style="{ left: getTreeLineLeft(row.treeLevel) }"
                 ></div>
 
                 <!-- 子节点的连接线 -->
@@ -50,30 +50,32 @@
                   <div
                     class="tree-line-vertical current"
                     :class="{ 'is-last-child': isLastChild }"
-                    :style="{ left: (row.treeLevel - 1) * 16 + 8 + 'px' }"
+                    :style="{ left: getTreeLineLeft(row.treeLevel - 1) }"
                   ></div>
 
                   <!-- 水平线（连接到当前节点） -->
                   <div
                     class="tree-line-horizontal"
-                    :style="{ left: (row.treeLevel - 1) * 16 + 8 + 'px', width: '32px' }"
+                    :style="{ left: getTreeLineLeft(row.treeLevel - 1), width: getTreeHorizontalWidth() }"
                   ></div>
 
                   <!-- 如果当前节点有子节点且未折叠，显示向下的竖线 -->
                   <div
                     v-if="hasChildren && !isCollapsed"
                     class="tree-line-vertical parent-to-child"
-                    :style="{ left: row.treeLevel * 16 + 8 + 'px' }"
+                    :style="{ left: getTreeLineLeft(row.treeLevel) }"
                   ></div>
                 </template>
               </div>
 
               <!-- 左侧：折叠按钮 + 序号 -->
-              <div class="no-left-section" :style="{ paddingLeft: (row.treeLevel || 0) * 16 + 'px' }">
+              <div class="no-left-section" :style="{ paddingLeft: getIndentPaddingLeft(row.treeLevel) }">
                 <!-- 折叠/展开按钮 -->
                 <CollapseButton
                   v-if="hasChildren"
                   :collapsed="isCollapsed"
+                  :row="row"
+                  scope="row"
                   :title="isCollapsed ? '展开' : '折叠'"
                   @toggle="toggleCollapse"
                 />
@@ -89,6 +91,7 @@
                 <button
                   @click.stop="setSubTask(row)"
                   class="action-btn add-btn"
+                  :style="getActionButtonStyle('add', row)"
                   :title="'添加子任务'"
                 >
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
@@ -100,6 +103,7 @@
                 <button
                   @click.stop="setRemoveTask(row)"
                   class="action-btn delete-btn"
+                  :style="getActionButtonStyle('delete', row)"
                   :title="'删除任务'"
                 >
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
@@ -143,6 +147,7 @@ import {
   taskHierarchyIndex,
 } from '../state/DerivedState'
 import type { StyleConfig } from '../types/Types'
+import type { GanttTask, GanttTaskHeader } from '../types/GanttTypes'
 
 export default defineComponent({
   components: {
@@ -192,6 +197,29 @@ export default defineComponent({
     )
     const setTaskContentTextColor = inject<StyleConfig['setTaskContentTextColor'] | undefined>(
       Symbols.SetTaskContentTextColorSymbol,
+      undefined
+    )
+    const taskContentCellStyle = inject<Record<string, string | number> | undefined>(
+      Symbols.TaskContentCellStyleSymbol,
+      undefined
+    )
+    const taskTreeIndentSize = inject<number | undefined>(
+      Symbols.TaskTreeIndentSizeSymbol,
+      undefined
+    )
+    const setTaskContentCellStyle = inject<StyleConfig['setTaskContentCellStyle'] | undefined>(
+      Symbols.SetTaskContentCellStyleSymbol,
+      undefined
+    )
+    const setTaskContentBackgroundColor = inject<
+      StyleConfig['setTaskContentBackgroundColor'] | undefined
+    >(Symbols.SetTaskContentBackgroundColorSymbol, undefined)
+    const taskActionButtonStyle = inject<Record<string, string | number> | undefined>(
+      Symbols.TaskActionButtonStyleSymbol,
+      undefined
+    )
+    const setTaskActionButtonStyle = inject<StyleConfig['setTaskActionButtonStyle'] | undefined>(
+      Symbols.SetTaskActionButtonStyleSymbol,
       undefined
     )
 
@@ -297,13 +325,31 @@ export default defineComponent({
       }
     }
 
+    const indentSize = computed(() => taskTreeIndentSize ?? 16)
+
+    const getIndentPaddingLeft = (level: number | undefined): string => {
+      return `${(level || 0) * indentSize.value}px`
+    }
+
+    const getTreeLineLeft = (level: number): string => {
+      return `${level * indentSize.value + indentSize.value / 2}px`
+    }
+
+    const getTreeHorizontalWidth = (): string => {
+      return `${indentSize.value * 2}px`
+    }
+
     const getCellStyle = (
       headerIndex: number,
-      header: { width?: number; property?: string },
+      header: GanttTaskHeader,
       rowHeight: number,
-      row: Record<string, any>
-    ): Record<string, string> => {
+      row: GanttTask
+    ): Record<string, string | number> => {
       const style = getColumnWidthStyle(headerIndex, header, rowHeight)
+
+      if (taskContentCellStyle) {
+        Object.assign(style, taskContentCellStyle)
+      }
 
       if (!header.property) {
         return style
@@ -314,6 +360,46 @@ export default defineComponent({
 
       if (resolvedColor) {
         style.color = resolvedColor
+      }
+
+      const resolvedBackgroundColor = setTaskContentBackgroundColor?.(row as any, header as any, value)
+      if (resolvedBackgroundColor) {
+        style.backgroundColor = resolvedBackgroundColor
+      }
+
+      const resolvedCellStyle = setTaskContentCellStyle?.(row as any, header as any, value)
+      if (resolvedCellStyle) {
+        Object.entries(resolvedCellStyle).forEach(([key, cellStyleValue]) => {
+          if (cellStyleValue !== undefined) {
+            style[key] = cellStyleValue
+          }
+        })
+      }
+
+      return style
+    }
+
+    const getActionButtonStyle = (
+      type: 'add' | 'delete',
+      row: GanttTask
+    ): Record<string, string | number> => {
+      const style: Record<string, string | number> = {}
+
+      if (taskActionButtonStyle) {
+        Object.assign(style, taskActionButtonStyle)
+      }
+
+      const resolvedStyle = setTaskActionButtonStyle?.({
+        row,
+        type,
+      })
+
+      if (resolvedStyle) {
+        Object.entries(resolvedStyle).forEach(([key, value]) => {
+          if (value !== undefined) {
+            style[key] = value
+          }
+        })
       }
 
       return style
@@ -359,6 +445,10 @@ export default defineComponent({
       checkField,
       getColumnWidthStyle,
       getCellStyle,
+      getActionButtonStyle,
+      getIndentPaddingLeft,
+      getTreeLineLeft,
+      getTreeHorizontalWidth,
       hoverActive,
       hoverInactive,
       addRootTask: handleAddRootTask,
@@ -371,7 +461,8 @@ export default defineComponent({
 .active > .row,
 .active > .row .cell,
 .active > .row .cellNo {
-  background: var(--row-hover, #dbeafe) !important;
+  background: var(--task-row-hover-background-color, var(--row-hover, #dbeafe)) !important;
+  color: var(--task-row-hover-text-color, currentColor) !important;
 }
 
 .row {
@@ -413,7 +504,7 @@ export default defineComponent({
     border-bottom: 1px solid transparent;
     position: relative;
     color: var(--text-content, var(--text-primary, #333333));
-    background: var(--bg-content, #ffffff);
+    background: var(--task-content-background-color, var(--bg-content, #ffffff));
     padding: 0 8px;
 
     &:first-of-type {
@@ -458,7 +549,7 @@ export default defineComponent({
     .tree-line-vertical {
       position: absolute;
       width: 1px;
-      background: #d0d0d0;
+      background: var(--task-tree-line-color, #d0d0d0);
 
       // 祖先贯穿线（从顶部到底部）
       &.ancestor {
@@ -487,77 +578,7 @@ export default defineComponent({
       position: absolute;
       top: 50%;
       height: 1px;
-      background: #d0d0d0;
-    }
-
-    .collapse-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 22px;
-      height: 22px;
-      padding: 0;
-      border: none;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      color: #6c757d;
-      cursor: pointer;
-      border-radius: 6px;
-      transition: all 0.2s ease;
-      flex-shrink: 0;
-      position: relative;
-      z-index: 1;
-      box-shadow:
-        0 1px 3px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.8);
-
-      svg {
-        width: 16px;
-        height: 16px;
-        transition: all 0.2s ease;
-      }
-
-      // 箭头旋转动画 - 展开状态向下
-      .arrow {
-        transform-origin: center;
-        transition: transform 0.2s ease;
-        transform: rotate(90deg);
-      }
-
-      // 折叠状态：箭头向右
-      &.collapsed .arrow {
-        transform: rotate(0deg);
-      }
-
-      // 悬停效果
-      &:hover {
-        background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-        color: #495057;
-        box-shadow:
-          0 2px 6px rgba(0, 0, 0, 0.15),
-          inset 0 1px 0 rgba(255, 255, 255, 0.9);
-
-        svg {
-          transform: scale(1.1);
-        }
-      }
-
-      // 激活状态
-      &:active {
-        background: linear-gradient(135deg, #dee2e6 0%, #ced4da 100%);
-        box-shadow:
-          0 1px 2px rgba(0, 0, 0, 0.1),
-          inset 0 1px 2px rgba(0, 0, 0, 0.1);
-
-        svg {
-          transform: scale(0.95);
-        }
-      }
-
-      // 聚焦状态
-      &:focus-visible {
-        outline: 2px solid var(--primary, #3370ff);
-        outline-offset: 2px;
-      }
+      background: var(--task-tree-line-color, #d0d0d0);
     }
 
     .collapse-placeholder {
@@ -602,11 +623,11 @@ export default defineComponent({
       height: 22px;
       padding: 0;
       border: none;
-      background: transparent;
-      color: var(--text-secondary, #888);
+      background: var(--task-action-button-background, transparent);
+      color: var(--task-action-button-color, var(--text-secondary, #888));
       cursor: pointer;
-      border-radius: 4px;
-      transition: all 0.2s ease;
+      border-radius: var(--task-action-button-radius, 4px);
+      transition: var(--task-action-button-transition, all 0.2s ease);
       flex-shrink: 0;
 
       svg {
@@ -615,21 +636,30 @@ export default defineComponent({
       }
 
       &:hover {
-        background: var(--hover-bg, rgba(0, 0, 0, 0.06));
+        background: var(
+          --task-action-button-hover-background,
+          var(--hover-bg, rgba(0, 0, 0, 0.06))
+        );
       }
 
       &:active {
-        transform: scale(0.95);
+        transform: var(--task-action-button-active-transform, scale(0.95));
       }
 
       &.add-btn:hover {
-        color: var(--success, #52c41a);
-        background: rgba(82, 196, 26, 0.1);
+        color: var(--task-action-button-add-hover-color, var(--success, #52c41a));
+        background: var(
+          --task-action-button-add-hover-background,
+          rgba(82, 196, 26, 0.1)
+        );
       }
 
       &.delete-btn:hover {
-        color: var(--danger, #ff4d4f);
-        background: rgba(255, 77, 79, 0.1);
+        color: var(--task-action-button-delete-hover-color, var(--danger, #ff4d4f));
+        background: var(
+          --task-action-button-delete-hover-background,
+          rgba(255, 77, 79, 0.1)
+        );
       }
     }
   }
@@ -643,7 +673,7 @@ export default defineComponent({
     border-bottom: 1px solid transparent;
     position: relative;
     color: var(--text-content, #ffff00);
-    background: var(--bg-content, #ffffff);
+    background: var(--task-content-background-color, var(--bg-content, #ffffff));
     min-width: 0;
     overflow: hidden;
 

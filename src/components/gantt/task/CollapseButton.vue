@@ -2,6 +2,8 @@
   <span
     class="collapse-btn"
     :class="{ collapsed: collapsed }"
+    :style="resolvedStyle"
+    :data-scope="scope"
     :title="title"
     role="button"
     tabindex="0"
@@ -16,7 +18,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { computed, defineComponent, inject, type PropType } from 'vue'
+import { Symbols } from '../state/Symbols'
+import type { GanttTask } from '../types/GanttTypes'
+import type { StyleConfig } from '../types/Types'
 
 export default defineComponent({
   name: 'CollapseButton',
@@ -29,8 +34,53 @@ export default defineComponent({
       type: String,
       default: '折叠',
     },
+    row: {
+      type: Object as PropType<GanttTask | undefined>,
+      default: undefined,
+    },
+    scope: {
+      type: String as PropType<'header' | 'row'>,
+      default: 'row',
+    },
   },
   emits: ['toggle'],
+  setup(props) {
+    const taskCollapseButtonStyle = inject<Record<string, string | number> | undefined>(
+      Symbols.TaskCollapseButtonStyleSymbol,
+      undefined
+    )
+    const setTaskCollapseButtonStyle = inject<
+      StyleConfig['setTaskCollapseButtonStyle'] | undefined
+    >(Symbols.SetTaskCollapseButtonStyleSymbol, undefined)
+
+    const resolvedStyle = computed<Record<string, string | number>>(() => {
+      const style: Record<string, string | number> = {}
+
+      if (taskCollapseButtonStyle) {
+        Object.assign(style, taskCollapseButtonStyle)
+      }
+
+      const dynamicStyle = setTaskCollapseButtonStyle?.({
+        collapsed: props.collapsed,
+        row: props.row,
+        scope: props.scope,
+      })
+
+      if (dynamicStyle) {
+        Object.entries(dynamicStyle).forEach(([key, value]) => {
+          if (value !== undefined) {
+            style[key] = value
+          }
+        })
+      }
+
+      return style
+    })
+
+    return {
+      resolvedStyle,
+    }
+  },
 })
 </script>
 
@@ -43,17 +93,22 @@ export default defineComponent({
   height: 22px;
   padding: 0;
   border: none;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  color: #6c757d;
+  background: var(
+    --task-collapse-button-background,
+    linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)
+  );
+  color: var(--task-collapse-button-color, #6c757d);
   cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s ease;
+  border-radius: var(--task-collapse-button-radius, 6px);
+  transition: var(--task-collapse-button-transition, all 0.2s ease);
   flex-shrink: 0;
   position: relative;
   z-index: 1;
-  box-shadow:
+  box-shadow: var(
+    --task-collapse-button-shadow,
     0 1px 3px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    inset 0 1px 0 rgba(255, 255, 255, 0.8)
+  );
 
   svg {
     width: 16px;
@@ -72,11 +127,16 @@ export default defineComponent({
   }
 
   &:hover {
-    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-    color: #495057;
-    box-shadow:
+    background: var(
+      --task-collapse-button-hover-background,
+      linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%)
+    );
+    color: var(--task-collapse-button-hover-color, #495057);
+    box-shadow: var(
+      --task-collapse-button-hover-shadow,
       0 2px 6px rgba(0, 0, 0, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      inset 0 1px 0 rgba(255, 255, 255, 0.9)
+    );
 
     svg {
       transform: scale(1.1);
@@ -84,10 +144,19 @@ export default defineComponent({
   }
 
   &:active {
-    background: linear-gradient(135deg, #dee2e6 0%, #ced4da 100%);
-    box-shadow:
+    background: var(
+      --task-collapse-button-active-background,
+      linear-gradient(135deg, #dee2e6 0%, #ced4da 100%)
+    );
+    color: var(
+      --task-collapse-button-active-color,
+      var(--task-collapse-button-hover-color, #495057)
+    );
+    box-shadow: var(
+      --task-collapse-button-active-shadow,
       0 1px 2px rgba(0, 0, 0, 0.1),
-      inset 0 1px 2px rgba(0, 0, 0, 0.1);
+      inset 0 1px 2px rgba(0, 0, 0, 0.1)
+    );
 
     svg {
       transform: scale(0.95);
@@ -95,8 +164,8 @@ export default defineComponent({
   }
 
   &:focus-visible {
-    outline: 2px solid var(--primary, #3370ff);
-    outline-offset: 2px;
+    outline: var(--task-collapse-button-focus-outline, 2px solid var(--primary, #3370ff));
+    outline-offset: var(--task-collapse-button-focus-offset, 2px);
   }
 }
 </style>

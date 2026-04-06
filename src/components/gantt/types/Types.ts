@@ -100,12 +100,47 @@ export interface StyleConfig {
   setBarColor: (row: GanttTask) => string
   setTaskType?: (row: GanttTask) => TaskType
   setBarDecorations?: (row: GanttTask) => TaskBarDecorations | null | undefined
+  taskCollapseButtonStyle?: Record<string, string | number>
+  setTaskCollapseButtonStyle?: (context: {
+    collapsed: boolean
+    row?: GanttTask
+    scope: 'header' | 'row'
+  }) => Record<string, string | number | undefined> | undefined
+  taskHeaderCellStyle?: Record<string, string | number>
+  setTaskHeaderCellStyle?: (
+    header: GanttTaskHeader
+  ) => Record<string, string | number | undefined> | undefined
+  taskHeaderTextColor?: string
+  setTaskHeaderTextColor?: (header: GanttTaskHeader) => string | undefined
+  taskHeaderBackgroundColor?: string
+  setTaskHeaderBackgroundColor?: (header: GanttTaskHeader) => string | undefined
+  taskContentCellStyle?: Record<string, string | number>
+  setTaskContentCellStyle?: (
+    row: GanttTask,
+    header: GanttTaskHeader,
+    value: unknown
+  ) => Record<string, string | number | undefined> | undefined
   taskContentTextColor?: string
   setTaskContentTextColor?: (
     row: GanttTask,
     header: GanttTaskHeader,
     value: unknown
   ) => string | undefined
+  taskContentBackgroundColor?: string
+  setTaskContentBackgroundColor?: (
+    row: GanttTask,
+    header: GanttTaskHeader,
+    value: unknown
+  ) => string | undefined
+  taskActionButtonStyle?: Record<string, string | number>
+  setTaskActionButtonStyle?: (context: {
+    row: GanttTask
+    type: 'add' | 'delete'
+  }) => Record<string, string | number | undefined> | undefined
+  taskRowHoverBackgroundColor?: string
+  taskRowHoverTextColor?: string
+  taskTreeIndentSize?: number
+  taskTreeLineColor?: string
   cssVariables?: Record<string, string>
   tableClassName?: string
   headerClassName?: string
