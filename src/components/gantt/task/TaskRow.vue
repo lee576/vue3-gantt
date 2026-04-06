@@ -12,7 +12,7 @@
           :key="headerIndex"
           :columnindex="headerIndex"
           v-if="header.property === 'no'"
-          :style="getColumnWidthStyle(headerIndex, header, rowHeight)"
+          :style="getCellStyle(headerIndex, header, rowHeight, row)"
         >
           <template v-if="isVerticalScrolling">
             <div class="no-cell-content no-cell-content-simple">
@@ -123,7 +123,7 @@
           :class="contentClassName"
           :key="headerIndex + '-header'"
           :columnindex="headerIndex"
-          :style="getColumnWidthStyle(headerIndex, header, rowHeight)"
+          :style="getCellStyle(headerIndex, header, rowHeight, row)"
         >
           {{ checkField(row, header.property) }}
         </div>
@@ -137,10 +137,12 @@ import { defineComponent, ref, computed, inject } from 'vue'
 import { store, mutations } from '../state/Store'
 import sharedState, { useScrollState } from '../state/ShareState'
 import CollapseButton from './CollapseButton.vue'
+import { Symbols } from '../state/Symbols'
 import {
   normalizeTaskKey,
   taskHierarchyIndex,
 } from '../state/DerivedState'
+import type { StyleConfig } from '../types/Types'
 
 export default defineComponent({
   components: {
@@ -187,6 +189,10 @@ export default defineComponent({
       () =>
         !isVerticalScrolling.value &&
         props.row[mapFields.value.id] === sharedState.highlightedId
+    )
+    const setTaskContentTextColor = inject<StyleConfig['setTaskContentTextColor'] | undefined>(
+      Symbols.SetTaskContentTextColorSymbol,
+      undefined
     )
 
     inject('barHover', null)
@@ -291,6 +297,28 @@ export default defineComponent({
       }
     }
 
+    const getCellStyle = (
+      headerIndex: number,
+      header: { width?: number; property?: string },
+      rowHeight: number,
+      row: Record<string, any>
+    ): Record<string, string> => {
+      const style = getColumnWidthStyle(headerIndex, header, rowHeight)
+
+      if (!header.property) {
+        return style
+      }
+
+      const value = checkField(row, header.property)
+      const resolvedColor = setTaskContentTextColor?.(row as any, header as any, value)
+
+      if (resolvedColor) {
+        style.color = resolvedColor
+      }
+
+      return style
+    }
+
     const hoverActive = () => {
       // 正在拖动滚动条时不做高亮广播，避免左右两侧可见行一起响应 hover 状态。
       if (isVerticalScrolling.value) {
@@ -330,6 +358,7 @@ export default defineComponent({
       setRemoveTask,
       checkField,
       getColumnWidthStyle,
+      getCellStyle,
       hoverActive,
       hoverInactive,
       addRootTask: handleAddRootTask,
@@ -383,7 +412,7 @@ export default defineComponent({
     border-top: 1px solid transparent;
     border-bottom: 1px solid transparent;
     position: relative;
-    color: var(--text-primary, #333333);
+    color: var(--text-content, var(--text-primary, #333333));
     background: var(--bg-content, #ffffff);
     padding: 0 8px;
 
@@ -548,7 +577,7 @@ export default defineComponent({
       white-space: nowrap;
       font-size: 12px;
       font-weight: 500;
-      color: var(--text-primary, #333333);
+      color: inherit;
       position: relative;
       z-index: 1;
     }

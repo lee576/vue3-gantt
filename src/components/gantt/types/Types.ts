@@ -100,6 +100,12 @@ export interface StyleConfig {
   setBarColor: (row: GanttTask) => string
   setTaskType?: (row: GanttTask) => TaskType
   setBarDecorations?: (row: GanttTask) => TaskBarDecorations | null | undefined
+  taskContentTextColor?: string
+  setTaskContentTextColor?: (
+    row: GanttTask,
+    header: GanttTaskHeader,
+    value: unknown
+  ) => string | undefined
   cssVariables?: Record<string, string>
   tableClassName?: string
   headerClassName?: string

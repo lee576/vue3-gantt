@@ -1487,11 +1487,15 @@ export default defineComponent({
     })
 
     // 设置Bar的颜色,传递到子组件
-    provide(Symbols.SetBarColorSymbol, (row: GanttTask) => {
-      return props.styleConfig.setBarColor(row)
-    })
+      provide(Symbols.SetBarColorSymbol, (row: GanttTask) => {
+        return props.styleConfig.setBarColor(row)
+      })
 
-    provide(Symbols.TaskMoveSymbol, {
+      if (props.styleConfig.setTaskContentTextColor) {
+        provide(Symbols.SetTaskContentTextColorSymbol, props.styleConfig.setTaskContentTextColor)
+      }
+
+      provide(Symbols.TaskMoveSymbol, {
       moveTask: (detail: TaskMoveDetail) => props.eventConfig.moveTask?.(detail),
       moveTaskStart: (detail: TaskMoveStartDetail) => {
         props.eventConfig.moveTaskStart?.(detail)
@@ -1612,12 +1616,17 @@ export default defineComponent({
       containerClassName: props.styleConfig?.containerClassName ?? props.containerClassName,
       timelineHeaderClassName: props.styleConfig?.timelineHeaderClassName ?? props.timelineHeaderClassName,
       containerStyle: computed(() => {
-        const vars = props.styleConfig?.cssVariables
-        if (!vars) return {}
-        return Object.entries(vars).reduce((acc, [key, value]) => {
+        const vars = props.styleConfig?.cssVariables ?? {}
+        const containerVars = Object.entries(vars).reduce((acc, [key, value]) => {
           acc[key] = value
           return acc
         }, {} as Record<string, string>)
+
+        if (props.styleConfig?.taskContentTextColor) {
+          containerVars['--text-content'] = props.styleConfig.taskContentTextColor
+        }
+
+        return containerVars
       }),
       isDarkMode: props.isDarkMode,
     }
