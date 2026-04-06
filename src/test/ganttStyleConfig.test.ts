@@ -102,6 +102,41 @@ describe('Gantt StyleConfig', () => {
     expect(wrapper.attributes('style')).toContain('--task-tree-line-color: #94a3b8;')
   })
 
+  it('应该允许任务表背景配置直接复用主题 CSS 变量', () => {
+    const styleConfig: StyleConfig = {
+      headersHeight: 100,
+      rowHeight: 60,
+      setBarColor: () => '#0078d4',
+      taskHeaderBackgroundColor: 'var(--bg-metal-light)',
+      taskContentBackgroundColor: 'var(--bg-content)',
+    }
+
+    const wrapper = shallowMount(Gantt, {
+      props: {
+        styleConfig,
+        dataConfig,
+        eventConfig,
+      },
+      global: {
+        stubs: {
+          DatePicker: true,
+          SplitPane: true,
+          TaskTable: true,
+          RightTable: true,
+          GanttConfigPanel: true,
+          Teleport: true,
+        },
+      },
+    })
+
+    expect(wrapper.attributes('style')).toContain(
+      '--task-header-background-color: var(--bg-metal-light);'
+    )
+    expect(wrapper.attributes('style')).toContain(
+      '--task-content-background-color: var(--bg-content);'
+    )
+  })
+
   it('应该支持表头单元格的通用和动态样式配置', () => {
     const headers: GanttTaskHeader[] = [
       { title: '任务名称', property: 'task', width: 180, show: true },

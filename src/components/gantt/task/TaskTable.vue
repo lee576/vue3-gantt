@@ -328,7 +328,7 @@ export default defineComponent({
   background: var(--bg-content, #ffffff);
   border-left: 1px solid var(--border, #d0d0d0);
 
-  :global(.dark) & {
+  &.dark {
     background: var(--gantt-bg-dark, #1e293b);
     border-color: var(--gantt-border, #334155);
   }
@@ -340,7 +340,7 @@ export default defineComponent({
   position: relative;
   border-bottom: 1px solid var(--border, #cecece);
 
-  :global(.dark) & {
+  &.dark {
     background: #1e293b;
   }
 }
