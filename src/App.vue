@@ -332,7 +332,7 @@ const styleConfig = ref<StyleConfig>({
     if (Number(row.job_progress ?? 0) < 0.4) {
       indicators.push({
         key: 'risk',
-        text: 'Risk',
+        text: '未达进度',
         color: '#9a3412',
         backgroundColor: 'rgba(255, 237, 213, 0.94)',
         borderColor: 'rgba(251, 146, 60, 0.38)',
