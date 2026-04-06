@@ -907,9 +907,9 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .milestoneRow.active {
-  background: var(--row-hover, #fff3a1) !important;
+  background: var(--task-row-hover-background-color, var(--row-hover, #dbeafe)) !important;
   .cell {
-    background: var(--row-hover, #fff3a1) !important;
+    background: var(--task-row-hover-background-color, var(--row-hover, #dbeafe)) !important;
   }
 }
 .milestoneRow {

@@ -380,7 +380,7 @@ export default defineComponent({
   @apply transition-colors duration-200;
 
   &.active {
-    background: var(--row-hover, #fff3a1) !important;
+    background: var(--task-row-hover-background-color, var(--row-hover, #dbeafe)) !important;
   }
 
   &.pending {
